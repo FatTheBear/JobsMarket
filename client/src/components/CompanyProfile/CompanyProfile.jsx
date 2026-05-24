@@ -32,7 +32,11 @@ export default function CompanyProfile() {
     try {
       const res = await fetch(`${API_URL}/api/company/meta/industries`);
       const data = await res.json();
-      setIndustries(data);
+      if (Array.isArray(data) && data.length > 0) {
+        setIndustries(data);
+      } else {
+        throw new Error("Empty array");
+      }
     } catch {
       // Nếu chưa có dữ liệu ngành nghề thì dùng danh sách mặc định
       setIndustries([
