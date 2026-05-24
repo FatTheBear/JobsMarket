@@ -2,6 +2,17 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db');
 
+// GET /api/company/meta/industries — Lấy danh sách ngành nghề
+router.get('/meta/industries', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT id, name FROM Industry ORDER BY name');
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Lỗi server', error: err.message });
+  }
+});
+
 // GET /api/company/:hr_id — Lấy thông tin công ty theo hr_id
 router.get('/:hr_id', async (req, res) => {
   try {
@@ -70,17 +81,6 @@ router.put('/:hr_id', async (req, res) => {
     }
 
     res.json({ message: 'Cập nhật thành công' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Lỗi server', error: err.message });
-  }
-});
-
-// GET /api/company/industries — Lấy danh sách ngành nghề
-router.get('/meta/industries', async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT id, name FROM Industry ORDER BY name');
-    res.json(rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Lỗi server', error: err.message });
