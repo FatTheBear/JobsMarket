@@ -1,0 +1,240 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+:root {
+    --cv-blue: #004d99;
+    --cv-light-blue: #0066cc;
+    --bg-body: #f5f6f8;
+    --bg-card: #ffffff;
+    --border-color: #e0e0e0;
+    --text-main: #333333;
+    --text-muted: #666666;
+    --input-border: #cccccc;
+    --input-focus: #004d99;
+}
+
+body {
+    margin: 0;
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    font-family: 'Roboto', Arial, sans-serif;
+}
+
+.cv-container {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.cv-page-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--cv-blue);
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--cv-blue);
+    padding-bottom: 10px;
+    display: inline-block;
+    text-transform: uppercase;
+}
+
+.cv-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.cv-card-header {
+    background-color: #f8f9fa;
+    padding: 15px 25px;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 700;
+    font-size: 16px;
+    color: #333;
+    text-transform: uppercase;
+}
+
+.cv-card-body {
+    padding: 30px;
+}
+
+/* Logo Section */
+.cv-logo-upload {
+    display: flex;
+    align-items: flex-start;
+    gap: 30px;
+    margin-bottom: 30px;
+    padding-bottom: 30px;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.cv-logo-preview {
+    width: 150px;
+    height: 150px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.cv-logo-preview img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.cv-logo-info {
+    flex: 1;
+}
+
+.cv-logo-info p {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 15px;
+    line-height: 1.5;
+}
+
+/* Form Layout */
+.cv-form-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -15px;
+    margin-bottom: 20px;
+}
+
+.cv-form-group {
+    padding: 0 15px;
+    width: 100%;
+}
+
+.cv-form-group.half {
+    width: 50%;
+}
+
+.cv-label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #333;
+}
+
+.cv-label .required {
+    color: red;
+    margin-left: 3px;
+}
+
+.cv-input,
+.cv-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--input-border);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #333;
+    transition: border-color 0.2s;
+}
+
+.cv-textarea {
+    min-height: 140px;
+    resize: vertical;
+}
+
+.cv-input:focus,
+.cv-textarea:focus {
+    outline: none;
+    border-color: var(--input-focus);
+}
+
+.cv-input::placeholder,
+.cv-textarea::placeholder {
+    color: #999;
+}
+
+/* Footer / Actions */
+.cv-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--border-color);
+}
+
+.cv-btn {
+    padding: 10px 30px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s;
+    text-transform: uppercase;
+}
+
+.cv-btn-primary {
+    background-color: var(--cv-orange, #f26522);
+    /* Using CareerViet orange for main action button */
+    color: white;
+}
+
+.cv-btn-primary:hover {
+    background-color: #d9561b;
+}
+
+.cv-btn-secondary {
+    background-color: #f1f1f1;
+    color: #333;
+    border: 1px solid #ccc;
+}
+
+.cv-btn-secondary:hover {
+    background-color: #e5e5e5;
+}
+
+/* Toast */
+.cv-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: #4CAF50;
+    color: white;
+    padding: 15px 25px;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.cv-toast.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+@media (max-width: 768px) {
+    .cv-form-group.half {
+        width: 100%;
+    }
+
+    .cv-logo-upload {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .cv-form-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .cv-btn {
+        width: 100%;
+    }
+}
