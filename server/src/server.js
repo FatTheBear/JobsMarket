@@ -1,6 +1,8 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
+const express = require("express");
+const cors = require("cors");
+const dotenv = require("dotenv");
+const adminRoutes = require("../routes/adminRoutes.js");
+const authRoutes = require("../routes/authRoutes");
 
 dotenv.config();
 
@@ -8,6 +10,8 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/api/admin", adminRoutes);
+app.use("/api/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("JobsMarket API running...");
