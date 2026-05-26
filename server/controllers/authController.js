@@ -6,25 +6,25 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    console.log("EMAIL NHẬN:", email);
-    console.log("PASSWORD NHẬN:", password);
+    console.log("RECEIVED EMAIL:", email);
+    console.log("RECEIVED PASSWORD:", password);
 
     const [rows] = await db.query(
       "SELECT * FROM user WHERE email = ?",
       [email]
     );
 
-    console.log("USER TÌM ĐƯỢC:", rows);
+    console.log("USER FOUND:", rows);
 
     if (rows.length === 0) {
       return res.status(401).json({
-        message: "Email không tồn tại"
+        message: "Email does not exist"
       });
     }
 
     const user = rows[0];
 
-    console.log("HASH DB:", user.password_hash);
+    console.log("DB HASH:", user.password_hash);
 
     const isMatch = await bcrypt.compare(
       password,
@@ -35,7 +35,7 @@ const login = async (req, res) => {
 
     if (!isMatch) {
       return res.status(401).json({
-        message: "Sai mật khẩu"
+        message: "Incorrect password"
       });
     }
 

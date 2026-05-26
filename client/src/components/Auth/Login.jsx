@@ -21,13 +21,13 @@ const Login = () => {
           ? navigate('/admin')
           : navigate('/');
       } else {
-        alert("Đăng nhập thất bại!");
+        alert("Login failed!");
       }
 
     } catch (err) {
       const errorMsg =
         err.response?.data?.message ||
-        "Email hoặc mật khẩu không đúng!";
+        "Incorrect email or password!";
 
       alert(errorMsg);
     }
@@ -49,7 +49,7 @@ const Login = () => {
         required
       />
 
-      <button type="submit">Đăng nhập</button>
+      <button type="submit">Login</button>
     </form>
   );
 };
