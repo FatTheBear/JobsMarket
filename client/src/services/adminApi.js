@@ -23,20 +23,71 @@ export const adminApi = {
     const res = await API.get('/admin/dashboard-stats');
     return res.data;
   },
+
   getUsers: async () => {
     const res = await API.get('/admin/users');
     return res.data;
   },
+
   updateUserStatus: async (id, status) => {
     const res = await API.put(`/admin/users/${id}/status`, { status });
     return res.data;
   },
+
   getPendingJobs: async () => {
     const res = await API.get('/admin/pending-jobs');
     return res.data;
   },
+
   updateJobStatus: async (id, status) => {
     const res = await API.put(`/admin/jobs/${id}/status`, { status });
     return res.data;
-  }
+  },
+
+  // ==========================================================================
+  // HÀM LẤY DỮ LIỆU CHO CÁC TAB
+  // ==========================================================================
+  getSkills: async () => {
+    const res = await API.get('/admin/skills');
+    return res.data;
+  },
+
+  getIndustries: async () => {
+    const res = await API.get('/admin/industries');
+    return res.data;
+  },
+
+  getNews: async () => {
+    const res = await API.get('/admin/news');
+    return res.data;
+  },
+
+  // ==========================================================================
+  // THÊM MỚI: 2 HÀM DƯỚI ĐÂY ĐỂ ĐỂ PHỤC VỤ NÚT "+ ADD" TRÊN GIAO DIỆN CATEGORIES
+  // ==========================================================================
+  createSkill: async (name) => {
+    const res = await API.post('/admin/skills', { name });
+    return res.data;
+  },
+
+  createIndustry: async (name) => {
+    const res = await API.post('/admin/industries', { name });
+    return res.data;
+  },
+
+  createNews: async (data) => {
+  const res = await API.post('/admin/news', data);
+  return res.data;
+},
+
+updateNews: async (id, data) => {
+  const res = await API.put(`/admin/news/${id}`, data);
+  return res.data;
+},
+
+deleteNews: async (id) => {
+  const res = await API.delete(`/admin/news/${id}`);
+  return res.data;
+},
 };
+

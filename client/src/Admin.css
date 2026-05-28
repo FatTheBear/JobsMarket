@@ -1,9 +1,12 @@
+/* ==========================================================================
+   Admin Layout Căn Bản (Đã đồng bộ sang giao diện tối hiện đại)
+   ========================================================================== */
 .admin-container {
   display: flex;
   min-height: 100vh;
-  background-color: #f8fafc;
+  background-color: #0f172a; /* Đổi sang nền tối sâu */
   font-family: sans-serif;
-  color: #1e293b;
+  color: #f1f5f9; /* Chữ sáng */
 }
 
 /* Sidebar bên trái */
@@ -13,6 +16,7 @@
   color: white;
   padding: 24px 16px;
   box-sizing: border-box;
+  border-right: 1px solid #334155;
 }
 
 .admin-sidebar h2 {
@@ -38,7 +42,7 @@
   border-radius: 8px;
   border: none;
   background-color: transparent;
-  color: white;
+  color: #94a3b8;
   cursor: pointer;
   text-align: left;
   font-size: 15px;
@@ -47,10 +51,12 @@
 
 .sidebar-btn:hover {
   background-color: #334155;
+  color: white;
 }
 
 .sidebar-btn.active {
-  background-color: #3b82f6;
+  background-color: #2563eb;
+  color: white;
 }
 
 /* Nội dung chính bên phải */
@@ -64,27 +70,35 @@
 .admin-title {
   font-size: 24px;
   font-weight: bold;
-  color: #1e293b;
+  color: #f8fafc;
   margin: 0 0 24px 0;
 }
 
-/* Layout Thống kê Dashboard */
+/* Layout Thống kê Dashboard Overview */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 24px;
   margin-bottom: 32px;
+  max-width: 1200px;
 }
 
 .stat-card {
-  background: white;
+  background: #1e293b;
   padding: 24px;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  border: 1px solid #334155;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
 }
 
 .stat-card p {
-  color: #64748b;
+  color: #94a3b8;
   margin: 0;
   font-size: 14px;
 }
@@ -93,15 +107,27 @@
   font-size: 32px;
   font-weight: bold;
   margin: 8px 0 0 0;
-  color: #3b82f6;
+  color: #38bdf8;
+  font-family: sans-serif;
 }
 
-/* Bảng Quản Lý Người Dùng */
+.stat-detail {
+  font-size: 14px;
+  margin-top: 12px;
+  color: #cbd5e1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Bảng Quản Lý Chung (Users / News / Categories) */
 .table-container {
-  background: white;
+  background: #1e293b;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
   overflow: hidden;
+  border: 1px solid #334155;
+  margin-top: 16px;
 }
 
 .admin-table {
@@ -111,30 +137,38 @@
 }
 
 .admin-table th {
-  background-color: #f1f5f9;
-  color: #475569;
+  background-color: #0f172a;
+  color: #94a3b8;
   padding: 16px;
   font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .admin-table td {
   padding: 16px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #334155;
   font-size: 15px;
+  color: #e2e8f0;
 }
 
-/* Trạng thái */
+.admin-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Badge trạng thái */
 .status-badge {
-  padding: 4px 8px;
-  border-radius: 12px;
+  padding: 4px 10px;
+  border-radius: 9999px;
   font-size: 12px;
-  font-weight: bold;
+  font-weight: 600;
+  display: inline-block;
 }
-.status-badge.banned { background-color: #fee2e2; color: #ef4444; }
-.status-badge.active { background-color: #dcfce7; color: #22c55e; }
-.status-badge.pending { background-color: #fef9c3; color: #ca8a04; }
+.status-badge.banned, .status-badge.rejected { background-color: #551a1a; color: #f87171; }
+.status-badge.active, .status-badge.approved, .status-badge.published { background-color: #064e3b; color: #34d399; }
+.status-badge.pending, .status-badge.draft { background-color: #451a03; color: #fbbf24; }
 
-/* Nút bấm hành động */
+/* Nút bấm hành động chung */
 .action-btn {
   border: none;
   background: transparent;
@@ -145,10 +179,62 @@
   font-size: 14px;
   font-weight: 500;
 }
-.action-btn.ban { color: #ef4444; }
-.action-btn.unban { color: #22c55e; }
+.action-btn.ban { color: #f87171; }
+.action-btn.unban { color: #34d399; }
+.action-btn.edit { color: #38bdf8; }
+.action-btn.delete { color: #f87171; }
 
-/* Bài đăng tuyển dụng */
+/* ==========================================================================
+   CSS Mới: Dành cho Tab Categories & News Management
+   ========================================================================== */
+
+/* Layout chia đôi màn hình khi quản lý Skill và Industry */
+.categories-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  max-width: 1200px;
+}
+
+/* Khung thêm nhanh item (Skill/Industry/News) */
+.admin-input-group {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  background-color: #0f172a;
+  color: white;
+  font-size: 14px;
+}
+
+.admin-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.admin-btn-primary {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.admin-btn-primary:hover {
+  background-color: #1d4ed8;
+}
+
+/* Bài đăng tuyển dụng (Job Cards) */
 .job-list {
   display: flex;
   flex-direction: column;
@@ -156,26 +242,29 @@
 }
 
 .job-card {
-  background: white;
+  background: #1e293b;
   padding: 24px;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  border: 1px solid #334155;
   border-left: 5px solid #eab308;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
 }
 
-.job-info h3 { margin: 0 0 8px 0; color: #0f172a; font-size: 18px; }
-.job-info p { margin: 4px 0; font-size: 14px; color: #475569; }
+.job-info h3 { margin: 0 0 8px 0; color: #f8fafc; font-size: 18px; }
+.job-info p { margin: 4px 0; font-size: 14px; color: #94a3b8; }
 
 .job-desc {
   margin-top: 12px;
-  background-color: #f8fafc;
+  background-color: #0f172a;
   padding: 12px;
   border-radius: 8px;
   font-size: 14px;
+  color: #cbd5e1;
   white-space: pre-line;
+  border: 1px solid #334155;
 }
 
 .btn-group {
@@ -196,32 +285,7 @@
   font-weight: 500;
 }
 
-.stat-detail {
-  font-size: 14px;
-  margin-top: 12px;
-  color: #334155;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.stat-card {
-  /* ... giữ nguyên các thuộc tính cũ ... */
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.stat-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-bottom: 32px;
-  max-width: 1200px; /* Thêm dòng này nếu muốn căn giữa đẹp hơn trên màn hình lớn */
-}
-
-.btn-approve { background-color: #22c55e; }
-.btn-reject { background-color: #ef4444; }
+.btn-approve { background-color: #059669; }
+.btn-approve:hover { background-color: #047857; }
+.btn-reject { background-color: #dc2626; }
+.btn-reject:hover { background-color: #b91c1c; }
