@@ -8,6 +8,7 @@ import AdminDashboard from './components/Admin/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './pages/HomePage/HomePage';
 import AuthPage from './pages/AuthPage/AuthPage';
+import CandidateProfilePage from './pages/CandidateProfilePage/CandidateProfilePage';
 import './App.css';
 
 // Home Dashboard component featuring the Premium Dashboard Header and profile switching tabs
@@ -57,6 +58,14 @@ const router = createBrowserRouter([
   { path: "/auth", element: <AuthPage /> },
   { path: "/login", element: <Login /> },
   { path: "/profile", element: <Home /> },
+  {
+    path: "/candidate-profile",
+    element: (
+      <ProtectedRoute>
+        <CandidateProfilePage />
+      </ProtectedRoute>
+    )
+  },
   {
     path: "/admin",
     element: (
