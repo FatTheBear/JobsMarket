@@ -3,8 +3,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import CompanyProfile from './components/CompanyProfile/CompanyProfile';
 import CandidateProfile from './components/CandidateProfile/Candidate_profile';
-import AuthPage from './pages/AuthPage/AuthPage';
-import HomePage from './pages/HomePage/HomePage';
+import Login from './components/Auth/Login';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
@@ -53,9 +52,7 @@ function Home() {
 
 const router = createBrowserRouter([
   { path: "/", element: <Home /> },
-  { path: "/landing", element: <HomePage /> },
-  { path: "/login", element: <AuthPage defaultMode="login" /> },
-  { path: "/auth", element: <AuthPage defaultMode="register" /> },
+  { path: "/login", element: <Login /> },
   {
     path: "/admin",
     element: (

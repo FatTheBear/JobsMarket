@@ -19,11 +19,6 @@ export const adminApi = {
     return await API.post('/auth/login', credentials);
   },
 
-  register: async (userData) => {
-    const res = await API.post('/auth/register', userData);
-    return res.data;
-  },
-
   getStats: async () => {
     const res = await API.get('/admin/dashboard-stats');
     return res.data;
