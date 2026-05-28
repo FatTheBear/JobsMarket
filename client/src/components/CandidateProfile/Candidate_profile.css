@@ -1,0 +1,275 @@
+/* UserProfile.css */
+.profile-section {
+  background-color: #eee;
+}
+
+.avatar-img {
+  width: 150px;
+}
+
+.icon-twitter {
+  color: #55acee;
+}
+
+.icon-instagram {
+  color: #ac2bac;
+}
+
+.icon-facebook {
+  color: #3b5998;
+}
+
+.text-small {
+  font-size: 0.77rem;
+}
+
+.progress-custom {
+  height: 5px;
+}
+
+/* Custom Floating Modal Styles */
+.profile-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050; /* Ensure it stays above bootstrap elements */
+  animation: fadeIn 0.25s ease-out;
+}
+
+.profile-modal-card {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.profile-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background-color: #f8f9fa;
+}
+
+.profile-modal-title {
+  margin: 0;
+  font-weight: 700;
+  color: #212529;
+  font-size: 1.15rem;
+}
+
+.profile-modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  line-height: 1;
+  color: #adb5bd;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.profile-modal-close-btn:hover {
+  color: #495057;
+}
+
+.profile-modal-body {
+  padding: 24px;
+}
+
+.profile-modal-body table th {
+  padding: 12px 8px;
+}
+
+.profile-modal-body table td {
+  padding: 12px 8px;
+}
+
+.profile-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  justify-content: flex-end;
+  background-color: #f8f9fa;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Work Experience Styling */
+.experience-item {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border-left: 4px solid #3b71ca !important;
+}
+
+.experience-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-left-color: #1475e1 !important;
+  background-color: #ffffff !important;
+}
+
+.text-hover-primary {
+  transition: color 0.2s ease;
+}
+
+.experience-item:hover .text-hover-primary {
+  color: #3b71ca !important;
+}
+
+/* Analytics Styling */
+.analytics-card {
+  transition: all 0.3s ease;
+}
+
+.analytics-card:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06) !important;
+}
+
+.hover-shadow-sm {
+  transition: all 0.25s ease;
+}
+
+.hover-shadow-sm:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  background-color: #ffffff !important;
+}
+
+.transition-all {
+  transition: all 0.25s ease;
+}
+
+/* Post Interaction Styling */
+.hover-text-primary {
+  transition: color 0.2s ease;
+}
+
+.hover-text-primary:hover {
+  color: #3b71ca !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Wide modal for Edit Profile dialog */
+.profile-modal-large {
+  max-width: 800px;
+}
+
+/* Scrollable modal content area */
+.scrollable-modal-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 12px;
+}
+
+/* Elegant and modern scrollbar */
+.scrollable-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollable-modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.scrollable-modal-body::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+.scrollable-modal-body::-webkit-scrollbar-thumb:hover {
+  background: #bbb;
+}
+
+/* Tabs indicator matching modern UX guidelines */
+.nav-tab-btn {
+  font-size: 0.95rem;
+  border-bottom: 3px solid transparent !important;
+  transition: all 0.2s ease;
+}
+
+.nav-tab-btn:hover {
+  color: #3b71ca !important;
+}
+
+.nav-tab-btn.active {
+  color: #3b71ca !important;
+  border-bottom-color: #3b71ca !important;
+}
+
+/* Icon action transitions and hover transformations */
+.hover-primary {
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.hover-primary:hover {
+  color: #3b71ca !important;
+  transform: scale(1.15);
+}
+
+.hover-danger {
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.hover-danger:hover {
+  color: #dc3545 !important;
+  transform: scale(1.15);
+}
+
+/* Custom premium styling for Range Input */
+.form-range::-webkit-slider-runnable-track {
+  background: #e9ecef;
+  height: 6px;
+  border-radius: 3px;
+}
+
+.form-range::-webkit-slider-thumb {
+  background: #3b71ca;
+  border: 2px solid #ffffff;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  margin-top: -5px;
+  box-shadow: 0 2px 6px rgba(59, 113, 202, 0.3);
+  transition: transform 0.1s ease, background-color 0.1s ease;
+  cursor: pointer;
+}
+
+.form-range::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  background: #1475e1;
+}
