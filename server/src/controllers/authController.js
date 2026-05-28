@@ -1,12 +1,19 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const pool = require('../config/db');
 const UserModel = require('../models/UserModel');
 
 const authController = {
     register: async (req, res) => {
+        // Lấy role từ body (được gửi lên từ trang Register qua axios)
         const { email, password, role, full_name, company_name, industry_id } = req.body;
 
+        // 1. Validate dữ liệu tối thiểu
+        if (!email || !password || !role) {
+            return res.status(400).json({ message: "Missing required fields!" });
+        }
+
         try {
+            // Kiểm tra email tồn tại
             const existingUser = await UserModel.findByEmail(email);
             if (existingUser) {
                 return res.status(400).json({ message: "Email already exists!" });
@@ -19,6 +26,7 @@ const authController = {
             await connection.beginTransaction();
 
             try {
+                // Insert User chính
                 const [userResult] = await connection.execute(
                     'INSERT INTO User (email, password_hash, role) VALUES (?, ?, ?)',
                     [email, password_hash, role]
@@ -26,17 +34,16 @@ const authController = {
                 
                 const newUserId = userResult.insertId;
 
-                if (role === 'Candidate') {
+                // 2. Logic phân luồng theo Role (Đã thống nhất tên)
+                if (role === 'candidate') {
                     if (!full_name) throw new Error("Full name is required for Candidate!");
-                    
                     await connection.execute(
                         'INSERT INTO Candidate_Profile (user_id, full_name) VALUES (?, ?)',
                         [newUserId, full_name]
                     );
                 } 
-                else if (role === 'HR') {
-                    if (!company_name || !industry_id) throw new Error("Company name and industry are required for HR!");
-                    
+                else if (role === 'company') {
+                    if (!company_name || !industry_id) throw new Error("Company name and industry are required for Company!");
                     await connection.execute(
                         'INSERT INTO Company (hr_id, industry_id, name) VALUES (?, ?, ?)',
                         [newUserId, industry_id, company_name]
@@ -49,11 +56,7 @@ const authController = {
                 await connection.commit();
                 connection.release();
 
-                return res.status(201).json({
-                    message: "Account registered successfully!",
-                    userId: newUserId,
-                    role: role
-                });
+                return res.status(201).json({ message: "Account registered successfully!" });
 
             } catch (transactionError) {
                 await connection.rollback();
