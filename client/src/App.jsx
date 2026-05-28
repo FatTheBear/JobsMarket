@@ -6,9 +6,11 @@ import CandidateProfile from './components/CandidateProfile/Candidate_profile';
 import Login from './components/Auth/Login';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import HomePage from './pages/HomePage/HomePage';
+import AuthPage from './pages/AuthPage/AuthPage';
 import './App.css';
 
-// Home component featuring the Premium Dashboard Header and profile switching tabs
+// Home Dashboard component featuring the Premium Dashboard Header and profile switching tabs
 function Home() {
   const [activeTab, setActiveTab] = useState('candidate');
 
@@ -51,8 +53,10 @@ function Home() {
 }
 
 const router = createBrowserRouter([
-  { path: "/", element: <Home /> },
+  { path: "/", element: <HomePage /> },
+  { path: "/auth", element: <AuthPage /> },
   { path: "/login", element: <Login /> },
+  { path: "/profile", element: <Home /> },
   {
     path: "/admin",
     element: (
