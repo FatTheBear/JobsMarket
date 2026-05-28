@@ -1,5 +1,35 @@
 {
   "dependencies": {
+<<<<<<< HEAD
     "react-router-dom": "^7.15.1"
   }
+=======
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.4.2",
+    "mysql2": "^3.22.3"
+  },
+  "name": "jobsmarket",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "scripts": {
+    "start": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FatTheBear/JobsMarket.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/FatTheBear/JobsMarket/issues"
+  },
+  "homepage": "https://github.com/FatTheBear/JobsMarket#readme"
+>>>>>>> 6a33f81f1fcb1fc874275c82e28c6bf90f986f8c
 }
