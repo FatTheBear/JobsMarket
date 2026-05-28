@@ -1,6 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
 import HomePage from './pages/HomePage/HomePage';
-import AuthPage from './pages/AuthPage/AuthPage';
+import AuthPage from './pages/Authentication/AuthPage';
+import Register from './pages/Authentication/Register';
+import Login from './pages/Authentication/Login';
 import CompanyProfile from './components/CompanyProfile/CompanyProfile';
 
 function App() {
@@ -8,7 +11,10 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<HomePage />} />
+        
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
         
         <Route path="/company-profile" element={<CompanyProfile />} />
       </Routes>
