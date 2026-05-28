@@ -1,10 +1,16 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+
 import CompanyProfile from './components/CompanyProfile/CompanyProfile';
 import CandidateProfile from './components/CandidateProfile/Candidate_profile';
+import Login from './components/Auth/Login';
+import AdminDashboard from './components/Admin/AdminDashboard';
+import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
-function App() {
-  const [activeTab, setActiveTab] = useState('candidate'); // Set default to candidate so user sees their new page
+// Home component featuring the Premium Dashboard Header and profile switching tabs
+function Home() {
+  const [activeTab, setActiveTab] = useState('candidate');
 
   return (
     <div className="app-wrapper">
@@ -44,5 +50,20 @@ function App() {
   );
 }
 
-export default App;
+const router = createBrowserRouter([
+  { path: "/", element: <Home /> },
+  { path: "/login", element: <Login /> },
+  {
+    path: "/admin",
+    element: (
+      <ProtectedRoute>
+        <AdminDashboard />
+      </ProtectedRoute>
+    ),
+  },
+  { path: "*", element: <div>404</div> }
+]);
 
+export default function App() {
+  return <RouterProvider router={router} />;
+}
