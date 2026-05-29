@@ -213,3 +213,25 @@ CREATE TABLE `News` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+/* Cập nhật bảng user, thêm cột coins để lưu số xu của user */
+ALTER TABLE `User` 
+ADD COLUMN `coins` INT DEFAULT 0,
+ADD COLUMN `bank_name` VARCHAR(100) DEFAULT NULL,
+ADD COLUMN `bank_account_number` VARCHAR(50) DEFAULT NULL,
+ADD COLUMN `bank_account_name` VARCHAR(100) DEFAULT NULL;
+
+/* Tạo bảng Transaction để lưu lịch sử giao dịch */
+CREATE TABLE `Transaction` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` INT NOT NULL,
+    `amount_fiat` DECIMAL(10, 2) DEFAULT 0.00,
+    `coins` INT NOT NULL,
+    `type` ENUM('deposit', 'purchase', 'refund') NOT NULL,
+    `payment_method` VARCHAR(50) DEFAULT 'bank_transfer',
+    `status` ENUM('pending', 'completed', 'failed') DEFAULT 'pending',
+    `reference_code` VARCHAR(100) UNIQUE,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `User`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

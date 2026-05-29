@@ -7,23 +7,24 @@ import Login from './components/Auth/Login';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './pages/HomePage/HomePage';
-import AuthPage from './pages/AuthPage/AuthPage';
+
 import CandidateProfilePage from './pages/CandidateProfilePage/CandidateProfilePage';
 import './App.css';
+
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+
+import AuthPage from './pages/Authentication/AuthPage';
+import Register from './pages/Authentication/Register';
+
 
 // Home Dashboard component featuring the Premium Dashboard Header and profile switching tabs
 function Home() {
   const [activeTab, setActiveTab] = useState('candidate');
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-import HomePage from './pages/HomePage/HomePage';
-import AuthPage from './pages/Authentication/AuthPage';
-import Register from './pages/Authentication/Register';
-import Login from './pages/Authentication/Login';
-import CompanyProfile from './components/CompanyProfile/CompanyProfile';
 
   return (
-    <div className="app-wrapper">
+    <><div className="app-wrapper">
       {/* Premium Dashboard Header */}
       <header className="dashboard-header">
         <div className="header-brand">
@@ -56,18 +57,17 @@ import CompanyProfile from './components/CompanyProfile/CompanyProfile';
       <footer className="dashboard-footer">
         <p>© 2026 JobsMarket Platform • The Breakthrough Recruitment Experience</p>
       </footer>
-    </div>
-    <Router>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        
-        <Route path="/company-profile" element={<CompanyProfile />} />
-      </Routes>
-    </Router>
+    </div><Router>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<Login />} />
+
+          <Route path="/company-profile" element={<CompanyProfile />} />
+        </Routes>
+      </Router></>
   );
 }
 
