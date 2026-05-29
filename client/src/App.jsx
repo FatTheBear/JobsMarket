@@ -8,12 +8,10 @@ import AdminDashboard from './components/Admin/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './pages/HomePage/HomePage';
 import JobPosting from './components/JobPosting/JobPosting';
+import JobSkillsManager from './components/JobSkillsManager/JobSkillsManager';
 
 import CandidateProfilePage from './pages/CandidateProfilePage/CandidateProfilePage';
 import './App.css';
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-
 
 import AuthPage from './pages/Authentication/AuthPage';
 import Register from './pages/Authentication/Register';
@@ -25,7 +23,7 @@ function Home() {
 
 
   return (
-    <><div className="app-wrapper">
+    <div className="app-wrapper">
       {/* Premium Dashboard Header */}
       <header className="dashboard-header">
         <div className="header-brand">
@@ -58,17 +56,7 @@ function Home() {
       <footer className="dashboard-footer">
         <p>© 2026 JobsMarket Platform • The Breakthrough Recruitment Experience</p>
       </footer>
-    </div><Router>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-
-          <Route path="/company-profile" element={<CompanyProfile />} />
-        </Routes>
-      </Router></>
+    </div>
   );
 }
 
@@ -76,7 +64,9 @@ const router = createBrowserRouter([
   { path: "/", element: <HomePage /> },
   { path: "/auth", element: <AuthPage /> },
   { path: "/login", element: <Login /> },
+  { path: "/register", element: <Register /> },
   { path: "/profile", element: <Home /> },
+  { path: "/company-profile", element: <CompanyProfile /> },
   {
     path: "/candidate-profile",
     element: (
@@ -96,6 +86,15 @@ const router = createBrowserRouter([
   {
     path: "/job-posting",
     element: <JobPosting />
+  },
+  {
+    path: "/job-skills",
+    element: (
+      <div style={{ maxWidth: 820, margin: '40px auto', padding: '0 20px' }}>
+        <h1 style={{ fontFamily: 'Inter,sans-serif', marginBottom: 24 }}>🎯 Job Skills Manager</h1>
+        <JobSkillsManager jobId={null} />
+      </div>
+    )
   },
   { path: "*", element: <div>404</div> }
 ]);
