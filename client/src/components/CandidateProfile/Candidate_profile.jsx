@@ -4,11 +4,14 @@ import CandidatePersonalInfoModal from './CandidatePersonalInfoModal';
 import CandidateExperience from './CandidateExperience';
 import CandidateSkills from './CandidateSkills';
 import CandidatePosts from './CandidatePosts';
+import CandidateWallet from './CandidateWallet';
 
 const CandidateProfile = () => {
   const [showEdit, setShowEdit] = useState(false);
   const [showPersonalInfo, setShowPersonalInfo] = useState(false);
   const [activeEditTab, setActiveEditTab] = useState('info'); // 'info' or 'profile'
+  const [coins, setCoins] = useState(1000);
+  const [showWallet, setShowWallet] = useState(false);
 
   // Dynamic Profile Data State
   const [profileData, setProfileData] = useState({
@@ -109,6 +112,18 @@ const CandidateProfile = () => {
       shares: 5
     }
   ]);
+
+  const [transactions, setTransactions] = useState([
+    { id: 1, type: 'deposit', coins: 100, amount: 50000, date: '2026-05-28 14:30', status: 'completed', method: 'Momo' },
+    { id: 2, type: 'purchase', coins: -20, amount: 0, date: '2026-05-27 09:15', status: 'completed', method: 'Hệ thống' },
+    { id: 3, type: 'deposit', coins: 50, amount: 25000, date: '2026-05-25 18:00', status: 'completed', method: 'Chuyển khoản' },
+  ]);
+  const [bankAccount, setBankAccount] = useState({
+    linked: false,
+    bankName: '',
+    accountNumber: '',
+    accountName: ''
+  });
 
   // Temporary Form States for Modals
   const [editProfileForm, setEditProfileForm] = useState(null);
@@ -258,6 +273,17 @@ const CandidateProfile = () => {
                       </button>
                     </div>
                   </div>
+                  <div
+                    className="d-flex align-items-center gap-2 bg-light px-3 py-2 rounded-pill shadow-sm border hover-shadow-sm transition-all"
+                    onClick={() => setShowWallet(true)}
+                    style={{ cursor: 'pointer', border: '1px solid #dee2e6' }}
+                  >
+                    <span style={{ fontSize: '1.2rem' }}>🪙</span>
+                    <span className="fw-bold text-dark">{coins} Coins</span>
+                    <button className="btn btn-sm btn-primary rounded-circle p-1 d-flex align-items-center justify-content-center" style={{ width: '28px', height: '28px' }}>
+                      <i className="fas fa-wallet" style={{ fontSize: '0.8rem' }}></i>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="d-flex mt-4 mt-md-2 gap-3">
@@ -327,34 +353,46 @@ const CandidateProfile = () => {
           </div>
 
           {/* Sub-Components extracted for cleaner layout */}
-          <CandidatePersonalInfoModal 
-            show={showPersonalInfo} 
-            onClose={() => setShowPersonalInfo(false)} 
-            profileData={profileData} 
+          <CandidatePersonalInfoModal
+            show={showPersonalInfo}
+            onClose={() => setShowPersonalInfo(false)}
+            profileData={profileData}
           />
 
-          <CandidateExperience 
-            workExperiences={workExperiences} 
-            onOpenModal={handleOpenExperienceModal} 
-            onDelete={handleDeleteExperience} 
-            showModal={showExperienceModal} 
-            onCloseModal={() => setShowExperienceModal(false)} 
-            currentExperience={currentExperience} 
-            experienceForm={experienceForm} 
-            setExperienceForm={setExperienceForm} 
-            onSave={handleSaveExperience} 
+          <CandidateExperience
+            workExperiences={workExperiences}
+            onOpenModal={handleOpenExperienceModal}
+            onDelete={handleDeleteExperience}
+            showModal={showExperienceModal}
+            onCloseModal={() => setShowExperienceModal(false)}
+            currentExperience={currentExperience}
+            experienceForm={experienceForm}
+            setExperienceForm={setExperienceForm}
+            onSave={handleSaveExperience}
           />
 
-          <CandidateSkills 
-            skills={skills} 
-            onOpenModal={handleOpenSkillModal} 
-            onDelete={handleDeleteSkill} 
-            showModal={showSkillModal} 
-            onCloseModal={() => setShowSkillModal(false)} 
-            currentSkill={currentSkill} 
-            skillForm={skillForm} 
-            setSkillForm={setSkillForm} 
-            onSave={handleSaveSkill} 
+          <CandidateSkills
+            skills={skills}
+            onOpenModal={handleOpenSkillModal}
+            onDelete={handleDeleteSkill}
+            showModal={showSkillModal}
+            onCloseModal={() => setShowSkillModal(false)}
+            currentSkill={currentSkill}
+            skillForm={skillForm}
+            setSkillForm={setSkillForm}
+            onSave={handleSaveSkill}
+          />
+
+          {/* Wallet Modal */}
+          <CandidateWallet
+            show={showWallet}
+            onClose={() => setShowWallet(false)}
+            coins={coins}
+            setCoins={setCoins}
+            transactions={transactions}
+            setTransactions={setTransactions}
+            bankAccount={bankAccount}
+            setBankAccount={setBankAccount}
           />
 
           {/* Column 3: Interests */}
@@ -390,8 +428,8 @@ const CandidateProfile = () => {
             </div>
           </div>
 
-          <CandidatePosts 
-            candidatePosts={candidatePosts} 
+          <CandidatePosts
+            candidatePosts={candidatePosts}
           />
         </div>
       </div>
