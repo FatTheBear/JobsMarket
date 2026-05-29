@@ -1,33 +1,47 @@
 import React, { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+// Import file CSS để đồng bộ giao diện tối (Dark Mode)
+import './Admin.css'; 
 
-const AdminCategories = ({ categories, onRefresh, onAddSkill, onAddIndustry }) => {
+const AdminCategories = ({ 
+  categories, 
+  onRefresh, 
+  onAddSkill, 
+  onAddIndustry, 
+  onDeleteSkill, // Thêm prop xóa skill
+  onDeleteIndustry // Thêm prop xóa industry
+}) => {
   const [newSkill, setNewSkill] = useState('');
   const [newIndustry, setNewIndustry] = useState('');
 
   const submitSkill = async () => {
     if (!newSkill.trim()) return alert("Please enter a skill name!");
     await onAddSkill(newSkill.trim());
-    setNewSkill(''); // Clear text box sau khi thêm thành công
+    setNewSkill(''); // Xóa chữ trong ô input sau khi thêm thành công
   };
 
   const submitIndustry = async () => {
     if (!newIndustry.trim()) return alert("Please enter an industry name!");
     await onAddIndustry(newIndustry.trim());
-    setNewIndustry(''); // Clear text box sau khi thêm thành công
+    setNewIndustry(''); // Xóa chữ trong ô input sau khi thêm thành công
   };
 
   return (
     <div>
+      {/* HEADER: Tiêu đề và nút làm mới dữ liệu */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <h1 className="admin-title">System Categories</h1>
         <button className="admin-btn-primary" onClick={onRefresh}>Refresh Data</button>
       </div>
 
+      {/* BỐ CỤC CHIA ĐÔI: Skills bên trái, Industries bên phải */}
       <div className="categories-grid">
+        
         {/* KHỐI QUẢN LÝ SKILLS */}
         <div>
           <h3 style={{ marginBottom: '12px', color: '#38bdf8' }}>Skills List (Bảng Skill)</h3>
+          
+          {/* Ô nhập và nút thêm Skill */}
           <div className="admin-input-group">
             <input 
               type="text" 
@@ -42,6 +56,7 @@ const AdminCategories = ({ categories, onRefresh, onAddSkill, onAddIndustry }) =
             </button>
           </div>
 
+          {/* Bảng hiển thị danh sách Skills */}
           <div className="table-container">
             <table className="admin-table">
               <thead>
@@ -58,7 +73,11 @@ const AdminCategories = ({ categories, onRefresh, onAddSkill, onAddIndustry }) =
                       <td>#{skill.id}</td>
                       <td><strong>{skill.name}</strong></td>
                       <td>
-                        <button className="action-btn delete" style={{ margin: '0 auto' }}>
+                        <button 
+                          className="action-btn delete" 
+                          style={{ margin: '0 auto' }}
+                          onClick={() => onDeleteSkill && onDeleteSkill(skill.id)}
+                        >
                           <Trash2 size={16} /> Delete
                         </button>
                       </td>
@@ -76,7 +95,9 @@ const AdminCategories = ({ categories, onRefresh, onAddSkill, onAddIndustry }) =
 
         {/* KHỐI QUẢN LÝ INDUSTRIES */}
         <div>
-          <h3 style={{ marginBottom: '12px', color: '#38bdf8' }}>Industries List (Bảng Industry)</h3>
+          <h3 style={{ marginBottom: '12px', color: '#38bdf8' }}>Mock Industries List (Bảng Industry)</h3>
+          
+          {/* Ô nhập và nút thêm Industry */}
           <div className="admin-input-group">
             <input 
               type="text" 
@@ -91,6 +112,7 @@ const AdminCategories = ({ categories, onRefresh, onAddSkill, onAddIndustry }) =
             </button>
           </div>
 
+          {/* Bảng hiển thị danh sách Industries */}
           <div className="table-container">
             <table className="admin-table">
               <thead>
@@ -107,7 +129,11 @@ const AdminCategories = ({ categories, onRefresh, onAddSkill, onAddIndustry }) =
                       <td>#{ind.id}</td>
                       <td><strong>{ind.name}</strong></td>
                       <td>
-                        <button className="action-btn delete" style={{ margin: '0 auto' }}>
+                        <button 
+                          className="action-btn delete" 
+                          style={{ margin: '0 auto' }}
+                          onClick={() => onDeleteIndustry && onDeleteIndustry(ind.id)}
+                        >
                           <Trash2 size={16} /> Delete
                         </button>
                       </td>
@@ -122,6 +148,7 @@ const AdminCategories = ({ categories, onRefresh, onAddSkill, onAddIndustry }) =
             </table>
           </div>
         </div>
+
       </div>
     </div>
   );

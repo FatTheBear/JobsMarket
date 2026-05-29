@@ -6,7 +6,7 @@ import AdminUser from './AdminUser';
 import AdminJob from './AdminJob';
 import AdminCategories from './AdminCategories';
 import AdminNews from './AdminNews';
-import '../../admin.css';
+import './Admin.css';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
