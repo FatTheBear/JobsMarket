@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Briefcase, BarChart2, FolderTree, Newspaper } from 'lucide-react';
-import { adminApi } from '../../api/adminApi';
+import { adminApi } from '../../services/adminApi';
 import AdminOverview from './AdminOverview';
 import AdminUser from './AdminUser';
 import AdminJob from './AdminJob';

@@ -1,0 +1,69 @@
+import React from 'react';
+
+const CandidatePersonalInfoModal = ({ show, onClose, profileData }) => {
+  if (!show) return null;
+
+  return (
+    <div className="profile-modal-overlay" onClick={onClose}>
+      <div className="profile-modal-card" onClick={(e) => e.stopPropagation()}>
+        <div className="profile-modal-header">
+          <h5 className="profile-modal-title">
+            <i className="fas fa-user-circle me-2 text-primary"></i>
+            Personal Information
+          </h5>
+          <button
+            type="button"
+            className="profile-modal-close-btn"
+            onClick={onClose}
+          >
+            &times;
+          </button>
+        </div>
+        <div className="profile-modal-body">
+          <table className="table table-hover table-borderless mb-0">
+            <tbody>
+              <tr>
+                <th scope="row" style={{ width: '35%' }} className="text-secondary fw-semibold">Full Name</th>
+                <td className="text-dark fw-medium">{profileData.fullName}</td>
+              </tr>
+              <tr>
+                <th scope="row" className="text-secondary fw-semibold">Email</th>
+                <td className="text-dark fw-medium">{profileData.email}</td>
+              </tr>
+              <tr>
+                <th scope="row" className="text-secondary fw-semibold">Nationality</th>
+                <td className="text-dark fw-medium">{profileData.nationality}</td>
+              </tr>
+              <tr>
+                <th scope="row" className="text-secondary fw-semibold">Portfolio</th>
+                <td className="text-dark fw-medium">
+                  <a href={profileData.portfolio} target="_blank" rel="noopener noreferrer">
+                    {profileData.portfolio}
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row" className="text-secondary fw-semibold">Github</th>
+                <td className="text-dark fw-medium">
+                  <a href={profileData.github} target="_blank" rel="noopener noreferrer">
+                    {profileData.github}
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row" className="text-secondary fw-semibold">Facebook</th>
+                <td className="text-dark fw-medium">
+                  <a href={profileData.facebook} target="_blank" rel="noopener noreferrer">
+                    {profileData.facebook}
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CandidatePersonalInfoModal;

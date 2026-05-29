@@ -25,6 +25,7 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+/GEMINI.md
 
 # OS metadata
 .DS_Store

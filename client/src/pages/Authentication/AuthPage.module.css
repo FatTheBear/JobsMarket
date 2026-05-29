@@ -1,0 +1,5 @@
+.role-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  border-color: #86d7b9 !important;
+}

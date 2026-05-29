@@ -1,4 +1,4 @@
-const db = require('../db.js'); 
+const db = require('../config/db'); 
 
 // 1. Lấy dữ liệu tổng quan (Đồng bộ chuẩn db.query)
 exports.getStats = async (req, res) => {
@@ -140,9 +140,7 @@ exports.createIndustry = async (req, res) => {
 
 // 11. Tạo bài viết mới
 exports.createNews = async (req, res) => {
-
     try {
-
         const {
             title,
             slug,
@@ -184,9 +182,7 @@ exports.createNews = async (req, res) => {
         });
 
     } catch (error) {
-
         console.error("CREATE NEWS ERROR:", error);
-
         res.status(500).json({
             message: error.message
         });
@@ -195,11 +191,8 @@ exports.createNews = async (req, res) => {
 
 // 12. Cập nhật bài viết
 exports.updateNews = async (req, res) => {
-
     try {
-
         const { id } = req.params;
-
         const {
             title,
             slug,
@@ -239,9 +232,7 @@ exports.updateNews = async (req, res) => {
         });
 
     } catch (error) {
-
         console.error(error);
-
         res.status(500).json({
             message: error.message
         });
@@ -250,9 +241,7 @@ exports.updateNews = async (req, res) => {
 
 // 13. Xóa bài viết
 exports.deleteNews = async (req, res) => {
-
     try {
-
         const { id } = req.params;
 
         await db.query(
@@ -265,9 +254,7 @@ exports.deleteNews = async (req, res) => {
         });
 
     } catch (error) {
-
         console.error(error);
-
         res.status(500).json({
             message: error.message
         });
