@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const companyRoutes = require('./routes/company');
+const jobsRoutes = require('./routes/jobs');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,6 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/company', companyRoutes);
+app.use('/api/jobs', jobsRoutes);
 
 // Health check
 app.get('/', (req, res) => {

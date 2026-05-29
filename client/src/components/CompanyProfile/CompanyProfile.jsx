@@ -3,7 +3,7 @@ import './CompanyProfile.css';
 
 const API_URL = 'http://localhost:5000';
 
-// hr_id tạm thời — sau này sẽ lấy từ context/auth
+// hr_id temporary — will be fetched from context/auth later
 const TEMP_HR_ID = 1;
 
 export default function CompanyProfile() {
@@ -19,10 +19,10 @@ export default function CompanyProfile() {
   const [logoPreview, setLogoPreview] = useState(null);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [loading, setLoading] = useState(false);
-  const [isEdit, setIsEdit] = useState(false); // true nếu đã có dữ liệu công ty
+  const [isEdit, setIsEdit] = useState(false); // true if company data exists
   const fileInputRef = useRef();
 
-  // Load danh sách ngành nghề + dữ liệu công ty nếu có
+  // Load industries + company data if exists
   useEffect(() => {
     fetchIndustries();
     fetchCompany();
@@ -38,18 +38,18 @@ export default function CompanyProfile() {
         throw new Error("Empty array");
       }
     } catch {
-      // Nếu chưa có dữ liệu ngành nghề thì dùng danh sách mặc định
+      // Default list if no data
       setIndustries([
-        { id: 1, name: 'Công nghệ thông tin' },
-        { id: 2, name: 'Tài chính - Ngân hàng' },
-        { id: 3, name: 'Giáo dục' },
-        { id: 4, name: 'Y tế - Dược phẩm' },
-        { id: 5, name: 'Bán lẻ - Thương mại' },
-        { id: 6, name: 'Sản xuất' },
-        { id: 7, name: 'Marketing - Truyền thông' },
-        { id: 8, name: 'Xây dựng - Bất động sản' },
-        { id: 9, name: 'Du lịch - Khách sạn' },
-        { id: 10, name: 'Khác' },
+        { id: 1, name: 'Information Technology' },
+        { id: 2, name: 'Finance - Banking' },
+        { id: 3, name: 'Education' },
+        { id: 4, name: 'Healthcare - Pharmacy' },
+        { id: 5, name: 'Retail - Commerce' },
+        { id: 6, name: 'Manufacturing' },
+        { id: 7, name: 'Marketing - Media' },
+        { id: 8, name: 'Construction - Real Estate' },
+        { id: 9, name: 'Tourism - Hospitality' },
+        { id: 10, name: 'Others' },
       ]);
     }
   };
@@ -70,7 +70,7 @@ export default function CompanyProfile() {
         setIsEdit(true);
       }
     } catch {
-      // Chưa có dữ liệu → form trống
+      // No data -> empty form
     }
   };
 
@@ -78,18 +78,18 @@ export default function CompanyProfile() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Xử lý upload logo (preview ngay, gửi base64 hoặc URL)
+  // Handle logo upload (preview immediately, send base64 or URL)
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!validTypes.includes(file.type)) {
-      showToast('Chỉ chấp nhận file ảnh (JPG, PNG, GIF, WEBP)', 'error');
+      showToast('Only image files are accepted (JPG, PNG, GIF, WEBP)', 'error');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      showToast('File quá lớn. Vui lòng chọn file dưới 5MB', 'error');
+      showToast('File is too large. Please select a file under 5MB', 'error');
       return;
     }
 
@@ -111,11 +111,11 @@ export default function CompanyProfile() {
     e.preventDefault();
 
     if (!form.name.trim()) {
-      showToast('Vui lòng nhập tên công ty', 'error');
+      showToast('Please enter the company name', 'error');
       return;
     }
     if (!form.industry_id) {
-      showToast('Vui lòng chọn ngành nghề', 'error');
+      showToast('Please select an industry', 'error');
       return;
     }
 
@@ -136,13 +136,13 @@ export default function CompanyProfile() {
       const data = await res.json();
 
       if (res.ok) {
-        showToast(isEdit ? 'Cập nhật thành công!' : 'Tạo hồ sơ công ty thành công!', 'success');
+        showToast(isEdit ? 'Updated successfully!' : 'Company profile created successfully!', 'success');
         setIsEdit(true);
       } else {
-        showToast(data.message || 'Có lỗi xảy ra', 'error');
+        showToast(data.message || 'An error occurred', 'error');
       }
     } catch {
-      showToast('Không thể kết nối server. Vui lòng thử lại.', 'error');
+      showToast('Cannot connect to the server. Please try again.', 'error');
     } finally {
       setLoading(false);
     }
@@ -163,21 +163,21 @@ export default function CompanyProfile() {
         {toast.message}
       </div>
 
-      {/* Tiêu đề */}
+      {/* Title */}
       <h1 className="cv-page-title">
-        {isEdit ? 'Cập nhật thông tin công ty' : 'Tạo hồ sơ công ty'}
+        {isEdit ? 'Update Company Profile' : 'Create Company Profile'}
       </h1>
 
       <form onSubmit={handleSubmit}>
-        {/* Card: Logo công ty */}
+        {/* Card: Company Logo */}
         <div className="cv-card" style={{ marginBottom: '24px' }}>
-          <div className="cv-card-header">Logo công ty</div>
+          <div className="cv-card-header">Company Logo</div>
           <div className="cv-card-body">
             <div className="cv-logo-upload">
-              {/* Preview logo */}
+              {/* Logo Preview */}
               <div className="cv-logo-preview">
                 {logoPreview ? (
-                  <img src={logoPreview} alt="Logo công ty" />
+                  <img src={logoPreview} alt="Company Logo" />
                 ) : (
                   <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5">
                     <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -187,13 +187,13 @@ export default function CompanyProfile() {
                 )}
               </div>
 
-              {/* Nút upload */}
+              {/* Upload Button */}
               <div className="cv-logo-info">
                 <p>
-                  Tải lên logo công ty của bạn. Logo sẽ hiển thị trên trang tuyển dụng
-                  và hồ sơ công ty.
+                  Upload your company logo. The logo will be displayed on the recruitment page
+                  and company profile.
                   <br />
-                  Định dạng hỗ trợ: <strong>JPG, PNG, GIF, WEBP</strong>. Dung lượng tối đa:{' '}
+                  Supported formats: <strong>JPG, PNG, GIF, WEBP</strong>. Max size:{' '}
                   <strong>5MB</strong>.
                 </p>
                 <input
@@ -210,7 +210,7 @@ export default function CompanyProfile() {
                     className="cv-btn cv-btn-secondary"
                     onClick={() => fileInputRef.current.click()}
                   >
-                    📁 Chọn ảnh
+                    📁 Select Image
                   </button>
                   {logoPreview && (
                     <button
@@ -222,7 +222,7 @@ export default function CompanyProfile() {
                         if (fileInputRef.current) fileInputRef.current.value = '';
                       }}
                     >
-                      🗑 Xóa ảnh
+                      🗑 Remove Image
                     </button>
                   )}
                 </div>
@@ -231,22 +231,22 @@ export default function CompanyProfile() {
           </div>
         </div>
 
-        {/* Card: Thông tin cơ bản */}
+        {/* Card: Basic Information */}
         <div className="cv-card" style={{ marginBottom: '24px' }}>
-          <div className="cv-card-header">Thông tin công ty</div>
+          <div className="cv-card-header">Company Information</div>
           <div className="cv-card-body">
-            {/* Tên công ty + Ngành nghề */}
+            {/* Company Name + Industry */}
             <div className="cv-form-row">
               <div className="cv-form-group half">
                 <label htmlFor="name" className="cv-label">
-                  Tên công ty <span className="required">*</span>
+                  Company Name <span className="required">*</span>
                 </label>
                 <input
                   id="name"
                   name="name"
                   type="text"
                   className="cv-input"
-                  placeholder="Ví dụ: Công ty TNHH ABC"
+                  placeholder="Example: ABC Company Ltd."
                   value={form.name}
                   onChange={handleChange}
                   required
@@ -254,7 +254,7 @@ export default function CompanyProfile() {
               </div>
               <div className="cv-form-group half">
                 <label htmlFor="industry_id" className="cv-label">
-                  Ngành nghề <span className="required">*</span>
+                  Industry <span className="required">*</span>
                 </label>
                 <select
                   id="industry_id"
@@ -264,7 +264,7 @@ export default function CompanyProfile() {
                   onChange={handleChange}
                   required
                 >
-                  <option value="">-- Chọn ngành nghề --</option>
+                  <option value="">-- Select Industry --</option>
                   {industries.map((ind) => (
                     <option key={ind.id} value={ind.id}>
                       {ind.name}
@@ -278,31 +278,31 @@ export default function CompanyProfile() {
             <div className="cv-form-row">
               <div className="cv-form-group">
                 <label htmlFor="website" className="cv-label">
-                  Website công ty
+                  Company Website
                 </label>
                 <input
                   id="website"
                   name="website"
                   type="url"
                   className="cv-input"
-                  placeholder="https://www.congtyabc.com"
+                  placeholder="https://www.companyabc.com"
                   value={form.website}
                   onChange={handleChange}
                 />
               </div>
             </div>
 
-            {/* Địa chỉ */}
+            {/* Address */}
             <div className="cv-form-row">
               <div className="cv-form-group">
                 <label htmlFor="address" className="cv-label">
-                  Địa chỉ công ty
+                  Company Address
                 </label>
                 <textarea
                   id="address"
                   name="address"
                   className="cv-textarea"
-                  placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố..."
+                  placeholder="House number, street, ward, district, city/province..."
                   value={form.address}
                   onChange={handleChange}
                   style={{ minHeight: '100px' }}
@@ -312,7 +312,7 @@ export default function CompanyProfile() {
           </div>
         </div>
 
-        {/* Nút hành động */}
+        {/* Action Buttons */}
         <div className="cv-form-actions">
           <button
             type="button"
@@ -320,14 +320,14 @@ export default function CompanyProfile() {
             onClick={handleReset}
             disabled={loading}
           >
-            Đặt lại
+            Reset
           </button>
           <button
             type="submit"
             className="cv-btn cv-btn-primary"
             disabled={loading}
           >
-            {loading ? 'Đang lưu...' : isEdit ? '💾 Cập nhật' : '✅ Tạo hồ sơ'}
+            {loading ? 'Saving...' : isEdit ? '💾 Update' : '✅ Create Profile'}
           </button>
         </div>
       </form>

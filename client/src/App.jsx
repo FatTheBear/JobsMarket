@@ -7,6 +7,7 @@ import Login from './components/Auth/Login';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './pages/HomePage/HomePage';
+import JobPosting from './components/JobPosting/JobPosting';
 
 import CandidateProfilePage from './pages/CandidateProfilePage/CandidateProfilePage';
 import './App.css';
@@ -91,6 +92,10 @@ const router = createBrowserRouter([
         <AdminDashboard />
       </ProtectedRoute>
     ),
+  },
+  {
+    path: "/job-posting",
+    element: <JobPosting />
   },
   { path: "*", element: <div>404</div> }
 ]);
