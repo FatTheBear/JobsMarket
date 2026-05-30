@@ -1,36 +1,66 @@
 import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import styles from './AuthPage.module.css';
+import styles from './Register.module.css';
 
-export default function AuthPage() {
+export default function Register() {
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const selectedRole = location.state?.role || "candidate";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage("");
+
+    // 1. Frontend Validation: Check for empty fields
+    if (!fullName || !email || !password || !repeatPassword) {
+      return setErrorMessage("Please fill in all required fields!");
+    }
+
+    // 2. Frontend Validation: Check if passwords match
+    if (password !== repeatPassword) {
+      return setErrorMessage("Passwords do not match!");
+    }
 
     const userData = {
-      email: email,
-      password: password,
-      fullName: fullName,
-      role: selectedRole
+      email,
+      password,
+      repeat_password: repeatPassword,
+      full_name: fullName,
+      role: selectedRole,
+      accept_terms: true
     };
 
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/register", userData);
-      
-      if (response.status === 200 || response.status === 201) {
-        navigate("/login");
+      const response = await axios.post('http://localhost:5000/api/auth/register', userData);
+
+      if (response.status === 201) {
+        navigate('/verify-otp', {
+          state: {
+            email: userData.email,
+            role: selectedRole
+          }
+        });
       }
     } catch (error) {
-      console.error("Registration failed:", error);
+      // 3. Catch Backend Errors (e.g., Email already exists)
+      if (error.response && error.response.data) {
+        const data = error.response.data;
+        if (data.errors) {
+          setErrorMessage(data.errors.join(", "));
+        } else {
+          setErrorMessage(data.message);
+        }
+      } else {
+        setErrorMessage("Connection error! Please ensure the server is running.");
+      }
     }
   };
   return (
@@ -51,12 +81,15 @@ export default function AuthPage() {
                     Create an account
                   </h2>
 
-                  <form>
-                    <div className="form-outline mb-4">
+                  <form onSubmit={handleRegisterSubmit} noValidate>
+                    <div className="form-floating mb-4">
                       <input
                         type="text"
                         id="form3Example1cg"
-                        className={`form-control form-control-lg ${styles.formControl}`}
+                        className={`form-control ${styles.formControl}`}
+                        placeholder="Your Name"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
                       />
                       <label
                         className="form-label"
@@ -66,11 +99,14 @@ export default function AuthPage() {
                       </label>
                     </div>
 
-                    <div className="form-outline mb-4">
+                    <div className="form-floating mb-4">
                       <input
                         type="email"
                         id="form3Example3cg"
-                        className={`form-control form-control-lg ${styles.formControl}`}
+                        className={`form-control ${styles.formControl}`}
+                        placeholder="Your Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                       />
                       <label
                         className="form-label"
@@ -80,11 +116,14 @@ export default function AuthPage() {
                       </label>
                     </div>
 
-                    <div className="form-outline mb-4">
+                    <div className="form-floating mb-4">
                       <input
                         type="password"
                         id="form3Example4cg"
-                        className={`form-control form-control-lg ${styles.formControl}`}
+                        className={`form-control ${styles.formControl}`}
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                       />
                       <label
                         className="form-label"
@@ -94,11 +133,14 @@ export default function AuthPage() {
                       </label>
                     </div>
 
-                    <div className="form-outline mb-4">
+                    <div className="form-floating mb-4">
                       <input
                         type="password"
                         id="form3Example4cdg"
-                        className={`form-control form-control-lg ${styles.formControl}`}
+                        className={`form-control ${styles.formControl}`}
+                        placeholder="Repeat your password"
+                        value={repeatPassword}
+                        onChange={(e) => setRepeatPassword(e.target.value)}
                       />
                       <label
                         className="form-label"
@@ -107,14 +149,12 @@ export default function AuthPage() {
                         Repeat your password
                       </label>
                     </div>
-
                     <div className="form-check d-flex justify-content-center mb-5">
                       <input
                         className="form-check-input me-2"
                         type="checkbox"
                         id="form2Example3cg"
                       />
-
                       <label
                         className="form-check-label"
                         htmlFor="form2Example3cg"
@@ -126,9 +166,14 @@ export default function AuthPage() {
                       </label>
                     </div>
 
+                    {errorMessage && (
+                      <div className="alert alert-danger mb-3">
+                        {errorMessage}
+                      </div>
+                    )}
                     <div className="d-flex justify-content-center">
                       <button
-                        type="button"
+                        type="submit"
                         className={`btn btn-success btn-block btn-lg ${styles.gradientCustom4}`}
                       >
                         Register
@@ -148,4 +193,3 @@ export default function AuthPage() {
     </section>
   );
 }
-
