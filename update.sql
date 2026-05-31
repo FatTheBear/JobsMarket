@@ -1,0 +1,4 @@
+-- update add otp fields.sql
+ALTER TABLE `User` 
+ADD COLUMN `verification_code` VARCHAR(255) DEFAULT NULL,
+ADD COLUMN `code_expires_at` TIMESTAMP NULL DEFAULT NULL;
