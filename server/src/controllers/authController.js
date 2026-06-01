@@ -147,7 +147,7 @@ const authController = {
 
         try {
             const [users] = await pool.execute(
-                'SELECT id, email, password_hash, full_name, role, status FROM User WHERE email = ?',
+                'SELECT id, email, password_hash, role, status FROM User WHERE email = ?',
                 [email]
             );
 
@@ -182,7 +182,6 @@ const authController = {
                 user: {
                     id: user.id,
                     email: user.email,
-                    full_name: user.full_name,
                     role: user.role
                 }
             });
