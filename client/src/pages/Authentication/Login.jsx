@@ -102,7 +102,6 @@ export default function Login() {
                       </label>
                     </div>
 
-
                     {/* Remember me */}
                     <div className="form-check d-flex justify-content-center mb-4">
                       <input
@@ -110,7 +109,6 @@ export default function Login() {
                         type="checkbox"
                         id="rememberMe"
                       />
-
                       <label
                         className="form-check-label"
                         htmlFor="rememberMe"
@@ -144,4 +142,3 @@ export default function Login() {
     </section>
   );
 }
-
