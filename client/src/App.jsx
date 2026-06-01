@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
-//import CandidateProfile from './components/CandidateProfile/Candidate_profile';
+import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
 import Login from './pages/Authentication/Login';
-//import AdminDashboard from './components/Admin/AdminDashboard';
-//import ProtectedRoute from './components/ProtectedRoute';
+import AdminDashboard from './pages/Admin/AdminDashboard';
+import ProtectedRoute from './pages/ProtectedRoute';
 import HomePage from './pages/HomePage/HomePage';
 import VerifyOTP from './pages/Authentication/VerifyOTP';
 import './App.css';
@@ -65,43 +66,13 @@ const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/verify-otp", element: <VerifyOTP /> },
   { path: "/dashboard", element: <UserDashboard /> },
+  { path: "/profile", element: <Home /> },
 
   // Profile
-  // {
-  //   path: "/company-profile",
-  //   element: (
-  //     <ProtectedRoute>
-  //       <CompanyProfile />
-  //     </ProtectedRoute>
-  //   )
-  // },
   {
-  path: "/company-profile",
-  element: <CompanyProfile />
-},
-
-  // {
-  //   path: "/candidate-profile",
-  //   element: (
-  //     <ProtectedRoute>
-  //       <CandidateProfilePage />
-  //     </ProtectedRoute>
-  //   )
-  // },
-
-  // Admin
-  // {
-  //   path: "/admin",
-  //   element: (
-  //     <ProtectedRoute>
-  //       <AdminDashboard />
-  //     </ProtectedRoute>
-  //   )
-  // },
-//   {
-//   path: "/admin",
-//   element: <AdminDashboard />
-// },
+    path: "/company-profile",
+    element: <CompanyProfile />
+  },
 
   { path: "*", element: <div>404</div> }
 ]);
