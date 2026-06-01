@@ -57,7 +57,7 @@ function Home() {
 }
 
 const router = createBrowserRouter([
-  //{ path: "/", element: <HomePage /> },
+  { path: "/", element: <HomePage /> },
 
   // Authentication
   { path: "/auth", element: <AuthPage /> },
