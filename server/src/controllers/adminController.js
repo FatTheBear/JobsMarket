@@ -260,3 +260,75 @@ exports.deleteNews = async (req, res) => {
         });
     }
 };
+
+// 14. Lấy danh sách lịch sử giao dịch (Nạp/Tiêu xu) của toàn hệ thống
+exports.getTransactions = async (req, res) => {
+    try {
+        const query = `
+            SELECT t.*, u.email, u.bank_name, u.bank_account_number, u.bank_account_name 
+            FROM \`Transaction\` t
+            JOIN \`User\` u ON t.user_id = u.id
+            ORDER BY t.created_at DESC
+        `;
+        const [transactions] = await db.query(query);
+        res.json(transactions);
+    } catch (error) {
+        console.error("❌ Lỗi tại getTransactions:", error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// 15. Duyệt hoặc Từ chối lệnh nạp tiền (Cộng xu tự động nếu duyệt thành công)
+exports.updateTransactionStatus = async (req, res) => {
+    const { id } = req.params; // ID của Giao dịch
+    const { status } = req.body; // 'completed' hoặc 'failed'
+    
+    // Tạo connection để dùng Transaction nhằm đảm bảo an toàn dữ liệu khi cộng xu
+    const connection = await db.getConnection();
+    await connection.beginTransaction();
+
+    try {
+        // Kiểm tra xem giao dịch có tồn tại và đang ở trạng thái pending không
+        const [rows] = await connection.execute(
+            "SELECT * FROM `Transaction` WHERE id = ? FOR UPDATE", 
+            [id]
+        );
+
+        if (rows.length === 0) {
+            throw new Error("Giao dịch không tồn tại!");
+        }
+
+        const transaction = rows[0];
+
+        if (transaction.status !== 'pending') {
+            throw new Error("Giao dịch này đã được xử lý trước đó rồi!");
+        }
+
+        // 1. Cập nhật trạng thái của Giao dịch
+        await connection.execute(
+            "UPDATE `Transaction` SET status = ? WHERE id = ?",
+            [status, id]
+        );
+
+        // 2. Nếu Admin bấm DUYỆT ('completed') và loại giao dịch là NẠP TIỀN ('deposit')
+        if (status === 'completed' && transaction.type === 'deposit') {
+            // Tiến hành cộng xu thẳng vào tài khoản User
+            await connection.execute(
+                "UPDATE `User` SET coins = coins + ? WHERE id = ?",
+                [transaction.coins, transaction.user_id]
+            );
+            console.log(`✅ Đã cộng ${transaction.coins} xu cho User ID: ${transaction.user_id}`);
+        }
+
+        await connection.commit();
+        connection.release();
+        
+        res.json({ success: true, message: "Xử lý giao dịch thành công!" });
+
+    } catch (error) {
+        await connection.rollback();
+        connection.release();
+        console.error("❌ Lỗi tại updateTransactionStatus:", error.message);
+        res.status(500).json({ message: error.message });
+    }
+};

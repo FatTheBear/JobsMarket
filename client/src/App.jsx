@@ -1,51 +1,28 @@
-<<<<<<< HEAD
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import HomePage from './pages/HomePage/HomePage';
-import AuthPage from './pages/AuthPage/AuthPage';
-import CompanyProfile from './components/CompanyProfile/CompanyProfile';
-
-function App() {
-  return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/auth" element={<AuthPage />} />
-        
-        <Route path="/company-profile" element={<CompanyProfile />} />
-      </Routes>
-    </Router>
-  );
-}
-
-export default App;
-=======
 import React, { useState } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
+// Import Components
 import CompanyProfile from './components/CompanyProfile/CompanyProfile';
 import CandidateProfile from './components/CandidateProfile/Candidate_profile';
 import Login from './components/Auth/Login';
 import AdminDashboard from './components/Admin/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+
+// Import Pages
 import HomePage from './pages/HomePage/HomePage';
-
 import CandidateProfilePage from './pages/CandidateProfilePage/CandidateProfilePage';
-import './App.css';
-
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-
-
 import AuthPage from './pages/Authentication/AuthPage';
 import Register from './pages/Authentication/Register';
 
+// Style
+import './App.css';
 
-// Home Dashboard component featuring the Premium Dashboard Header and profile switching tabs
+// Component Home tạm thời điều hướng Tab giữa Candidate và Company Profile
 function Home() {
   const [activeTab, setActiveTab] = useState('candidate');
 
-
   return (
-    <><div className="app-wrapper">
+    <div className="app-wrapper">
       {/* Premium Dashboard Header */}
       <header className="dashboard-header">
         <div className="header-brand">
@@ -78,24 +55,17 @@ function Home() {
       <footer className="dashboard-footer">
         <p>© 2026 JobsMarket Platform • The Breakthrough Recruitment Experience</p>
       </footer>
-    </div><Router>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-
-          <Route path="/company-profile" element={<CompanyProfile />} />
-        </Routes>
-      </Router></>
+    </div>
   );
 }
 
+// Cấu hình danh sách các đường dẫn (Routes) toàn hệ thống
 const router = createBrowserRouter([
   { path: "/", element: <HomePage /> },
   { path: "/auth", element: <AuthPage /> },
+  { path: "/register", element: <Register /> },
   { path: "/login", element: <Login /> },
+  { path: "/company-profile", element: <CompanyProfile /> },
   { path: "/profile", element: <Home /> },
   {
     path: "/candidate-profile",
@@ -113,10 +83,10 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  { path: "*", element: <div>404</div> }
+  { path: "*", element: <div style={{ color: 'white', padding: '20px' }}>404 - Page Not Found</div> }
 ]);
 
+// Component App chính chạy RouterProvider
 export default function App() {
   return <RouterProvider router={router} />;
 }
->>>>>>> origin/main

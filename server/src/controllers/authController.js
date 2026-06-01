@@ -1,8 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
-const bcrypt = require('bcryptjs');
 const pool = require('../config/db');
-const UserModel = require('../models/UserModel');
+const UserModel = require('../models/User');
 
 const authController = {
     register: async (req, res) => {
@@ -21,9 +20,9 @@ const authController = {
                 return res.status(400).json({ message: "Email already exists!" });
             }
 
-            const saltRounds = 10;
-            const password_hash = await bcrypt.hash(password, saltRounds);
-
+           
+            const password_hash = password;
+            
             const connection = await pool.getConnection();
             await connection.beginTransaction();
 
@@ -36,7 +35,7 @@ const authController = {
                 
                 const newUserId = userResult.insertId;
 
-                // 2. Logic phân luồng theo Role (Đã thống nhất tên)
+                // 2. Logic phân luồng theo Role (Bao gồm Candidate, Company và Admin)
                 if (role === 'candidate') {
                     if (!full_name) throw new Error("Full name is required for Candidate!");
                     await connection.execute(
@@ -51,6 +50,10 @@ const authController = {
                         [newUserId, industry_id, company_name]
                     );
                 } 
+                else if (role === 'Admin') {
+                    // Cấp quyền Admin: Lưu ở bảng User chính là đủ, không cần điền bảng phụ
+                    console.log(`--- Đã tạo tài khoản Admin ID: ${newUserId} thành công ---`);
+                }
                 else {
                     throw new Error("Invalid role specified!");
                 }
@@ -93,12 +96,10 @@ const authController = {
 
             const user = rows[0];
 
-            console.log("DB HASH:", user.password_hash);
+            console.log("DB PASSWORD (PLAINTEXT):", user.password_hash);
 
-            const isMatch = await bcrypt.compare(
-                password,
-                user.password_hash
-            );
+            
+            const isMatch = (password === user.password_hash);
 
             console.log("MATCH:", isMatch);
 
@@ -124,7 +125,6 @@ const authController = {
 
         } catch (err) {
             console.error(err);
-
             res.status(500).json({
                 message: "Server error"
             });

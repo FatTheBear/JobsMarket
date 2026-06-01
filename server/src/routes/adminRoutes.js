@@ -25,3 +25,9 @@ router.put('/news/:id', adminController.updateNews);
 router.delete('/news/:id', adminController.deleteNews);
 
 module.exports = router;
+
+// 5. Quản lý giao dịch ví xu (Nạp tiền)
+router.get('/transactions', adminController.getTransactions);
+router.put('/transactions/:id/status', adminController.updateTransactionStatus);
+
+module.exports = router;
