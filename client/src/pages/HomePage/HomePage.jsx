@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import styles from './HomePage.module.css';
 
 const HOT_JOBS = [
-  { id: 1, title: 'Frontend Developer (ReactJS)', company: 'FPT Software', salary: '20 - 40 triệu', location: 'Hồ Chí Minh', logo: '🏢', tag: 'Hot', isNew: true },
-  { id: 2, title: 'Product Manager', company: 'VNG Corporation', salary: '40 - 70 triệu', location: 'Hồ Chí Minh', logo: '🏢', tag: 'Top', isNew: false },
-  { id: 3, title: 'Data Analyst', company: 'Tiki', salary: '18 - 35 triệu', location: 'Hà Nội', logo: '🏢', tag: 'Top', isNew: true },
-  { id: 4, title: 'UX/UI Designer', company: 'Momo', salary: '25 - 45 triệu', location: 'Hồ Chí Minh', logo: '🏢', tag: 'Hot', isNew: false },
-  { id: 5, title: 'Backend Engineer (NodeJS)', company: 'Shopee', salary: '30 - 55 triệu', location: 'Hồ Chí Minh', logo: '🏢', tag: 'VIP', isNew: true },
-  { id: 6, title: 'DevOps Engineer', company: 'VinAI', salary: '35 - 60 triệu', location: 'Hà Nội', logo: '🏢', tag: 'Top', isNew: false },
+  { id: 1, title: 'Frontend Developer (ReactJS)', company: 'FPT Software', salary: '$800 - $1,500', location: 'Ho Chi Minh City', logo: '🏢', tag: 'Hot', isNew: true },
+  { id: 2, title: 'Product Manager', company: 'VNG Corporation', salary: '$1,500 - $2,500', location: 'Ho Chi Minh City', logo: '🏢', tag: 'Top', isNew: false },
+  { id: 3, title: 'Data Analyst', company: 'Tiki', salary: '$700 - $1,200', location: 'Hanoi', logo: '🏢', tag: 'Top', isNew: true },
+  { id: 4, title: 'UX/UI Designer', company: 'Momo', salary: '$900 - $1,800', location: 'Ho Chi Minh City', logo: '🏢', tag: 'Hot', isNew: false },
+  { id: 5, title: 'Backend Engineer (NodeJS)', company: 'Shopee', salary: '$1,200 - $2,000', location: 'Ho Chi Minh City', logo: '🏢', tag: 'VIP', isNew: true },
+  { id: 6, title: 'DevOps Engineer', company: 'VinAI', salary: '$1,300 - $2,200', location: 'Hanoi', logo: '🏢', tag: 'Top', isNew: false },
 ];
 
 const TOP_EMPLOYERS = [
@@ -23,21 +23,23 @@ const TOP_EMPLOYERS = [
 ];
 
 const CATEGORIES = [
-  { icon: '💻', name: 'Công nghệ thông tin', count: '3,200+' },
-  { icon: '💰', name: 'Tài chính - Ngân hàng', count: '1,800+' },
-  { icon: '🎨', name: 'Marketing - PR', count: '950+' },
-  { icon: '🏭', name: 'Sản xuất - Kỹ thuật', count: '2,100+' },
-  { icon: '🏥', name: 'Y tế - Dược phẩm', count: '780+' },
-  { icon: '📚', name: 'Giáo dục - Đào tạo', count: '640+' },
-  { icon: '🚚', name: 'Logistics - Vận tải', count: '1,100+' },
-  { icon: '🛒', name: 'Bán hàng - Kinh doanh', count: '2,800+' },
-  { icon: '🏢', name: 'Bất động sản', count: '920+' },
-  { icon: '⚖️', name: 'Pháp lý - Luật', count: '430+' },
+  { icon: '💻', name: 'Information Technology', count: '3,200+' },
+  { icon: '💰', name: 'Finance & Banking', count: '1,800+' },
+  { icon: '🎨', name: 'Marketing & PR', count: '950+' },
+  { icon: '🏭', name: 'Manufacturing & Engineering', count: '2,100+' },
+  { icon: '🏥', name: 'Healthcare & Pharmacy', count: '780+' },
+  { icon: '📚', name: 'Education & Training', count: '640+' },
+  { icon: '🚚', name: 'Logistics & Transportation', count: '1,100+' },
+  { icon: '🛒', name: 'Sales & Business', count: '2,800+' },
+  { icon: '🏢', name: 'Real Estate', count: '920+' },
+  { icon: '⚖️', name: 'Legal & Law', count: '430+' },
 ];
 
-const LOCATIONS = ['Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Bình Dương', 'Đồng Nai', 'Cần Thơ'];
+const LOCATIONS = [
+  'Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Binh Duong', 'Dong Nai', 'Can Tho'
+];
 
-const JOB_TABS = ['Việc Làm Nổi Bật', 'Việc Làm VIP ($1000+)', 'Việc Làm Mới Nhất'];
+const JOB_TABS = ['Featured Jobs', 'VIP Jobs ($1000+)', 'Latest Jobs'];
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -48,9 +50,9 @@ export default function HomePage() {
   const bannerTimerRef = useRef(null);
 
   const BANNERS = [
-    { bg: 'linear-gradient(135deg, #1e3a6e 0%, #2563ab 60%, #1e5c8b 100%)', title: 'Tìm Việc Làm Tốt Nhất 2026', sub: 'Hơn 26,000 cơ hội nghề nghiệp đang chờ bạn' },
-    { bg: 'linear-gradient(135deg, #0f2d5e 0%, #c0392b 100%)', title: 'Kết Nối Tài Năng & Doanh Nghiệp', sub: 'Nền tảng tuyển dụng #1 tại Việt Nam' },
-    { bg: 'linear-gradient(135deg, #1a4731 0%, #27ae60 100%)', title: 'Ứng Tuyển Nhanh - Được Việc Liền', sub: 'Đăng hồ sơ miễn phí, nhận lời mời từ nhà tuyển dụng' },
+    { bg: 'linear-gradient(135deg, #1e3a6e 0%, #2563ab 60%, #1e5c8b 100%)', title: 'Find Your Dream Job in 2026', sub: 'Over 26,000 career opportunities are waiting for you' },
+    { bg: 'linear-gradient(135deg, #0f2d5e 0%, #c0392b 100%)', title: 'Connecting Talent & Enterprise', sub: '#1 Recruitment Platform in Vietnam' },
+    { bg: 'linear-gradient(135deg, #1a4731 0%, #27ae60 100%)', title: 'Apply Fast — Get Hired Quickly', sub: 'Upload your CV for free and receive offers from top employers' },
   ];
 
   useEffect(() => {
@@ -75,16 +77,16 @@ export default function HomePage() {
               <span className={styles.navName}>JobsMarket</span>
             </div>
             <div className={styles.navMenu}>
-              <button className={styles.navMenuItem} onClick={() => navigate('/auth')}>Tìm Việc Làm</button>
-              <button className={styles.navMenuItem} onClick={() => navigate('/auth')}>Công Ty</button>
-              <button className={styles.navMenuItem} onClick={() => navigate('/auth')}>Cẩm Nang</button>
+              <button className={styles.navMenuItem} onClick={() => navigate('/auth')}>Find Jobs</button>
+              <button className={styles.navMenuItem} onClick={() => navigate('/auth')}>Companies</button>
+              <button className={styles.navMenuItem} onClick={() => navigate('/auth')}>Career Guide</button>
             </div>
           </div>
           <div className={styles.navRight}>
-            <button className={styles.navAlert} onClick={() => navigate('/auth')}>🔔 Thông Báo Việc Làm</button>
-            <button className={styles.navBtnOutline} onClick={() => navigate('/login')}>Đăng Nhập</button>
+            <button className={styles.navAlert} onClick={() => navigate('/auth')}>🔔 Job Alerts</button>
+            <button className={styles.navBtnOutline} onClick={() => navigate('/login')}>Sign In</button>
             <button className={styles.navBtnEmployer} onClick={() => navigate('/auth')}>
-              🏢 Dành Cho NTD
+              🏢 For Employers
             </button>
           </div>
         </div>
@@ -102,14 +104,14 @@ export default function HomePage() {
           {/* Search Box */}
           <div className={styles.searchBox}>
             <div className={styles.searchBoxTitle}>
-              <h2>Đón lấy thành công với <span className={styles.jobCount}>26,047</span> cơ hội nghề nghiệp</h2>
+              <h2>Seize your success with <span className={styles.jobCount}>26,047</span> career opportunities</h2>
             </div>
             <div className={styles.searchRow}>
               <div className={styles.searchField}>
                 <span className={styles.searchFieldIcon}>🔍</span>
                 <input
                   className={styles.searchInput}
-                  placeholder="Chức danh, từ khóa, công ty..."
+                  placeholder="Job title, keyword, company..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSearch()}
@@ -123,19 +125,19 @@ export default function HomePage() {
                   value={selectedLocation}
                   onChange={e => setSelectedLocation(e.target.value)}
                 >
-                  <option value="">Tất cả tỉnh/thành</option>
+                  <option value="">All cities / provinces</option>
                   {LOCATIONS.map(loc => (
                     <option key={loc} value={loc}>{loc}</option>
                   ))}
                 </select>
               </div>
               <button className={styles.searchBtn} onClick={handleSearch}>
-                TÌM VIỆC NGAY
+                SEARCH NOW
               </button>
             </div>
             <div className={styles.searchFooter}>
-              <span>📄 Đăng hồ sơ nghề nghiệp để dễ dàng ứng tuyển nhanh</span>
-              <button className={styles.uploadResumeBtn} onClick={() => navigate('/auth')}>ĐĂNG NGAY</button>
+              <span>📄 Upload your resume to apply faster and get noticed by employers</span>
+              <button className={styles.uploadResumeBtn} onClick={() => navigate('/auth')}>UPLOAD NOW</button>
             </div>
           </div>
         </div>
@@ -156,25 +158,25 @@ export default function HomePage() {
       <section className={styles.section}>
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>NHÀ TUYỂN DỤNG HÀNG ĐẦU</h2>
+            <h2 className={styles.sectionTitle}>TOP EMPLOYERS</h2>
           </div>
           <div className={styles.employersGrid}>
             {TOP_EMPLOYERS.map((emp, i) => (
               <div key={i} className={styles.employerCard} onClick={() => navigate('/auth')}>
                 <div className={styles.employerLogo}>{emp.logo}</div>
                 <div className={styles.employerName}>{emp.name}</div>
-                <div className={styles.employerJobs}>{emp.jobs} việc làm</div>
+                <div className={styles.employerJobs}>{emp.jobs} jobs</div>
               </div>
             ))}
           </div>
           <div className={styles.viewMore}>
-            <button onClick={() => navigate('/auth')}>Xem thêm <span>→</span></button>
+            <button onClick={() => navigate('/auth')}>View more <span>→</span></button>
           </div>
         </div>
       </section>
 
       {/* ───── HOT JOBS ───── */}
-      <section className={styles.section + ' ' + styles.sectionGray}>
+      <section className={`${styles.section} ${styles.sectionGray}`}>
         <div className={styles.container}>
           <div className={styles.tabsBar}>
             {JOB_TABS.map((tab, i) => (
@@ -203,13 +205,13 @@ export default function HomePage() {
                 </div>
                 <div className={styles.jobTags}>
                   <span className={`${styles.jobTag} ${styles['jobTag' + job.tag]}`}>{job.tag}</span>
-                  {job.isNew && <span className={styles.jobTagNew}>Mới</span>}
+                  {job.isNew && <span className={styles.jobTagNew}>New</span>}
                 </div>
               </div>
             ))}
           </div>
           <div className={styles.viewMore}>
-            <button onClick={() => navigate('/auth')}>Xem tất cả việc làm <span>→</span></button>
+            <button onClick={() => navigate('/auth')}>View all jobs <span>→</span></button>
           </div>
         </div>
       </section>
@@ -218,14 +220,14 @@ export default function HomePage() {
       <section className={styles.section}>
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>NGÀNH NGHỀ PHỔ BIẾN</h2>
+            <h2 className={styles.sectionTitle}>POPULAR INDUSTRIES</h2>
           </div>
           <div className={styles.categoriesGrid}>
             {CATEGORIES.map((cat, i) => (
               <div key={i} className={styles.categoryCard} onClick={() => navigate('/auth')}>
                 <div className={styles.categoryIcon}>{cat.icon}</div>
                 <div className={styles.categoryName}>{cat.name}</div>
-                <div className={styles.categoryCount}>{cat.count} việc làm</div>
+                <div className={styles.categoryCount}>{cat.count} jobs</div>
               </div>
             ))}
           </div>
@@ -238,19 +240,19 @@ export default function HomePage() {
           <div className={styles.statsGrid}>
             <div className={styles.statItem}>
               <div className={styles.statNum}>26,000+</div>
-              <div className={styles.statLabel}>Việc làm đang tuyển</div>
+              <div className={styles.statLabel}>Active Job Listings</div>
             </div>
             <div className={styles.statItem}>
               <div className={styles.statNum}>20,000+</div>
-              <div className={styles.statLabel}>Nhà tuyển dụng uy tín</div>
+              <div className={styles.statLabel}>Verified Employers</div>
             </div>
             <div className={styles.statItem}>
-              <div className={styles.statNum}>5 triệu+</div>
-              <div className={styles.statLabel}>Ứng viên đăng ký</div>
+              <div className={styles.statNum}>5M+</div>
+              <div className={styles.statLabel}>Registered Candidates</div>
             </div>
             <div className={styles.statItem}>
-              <div className={styles.statNum}>15 năm</div>
-              <div className={styles.statLabel}>Kinh nghiệm tuyển dụng</div>
+              <div className={styles.statNum}>15 Years</div>
+              <div className={styles.statLabel}>Recruitment Experience</div>
             </div>
           </div>
         </div>
@@ -263,13 +265,13 @@ export default function HomePage() {
             <div className={styles.ctaLeft}>
               <div className={styles.ctaIcon}>🏢</div>
               <div>
-                <h3 className={styles.ctaTitle}>Dành Cho Nhà Tuyển Dụng</h3>
-                <p className={styles.ctaDesc}>Đăng tin tuyển dụng miễn phí, tìm kiếm ứng viên chất lượng, tiếp cận 5 triệu+ ứng viên tiềm năng.</p>
+                <h3 className={styles.ctaTitle}>For Employers</h3>
+                <p className={styles.ctaDesc}>Post jobs for free, find quality candidates, and reach 5M+ potential applicants across Vietnam.</p>
               </div>
             </div>
             <div className={styles.ctaButtons}>
-              <button className={styles.ctaBtnPrimary} onClick={() => navigate('/auth')}>Đăng Tuyển Dụng</button>
-              <button className={styles.ctaBtnSecondary} onClick={() => navigate('/auth')}>Tìm Ứng Viên</button>
+              <button className={styles.ctaBtnPrimary} onClick={() => navigate('/auth')}>Post a Job</button>
+              <button className={styles.ctaBtnSecondary} onClick={() => navigate('/auth')}>Find Candidates</button>
             </div>
           </div>
         </div>
@@ -281,25 +283,25 @@ export default function HomePage() {
           <div className={styles.footerGrid}>
             <div className={styles.footerBrand}>
               <div className={styles.footerLogo}>💼 <span>JobsMarket</span></div>
-              <p className={styles.footerDesc}>Nền tảng tuyển dụng và tìm việc làm hàng đầu Việt Nam</p>
+              <p className={styles.footerDesc}>Vietnam's leading job search and recruitment platform</p>
             </div>
             <div className={styles.footerLinks}>
-              <h4>Ứng Viên</h4>
-              <a onClick={() => navigate('/auth')}>Tìm việc làm</a>
-              <a onClick={() => navigate('/auth')}>Tạo hồ sơ</a>
-              <a onClick={() => navigate('/auth')}>Thông báo việc làm</a>
+              <h4>Job Seekers</h4>
+              <a onClick={() => navigate('/auth')}>Find Jobs</a>
+              <a onClick={() => navigate('/auth')}>Create Profile</a>
+              <a onClick={() => navigate('/auth')}>Job Alerts</a>
             </div>
             <div className={styles.footerLinks}>
-              <h4>Nhà Tuyển Dụng</h4>
-              <a onClick={() => navigate('/auth')}>Đăng tin tuyển dụng</a>
-              <a onClick={() => navigate('/auth')}>Tìm ứng viên</a>
-              <a onClick={() => navigate('/auth')}>Sản phẩm & Dịch vụ</a>
+              <h4>Employers</h4>
+              <a onClick={() => navigate('/auth')}>Post a Job</a>
+              <a onClick={() => navigate('/auth')}>Find Candidates</a>
+              <a onClick={() => navigate('/auth')}>Products & Services</a>
             </div>
             <div className={styles.footerLinks}>
-              <h4>Về Chúng Tôi</h4>
-              <a onClick={() => navigate('/auth')}>Giới thiệu</a>
-              <a onClick={() => navigate('/auth')}>Liên hệ</a>
-              <a onClick={() => navigate('/auth')}>Điều khoản sử dụng</a>
+              <h4>About Us</h4>
+              <a onClick={() => navigate('/auth')}>About</a>
+              <a onClick={() => navigate('/auth')}>Contact</a>
+              <a onClick={() => navigate('/auth')}>Terms of Service</a>
             </div>
           </div>
           <div className={styles.footerBottom}>
