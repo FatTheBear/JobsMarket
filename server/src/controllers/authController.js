@@ -24,7 +24,7 @@ const authController = {
                     'INSERT INTO User (email, password_hash, role) VALUES (?, ?, ?)',
                     [email, password_hash, role]
                 );
-                
+
                 const newUserId = userResult.insertId;
                 
                 const crypto = require('crypto');
@@ -58,12 +58,15 @@ const authController = {
                         'INSERT INTO Candidate_Profile (user_id, full_name) VALUES (?, ?)',
                         [newUserId, full_name]
                     );
-                } 
+                }
                 else if (role === 'company') {
                     await connection.execute(
                         'INSERT INTO Company (hr_id, industry_id, name) VALUES (?, ?, ?)',
                         [newUserId, industry_id, company_name]
                     );
+                }
+                else {
+                    throw new Error("Invalid role specified!");
                 }
 
                 await connection.commit();
