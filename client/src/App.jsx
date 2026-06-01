@@ -57,7 +57,7 @@ function Home() {
 }
 
 const router = createBrowserRouter([
-  //{ path: "/", element: <HomePage /> },
+  { path: "/", element: <HomePage /> },
 
   // Authentication
   { path: "/auth", element: <AuthPage /> },
@@ -76,9 +76,9 @@ const router = createBrowserRouter([
   //   )
   // },
   {
-  path: "/company-profile",
-  element: <CompanyProfile />
-},
+    path: "/company-profile",
+    element: <CompanyProfile />
+  },
 
   // {
   //   path: "/candidate-profile",
@@ -98,10 +98,10 @@ const router = createBrowserRouter([
   //     </ProtectedRoute>
   //   )
   // },
-//   {
-//   path: "/admin",
-//   element: <AdminDashboard />
-// },
+  //   {
+  //   path: "/admin",
+  //   element: <AdminDashboard />
+  // },
 
   { path: "*", element: <div>404</div> }
 ]);

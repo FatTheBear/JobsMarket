@@ -1,4 +1,4 @@
-require('dotenv').config(); 
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
@@ -13,9 +13,11 @@ require('./config/db');
 // Routes
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const candidateRoutes = require('./routes/candidateRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/candidate', candidateRoutes);
 
 app.get("/", (req, res) => {
   res.send("JobsMarket API running...");

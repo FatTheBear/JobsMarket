@@ -1,9 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './Login.module.css';
 import React, { useState } from 'react';
+import axios from 'axios';
 export default function Login() {
 
-const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,13 +20,15 @@ const navigate = useNavigate();
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/login', {
+      const response = await axios.post('http://localhost:5000/api/auth/login', {
         email,
         password
       });
 
       if (response.status === 200) {
-        navigate('/dashboard'); 
+        //navigate('/dashboard');
+        localStorage.setItem('token', response.data.token);
+        navigate('/candidate-profile');
       }
     } catch (error) {
       // 2. Catch Backend Errors
@@ -61,7 +64,7 @@ const navigate = useNavigate();
                       {errorMessage}
                     </div>
                   )}
-                  <form>
+                  <form onSubmit={handleLoginSubmit}>
 
                     {/* Email */}
                     <div className="form-floating mb-4">
@@ -70,6 +73,8 @@ const navigate = useNavigate();
                         id="loginEmail"
                         className={`form-control ${styles.formControl}`}
                         placeholder="Your Email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                       />
                       <label
                         className="form-label"
@@ -86,6 +91,8 @@ const navigate = useNavigate();
                         id="loginPassword"
                         className={`form-control ${styles.formControl}`}
                         placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                       />
                       <label
                         className="form-label"
