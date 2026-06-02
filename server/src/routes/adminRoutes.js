@@ -18,13 +18,16 @@ router.get('/news', adminController.getNews);
 
 // 4. Thêm mới danh mục dữ liệu nhanh
 router.post('/skills', adminController.createSkill);
+router.delete('/skills/:id', adminController.deleteSkill);
+
 router.post('/industries', adminController.createIndustry);
+router.delete('/industries/:id', adminController.deleteIndustry);
 
 router.post('/news', adminController.createNews);
 router.put('/news/:id', adminController.updateNews);
 router.delete('/news/:id', adminController.deleteNews);
 
-module.exports = router;
+
 
 // 5. Quản lý giao dịch ví xu (Nạp tiền)
 router.get('/transactions', adminController.getTransactions);

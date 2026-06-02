@@ -75,6 +75,18 @@ const AdminDashboard = () => {
     }
   };
 
+  // Hàm xử lý xóa Kỹ năng
+  const handleDeleteSkill = async (id) => {
+    if (window.confirm("Are you sure you want to delete this skill?")) {
+      try {
+        await adminApi.deleteSkill(id);
+        await fetchCategoriesData(); // Load lại data sau khi xóa
+      } catch (err) {
+        alert("Error deleting skill!");
+      }
+    }
+  };
+
   // Hàm xử lý thêm nhanh Ngành nghề mới
   const handleAddIndustry = async (name) => {
     try {
@@ -82,6 +94,18 @@ const AdminDashboard = () => {
       await fetchCategoriesData(); // Load lại bảng ngay lập tức
     } catch (err) {
       alert("Cannot add industry. Please try again.");
+    }
+  };
+
+  // Hàm xử lý xóa Ngành nghề
+  const handleDeleteIndustry = async (id) => {
+    if (window.confirm("Are you sure you want to delete this industry?")) {
+      try {
+        await adminApi.deleteIndustry(id);
+        await fetchCategoriesData(); // Load lại data sau khi xóa
+      } catch (err) {
+        alert("Error deleting industry!");
+      }
     }
   };
 
@@ -200,6 +224,8 @@ const AdminDashboard = () => {
             onRefresh={fetchCategoriesData} 
             onAddSkill={handleAddSkill}
             onAddIndustry={handleAddIndustry}
+            onDeleteSkill={handleDeleteSkill}
+            onDeleteIndustry={handleDeleteIndustry}
           />
         )}
         {!loading && activeTab === 'news' && (

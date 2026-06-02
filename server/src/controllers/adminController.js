@@ -332,3 +332,28 @@ exports.updateTransactionStatus = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// 16. Xóa Kỹ năng
+exports.deleteSkill = async (req, res) => {
+    const { id } = req.params;
+    try {
+        // Kiểm tra xem skill có đang được sử dụng trong job nào không (tùy chọn)
+        await db.query("DELETE FROM `skill` WHERE id = ?", [id]);
+        res.json({ success: true, message: "Skill deleted successfully!" });
+    } catch (error) {
+        console.error("DELETE SKILL ERROR:", error);
+        res.status(500).json({ message: "Error deleting skill" });
+    }
+};
+
+// 17. Xóa Ngành nghề
+exports.deleteIndustry = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query("DELETE FROM `industry` WHERE id = ?", [id]);
+        res.json({ success: true, message: "Industry deleted successfully!" });
+    } catch (error) {
+        console.error("DELETE INDUSTRY ERROR:", error);
+        res.status(500).json({ message: "Error deleting industry" });
+    }
+};
