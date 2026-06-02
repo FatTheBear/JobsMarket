@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import { createBrowserRouter, RouterProvider, BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-// Import Components
-import CompanyProfile from './components/CompanyProfile/CompanyProfile';
-import CandidateProfile from './components/CandidateProfile/Candidate_profile';
-import Login from './components/Auth/Login';
-import AdminDashboard from './components/Admin/AdminDashboard';
-import ProtectedRoute from './components/ProtectedRoute';
-
-// Import Pages
+import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
+import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
+import Login from './pages/Authentication/Login';
+import AdminDashboard from './pages/Admin/AdminDashboard';
+import ProtectedRoute from './pages/ProtectedRoute';
 import HomePage from './pages/HomePage/HomePage';
+import JobPosting from './components/JobPosting/JobPosting';
+import JobSkillsManager from './components/JobSkillsManager/JobSkillsManager';
 import CandidateProfilePage from './pages/CandidateProfilePage/CandidateProfilePage';
+import VerifyOTP from './pages/Authentication/VerifyOTP';
+import './App.css';
 import AuthPage from './pages/Authentication/AuthPage';
 import Register from './pages/Authentication/Register';
+import UserDashboard from './pages/DashBoard/UserDashboard/UserDashboard';
 
 // Style
 import './App.css';
@@ -62,11 +64,16 @@ function Home() {
 // Cấu hình danh sách các đường dẫn (Routes) toàn hệ thống
 const router = createBrowserRouter([
   { path: "/", element: <HomePage /> },
+
+  // Authentication
   { path: "/auth", element: <AuthPage /> },
   { path: "/register", element: <Register /> },
   { path: "/login", element: <Login /> },
   { path: "/company-profile", element: <CompanyProfile /> },
+  { path: "/verify-otp", element: <VerifyOTP /> },
+  { path: "/dashboard", element: <UserDashboard /> },
   { path: "/profile", element: <Home /> },
+  { path: "/company-profile", element: <CompanyProfile /> },
   {
     path: "/candidate-profile",
     element: (
@@ -83,7 +90,27 @@ const router = createBrowserRouter([
       </ProtectedRoute>
     ),
   },
-  { path: "*", element: <div style={{ color: 'white', padding: '20px' }}>404 - Page Not Found</div> }
+  {
+    path: "/job-posting",
+    element: <JobPosting />
+  },
+  {
+    path: "/job-skills",
+    element: (
+      <div style={{ maxWidth: 820, margin: '40px auto', padding: '0 20px' }}>
+        <h1 style={{ fontFamily: 'Inter,sans-serif', marginBottom: 24 }}>🎯 Job Skills Manager</h1>
+        <JobSkillsManager jobId={null} />
+      </div>
+    )
+  },
+
+  // Profile
+  {
+    path: "/company-profile",
+    element: <CompanyProfile />
+  },
+
+  { path: "*", element: <div>404</div> }
 ]);
 
 // Component App chính chạy RouterProvider

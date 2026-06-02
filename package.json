@@ -1,25 +1,16 @@
 {
-<<<<<<< HEAD
-  "dependencies": {
-<<<<<<< HEAD
-    "react-router-dom": "^7.15.1"
-  }
-=======
-    "bcrypt": "^6.0.0",
-    "dotenv": "^17.4.2",
-    "mysql2": "^3.22.3"
-  },
-=======
->>>>>>> origin/main
   "name": "jobsmarket",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.2.0",
     "ansi-regex": "^5.0.1",
     "ansi-styles": "^4.3.0",
     "aws-ssl-profiles": "^1.1.2",
+    "axios": "^1.16.1",
     "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
     "chalk": "^4.1.2",
     "cliui": "^8.0.1",
     "color-convert": "^2.0.1",
@@ -29,18 +20,22 @@
     "dotenv": "^17.4.2",
     "emoji-regex": "^8.0.0",
     "escalade": "^3.2.0",
+    "express": "^5.2.1",
     "generate-function": "^2.3.1",
     "get-caller-file": "^2.0.5",
     "has-flag": "^4.0.0",
     "iconv-lite": "^0.7.2",
     "is-fullwidth-code-point": "^3.0.0",
     "is-property": "^1.0.2",
+    "joi": "^18.2.1",
+    "jsonwebtoken": "^9.0.3",
     "long": "^5.3.2",
     "lru.min": "^1.1.4",
     "mysql2": "^3.22.4",
     "named-placeholders": "^1.1.6",
     "node-addon-api": "^8.8.0",
     "node-gyp-build": "^4.8.4",
+    "nodemailer": "^8.0.10",
     "require-directory": "^2.1.1",
     "rxjs": "^7.8.2",
     "safer-buffer": "^2.1.2",
@@ -57,7 +52,6 @@
     "yargs": "^17.7.2",
     "yargs-parser": "^21.1.1"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "concurrently \"npm start --prefix server\" \"npm run dev --prefix client\""
@@ -74,9 +68,4 @@
     "url": "https://github.com/FatTheBear/JobsMarket/issues"
   },
   "homepage": "https://github.com/FatTheBear/JobsMarket#readme"
-<<<<<<< HEAD
->>>>>>> 6a33f81f1fcb1fc874275c82e28c6bf90f986f8c
 }
-=======
-}
->>>>>>> origin/main

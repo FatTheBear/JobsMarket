@@ -1,28 +1,25 @@
 const jwt = require('jsonwebtoken');
 
-exports.verifyToken = (req, res, next) => {
-    const authHeader = req.headers.authorization;
+const authMiddleware = (req, res, next) => {
+    // 1. Lấy token từ header Authorization (Bearer <token>)
+    const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) {
-        return res.status(401).json({
-            message: 'Không tìm thấy token'
-        });
+        return res.status(401).json({ message: "Access denied. No token provided." });
     }
 
     try {
-        const decoded = jwt.verify(token, 'SECRET_KEY');
+        // 2. Xác thực token (Sử dụng SECRET_KEY trùng với lúc mã hóa ở authController.js)
+        const decoded = jwt.verify(token, "SECRET_KEY");
 
+        // 3. Lưu thông tin giải mã (id, role) vào req.user để các controller sử dụng
         req.user = decoded;
 
-        console.log('TOKEN OK:', decoded);
-
-        next();
-    } catch (err) {
-        console.error('JWT ERROR:', err.message);
-
-        return res.status(401).json({
-            message: 'Token không hợp lệ hoặc đã hết hạn!'
-        });
+        next(); // Cho phép đi tiếp vào controller
+    } catch (error) {
+        return res.status(403).json({ message: "Invalid or expired token." });
     }
 };
+
+module.exports = authMiddleware;
