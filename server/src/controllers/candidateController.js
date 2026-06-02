@@ -16,6 +16,11 @@ const candidateController = {
                 profile.skills = JSON.parse(profile.skills);
             }
 
+            // Nếu trường education được lưu dưới dạng JSON trong DB, parse nó về Object/Array khi gửi về Client
+            if (profile.education && typeof profile.education === 'string') {
+                profile.education = JSON.parse(profile.education);
+            }
+
             return res.status(200).json(profile);
         } catch (error) {
             console.error(error);
@@ -36,6 +41,32 @@ const candidateController = {
             }
 
             return res.status(200).json({ message: "Profile updated successfully!" });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Internal server error!" });
+        }
+    },
+
+    // Lấy danh sách công ty đề xuất cho onboarding
+    getRecommendedCompanies: async (req, res) => {
+        try {
+            const userId = req.user.id;
+            const companies = await CandidateProfileModel.getRecommendedCompanies(userId);
+            return res.status(200).json(companies);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Internal server error!" });
+        }
+    },
+
+    // Lưu thông tin Onboarding ban đầu
+    saveOnboarding: async (req, res) => {
+        try {
+            const userId = req.user.id;
+            const onboardingData = req.body;
+
+            await CandidateProfileModel.updateOnboardingData(userId, onboardingData);
+            return res.status(200).json({ message: "Onboarding profile saved successfully!" });
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: "Internal server error!" });

@@ -10,8 +10,8 @@ const authMiddleware = (req, res, next) => {
     }
 
     try {
-        // 2. Xác thực token (Sử dụng SECRET_KEY trùng với lúc mã hóa ở authController.js)
-        const decoded = jwt.verify(token, "SECRET_KEY");
+        // 2. Xác thực token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'SECRET_KEY');
 
         // 3. Lưu thông tin giải mã (id, role) vào req.user để các controller sử dụng
         req.user = decoded;

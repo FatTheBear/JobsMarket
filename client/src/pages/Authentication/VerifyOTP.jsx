@@ -31,10 +31,11 @@ export default function VerifyOTP() {
             );
 
             if (response.status === 200) {
+                localStorage.setItem('token', response.data.token);
                 if (userRole === "company") {
                     navigate("/company-profile");
                 } else {
-                    navigate("/candidate-profile");
+                    navigate("/setup-profile");
                 }
             }
 
