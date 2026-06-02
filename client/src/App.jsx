@@ -1,26 +1,26 @@
 import React, { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
+import LandingPage from './pages/LandingPage/LandingPage';
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
 import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
+import CandidateProfilePage from './pages/CandidateProfilePage/CandidateProfilePage';
 import Login from './pages/Authentication/Login';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import ProtectedRoute from './pages/ProtectedRoute';
-import HomePage from './pages/HomePage/HomePage';
 import JobPosting from './components/JobPosting/JobPosting';
 import JobSkillsManager from './components/JobSkillsManager/JobSkillsManager';
-import CandidateProfilePage from './pages/CandidateProfilePage/CandidateProfilePage';
 import VerifyOTP from './pages/Authentication/VerifyOTP';
-import './App.css';
 import AuthPage from './pages/Authentication/AuthPage';
 import Register from './pages/Authentication/Register';
 import UserDashboard from './pages/DashBoard/UserDashboard/UserDashboard';
+import SetupProfilePage from './pages/SetupProfilePage/SetupProfilePage';
 
+import './App.css';
 
-// Home Dashboard component featuring the Premium Dashboard Header and profile switching tabs
+// Component Home tạm thời điều hướng Tab giữa Candidate và Company Profile
 function Home() {
   const [activeTab, setActiveTab] = useState('candidate');
-
 
   return (
     <div className="app-wrapper">
@@ -60,26 +60,22 @@ function Home() {
   );
 }
 
+// Cấu hình danh sách các đường dẫn (Routes) toàn hệ thống
 const router = createBrowserRouter([
-  { path: "/", element: <HomePage /> },
+  { path: "/", element: <LandingPage /> },
 
   // Authentication
   { path: "/auth", element: <AuthPage /> },
   { path: "/register", element: <Register /> },
   { path: "/login", element: <Login /> },
+  { path: "/company-profile", element: <CompanyProfile /> },
   { path: "/verify-otp", element: <VerifyOTP /> },
   { path: "/dashboard", element: <UserDashboard /> },
   { path: "/profile", element: <Home /> },
+  { path: "/setup-profile", element: <SetupProfilePage /> },
+  { path: "/candidate-profile", element: <CandidateProfile /> },
   { path: "/company-profile", element: <CompanyProfile /> },
   { path: "/company-profile/job-posting", element: <JobPosting /> },
-  {
-    path: "/candidate-profile",
-    element: (
-      <ProtectedRoute>
-        <CandidateProfilePage />
-      </ProtectedRoute>
-    )
-  },
   {
     path: "/admin",
     element: (
@@ -111,7 +107,7 @@ const router = createBrowserRouter([
   { path: "*", element: <div>404</div> }
 ]);
 
+// Component App chính chạy RouterProvider
 export default function App() {
   return <RouterProvider router={router} />;
 }
-

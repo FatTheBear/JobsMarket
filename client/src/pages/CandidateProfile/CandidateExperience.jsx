@@ -9,7 +9,8 @@ const CandidateExperience = ({
   currentExperience,
   experienceForm,
   setExperienceForm,
-  onSave
+  onSave,
+  modalError
 }) => {
   return (
     <>
@@ -22,10 +23,10 @@ const CandidateExperience = ({
                 <span className="fs-5 fw-bold text-dark mb-0">Experience</span>
               </div>
               <div className="d-flex align-items-center gap-2">
-                <button 
-                  onClick={() => onOpenModal(null)} 
-                  className="btn btn-sm btn-outline-primary rounded-circle p-0 d-flex align-items-center justify-content-center" 
-                  style={{ width: '28px', height: '28px' }} 
+                <button
+                  onClick={() => onOpenModal(null)}
+                  className="btn btn-sm btn-outline-primary rounded-circle p-0 d-flex align-items-center justify-content-center"
+                  style={{ width: '28px', height: '28px' }}
                   title="Add Experience"
                 >
                   <i className="fas fa-plus" style={{ fontSize: '0.8rem' }}></i>
@@ -34,32 +35,39 @@ const CandidateExperience = ({
               </div>
             </div>
 
-            <div className="d-flex flex-column gap-3 flex-grow-1">
-              {workExperiences.map((exp, index) => (
-                <div key={exp.id || index} className="experience-item p-3 rounded border bg-light flex-grow-1 d-flex flex-column justify-content-between position-relative">
-                  <div className="position-absolute top-0 end-0 mt-2 me-2 d-flex gap-2">
-                    <button onClick={() => onOpenModal(exp)} className="btn btn-link text-primary p-0" title="Edit experience">
-                      <i className="fas fa-pencil-alt text-muted hover-primary" style={{ fontSize: '0.8rem' }}></i>
-                    </button>
-                    <button onClick={() => onDelete(exp.id)} className="btn btn-link text-danger p-0" title="Delete experience">
-                      <i className="fas fa-trash-alt text-muted hover-danger" style={{ fontSize: '0.8rem' }}></i>
-                    </button>
-                  </div>
-                  <h6 className="fw-bold mb-2 text-dark text-hover-primary" style={{ fontSize: '0.9rem', paddingRight: '40px' }}>
-                    {exp.role}
-                  </h6>
-                  <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-auto">
-                    <span className="text-muted small fw-semibold" style={{ fontSize: '0.75rem' }}>
-                      <i className="fas fa-building text-primary me-1.5"></i>
-                      {exp.company}
-                    </span>
-                    <span className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1 fw-normal d-inline-flex align-items-center" style={{ fontSize: '0.7rem' }}>
-                      <i className="far fa-calendar-alt me-1"></i>
-                      {exp.duration}
-                    </span>
-                  </div>
+            <div className="d-flex flex-column gap-3">
+              {workExperiences.length === 0 ? (
+                <div className="text-center py-5 text-muted small">
+                  <i className="fas fa-briefcase fs-3 mb-2 text-muted opacity-50"></i>
+                  <p className="mb-0">No experiences added yet.</p>
                 </div>
-              ))}
+              ) : (
+                workExperiences.map((exp, index) => (
+                  <div key={exp.id || index} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
+                    <div className="position-absolute top-0 end-0 mt-3 me-3 d-flex gap-2">
+                      <button onClick={() => onOpenModal(exp)} className="btn btn-link text-primary p-0" title="Edit experience" style={{ textDecoration: 'none' }}>
+                        <i className="fas fa-pencil-alt text-muted hover-primary" style={{ fontSize: '0.85rem' }}></i>
+                      </button>
+                      <button onClick={() => onDelete(exp.id)} className="btn btn-link text-danger p-0" title="Delete experience" style={{ textDecoration: 'none' }}>
+                        <i className="fas fa-trash-alt text-muted hover-danger" style={{ fontSize: '0.85rem' }}></i>
+                      </button>
+                    </div>
+                    <h6 className="fw-bold mb-3 text-dark text-hover-primary" style={{ fontSize: '0.95rem', paddingRight: '45px', lineHeight: '1.4' }}>
+                      {exp.role}
+                    </h6>
+                    <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                      <span className="text-muted small fw-semibold" style={{ fontSize: '0.75rem' }}>
+                        <i className="fas fa-building text-primary me-1.5"></i>
+                        {exp.company}
+                      </span>
+                      <span className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-normal d-inline-flex align-items-center" style={{ fontSize: '0.7rem' }}>
+                        <i className="far fa-calendar-alt me-1"></i>
+                        {exp.duration}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -83,6 +91,11 @@ const CandidateExperience = ({
               </button>
             </div>
             <form onSubmit={onSave} className="profile-modal-body p-4 d-flex flex-column gap-3">
+              {modalError && (
+                <div className="alert alert-danger py-2 px-3 mb-2 small border-0 shadow-sm" role="alert">
+                  <i className="fas fa-exclamation-triangle me-1.5"></i> {modalError}
+                </div>
+              )}
               <div>
                 <label className="form-label fw-semibold text-secondary small">Job Title / Role</label>
                 <input
@@ -105,16 +118,27 @@ const CandidateExperience = ({
                   required
                 />
               </div>
-              <div>
-                <label className="form-label fw-semibold text-secondary small">Working Time / Duration</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={experienceForm.duration}
-                  onChange={(e) => setExperienceForm({ ...experienceForm, duration: e.target.value })}
-                  placeholder="e.g. Tháng 09/2024 - Hiện tại"
-                  required
-                />
+              <div className="row g-3">
+                <div className="col-6">
+                  <label className="form-label fw-semibold text-secondary small">Start Date</label>
+                  <input
+                    type="month"
+                    className="form-control"
+                    value={experienceForm.startDate || ''}
+                    onChange={(e) => setExperienceForm({ ...experienceForm, startDate: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="col-6">
+                  <label className="form-label fw-semibold text-secondary small">End Date</label>
+                  <input
+                    type="month"
+                    className="form-control"
+                    value={experienceForm.endDate || ''}
+                    onChange={(e) => setExperienceForm({ ...experienceForm, endDate: e.target.value })}
+                    placeholder="Present"
+                  />
+                </div>
               </div>
               <div className="profile-modal-footer mt-3 pt-3 border-top d-flex gap-2 justify-content-end bg-white">
                 <button type="button" className="btn btn-light border" onClick={onCloseModal}>Cancel</button>
@@ -125,6 +149,37 @@ const CandidateExperience = ({
         </div>
       )}
     </>
+  );
+};
+
+export const CandidateExperienceManager = ({ workExperiences, onOpenModal, onDelete }) => {
+  return (
+    <div>
+      <div className="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+        <h6 className="fw-bold mb-0 text-dark"><i className="fas fa-briefcase me-1.5 text-primary"></i> Experience</h6>
+        <button type="button" onClick={() => onOpenModal(null)} className="btn btn-xs btn-primary rounded-pill px-2.5 py-1 fw-semibold small">
+          <i className="fas fa-plus me-1"></i> Add New
+        </button>
+      </div>
+      <div className="d-flex flex-column gap-2" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+        {workExperiences.map((exp) => (
+          <div key={exp.id} className="d-flex justify-content-between align-items-center p-2.5 rounded border bg-light">
+            <div>
+              <p className="fw-bold mb-0 text-dark small">{exp.role}</p>
+              <p className="mb-0 text-muted small">{exp.company} • {exp.duration}</p>
+            </div>
+            <div className="d-flex gap-1">
+              <button type="button" onClick={() => onOpenModal(exp)} className="btn btn-sm btn-outline-primary px-2 py-1 rounded">
+                <i className="fas fa-pencil-alt" style={{ fontSize: '0.75rem' }}></i>
+              </button>
+              <button type="button" onClick={() => onDelete(exp.id)} className="btn btn-sm btn-outline-danger px-2 py-1 rounded">
+                <i className="fas fa-trash-alt" style={{ fontSize: '0.75rem' }}></i>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 

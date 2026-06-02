@@ -13,9 +13,9 @@ const authController = {
                 return res.status(400).json({ message: "Email already exists!" });
             }
 
-            const saltRounds = 10;
-            const password_hash = await bcrypt.hash(password, saltRounds);
-
+           
+            const password_hash = password;
+            
             const connection = await pool.getConnection();
             await connection.beginTransaction();
 
@@ -26,7 +26,7 @@ const authController = {
                 );
 
                 const newUserId = userResult.insertId;
-                
+
                 const crypto = require('crypto');
                 const nodemailer = require('nodemailer');
 
@@ -38,20 +38,45 @@ const authController = {
                     [otp, expiresAt, newUserId]
                 );
 
-                const transporter = nodemailer.createTransport({
-                    service: 'gmail',
-                    auth: {
-                        user: process.env.EMAIL_USER,
-                        pass: process.env.EMAIL_PASS
-                    }
-                });
+                if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+                    const transporter = nodemailer.createTransport({
+                        service: 'gmail',
+                        auth: {
+                            user: process.env.EMAIL_USER,
+                            pass: process.env.EMAIL_PASS
+                        }
+                    });
 
-                await transporter.sendMail({
-                    from: process.env.EMAIL_USER,
-                    to: email,
-                    subject: 'Verify your account',
-                    text: `Your OTP code is: ${otp}`
-                });
+                    await transporter.sendMail({
+                        from: process.env.EMAIL_USER,
+                        to: email,
+                        subject: 'Verify your JobsMarket account',
+                        html: `
+<div style="font-family: Arial, sans-serif; background-color: #f6f8fa; padding: 30px; color: #333333; line-height: 1.6;">
+    <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px; border: 1px solid #e1e4e8; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+        <h2 style="color: #1a73e8; margin-top: 0; font-size: 24px; border-bottom: 1px solid #e1e4e8; padding-bottom: 15px;">JobsMarket Verification</h2>
+        <p style="font-size: 16px;">Hello,</p>
+        <p style="font-size: 16px;">Thank you for signing up for JobsMarket. Please use the following One-Time Password (OTP) to verify your account:</p>
+        
+        <div style="text-align: center; margin: 30px 0; padding: 15px; background-color: #f1f3f4; border-radius: 6px; font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #1a73e8;">
+            ${otp}
+        </div>
+        
+        <p style="font-size: 14px; color: #586069;">This code is valid for <strong>5 minutes</strong>. If you did not request this verification, you can safely ignore this email.</p>
+        <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 30px 0 20px 0;" />
+        <p style="font-size: 14px; color: #586069; margin: 0;">Best regards,</p>
+        <p style="font-size: 14px; font-weight: bold; color: #333333; margin: 5px 0 0 0;">The JobsMarket Team</p>
+    </div>
+</div>
+`
+                    });
+                } else {
+                    console.log(`\n======================================================`);
+                    console.log(`[LOCAL DEV] Gmail SMTP credentials missing in .env.`);
+                    console.log(`Registered Email: ${email}`);
+                    console.log(`Generated OTP Code: ${otp}`);
+                    console.log(`======================================================\n`);
+                }
 
                 if (role === 'candidate') {
                     await connection.execute(
@@ -64,6 +89,10 @@ const authController = {
                         'INSERT INTO Company (hr_id, industry_id, name) VALUES (?, ?, ?)',
                         [newUserId, industry_id, company_name]
                     );
+                } 
+                else if (role === 'Admin') {
+                    // Cấp quyền Admin: Lưu ở bảng User chính là đủ, không cần điền bảng phụ
+                    console.log(`--- Đã tạo tài khoản Admin ID: ${newUserId} thành công ---`);
                 }
                 else {
                     throw new Error("Invalid role specified!");
@@ -95,7 +124,7 @@ const authController = {
 
             try {
                 const [users] = await connection.execute(
-                    'SELECT id, status, verification_code, code_expires_at FROM User WHERE email = ?',
+                    'SELECT id, status, verification_code, code_expires_at, role FROM User WHERE email = ?',
                     [email]
                 );
 
@@ -126,8 +155,22 @@ const authController = {
                     ['Active', user.id]
                 );
 
+                const token = jwt.sign(
+                    { id: user.id, role: user.role },
+                    process.env.JWT_SECRET || 'SECRET_KEY',
+                    { expiresIn: '1d' }
+                );
+
                 connection.release();
-                return res.status(200).json({ message: "Account verified successfully! You can now log in." });
+                return res.status(200).json({
+                    message: "Account verified successfully!",
+                    token: token,
+                    user: {
+                        id: user.id,
+                        email: email,
+                        role: user.role
+                    }
+                });
 
             } catch (dbError) {
                 connection.release();
@@ -172,7 +215,7 @@ const authController = {
 
             const token = jwt.sign(
                 { id: user.id, role: user.role },
-                process.env.JWT_SECRET || 'fallback_secret_key', 
+                process.env.JWT_SECRET || 'SECRET_KEY',
                 { expiresIn: '1d' }
             );
 
@@ -187,7 +230,7 @@ const authController = {
             });
 
         } catch (error) {
-            console.error("Login Error:", error); 
+            console.error("Login Error:", error);
             return res.status(500).json({ message: "Internal server error!" });
         }
     }
