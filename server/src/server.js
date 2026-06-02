@@ -12,6 +12,10 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 require('./config/db');
 
 // Routes
+const authRoutes = require("./routes/authRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const candidateRoutes = require("./routes/candidateRoutes");
+const walletRoutes = require("./routes/walletRoutes");
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const candidateRoutes = require('./routes/candidateRoutes');

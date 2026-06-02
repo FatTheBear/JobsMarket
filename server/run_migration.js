@@ -94,6 +94,60 @@ async function runMigration() {
         `);
         console.log('Successfully created Company_Follower table.');
 
+        // 4. Drop legacy skill tables
+        try {
+            console.log('Dropping legacy skill tables (Job_Skill, Candidate_Skill, Skill)...');
+            await pool.query('SET FOREIGN_KEY_CHECKS = 0;');
+            await pool.query('DROP TABLE IF EXISTS `Job_Skill`;');
+            await pool.query('DROP TABLE IF EXISTS `Candidate_Skill`;');
+            await pool.query('DROP TABLE IF EXISTS `Skill`;');
+            await pool.query('SET FOREIGN_KEY_CHECKS = 1;');
+            console.log('Successfully dropped legacy skill tables.');
+        } catch (err) {
+            throw err;
+        }
+
+        // 5. Add abbreviated columns to Job_Posting
+        try {
+            console.log('Adding new fields to Job_Posting...');
+            await pool.query(`
+                ALTER TABLE \`Job_Posting\`
+                ADD COLUMN \`req_skills\` JSON DEFAULT NULL,
+                ADD COLUMN \`benf\` TEXT DEFAULT NULL,
+                ADD COLUMN \`loc\` VARCHAR(255) DEFAULT NULL,
+                ADD COLUMN \`work_hrs\` VARCHAR(100) DEFAULT NULL,
+                ADD COLUMN \`deg_req\` VARCHAR(255) DEFAULT NULL,
+                ADD COLUMN \`exp_yrs\` VARCHAR(50) DEFAULT NULL,
+                ADD COLUMN \`age_req\` VARCHAR(50) DEFAULT NULL,
+                ADD COLUMN \`lang_req\` VARCHAR(100) DEFAULT NULL,
+                ADD COLUMN \`emp_phone\` VARCHAR(20) DEFAULT NULL,
+                ADD COLUMN \`emp_email\` VARCHAR(100) DEFAULT NULL
+            `);
+            console.log('Successfully added new fields to Job_Posting.');
+        } catch (err) {
+            if (err.code === 'ER_DUP_FIELDNAME') {
+                console.log('New fields already exist in Job_Posting.');
+            } else {
+                throw err;
+            }
+        }
+
+        // 6. Add cand_skills to Candidate_Profile
+        try {
+            console.log('Adding cand_skills column to Candidate_Profile...');
+            await pool.query(`
+                ALTER TABLE \`Candidate_Profile\`
+                ADD COLUMN \`cand_skills\` JSON DEFAULT NULL
+            `);
+            console.log('Successfully added cand_skills column to Candidate_Profile.');
+        } catch (err) {
+            if (err.code === 'ER_DUP_FIELDNAME') {
+                console.log('cand_skills column already exists in Candidate_Profile.');
+            } else {
+                throw err;
+            }
+        }
+
         console.log('All migrations completed successfully.');
     } catch (error) {
         console.error('Migration failed:', error);

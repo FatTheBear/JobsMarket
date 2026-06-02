@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './HomePage.module.css';
+import styles from './LandingPage.module.css';
 
 const HOT_JOBS = [
   { id: 1, title: 'Frontend Developer (ReactJS)', company: 'FPT Software', salary: '$800 - $1,500', location: 'Ho Chi Minh City', logo: '🏢', tag: 'Hot', isNew: true },
