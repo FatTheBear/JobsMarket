@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
-import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
+//import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
 import Login from './pages/Authentication/Login';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import ProtectedRoute from './pages/ProtectedRoute';
 import HomePage from './pages/HomePage/HomePage';
 import JobPosting from './components/JobPosting/JobPosting';
 import JobSkillsManager from './components/JobSkillsManager/JobSkillsManager';
-import CandidateProfilePage from './pages/CandidateProfilePage/CandidateProfilePage';
+//import CandidateProfilePage from './pages/CandidateProfilePage/CandidateProfilePage';
 import VerifyOTP from './pages/Authentication/VerifyOTP';
 import './App.css';
 import AuthPage from './pages/Authentication/AuthPage';
@@ -74,14 +74,14 @@ const router = createBrowserRouter([
   { path: "/setup-profile", element: <SetupProfilePage /> },
   { path: "/candidate-profile", element: <CandidateProfile /> },
   { path: "/company-profile", element: <CompanyProfile /> },
-  {
-    path: "/candidate-profile",
-    element: (
-      <ProtectedRoute>
-        <CandidateProfilePage />
-      </ProtectedRoute>
-    )
-  },
+  // {
+  //   path: "/candidate-profile",
+  //   element: (
+  //     <ProtectedRoute>
+  //       <Candidate_profile />
+  //     </ProtectedRoute>
+  //   )
+  // },
   {
     path: "/admin",
     element: (
