@@ -89,5 +89,16 @@ deleteNews: async (id) => {
   const res = await API.delete(`/admin/news/${id}`);
   return res.data;
 },
+
+deleteSkill: async (id) => {
+    const res = await API.delete(`/admin/skills/${id}`);
+    return res.data;
+  },
+
+  deleteIndustry: async (id) => {
+    const res = await API.delete(`/admin/industries/${id}`);
+    return res.data;
+  },
+
 };
 

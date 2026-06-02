@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Briefcase, BarChart2, FolderTree, Newspaper } from 'lucide-react';
+import { Users, Briefcase, BarChart2, FolderTree, Newspaper, CreditCard } from 'lucide-react';
 import { adminApi } from '../../services/adminApi';
 import AdminOverview from './AdminOverview';
 import AdminUser from './AdminUser';
 import AdminJob from './AdminJob';
 import AdminCategories from './AdminCategories';
 import AdminNews from './AdminNews';
-import '../../admin.css';
+import AdminTransaction from './AdminTransaction';
+import './Admin.css';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -53,6 +54,8 @@ const AdminDashboard = () => {
           console.log(">>> DỮ LIỆU NEWS THỰC TẾ TRẢ VỀ LÀ:", res);
           setNewsList(res.data || res);
         }
+        // LƯU Ý: Không cần fetch data giao dịch ở đây vì bên trong file 
+        // AdminTransaction.jsx mình đã tự viết hàm useEffect gọi API riêng rồi.
       } catch (error) {
         console.error("Error loading tab data:", error);
       } finally {
@@ -72,6 +75,18 @@ const AdminDashboard = () => {
     }
   };
 
+  // Hàm xử lý xóa Kỹ năng
+  const handleDeleteSkill = async (id) => {
+    if (window.confirm("Are you sure you want to delete this skill?")) {
+      try {
+        await adminApi.deleteSkill(id);
+        await fetchCategoriesData(); // Load lại data sau khi xóa
+      } catch (err) {
+        alert("Error deleting skill!");
+      }
+    }
+  };
+
   // Hàm xử lý thêm nhanh Ngành nghề mới
   const handleAddIndustry = async (name) => {
     try {
@@ -79,6 +94,18 @@ const AdminDashboard = () => {
       await fetchCategoriesData(); // Load lại bảng ngay lập tức
     } catch (err) {
       alert("Cannot add industry. Please try again.");
+    }
+  };
+
+  // Hàm xử lý xóa Ngành nghề
+  const handleDeleteIndustry = async (id) => {
+    if (window.confirm("Are you sure you want to delete this industry?")) {
+      try {
+        await adminApi.deleteIndustry(id);
+        await fetchCategoriesData(); // Load lại data sau khi xóa
+      } catch (err) {
+        alert("Error deleting industry!");
+      }
     }
   };
 
@@ -108,97 +135,69 @@ const AdminDashboard = () => {
   };
 
   const fetchNewsData = async () => {
-  try {
-    const res = await adminApi.getNews();
-    setNewsList(res.data || res);
-  } catch (err) {
-    console.error("Error fetching news:", err);
-  }
-};
+    try {
+      const res = await adminApi.getNews();
+      setNewsList(res.data || res);
+    } catch (err) {
+      console.error("Error fetching news:", err);
+    }
+  };
 
-const handleCreateNews = async () => {
+  const handleCreateNews = async () => {
+    const title = prompt("Enter article title");
+    if (!title) return;
+    try {
+      await adminApi.createNews({
+        title,
+        slug: title.toLowerCase().replace(/\s+/g, '-'),
+        category_id: 1,
+        thumbnail_url: '',
+        short_description: '',
+        content: '',
+        status: 'Draft'
+      });
+      await fetchNewsData();
+      alert("Article created successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Error creating article");
+    }
+  };
 
-  const title = prompt("Enter article title");
+  const handleEditNews = async (news) => {
+    const newTitle = prompt("Edit article title", news.title);
+    if (!newTitle) return;
+    try {
+      await adminApi.updateNews(news.id, {
+        title: newTitle,
+        slug: newTitle.toLowerCase().replace(/\s+/g, '-'),
+        category_id: news.category_id || 1,
+        thumbnail_url: news.thumbnail_url || '',
+        short_description: news.short_description || '',
+        content: news.content || '',
+        status: news.status || 'Draft'
+      });
+      await fetchNewsData();
+      alert("Article updated successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Error updating article");
+    }
+  };
 
-  if (!title) return;
+  const handleDeleteNews = async (id) => {
+    const confirmed = window.confirm("Are you sure you want to delete this article?");
+    if (!confirmed) return;
+    try {
+      await adminApi.deleteNews(id);
+      await fetchNewsData();
+      alert("Article deleted successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting article");
+    }
+  };
 
-  try {
-
-    await adminApi.createNews({
-      title,
-      slug: title.toLowerCase().replace(/\s+/g, '-'),
-      category_id: 1,
-      thumbnail_url: '',
-      short_description: '',
-      content: '',
-      status: 'Draft'
-    });
-
-    await fetchNewsData();
-
-    alert("Article created successfully!");
-
-  } catch (err) {
-
-    console.error(err);
-    alert("Error creating article");
-  }
-};
-
-const handleEditNews = async (news) => {
-
-  const newTitle = prompt(
-    "Edit article title",
-    news.title
-  );
-
-  if (!newTitle) return;
-
-  try {
-
-    await adminApi.updateNews(news.id, {
-      title: newTitle,
-      slug: newTitle.toLowerCase().replace(/\s+/g, '-'),
-      category_id: news.category_id || 1,
-      thumbnail_url: news.thumbnail_url || '',
-      short_description: news.short_description || '',
-      content: news.content || '',
-      status: news.status || 'Draft'
-    });
-
-    await fetchNewsData();
-
-    alert("Article updated successfully!");
-
-  } catch (err) {
-
-    console.error(err);
-    alert("Error updating article");
-  }
-};
-
-const handleDeleteNews = async (id) => {
-
-  const confirmed = window.confirm(
-    "Are you sure you want to delete this article?"
-  );
-
-  if (!confirmed) return;
-
-  try {
-
-    await adminApi.deleteNews(id);
-
-    await fetchNewsData();
-
-    alert("Article deleted successfully!");
-
-  } catch (err) {
-
-    console.error(err);
-    alert("Error deleting article");
-  }
-};
   return (
     <div className="admin-container">
       <div className="admin-sidebar">
@@ -209,6 +208,9 @@ const handleDeleteNews = async (id) => {
           <button onClick={() => setActiveTab('jobs')} className={`sidebar-btn ${activeTab === 'jobs' ? 'active' : ''}`}><Briefcase size={20} /> Job Approval</button>
           <button onClick={() => setActiveTab('categories')} className={`sidebar-btn ${activeTab === 'categories' ? 'active' : ''}`}><FolderTree size={20} /> Categories</button>
           <button onClick={() => setActiveTab('news')} className={`sidebar-btn ${activeTab === 'news' ? 'active' : ''}`}><Newspaper size={20} /> News Management</button>
+          
+          {/* ĐÃ THÊM: Nút chuyển sang tab Giao dịch ví xu trên Sidebar */}
+          <button onClick={() => setActiveTab('transactions')} className={`sidebar-btn ${activeTab === 'transactions' ? 'active' : ''}`}><CreditCard size={20} /> Transactions</button>
         </div>
       </div>
       <div className="admin-content">
@@ -222,15 +224,22 @@ const handleDeleteNews = async (id) => {
             onRefresh={fetchCategoriesData} 
             onAddSkill={handleAddSkill}
             onAddIndustry={handleAddIndustry}
+            onDeleteSkill={handleDeleteSkill}
+            onDeleteIndustry={handleDeleteIndustry}
           />
         )}
-        {!loading && activeTab === 'news' && <AdminNews
-  newsList={newsList}
-  onRefresh={fetchNewsData}
-  onCreate={handleCreateNews}
-  onEdit={handleEditNews}
-  onDelete={handleDeleteNews}
-/>}
+        {!loading && activeTab === 'news' && (
+          <AdminNews
+            newsList={newsList}
+            onRefresh={fetchNewsData}
+            onCreate={handleCreateNews}
+            onEdit={handleEditNews}
+            onDelete={handleDeleteNews}
+          />
+        )}
+        
+        {/* ĐÃ THÊM: Khớp nối render nội dung component AdminTransaction khi bấm nút */}
+        {!loading && activeTab === 'transactions' && <AdminTransaction />}
       </div>
     </div>
   );
