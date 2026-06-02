@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-
+import LandingPage from './pages/LandingPage/LandingPage';
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
-//import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
+import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
 import Login from './pages/Authentication/Login';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import ProtectedRoute from './pages/ProtectedRoute';
-import HomePage from './pages/HomePage/HomePage';
+import HomePage from './pages/LandingPage/LandingPage';
 import JobPosting from './components/JobPosting/JobPosting';
 import JobSkillsManager from './components/JobSkillsManager/JobSkillsManager';
 //import CandidateProfilePage from './pages/CandidateProfilePage/CandidateProfilePage';
@@ -62,7 +62,7 @@ function Home() {
 }
 
 const router = createBrowserRouter([
-  { path: "/", element: <HomePage /> },
+  { path: "/", element: <LandingPage /> },
 
   // Authentication
   { path: "/auth", element: <AuthPage /> },
