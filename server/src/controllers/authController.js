@@ -1,21 +1,14 @@
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const pool = require('../config/db');
-const UserModel = require('../models/User');
+const User = require('../models/User');
 
 const authController = {
     register: async (req, res) => {
-        // Lấy role từ body (được gửi lên từ trang Register qua axios)
         const { email, password, role, full_name, company_name, industry_id } = req.body;
 
-        // 1. Validate dữ liệu tối thiểu
-        if (!email || !password || !role) {
-            return res.status(400).json({ message: "Missing required fields!" });
-        }
-
         try {
-            // Kiểm tra email tồn tại
-            const existingUser = await UserModel.findByEmail(email);
+            const existingUser = await User.findByEmail(email);
             if (existingUser) {
                 return res.status(400).json({ message: "Email already exists!" });
             }
@@ -27,24 +20,46 @@ const authController = {
             await connection.beginTransaction();
 
             try {
-                // Insert User chính
                 const [userResult] = await connection.execute(
                     'INSERT INTO User (email, password_hash, role) VALUES (?, ?, ?)',
                     [email, password_hash, role]
                 );
-                
-                const newUserId = userResult.insertId;
 
-                // 2. Logic phân luồng theo Role (Bao gồm Candidate, Company và Admin)
+                const newUserId = userResult.insertId;
+                
+                const crypto = require('crypto');
+                const nodemailer = require('nodemailer');
+
+                const otp = crypto.randomInt(100000, 999999).toString();
+                const expiresAt = new Date(Date.now() + 5 * 60000); // Hết hạn sau 5 phút
+
+                await connection.execute(
+                    'UPDATE User SET verification_code = ?, code_expires_at = ? WHERE id = ?',
+                    [otp, expiresAt, newUserId]
+                );
+
+                const transporter = nodemailer.createTransport({
+                    service: 'gmail',
+                    auth: {
+                        user: process.env.EMAIL_USER,
+                        pass: process.env.EMAIL_PASS
+                    }
+                });
+
+                await transporter.sendMail({
+                    from: process.env.EMAIL_USER,
+                    to: email,
+                    subject: 'Verify your account',
+                    text: `Your OTP code is: ${otp}`
+                });
+
                 if (role === 'candidate') {
-                    if (!full_name) throw new Error("Full name is required for Candidate!");
                     await connection.execute(
                         'INSERT INTO Candidate_Profile (user_id, full_name) VALUES (?, ?)',
                         [newUserId, full_name]
                     );
-                } 
+                }
                 else if (role === 'company') {
-                    if (!company_name || !industry_id) throw new Error("Company name and industry are required for Company!");
                     await connection.execute(
                         'INSERT INTO Company (hr_id, industry_id, name) VALUES (?, ?, ?)',
                         [newUserId, industry_id, company_name]
@@ -60,7 +75,6 @@ const authController = {
 
                 await connection.commit();
                 connection.release();
-
                 return res.status(201).json({ message: "Account registered successfully!" });
 
             } catch (transactionError) {
@@ -68,66 +82,117 @@ const authController = {
                 connection.release();
                 return res.status(400).json({ message: transactionError.message });
             }
+        } catch (error) {
+            return res.status(500).json({ message: "Internal server error!" });
+        }
+    },
 
+    verifyOTP: async (req, res) => {
+        const { email, otp } = req.body;
+
+        if (!email || !otp) {
+            return res.status(400).json({ message: "Email and OTP are required!" });
+        }
+
+        try {
+            const connection = await pool.getConnection();
+
+            try {
+                const [users] = await connection.execute(
+                    'SELECT id, status, verification_code, code_expires_at FROM User WHERE email = ?',
+                    [email]
+                );
+
+                if (users.length === 0) {
+                    connection.release();
+                    return res.status(404).json({ message: "User not found!" });
+                }
+
+                const user = users[0];
+
+                if (user.status === 'Active') {
+                    connection.release();
+                    return res.status(400).json({ message: "Account is already verified!" });
+                }
+
+                if (user.verification_code !== otp) {
+                    connection.release();
+                    return res.status(400).json({ message: "Invalid OTP!" });
+                }
+
+                if (new Date() > new Date(user.code_expires_at)) {
+                    connection.release();
+                    return res.status(400).json({ message: "OTP has expired!" });
+                }
+
+                await connection.execute(
+                    'UPDATE User SET status = ?, verification_code = NULL, code_expires_at = NULL WHERE id = ?',
+                    ['Active', user.id]
+                );
+
+                connection.release();
+                return res.status(200).json({ message: "Account verified successfully! You can now log in." });
+
+            } catch (dbError) {
+                connection.release();
+                return res.status(500).json({ message: "Database error during verification!" });
+            }
         } catch (error) {
             return res.status(500).json({ message: "Internal server error!" });
         }
     },
 
     login: async (req, res) => {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password are required!" });
+        }
+
         try {
-            const { email, password } = req.body;
-
-            console.log("RECEIVED EMAIL:", email);
-            console.log("RECEIVED PASSWORD:", password);
-
-            const [rows] = await pool.query(
-                "SELECT * FROM User WHERE email = ?",
+            const [users] = await pool.execute(
+                'SELECT id, email, password_hash, role, status FROM User WHERE email = ?',
                 [email]
             );
 
-            console.log("USER FOUND:", rows);
-
-            if (rows.length === 0) {
-                return res.status(401).json({
-                    message: "Email does not exist"
-                });
+            if (users.length === 0) {
+                return res.status(401).json({ message: "Invalid email or password!" });
             }
 
-            const user = rows[0];
+            const user = users[0];
 
-            console.log("DB PASSWORD (PLAINTEXT):", user.password_hash);
+            const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+            if (!isPasswordValid) {
+                return res.status(401).json({ message: "Invalid email or password!" });
+            }
 
-            
-            const isMatch = (password === user.password_hash);
+            if (user.status === 'Pending') {
+                return res.status(403).json({ message: "Please verify your email before logging in." });
+            }
 
-            console.log("MATCH:", isMatch);
-
-            if (!isMatch) {
-                return res.status(401).json({
-                    message: "Incorrect password"
-                });
+            if (user.status === 'Banned') {
+                return res.status(403).json({ message: "This account has been banned." });
             }
 
             const token = jwt.sign(
-                {
-                    id: user.id,
-                    role: user.role
-                },
-                "SECRET_KEY",
-                { expiresIn: "1d" }
+                { id: user.id, role: user.role },
+                process.env.JWT_SECRET || 'fallback_secret_key', 
+                { expiresIn: '1d' }
             );
 
-            res.json({
-                token,
-                role: user.role
+            return res.status(200).json({
+                message: "Logged in successfully!",
+                token: token,
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    role: user.role
+                }
             });
 
-        } catch (err) {
-            console.error(err);
-            res.status(500).json({
-                message: "Server error"
-            });
+        } catch (error) {
+            console.error("Login Error:", error); 
+            return res.status(500).json({ message: "Internal server error!" });
         }
     }
 };

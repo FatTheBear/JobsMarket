@@ -1,5 +1,5 @@
 import React from 'react';
-import CandidateProfile from '../../components/CandidateProfile/Candidate_profile';
+import CandidateProfile from '../CandidateProfile/Candidate_profile';
 
 export default function CandidateProfilePage() {
   return (

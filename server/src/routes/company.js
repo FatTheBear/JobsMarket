@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db');
+const pool = require('../config/db');
 
 // GET /api/company/meta/industries — Lấy danh sách ngành nghề
 router.get('/meta/industries', async (req, res) => {
