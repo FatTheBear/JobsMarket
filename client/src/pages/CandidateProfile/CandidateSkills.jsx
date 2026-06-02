@@ -9,7 +9,8 @@ const CandidateSkills = ({
   currentSkill,
   skillForm,
   setSkillForm,
-  onSave
+  onSave,
+  modalError
 }) => {
   return (
     <>
@@ -34,32 +35,39 @@ const CandidateSkills = ({
               </div>
             </div>
 
-            <div className="d-flex flex-column justify-content-between flex-grow-1">
-              {skills.map((skill, index) => (
-                <div key={skill.id || index} className="mb-3">
-                  <div className="d-flex justify-content-between align-items-center mb-1">
-                    <p className="mb-0 text-small fw-semibold text-dark">{skill.name}</p>
-                    <div className="d-flex gap-2">
-                      <button onClick={() => onOpenModal(skill)} className="btn btn-link text-primary p-0" title="Edit skill">
-                        <i className="fas fa-pencil-alt text-muted hover-primary" style={{ fontSize: '0.8rem' }}></i>
-                      </button>
-                      <button onClick={() => onDelete(skill.id)} className="btn btn-link text-danger p-0" title="Delete skill">
-                        <i className="fas fa-trash-alt text-muted hover-danger" style={{ fontSize: '0.8rem' }}></i>
-                      </button>
+            <div className="d-flex flex-column justify-content-start flex-grow-1">
+              {skills.length === 0 ? (
+                <div className="text-center py-5 text-muted small">
+                  <i className="fas fa-laptop-code fs-3 mb-2 text-muted opacity-50"></i>
+                  <p className="mb-0">No skills added yet.</p>
+                </div>
+              ) : (
+                skills.map((skill, index) => (
+                  <div key={skill.id || index} className="mb-3">
+                    <div className="d-flex justify-content-between align-items-center mb-1">
+                      <p className="mb-0 text-small fw-semibold text-dark">{skill.name}</p>
+                      <div className="d-flex gap-2">
+                        <button onClick={() => onOpenModal(skill)} className="btn btn-link text-primary p-0" title="Edit skill">
+                          <i className="fas fa-pencil-alt text-muted hover-primary" style={{ fontSize: '0.8rem' }}></i>
+                        </button>
+                        <button onClick={() => onDelete(skill.id)} className="btn btn-link text-danger p-0" title="Delete skill">
+                          <i className="fas fa-trash-alt text-muted hover-danger" style={{ fontSize: '0.8rem' }}></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="progress rounded progress-custom">
+                      <div
+                        className="progress-bar"
+                        role="progressbar"
+                        style={{ width: `${skill.level}%` }}
+                        aria-valuenow={skill.level}
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                      ></div>
                     </div>
                   </div>
-                  <div className="progress rounded progress-custom">
-                    <div
-                      className="progress-bar"
-                      role="progressbar"
-                      style={{ width: `${skill.level}%` }}
-                      aria-valuenow={skill.level}
-                      aria-valuemin="0"
-                      aria-valuemax="100"
-                    ></div>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -82,7 +90,12 @@ const CandidateSkills = ({
                 &times;
               </button>
             </div>
-            <form onSubmit={onSave} className="profile-modal-body p-4 d-flex flex-column gap-3">
+             <form onSubmit={onSave} className="profile-modal-body p-4 d-flex flex-column gap-3">
+              {modalError && (
+                <div className="alert alert-danger py-2 px-3 mb-2 small border-0 shadow-sm" role="alert">
+                  <i className="fas fa-exclamation-triangle me-1.5"></i> {modalError}
+                </div>
+              )}
               <div>
                 <label className="form-label fw-semibold text-secondary small">Skill Name</label>
                 <input
@@ -121,6 +134,39 @@ const CandidateSkills = ({
         </div>
       )}
     </>
+  );
+};
+
+export const CandidateSkillsManager = ({ skills, onOpenModal, onDelete }) => {
+  return (
+    <div>
+      <div className="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+        <h6 className="fw-bold mb-0 text-dark"><i className="fas fa-laptop-code me-1.5 text-primary"></i> Skill</h6>
+        <button type="button" onClick={() => onOpenModal(null)} className="btn btn-xs btn-primary rounded-pill px-2.5 py-1 fw-semibold small">
+          <i className="fas fa-plus me-1"></i> Add New
+        </button>
+      </div>
+      <div className="d-flex flex-column gap-2" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+        {skills.map((skill) => (
+          <div key={skill.id} className="d-flex justify-content-between align-items-center p-2.5 rounded border bg-light">
+            <div className="w-75">
+              <p className="fw-bold mb-1 text-dark small">{skill.name} ({skill.level}%)</p>
+              <div className="progress rounded" style={{ height: '6px' }}>
+                <div className="progress-bar" role="progressbar" style={{ width: `${skill.level}%` }}></div>
+              </div>
+            </div>
+            <div className="d-flex gap-1">
+              <button type="button" onClick={() => onOpenModal(skill)} className="btn btn-sm btn-outline-primary px-2 py-1 rounded">
+                <i className="fas fa-pencil-alt" style={{ fontSize: '0.75rem' }}></i>
+              </button>
+              <button type="button" onClick={() => onDelete(skill.id)} className="btn btn-sm btn-outline-danger px-2 py-1 rounded">
+                <i className="fas fa-trash-alt" style={{ fontSize: '0.75rem' }}></i>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 };
 

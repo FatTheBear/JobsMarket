@@ -1,6 +1,23 @@
-/* UserProfile.css */
+/* Candidate_profile.css */
+
+:root {
+  --color-slate-blue: #6D8196;     /* Primary brand, header buttons, ranges */
+  --color-steel-blue: #B0C4DE;     /* Accent hover states, progress bar track */
+  --color-pine-green: #01796F;     /* Highlights, accents, active tabs, progress bars */
+  --color-dark-gray: #5A5A5A;      /* Body text, sub-labels, icons */
+  --color-light-bg: #f4f6f8;       /* Smooth backdrop */
+  --color-card-bg: #ffffff;        /* Pure white for containers */
+  --color-light-gray: #f8f9fa;     /* Modals footer/header background */
+  --color-border: #e2e8f0;         /* Gentle borders */
+  --color-primary-dark: #526375;   /* Darker Slate Blue for button hover */
+  --color-pine-light: #019488;     /* Lighter Pine Green for hover accents */
+}
+
+/* Root Section Backdrop Styling */
 .profile-section {
-  background-color: #eee;
+  background-color: var(--color-light-bg);
+  color: var(--color-dark-gray);
+  font-family: 'Outfit', 'Segoe UI', Arial, sans-serif;
 }
 
 .avatar-img {
@@ -27,6 +44,62 @@
   height: 5px;
 }
 
+/* Local Bootstrap Theme Overrides for Perfect Design Harmony */
+.profile-section .btn-primary {
+  background-color: var(--color-slate-blue) !important;
+  border-color: var(--color-slate-blue) !important;
+  color: var(--color-card-bg) !important;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+
+.profile-section .btn-primary:hover,
+.profile-section .btn-primary:focus {
+  background-color: var(--color-primary-dark) !important;
+  border-color: var(--color-primary-dark) !important;
+  box-shadow: 0 4px 12px rgba(109, 129, 150, 0.25) !important;
+}
+
+.profile-section .btn-outline-primary {
+  color: var(--color-slate-blue) !important;
+  border-color: var(--color-slate-blue) !important;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+
+.profile-section .btn-outline-primary:hover {
+  background-color: var(--color-slate-blue) !important;
+  color: var(--color-card-bg) !important;
+  border-color: var(--color-slate-blue) !important;
+}
+
+.profile-section .text-primary {
+  color: var(--color-pine-green) !important; /* Accents and highlights in Pine Green */
+}
+
+.profile-section .text-muted {
+  color: #64748b !important;
+}
+
+.profile-section .bg-light {
+  background-color: var(--color-light-gray) !important;
+}
+
+.profile-section .progress {
+  background-color: var(--color-steel-blue) !important; /* Steel Blue for empty track */
+}
+
+.profile-section .progress-bar {
+  background-color: var(--color-pine-green) !important; /* Pine Green for full level indicator */
+}
+
+/* Wallet Pill custom coloring */
+.profile-section .bg-light.px-3.py-2.rounded-pill {
+  background-color: var(--color-card-bg) !important;
+  border: 1px solid var(--color-steel-blue) !important;
+  box-shadow: 0 4px 10px rgba(176, 196, 222, 0.15) !important;
+}
+
 /* Custom Floating Modal Styles */
 .profile-modal-overlay {
   position: fixed;
@@ -40,12 +113,12 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1050; /* Ensure it stays above bootstrap elements */
+  z-index: 1050;
   animation: fadeIn 0.25s ease-out;
 }
 
 .profile-modal-card {
-  background: #ffffff;
+  background: var(--color-card-bg);
   border-radius: 16px;
   width: 90%;
   max-width: 500px;
@@ -61,13 +134,13 @@
   align-items: center;
   padding: 18px 24px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  background-color: #f8f9fa;
+  background-color: var(--color-light-gray);
 }
 
 .profile-modal-title {
   margin: 0;
   font-weight: 700;
-  color: #212529;
+  color: var(--color-dark-gray);
   font-size: 1.15rem;
 }
 
@@ -83,7 +156,7 @@
 }
 
 .profile-modal-close-btn:hover {
-  color: #495057;
+  color: var(--color-dark-gray);
 }
 
 .profile-modal-body {
@@ -103,17 +176,13 @@
   border-top: 1px solid rgba(0, 0, 0, 0.06);
   display: flex;
   justify-content: flex-end;
-  background-color: #f8f9fa;
+  background-color: var(--color-light-gray);
 }
 
 /* Animations */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes slideUp {
@@ -130,14 +199,14 @@
 /* Work Experience Styling */
 .experience-item {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  border-left: 4px solid #3b71ca !important;
+  border-left: 4px solid var(--color-pine-green) !important;
 }
 
 .experience-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-left-color: #1475e1 !important;
-  background-color: #ffffff !important;
+  border-left-color: var(--color-pine-light) !important;
+  background-color: var(--color-card-bg) !important;
 }
 
 .text-hover-primary {
@@ -145,7 +214,7 @@
 }
 
 .experience-item:hover .text-hover-primary {
-  color: #3b71ca !important;
+  color: var(--color-pine-green) !important;
 }
 
 /* Analytics Styling */
@@ -164,7 +233,7 @@
 .hover-shadow-sm:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  background-color: #ffffff !important;
+  background-color: var(--color-card-bg) !important;
 }
 
 .transition-all {
@@ -177,7 +246,7 @@
 }
 
 .hover-text-primary:hover {
-  color: #3b71ca !important;
+  color: var(--color-slate-blue) !important;
 }
 
 .cursor-pointer {
@@ -202,33 +271,34 @@
 }
 
 .scrollable-modal-body::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--color-light-bg);
   border-radius: 10px;
 }
 
 .scrollable-modal-body::-webkit-scrollbar-thumb {
-  background: #ccc;
+  background: var(--color-steel-blue);
   border-radius: 10px;
 }
 
 .scrollable-modal-body::-webkit-scrollbar-thumb:hover {
-  background: #bbb;
+  background: var(--color-slate-blue);
 }
 
 /* Tabs indicator matching modern UX guidelines */
 .nav-tab-btn {
   font-size: 0.95rem;
   border-bottom: 3px solid transparent !important;
+  color: var(--color-dark-gray) !important;
   transition: all 0.2s ease;
 }
 
 .nav-tab-btn:hover {
-  color: #3b71ca !important;
+  color: var(--color-slate-blue) !important;
 }
 
 .nav-tab-btn.active {
-  color: #3b71ca !important;
-  border-bottom-color: #3b71ca !important;
+  color: var(--color-pine-green) !important;
+  border-bottom-color: var(--color-pine-green) !important;
 }
 
 /* Icon action transitions and hover transformations */
@@ -237,7 +307,7 @@
 }
 
 .hover-primary:hover {
-  color: #3b71ca !important;
+  color: var(--color-pine-green) !important;
   transform: scale(1.15);
 }
 
@@ -258,18 +328,54 @@
 }
 
 .form-range::-webkit-slider-thumb {
-  background: #3b71ca;
+  background: var(--color-slate-blue);
   border: 2px solid #ffffff;
   width: 16px;
   height: 16px;
   border-radius: 50%;
   margin-top: -5px;
-  box-shadow: 0 2px 6px rgba(59, 113, 202, 0.3);
+  box-shadow: 0 2px 6px rgba(109, 129, 150, 0.3);
   transition: transform 0.1s ease, background-color 0.1s ease;
   cursor: pointer;
 }
 
 .form-range::-webkit-slider-thumb:hover {
   transform: scale(1.2);
-  background: #1475e1;
+  background: var(--color-pine-green);
+}
+
+/* Contact info hover style */
+.hover-link-style {
+  transition: all 0.2s ease;
+}
+
+.hover-link-style:hover {
+  text-decoration: underline !important;
+  color: var(--color-pine-green) !important;
+}
+
+/* User Name Interactive Glow Tooltip */
+.user-name-glow {
+  transition: all 0.2s ease-in-out;
+  border-bottom: 2px dashed rgba(1, 121, 111, 0.25);
+  padding-bottom: 2px;
+}
+
+.user-name-glow .contact-card-icon {
+  color: var(--color-dark-gray);
+  opacity: 0.65;
+}
+
+.user-name-glow:hover {
+  color: var(--color-pine-green) !important;
+  border-bottom-color: var(--color-pine-green) !important;
+  border-bottom-style: solid;
+  text-shadow: 0 0 12px rgba(1, 121, 111, 0.2);
+  transform: scale(1.02);
+}
+
+.user-name-glow:hover .contact-card-icon {
+  color: var(--color-pine-green) !important;
+  opacity: 1;
+  transform: rotate(10deg);
 }

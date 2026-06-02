@@ -2,19 +2,20 @@ import React, { useState } from 'react';
 import { createBrowserRouter, RouterProvider, BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
-import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
+//import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
 import Login from './pages/Authentication/Login';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import ProtectedRoute from './pages/ProtectedRoute';
 import HomePage from './pages/HomePage/HomePage';
 import JobPosting from './components/JobPosting/JobPosting';
 import JobSkillsManager from './components/JobSkillsManager/JobSkillsManager';
-import CandidateProfilePage from './pages/CandidateProfilePage/CandidateProfilePage';
+//import CandidateProfilePage from './pages/CandidateProfilePage/CandidateProfilePage';
 import VerifyOTP from './pages/Authentication/VerifyOTP';
 import './App.css';
 import AuthPage from './pages/Authentication/AuthPage';
 import Register from './pages/Authentication/Register';
 import UserDashboard from './pages/DashBoard/UserDashboard/UserDashboard';
+import SetupProfilePage from './pages/SetupProfilePage/SetupProfilePage';
 
 // Style
 import './App.css';
@@ -73,15 +74,17 @@ const router = createBrowserRouter([
   { path: "/verify-otp", element: <VerifyOTP /> },
   { path: "/dashboard", element: <UserDashboard /> },
   { path: "/profile", element: <Home /> },
+  { path: "/setup-profile", element: <SetupProfilePage /> },
+  { path: "/candidate-profile", element: <CandidateProfile /> },
   { path: "/company-profile", element: <CompanyProfile /> },
-  {
-    path: "/candidate-profile",
-    element: (
-      <ProtectedRoute>
-        <CandidateProfilePage />
-      </ProtectedRoute>
-    )
-  },
+  // {
+  //   path: "/candidate-profile",
+  //   element: (
+  //     <ProtectedRoute>
+  //       <Candidate_profile />
+  //     </ProtectedRoute>
+  //   )
+  // },
   {
     path: "/admin",
     element: (
