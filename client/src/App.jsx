@@ -12,6 +12,7 @@ import './App.css';
 import AuthPage from './pages/Authentication/AuthPage';
 import Register from './pages/Authentication/Register';
 import UserDashboard from './pages/DashBoard/UserDashboard/UserDashboard';
+import SetupProfilePage from './pages/SetupProfilePage/SetupProfilePage';
 
 
 // Home Dashboard component featuring the Premium Dashboard Header and profile switching tabs
@@ -67,6 +68,8 @@ const router = createBrowserRouter([
   { path: "/verify-otp", element: <VerifyOTP /> },
   { path: "/dashboard", element: <UserDashboard /> },
   { path: "/profile", element: <Home /> },
+  { path: "/setup-profile", element: <SetupProfilePage /> },
+  { path: "/candidate-profile", element: <CandidateProfile /> },
 
   // Profile
   {
