@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import styles from './CompanyProfile.module.css';
-
+import HRPostJob from "../../components/HR/HRPostJob";
 const API_URL = 'http://localhost:5000';
 const TEMP_HR_ID = 1;
 
@@ -13,6 +13,7 @@ export default function CompanyProfile() {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
+  const [isPostJobModalOpen, setIsPostJobModalOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [logoPreview, setLogoPreview] = useState(null);
   const fileInputRef = useRef();
@@ -172,7 +173,17 @@ export default function CompanyProfile() {
       {/* Toast */}
       <div className={`${styles.toast} ${toast.show ? styles.toastShow : ''} ${toast.type === 'error' ? styles.toastError : styles.toastSuccess}`}>
         {toast.type === 'success' ? '✅' : '❌'} {toast.message}
+
       </div>
+
+    {isPostJobModalOpen && (
+    <div className={styles.modalOverlay}>
+        <div className={styles.modalContent}>
+            <button className={styles.closeBtn} onClick={() => setIsPostJobModalOpen(false)}>✕</button>
+            <HRPostJob />
+        </div>
+    </div>
+)}
 
       {/* Top bar */}
       <div className={styles.topBar}>
@@ -181,9 +192,9 @@ export default function CompanyProfile() {
           <span className={styles.breadcrumbSep}>›</span>
           <span className={styles.breadcrumbCurrent}>Company Profile</span>
         </div>
-        <button className={styles.btnPostJob} onClick={() => {}}>
-          📢 Post a New Job
-        </button>
+       <button className={styles.btnPostJob} onClick={() => setIsPostJobModalOpen(true)}>
+    📢 Post a New Job
+</button>
       </div>
 
       <div className={styles.layout}>
