@@ -32,21 +32,46 @@
 .topBar {
   background: #fff;
   border-bottom: 1px solid #e0e0e0;
-  padding: 12px 28px;
+  padding: 18px 28px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 20px;
 }
 
 .breadcrumb {
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.pageTitle {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.pageSubTitle {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.headerActions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #777;
 }
-.breadcrumbSep { color: #bbb; }
-.breadcrumbCurrent { color: #333; font-weight: 600; }
+
+.btnOutline {
+  background: transparent;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
 
 .btnPostJob {
   background: #e53935;
@@ -55,8 +80,8 @@
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  padding: 10px 20px;
-  border-radius: 6px;
+  padding: 12px 22px;
+  border-radius: 12px;
   transition: all 0.2s;
 }
 .btnPostJob:hover { background: #c62828; transform: translateY(-1px); }
@@ -133,6 +158,34 @@
   font-weight: 800;
   color: #1e3a6e;
   margin: 0;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.summaryCard {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
+}
+
+.summaryTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 14px;
+}
+
+.summaryRow {
+  font-size: 14px;
+  color: #475569;
+  margin-bottom: 10px;
 }
 
 /* ─── TABS ─── */
