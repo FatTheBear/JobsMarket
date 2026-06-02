@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
 import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
 import Login from './pages/Authentication/Login';
@@ -100,6 +101,13 @@ const router = createBrowserRouter([
       </div>
     )
   },
+
+  // Profile
+  {
+    path: "/company-profile",
+    element: <CompanyProfile />
+  },
+
   { path: "*", element: <div>404</div> }
 ]);
 
