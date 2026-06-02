@@ -7,6 +7,9 @@ import Login from './pages/Authentication/Login';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import ProtectedRoute from './pages/ProtectedRoute';
 import HomePage from './pages/HomePage/HomePage';
+import JobPosting from './components/JobPosting/JobPosting';
+import JobSkillsManager from './components/JobSkillsManager/JobSkillsManager';
+import CandidateProfilePage from './pages/CandidateProfilePage/CandidateProfilePage';
 import VerifyOTP from './pages/Authentication/VerifyOTP';
 import './App.css';
 import AuthPage from './pages/Authentication/AuthPage';
@@ -70,6 +73,36 @@ const router = createBrowserRouter([
   { path: "/profile", element: <Home /> },
   { path: "/setup-profile", element: <SetupProfilePage /> },
   { path: "/candidate-profile", element: <CandidateProfile /> },
+  { path: "/company-profile", element: <CompanyProfile /> },
+  {
+    path: "/candidate-profile",
+    element: (
+      <ProtectedRoute>
+        <CandidateProfilePage />
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/admin",
+    element: (
+      <ProtectedRoute>
+        <AdminDashboard />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/job-posting",
+    element: <JobPosting />
+  },
+  {
+    path: "/job-skills",
+    element: (
+      <div style={{ maxWidth: 820, margin: '40px auto', padding: '0 20px' }}>
+        <h1 style={{ fontFamily: 'Inter,sans-serif', marginBottom: 24 }}>🎯 Job Skills Manager</h1>
+        <JobSkillsManager jobId={null} />
+      </div>
+    )
+  },
 
   // Profile
   {
@@ -83,3 +116,4 @@ const router = createBrowserRouter([
 export default function App() {
   return <RouterProvider router={router} />;
 }
+

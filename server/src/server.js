@@ -16,6 +16,17 @@ const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const candidateRoutes = require("./routes/candidateRoutes");
 const walletRoutes = require("./routes/walletRoutes");
+const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const companyRoutes = require('./routes/company');
+const jobsRoutes = require('./routes/jobs');
+const skillsRoutes = require('./routes/skills');
+
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/company', companyRoutes);
+app.use('/api/jobs', jobsRoutes);
+app.use('/api/skills', skillsRoutes);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
