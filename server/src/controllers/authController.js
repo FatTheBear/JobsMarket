@@ -1,11 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
 const pool = require('../config/db');
-<<<<<<< HEAD
-const UserModel = require('../models/User');
-=======
 const User = require('../models/User');
->>>>>>> main
 
 const authController = {
     register: async (req, res) => {
@@ -29,9 +25,6 @@ const authController = {
                     [email, password_hash, role]
                 );
 
-<<<<<<< HEAD
-                // 2. Logic phân luồng theo Role (Bao gồm Candidate, Company và Admin)
-=======
                 const newUserId = userResult.insertId;
                 
                 const crypto = require('crypto');
@@ -60,7 +53,6 @@ const authController = {
                     text: `Your OTP code is: ${otp}`
                 });
 
->>>>>>> main
                 if (role === 'candidate') {
                     await connection.execute(
                         'INSERT INTO Candidate_Profile (user_id, full_name) VALUES (?, ?)',
@@ -72,13 +64,10 @@ const authController = {
                         'INSERT INTO Company (hr_id, industry_id, name) VALUES (?, ?, ?)',
                         [newUserId, industry_id, company_name]
                     );
-<<<<<<< HEAD
                 } 
                 else if (role === 'Admin') {
                     // Cấp quyền Admin: Lưu ở bảng User chính là đủ, không cần điền bảng phụ
                     console.log(`--- Đã tạo tài khoản Admin ID: ${newUserId} thành công ---`);
-=======
->>>>>>> main
                 }
                 else {
                     throw new Error("Invalid role specified!");
@@ -172,12 +161,6 @@ const authController = {
 
             const user = users[0];
 
-<<<<<<< HEAD
-            console.log("DB PASSWORD (PLAINTEXT):", user.password_hash);
-
-            
-            const isMatch = (password === user.password_hash);
-=======
             const isPasswordValid = await bcrypt.compare(password, user.password_hash);
             if (!isPasswordValid) {
                 return res.status(401).json({ message: "Invalid email or password!" });
@@ -186,7 +169,6 @@ const authController = {
             if (user.status === 'Pending') {
                 return res.status(403).json({ message: "Please verify your email before logging in." });
             }
->>>>>>> main
 
             if (user.status === 'Banned') {
                 return res.status(403).json({ message: "This account has been banned." });
@@ -208,17 +190,9 @@ const authController = {
                 }
             });
 
-<<<<<<< HEAD
-        } catch (err) {
-            console.error(err);
-            res.status(500).json({
-                message: "Server error"
-            });
-=======
         } catch (error) {
             console.error("Login Error:", error); 
             return res.status(500).json({ message: "Internal server error!" });
->>>>>>> main
         }
     }
 };
