@@ -7,8 +7,8 @@ import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
 import Login from './pages/Authentication/Login';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import ProtectedRoute from './pages/ProtectedRoute';
-import JobPosting from './components/JobPosting/JobPosting';
-import JobSkillsManager from './components/JobSkillsManager/JobSkillsManager';
+import JobPosting from './pages/JobPosting/JobPosting';
+import JobSkillsManager from './pages/JobSkillsManager/JobSkillsManager';
 import VerifyOTP from './pages/Authentication/VerifyOTP';
 import AuthPage from './pages/Authentication/AuthPage';
 import Register from './pages/Authentication/Register';
@@ -73,7 +73,6 @@ const router = createBrowserRouter([
   { path: "/profile", element: <Home /> },
   { path: "/setup-profile", element: <SetupProfilePage /> },
   { path: "/candidate-profile", element: <CandidateProfile /> },
-  { path: "/company-profile", element: <CompanyProfile /> },
   { path: "/company-profile/job-posting", element: <JobPosting /> },
   {
     path: "/admin",
@@ -95,12 +94,6 @@ const router = createBrowserRouter([
         <JobSkillsManager jobId={null} />
       </div>
     )
-  },
-
-  // Profile
-  {
-    path: "/company-profile",
-    element: <CompanyProfile />
   },
 
   { path: "*", element: <div>404</div> }
