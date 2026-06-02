@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
-//import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
+import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
 import Login from './pages/Authentication/Login';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import ProtectedRoute from './pages/ProtectedRoute';
@@ -17,11 +17,12 @@ import Register from './pages/Authentication/Register';
 import UserDashboard from './pages/DashBoard/UserDashboard/UserDashboard';
 import SetupProfilePage from './pages/SetupProfilePage/SetupProfilePage';
 
+// Style
+import './App.css';
 
-// Home Dashboard component featuring the Premium Dashboard Header and profile switching tabs
+// Component Home tạm thời điều hướng Tab giữa Candidate và Company Profile
 function Home() {
   const [activeTab, setActiveTab] = useState('candidate');
-
 
   return (
     <div className="app-wrapper">
@@ -61,6 +62,7 @@ function Home() {
   );
 }
 
+// Cấu hình danh sách các đường dẫn (Routes) toàn hệ thống
 const router = createBrowserRouter([
   { path: "/", element: <HomePage /> },
 
@@ -68,6 +70,7 @@ const router = createBrowserRouter([
   { path: "/auth", element: <AuthPage /> },
   { path: "/register", element: <Register /> },
   { path: "/login", element: <Login /> },
+  { path: "/company-profile", element: <CompanyProfile /> },
   { path: "/verify-otp", element: <VerifyOTP /> },
   { path: "/dashboard", element: <UserDashboard /> },
   { path: "/profile", element: <Home /> },
@@ -113,7 +116,7 @@ const router = createBrowserRouter([
   { path: "*", element: <div>404</div> }
 ]);
 
+// Component App chính chạy RouterProvider
 export default function App() {
   return <RouterProvider router={router} />;
 }
-

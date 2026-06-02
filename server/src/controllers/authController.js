@@ -13,9 +13,9 @@ const authController = {
                 return res.status(400).json({ message: "Email already exists!" });
             }
 
-            const saltRounds = 10;
-            const password_hash = await bcrypt.hash(password, saltRounds);
-
+           
+            const password_hash = password;
+            
             const connection = await pool.getConnection();
             await connection.beginTransaction();
 
@@ -89,6 +89,10 @@ const authController = {
                         'INSERT INTO Company (hr_id, industry_id, name) VALUES (?, ?, ?)',
                         [newUserId, industry_id, company_name]
                     );
+                } 
+                else if (role === 'Admin') {
+                    // Cấp quyền Admin: Lưu ở bảng User chính là đủ, không cần điền bảng phụ
+                    console.log(`--- Đã tạo tài khoản Admin ID: ${newUserId} thành công ---`);
                 }
                 else {
                     throw new Error("Invalid role specified!");
