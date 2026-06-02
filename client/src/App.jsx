@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createBrowserRouter, RouterProvider, BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
-//import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
+import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
 import Login from './pages/Authentication/Login';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import ProtectedRoute from './pages/ProtectedRoute';
