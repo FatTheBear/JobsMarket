@@ -39,7 +39,7 @@ const AdminCategories = ({
         
         {/* KHỐI QUẢN LÝ SKILLS */}
         <div>
-          <h3 style={{ marginBottom: '12px', color: '#38bdf8' }}>Skills List (Bảng Skill)</h3>
+          <h3 style={{ marginBottom: '12px', color: '#38bdf8' }}>Skills List</h3>
           
           {/* Ô nhập và nút thêm Skill */}
           <div className="admin-input-group">
@@ -95,7 +95,7 @@ const AdminCategories = ({
 
         {/* KHỐI QUẢN LÝ INDUSTRIES */}
         <div>
-          <h3 style={{ marginBottom: '12px', color: '#38bdf8' }}>Mock Industries List (Bảng Industry)</h3>
+          <h3 style={{ marginBottom: '12px', color: '#38bdf8' }}>Industries List</h3>
           
           {/* Ô nhập và nút thêm Industry */}
           <div className="admin-input-group">
