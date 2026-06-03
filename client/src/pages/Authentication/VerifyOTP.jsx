@@ -32,7 +32,9 @@ export default function VerifyOTP() {
 
             if (response.status === 200) {
                 localStorage.setItem('token', response.data.token);
-                if (userRole === "company") {
+                const apiRole = response.data.user?.role;
+                const roleLower = apiRole ? apiRole.toLowerCase() : '';
+                if (roleLower === "company" || roleLower === "hr") {
                     navigate("/company-profile");
                 } else {
                     navigate("/setup-profile");

@@ -148,6 +148,89 @@ async function runMigration() {
             }
         }
 
+        // 7. Add cv_url to Candidate_Profile
+        try {
+            console.log('Adding cv_url column to Candidate_Profile...');
+            await pool.query(`
+                ALTER TABLE \`Candidate_Profile\`
+                ADD COLUMN \`cv_url\` LONGTEXT DEFAULT NULL
+            `);
+            console.log('Successfully added cv_url column to Candidate_Profile.');
+        } catch (err) {
+            if (err.code === 'ER_DUP_FIELDNAME') {
+                console.log('cv_url column already exists in Candidate_Profile.');
+            } else {
+                throw err;
+            }
+        }
+
+        // 8. Create Candidate_Experience and Candidate_Education tables
+        console.log('Creating Candidate_Experience and Candidate_Education tables...');
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS \`Candidate_Experience\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`candidate_id\` INT NOT NULL,
+                \`company_name\` VARCHAR(255) NOT NULL,
+                \`role\` VARCHAR(255) NOT NULL,
+                \`start_date\` VARCHAR(50) NOT NULL,
+                \`end_date\` VARCHAR(50) DEFAULT NULL,
+                \`description\` TEXT DEFAULT NULL,
+                FOREIGN KEY (\`candidate_id\`) REFERENCES \`Candidate_Profile\`(\`id\`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        `);
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS \`Candidate_Education\` (
+                \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                \`candidate_id\` INT NOT NULL,
+                \`school_name\` VARCHAR(255) NOT NULL,
+                \`degree\` VARCHAR(255) NOT NULL,
+                \`start_date\` VARCHAR(50) NOT NULL,
+                \`end_date\` VARCHAR(50) DEFAULT NULL,
+                \`description\` TEXT DEFAULT NULL,
+                FOREIGN KEY (\`candidate_id\`) REFERENCES \`Candidate_Profile\`(\`id\`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        `);
+        console.log('Successfully created Candidate_Experience and Candidate_Education tables.');
+
+        // 9. Migrate existing education JSON data to the new tables
+        console.log('Migrating existing profile JSON data to new tables...');
+        const [profiles] = await pool.query('SELECT id, education FROM Candidate_Profile');
+        for (const profile of profiles) {
+            if (profile.education) {
+                try {
+                    const parsed = typeof profile.education === 'string' ? JSON.parse(profile.education) : profile.education;
+                    if (Array.isArray(parsed)) {
+                        for (const item of parsed) {
+                            // Check if it looks like an education or experience item
+                            const isEdu = item.school || item.degree;
+                            const isExp = item.company || item.role;
+                            
+                            if (isEdu) {
+                                await pool.query(
+                                    'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
+                                    [profile.id, item.school || 'School', item.degree || 'Degree', item.startDate || '2026-01', item.gradDate || null]
+                                );
+                            } else if (isExp) {
+                                await pool.query(
+                                    'INSERT INTO Candidate_Experience (candidate_id, company_name, role, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
+                                    [profile.id, item.company || 'Company', item.role || 'Role', item.startDate || '2026-01', item.endDate || null]
+                                );
+                            } else {
+                                // Fallback default to Education
+                                await pool.query(
+                                    'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
+                                    [profile.id, item.school || 'School', item.degree || 'Degree', item.startDate || '2026-01', item.gradDate || null]
+                                );
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error(`Failed to migrate profile ID ${profile.id}:`, e.message);
+                }
+            }
+        }
+        console.log('Successfully completed data migration.');
+
         console.log('All migrations completed successfully.');
     } catch (error) {
         console.error('Migration failed:', error);

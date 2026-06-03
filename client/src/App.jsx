@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider, BrowserRouter as Router, Routes, R
 import { SocketProvider } from './context/SocketContext';
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
 import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
+import CandidatePublicProfile from './pages/CandidateProfile/CandidatePublicProfile';
 import Login from './pages/Authentication/Login';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import ProtectedRoute from './pages/ProtectedRoute';
@@ -73,6 +74,7 @@ const router = createBrowserRouter([
   { path: "/profile", element: <Home /> },
   { path: "/setup-profile", element: <SetupProfilePage /> },
   { path: "/candidate-profile", element: <CandidateProfile /> },
+  { path: "/candidate/:id", element: <CandidatePublicProfile /> },
   { path: "/company-profile/job-posting", element: <JobPosting /> },
   {
     path: "/admin",

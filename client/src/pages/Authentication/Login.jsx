@@ -26,9 +26,33 @@ export default function Login() {
       });
 
       if (response.status === 200) {
-        //navigate('/dashboard');
         localStorage.setItem('token', response.data.token);
+<<<<<<< HEAD
         navigate('/dashboard');
+=======
+        const { role } = response.data.user;
+        const roleLower = role ? role.toLowerCase() : '';
+
+        if (roleLower === 'company' || roleLower === 'hr') {
+          navigate('/company-profile');
+        } else if (roleLower === 'admin') {
+          navigate('/admin');
+        } else {
+          try {
+            const profileRes = await axios.get('http://localhost:5000/api/candidate/profile', {
+              headers: { Authorization: `Bearer ${response.data.token}` }
+            });
+            const profile = profileRes.data;
+            if (profile && profile.display_name) {
+              navigate('/dashboard');
+            } else {
+              navigate('/setup-profile');
+            }
+          } catch (err) {
+            navigate('/setup-profile');
+          }
+        }
+>>>>>>> main
       }
     } catch (error) {
       // 2. Catch Backend Errors

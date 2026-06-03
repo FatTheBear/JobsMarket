@@ -6,6 +6,45 @@ const LOCATIONS = [
   'Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Binh Duong', 'Dong Nai', 'Can Tho'
 ];
 
+const JOB_POSTINGS = [
+  {
+    id: 1,
+    title: 'Senior React Developer',
+    company: 'Tech Solutions Corp',
+    salary: '$2000 - $3500',
+    jobType: 'Full-time',
+    description: 'We are looking for a Senior React Developer to join our dynamic team and lead frontend development projects.',
+    requirements: 'Strong proficiency in JavaScript/TypeScript, React.js, Redux, and modern CSS frameworks. 3+ years of experience.',
+    benefits: 'Premium health insurance, 13th-month salary, flexible work hours, hybrid working mode.',
+    location: 'Ho Chi Minh City',
+    workingHours: '8:00 AM - 5:00 PM, Monday - Friday',
+    degreeRequirement: 'Bachelor\'s Degree in Computer Science or related fields',
+    experience: '3+ years',
+    ageRequirement: '22 - 35',
+    languageRequirement: 'English (Intermediate)',
+    employerPhone: '0901 234 567',
+    employerEmail: 'hr@techsolutions.com'
+  },
+  {
+    id: 2,
+    title: 'Digital Marketing Specialist',
+    company: 'Creative Agency',
+    salary: '$1000 - $1800',
+    jobType: 'Part-time',
+    description: 'Join us to plan and execute comprehensive digital marketing campaigns across SEO, SEM, and social media channels.',
+    requirements: 'Experience in Google Ads, Facebook Ads, SEO optimization, content creation, and data analytics.',
+    benefits: 'Competitive commission, professional training programs, active and creative working environment.',
+    location: 'Hanoi',
+    workingHours: 'Flexible, 24 hours/week',
+    degreeRequirement: 'College/University degree in Marketing, Business or related fields',
+    experience: '1+ year',
+    ageRequirement: 'Under 30',
+    languageRequirement: 'English (Fluent)',
+    employerPhone: '0987 654 321',
+    employerEmail: 'careers@creativeagency.com'
+  }
+];
+
 export default function CandidateDashboard() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');

@@ -4,7 +4,8 @@ const CandidateExportModal = ({
   show,
   onClose,
   profileData,
-  workExperiences,
+  educations = [],
+  workExperiences = [],
   skills,
   setModalError
 }) => {
@@ -54,8 +55,8 @@ const CandidateExportModal = ({
         </div>
 
         <div class="section">
-          <h2>Work Experience & Qualifications</h2>
-          ${workExperiences.length === 0 ? '<p>No experience entries added yet.</p>' : 
+          <h2>Work Experience</h2>
+          ${workExperiences.length === 0 ? '<p>No work experience entries added yet.</p>' : 
             workExperiences.map(exp => `
               <div class="experience-item">
                 <span class="experience-role">${exp.role}</span>
@@ -63,6 +64,21 @@ const CandidateExportModal = ({
                 <span class="experience-company">${exp.company}</span>
                 &nbsp;&bull;&nbsp;
                 <span class="experience-duration">${exp.duration}</span>
+              </div>
+            `).join('')
+          }
+        </div>
+
+        <div class="section">
+          <h2>Education</h2>
+          ${educations.length === 0 ? '<p>No education entries added yet.</p>' : 
+            educations.map(edu => `
+              <div class="experience-item">
+                <span class="experience-role">${edu.degree}</span>
+                <br/>
+                <span class="experience-company">${edu.school}</span>
+                &nbsp;&bull;&nbsp;
+                <span class="experience-duration">${edu.duration}</span>
               </div>
             `).join('')
           }
@@ -116,6 +132,16 @@ const CandidateExportModal = ({
           <span class="exp-duration">${exp.duration}</span>
         </div>
         <div class="exp-company">${exp.company}</div>
+      </div>
+    `).join('');
+
+    const educationHtml = educations.map(edu => `
+      <div class="exp-item">
+        <div class="exp-header">
+          <span class="exp-role">${edu.degree}</span>
+          <span class="exp-duration">${edu.duration}</span>
+        </div>
+        <div class="exp-company">${edu.school}</div>
       </div>
     `).join('');
 
@@ -325,11 +351,19 @@ const CandidateExportModal = ({
           <div class="two-column-layout">
             <div class="left-column">
               <div class="section-title">
-                <i class="fas fa-briefcase"></i> Work Experience & Qualifications
+                <i class="fas fa-briefcase"></i> Work Experience
               </div>
               ${workExperiences.length === 0 ? 
-                '<div class="no-data">No work experience or educational entries added yet.</div>' : 
+                '<div class="no-data">No work experience entries added yet.</div>' : 
                 experiencesHtml
+              }
+
+              <div class="section-title">
+                <i class="fas fa-graduation-cap"></i> Education
+              </div>
+              ${educations.length === 0 ? 
+                '<div class="no-data">No education entries added yet.</div>' : 
+                educationHtml
               }
             </div>
             

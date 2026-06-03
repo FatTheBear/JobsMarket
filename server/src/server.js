@@ -19,12 +19,17 @@ const io = new Server(server, {
 require('./config/db');
 
 // Routes
+<<<<<<< HEAD
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 //const candidateRoutes = require("./routes/candidateRoutes");
 const walletRoutes = require("./routes/walletRoutes");
 //const authRoutes = require('./routes/authRoutes');
 //const adminRoutes = require('./routes/adminRoutes');
+=======
+const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+>>>>>>> main
 const candidateRoutes = require('./routes/candidateRoutes');
 //const walletRoutes = require('./routes/walletRoutes');
 const companyRoutes = require('./routes/company');

@@ -3,6 +3,7 @@ import axios from 'axios';
 import './Candidate_profile.css';
 import CandidatePersonalInfoModal from './CandidatePersonalInfoModal';
 import CandidateExperience, { CandidateExperienceManager } from './CandidateExperience';
+import CandidateEducation, { CandidateEducationManager } from './CandidateEducation';
 import CandidateSkills, { CandidateSkillsManager } from './CandidateSkills';
 import CandidatePosts from './CandidatePosts';
 import CandidateWallet from './CandidateWallet';
@@ -24,6 +25,8 @@ const CandidateProfile = () => {
     address: '',
     fullName: '',
     email: '',
+    phone: '',
+    hidePhone: false,
     nationality: '',
     portfolio: '',
     github: '',
@@ -34,6 +37,7 @@ const CandidateProfile = () => {
   // Dynamic Skills State
   const [skills, setSkills] = useState([]);
 
+  const [educations, setEducations] = useState([]);
   const [workExperiences, setWorkExperiences] = useState([]);
 
   const [followedBusinesses, setFollowedBusinesses] = useState([]);
@@ -66,6 +70,10 @@ const CandidateProfile = () => {
   const [currentExperience, setCurrentExperience] = useState(null);
   const [experienceForm, setExperienceForm] = useState({ role: '', company: '', startDate: '', endDate: '' });
 
+  const [showEducationModal, setShowEducationModal] = useState(false);
+  const [currentEducation, setCurrentEducation] = useState(null);
+  const [educationForm, setEducationForm] = useState({ degree: '', school: '', startDate: '', gradDate: '' });
+
   const [showSkillModal, setShowSkillModal] = useState(false);
   const [currentSkill, setCurrentSkill] = useState(null);
   const [skillForm, setSkillForm] = useState({ name: '', level: 50 });
@@ -89,9 +97,18 @@ const CandidateProfile = () => {
           jobTitle: profile.headline || prev.jobTitle,
           address: profile.address || prev.address,
           email: profile.email || prev.email,
-          phone: profile.phone || prev.phone,
+          phone: profile.phone || prev.phone || '',
+          hidePhone: localStorage.getItem('hide_phone_' + profile.email) === 'true',
           avatar: profile.avatar_url || prev.avatar
         }));
+
+        if (profile.cv_url) {
+          try {
+            setCvFile(JSON.parse(profile.cv_url));
+          } catch (e) {
+            console.error("Failed to parse cv_url from DB:", e);
+          }
+        }
 
         if (profile.skills && Array.isArray(profile.skills)) {
           setSkills(profile.skills.map((s, idx) => ({ id: idx + 1, name: s.name, level: s.level })));
@@ -107,7 +124,7 @@ const CandidateProfile = () => {
             return val;
           };
 
-          setWorkExperiences(profile.education.map((e, idx) => {
+          setEducations(profile.education.map((e, idx) => {
             let durationText = '';
             if (e.startDate && e.gradDate) {
               durationText = `${formatMonthYear(e.startDate)} - ${formatMonthYear(e.gradDate)}`;
@@ -115,17 +132,50 @@ const CandidateProfile = () => {
               durationText = `${formatMonthYear(e.startDate)} - Present`;
             } else if (e.gradDate) {
               durationText = formatMonthYear(e.gradDate);
-            } else if (e.gradYear) {
-              durationText = e.gradYear;
             } else {
               durationText = 'Present';
             }
 
             return {
               id: idx + 1,
-              role: e.degree || 'Degree / Field of Study',
-              company: e.school || 'School / Institute',
-              duration: durationText
+              degree: e.degree || 'Degree / Field of Study',
+              school: e.school || 'School / Institute',
+              duration: durationText,
+              startDate: e.startDate,
+              gradDate: e.gradDate
+            };
+          }));
+        }
+
+        if (profile.experience && Array.isArray(profile.experience)) {
+          const formatMonthYear = (val) => {
+            if (!val) return '';
+            const parts = val.split('-');
+            if (parts.length === 2) {
+              return `${parts[1]}/${parts[0]}`; // MM/YYYY
+            }
+            return val;
+          };
+
+          setWorkExperiences(profile.experience.map((e, idx) => {
+            let durationText = '';
+            if (e.startDate && e.endDate) {
+              durationText = `${formatMonthYear(e.startDate)} - ${formatMonthYear(e.endDate)}`;
+            } else if (e.startDate) {
+              durationText = `${formatMonthYear(e.startDate)} - Present`;
+            } else if (e.endDate) {
+              durationText = formatMonthYear(e.endDate);
+            } else {
+              durationText = 'Present';
+            }
+
+            return {
+              id: idx + 1,
+              role: e.role || 'Job Title',
+              company: e.company || 'Company Name',
+              duration: durationText,
+              startDate: e.startDate,
+              endDate: e.endDate
             };
           }));
         }
@@ -171,7 +221,20 @@ const CandidateProfile = () => {
         phone: editProfileForm.phone || '',
         avatar_url: editProfileForm.avatar,
         headline: editProfileForm.jobTitle,
-        address: editProfileForm.address
+        address: editProfileForm.address,
+        cv_url: cvFile ? JSON.stringify(cvFile) : null,
+        education: educations.map(edu => ({
+          school: edu.school,
+          degree: edu.degree,
+          startDate: edu.startDate,
+          gradDate: edu.gradDate
+        })),
+        experience: workExperiences.map(exp => ({
+          company: exp.company,
+          role: exp.role,
+          startDate: exp.startDate,
+          endDate: exp.endDate
+        }))
       };
 
       await axios.put('http://localhost:5000/api/candidate/profile', payload, {
@@ -179,6 +242,7 @@ const CandidateProfile = () => {
       });
 
       setProfileData(editProfileForm);
+      localStorage.setItem('hide_phone_' + editProfileForm.email, editProfileForm.hidePhone ? 'true' : 'false');
       setShowEdit(false);
     } catch (err) {
       console.error("Failed to save profile changes:", err);
@@ -189,6 +253,12 @@ const CandidateProfile = () => {
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Validate file type (only images allowed)
+    if (!file.type.startsWith('image/')) {
+      setModalError("Invalid file type! Only image files (png, jpg, jpeg, gif, webp) are allowed.");
+      return;
+    }
 
     // Validate size under 5MB (5 * 1024 * 1024 bytes)
     if (file.size > 5 * 1024 * 1024) {
@@ -304,8 +374,82 @@ const CandidateProfile = () => {
     setShowExperienceModal(false);
   };
 
+  const handleOpenEducationModal = (edu = null) => {
+    setModalError('');
+    if (edu) {
+      setCurrentEducation(edu);
+      setEducationForm({
+        degree: edu.degree,
+        school: edu.school,
+        startDate: edu.startDate || '',
+        gradDate: edu.gradDate || ''
+      });
+    } else {
+      setCurrentEducation(null);
+      setEducationForm({ degree: '', school: '', startDate: '', gradDate: '' });
+    }
+    setShowEducationModal(true);
+  };
+
+  const handleSaveEducation = (e) => {
+    e.preventDefault();
+    if (!educationForm.degree || !educationForm.school) {
+      setModalError("Please fill in Degree and School Name!");
+      return;
+    }
+    if (!educationForm.startDate) {
+      setModalError("Start Date is required!");
+      return;
+    }
+
+    const startYear = parseInt(educationForm.startDate.split('-')[0]);
+    const currentYear = new Date().getFullYear();
+    if (startYear > currentYear) {
+      setModalError(`Start year (${startYear}) cannot be in the future (must be <= ${currentYear})!`);
+      return;
+    }
+
+    if (educationForm.gradDate && educationForm.gradDate < educationForm.startDate) {
+      setModalError("Graduation Date cannot be earlier than Start Date!");
+      return;
+    }
+
+    const formatMonthYear = (val) => {
+      if (!val) return '';
+      const parts = val.split('-');
+      if (parts.length === 2) {
+        return `${parts[1]}/${parts[0]}`; // MM/YYYY
+      }
+      return val;
+    };
+
+    const formattedStart = formatMonthYear(educationForm.startDate);
+    const formattedGrad = educationForm.gradDate ? formatMonthYear(educationForm.gradDate) : 'Present';
+    const durationText = `${formattedStart} - ${formattedGrad}`;
+
+    const finalEducation = {
+      degree: educationForm.degree,
+      school: educationForm.school,
+      duration: durationText,
+      startDate: educationForm.startDate,
+      gradDate: educationForm.gradDate
+    };
+
+    if (currentEducation) {
+      setEducations(prev => prev.map(item => item.id === currentEducation.id ? { ...item, ...finalEducation } : item));
+    } else {
+      const newId = educations.length > 0 ? Math.max(...educations.map(i => i.id)) + 1 : 1;
+      setEducations(prev => [...prev, { id: newId, ...finalEducation }]);
+    }
+    setShowEducationModal(false);
+  };
+
   const handleDeleteExperience = (id) => {
     setWorkExperiences(prev => prev.filter(item => item.id !== id));
+  };
+
+  const handleDeleteEducation = (id) => {
+    setEducations(prev => prev.filter(item => item.id !== id));
   };
 
   // Event Handlers for Skill CRUD
@@ -485,6 +629,19 @@ const CandidateProfile = () => {
             profileData={profileData}
           />
 
+          <CandidateEducation
+            educations={educations}
+            onOpenModal={handleOpenEducationModal}
+            onDelete={handleDeleteEducation}
+            showModal={showEducationModal}
+            onCloseModal={() => setShowEducationModal(false)}
+            currentEducation={currentEducation}
+            educationForm={educationForm}
+            setEducationForm={setEducationForm}
+            onSave={handleSaveEducation}
+            modalError={modalError}
+          />
+
           <CandidateExperience
             workExperiences={workExperiences}
             onOpenModal={handleOpenExperienceModal}
@@ -524,7 +681,7 @@ const CandidateProfile = () => {
           />
 
           {/* Column 3: Interests */}
-          <div className="col-12 col-lg-4 mb-4 d-flex">
+          <div className="col-12 col-lg-3 mb-4 d-flex">
             <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
               <div className="card-body p-4 d-flex flex-column h-100">
                 <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
@@ -578,13 +735,6 @@ const CandidateProfile = () => {
                 <i className="fas fa-edit me-2 text-primary"></i>
                 Edit Profile
               </h5>
-              <button
-                type="button"
-                className="profile-modal-close-btn"
-                onClick={() => setShowEdit(false)}
-              >
-                &times;
-              </button>
             </div>
 
             {/* Tab Headers */}
@@ -685,6 +835,30 @@ const CandidateProfile = () => {
                         onChange={(e) => setEditProfileForm({ ...editProfileForm, nationality: e.target.value })}
                       />
                     </div>
+                    <div className="col-12 col-md-6">
+                      <label className="form-label fw-semibold text-secondary small">Phone Number</label>
+                      <input
+                        type="tel"
+                        className="form-control"
+                        value={editProfileForm.phone || ''}
+                        onChange={(e) => setEditProfileForm({ ...editProfileForm, phone: e.target.value })}
+                        placeholder="e.g., +84 901 234 567"
+                      />
+                    </div>
+                    <div className="col-12 col-md-6 d-flex align-items-center">
+                      <div className="form-check form-switch mt-4">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          id="hidePhoneCheckbox"
+                          checked={editProfileForm.hidePhone || false}
+                          onChange={(e) => setEditProfileForm({ ...editProfileForm, hidePhone: e.target.checked })}
+                        />
+                        <label className="form-check-label fw-semibold text-secondary small mb-0" htmlFor="hidePhoneCheckbox">
+                          Hide phone in Contact Info
+                        </label>
+                      </div>
+                    </div>
                     <div className="col-12">
                       <label className="form-label fw-semibold text-secondary small">Address / Country</label>
                       <input
@@ -742,6 +916,11 @@ const CandidateProfile = () => {
 
               {activeEditTab === 'profile' && (
                 <div className="d-flex flex-column gap-4">
+                  <CandidateEducationManager
+                    educations={educations}
+                    onOpenModal={handleOpenEducationModal}
+                    onDelete={handleDeleteEducation}
+                  />
                   <CandidateExperienceManager
                     workExperiences={workExperiences}
                     onOpenModal={handleOpenExperienceModal}
@@ -767,7 +946,7 @@ const CandidateProfile = () => {
               <div className="profile-modal-footer mt-4 pt-3 border-top d-flex gap-2 justify-content-end bg-white">
                 {activeEditTab === 'profile' && (
                   <button type="button" className="btn btn-success px-4 d-inline-flex align-items-center gap-1.5 fw-semibold shadow-sm text-white" onClick={() => setShowExportModal(true)}>
-                    <i className="fas fa-file-export"></i> Import
+                    <i className="fas fa-file-export"></i> Export
                   </button>
                 )}
                 <button type="button" className="btn btn-light border" onClick={() => setShowEdit(false)}>
@@ -785,6 +964,7 @@ const CandidateProfile = () => {
         show={showExportModal}
         onClose={() => setShowExportModal(false)}
         profileData={profileData}
+        educations={educations}
         workExperiences={workExperiences}
         skills={skills}
         setModalError={setModalError}
