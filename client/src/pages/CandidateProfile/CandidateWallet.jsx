@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
+import RechargeCoins from './RechargeCoins';
+import { useWallet } from '../../context/WalletContext';
+import axios from 'axios';
 
 export default function CandidateWallet({
   show,
-  onClose,
-  coins,
-  setCoins,
-  transactions,
-  setTransactions,
-  bankAccount,
-  setBankAccount
+  onClose
 }) {
+  const { coins, transactions, bankAccount, linkBankAccount, fetchWalletInfo } = useWallet();
   const [activeWalletTab, setActiveWalletTab] = useState('history'); // tabs: 'history', 'topup', or 'bank'
   const [walletMessage, setWalletMessage] = useState(null);
   const [pendingAction, setPendingAction] = useState(null);
@@ -91,11 +89,11 @@ export default function CandidateWallet({
           {activeWalletTab === 'history' && (
             <div className="transaction-history">
               <h6 className="fw-bold mb-3">Recent transaction history</h6>
-              {transactions.length === 0 ? (
+              {transactions.filter(tx => tx.status === 'completed').length === 0 ? (
                 <p className="text-muted text-center py-4">There are no transactions yet.</p>
               ) : (
                 <div className="d-flex flex-column gap-2">
-                  {transactions.map((tx) => (
+                  {transactions.filter(tx => tx.status === 'completed').map((tx) => (
                     <div key={tx.id} className="d-flex justify-content-between align-items-center p-3 rounded border bg-light">
                       <div className="d-flex align-items-center gap-3">
                         <div className="rounded-circle d-flex align-items-center justify-content-center bg-white shadow-sm" style={{ width: '40px', height: '40px' }}>
@@ -103,14 +101,14 @@ export default function CandidateWallet({
                         </div>
                         <div>
                           <p className="fw-bold mb-0 text-dark small">{tx.type === 'deposit' ? 'Deposit coins into wallet' : 'Spend coins for services'}</p>
-                          <p className="mb-0 text-muted small">{tx.date} • via {tx.method}</p>
+                          <p className="mb-0 text-muted small">{new Date(tx.created_at).toLocaleString()} • via {tx.payment_method}</p>
                         </div>
                       </div>
                       <div className="text-end">
                         <p className={`fw-bold mb-0 ${tx.type === 'deposit' ? 'text-success' : 'text-danger'}`}>
                           {tx.type === 'deposit' ? '+' : ''}{tx.coins} Coins
                         </p>
-                        {tx.amount > 0 && <p className="text-muted small mb-0">-{tx.amount.toLocaleString()} VND</p>}
+                        {tx.amount_fiat > 0 && <p className="text-muted small mb-0">-{Number(tx.amount_fiat).toLocaleString()} VND</p>}
                       </div>
                     </div>
                   ))}
@@ -121,91 +119,14 @@ export default function CandidateWallet({
 
           {/* TAB 2: RECHARGE COINS */}
           {activeWalletTab === 'topup' && (
-            <div className="topup-coins">
-              
-              {pendingAction?.type === 'recharge' && (
-                <div className="alert alert-warning border-0 shadow-sm p-3 mb-4 text-center rounded-3">
-                  <h6 className="fw-bold mb-2 text-warning-emphasis">
-                    <i className="fas fa-exclamation-triangle me-2"></i>Recharge Confirmation
-                  </h6>
-                  <p className="small mb-3 text-dark">
-                    Do you want to recharge <strong>{pendingAction.pack.coins} Coins</strong> for <strong>{pendingAction.pack.price.toLocaleString()} VND</strong>?
-                  </p>
-                  <div className="d-flex gap-2 justify-content-center">
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-success px-4 rounded-pill fw-semibold text-white shadow-sm"
-                      onClick={() => {
-                        const pack = pendingAction.pack;
-                        setCoins(prev => prev + pack.coins);
-                        setTransactions(prev => [
-                          {
-                            id: prev.length + 1,
-                            type: 'deposit',
-                            coins: pack.coins,
-                            amount: pack.price,
-                            date: new Date().toISOString().replace('T', ' ').substring(0, 16),
-                            status: 'completed',
-                            method: bankAccount.linked ? bankAccount.bankName : 'Linked Bank'
-                          },
-                          ...prev
-                        ]);
-                        showMessage(`Recharged ${pack.coins} Coins successfully!`, 'success');
-                        setPendingAction(null);
-                      }}
-                    >
-                      Confirm
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-light border px-4 rounded-pill fw-semibold"
-                      onClick={() => setPendingAction(null)}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              <h6 className="fw-bold mb-3">Choose a coin package</h6>
-              <div className="row g-3">
-                {[
-                  { coins: 50, price: 25000, discount: null },
-                  { coins: 100, price: 50000, discount: 'Hot' },
-                  { coins: 200, price: 90000, discount: 'Save 10%' },
-                  { coins: 500, price: 220000, discount: 'Save 12%' },
-                ].map((pack, index) => (
-                  <div key={index} className="col-12 col-sm-6">
-                    <div className="p-3 border rounded text-center bg-light position-relative hover-shadow-sm transition-all" style={{ transition: '0.3s' }}>
-                      {pack.discount && (
-                        <span className="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger">
-                          {pack.discount}
-                        </span>
-                      )}
-                      <h4 className="fw-bold text-primary mt-2">{pack.coins} Coins 🪙</h4>
-                      <p className="text-secondary small mb-3">Price: {pack.price.toLocaleString()} VND</p>
-                      <button
-                        type="button"
-                        className="btn btn-sm btn-primary px-4 rounded-pill"
-                        disabled={pendingAction?.type === 'recharge'}
-                        onClick={() => {
-                          setPendingAction({ type: 'recharge', pack });
-                        }}
-                      >
-                        Recharge Now
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+             <RechargeCoins />
           )}
 
           {/* TAB 3: LINK BANK ACCOUNT */}
           {activeWalletTab === 'bank' && (
             <div className="bank-link">
               <h6 className="fw-bold mb-3">Link Bank Account</h6>
-              {bankAccount.linked ? (
+              {bankAccount?.linked ? (
                 <div className="p-4 bg-success bg-opacity-10 border border-success rounded text-center">
                   <i className="fas fa-university text-success fs-2 mb-3"></i>
                   <h6 className="fw-bold text-success mb-3">Bank account linked successfully!</h6>
@@ -223,10 +144,18 @@ export default function CandidateWallet({
                         <button
                           type="button"
                           className="btn btn-sm btn-danger px-4 rounded-pill fw-semibold text-white shadow-sm"
-                          onClick={() => {
-                            setBankAccount({ linked: false, bankName: '', accountNumber: '', accountName: '' });
-                            showMessage("Bank account unlinked successfully!", "success");
-                            setPendingAction(null);
+                          onClick={async () => {
+                            try {
+                              const token = localStorage.getItem('token');
+                              await axios.post('http://localhost:5000/api/wallet/link-bank', {
+                                bankName: null, accountNumber: null, accountName: null
+                              }, { headers: { Authorization: `Bearer ${token}` } });
+                              await fetchWalletInfo();
+                              showMessage("Bank account unlinked successfully!", "success");
+                              setPendingAction(null);
+                            } catch (e) {
+                              showMessage("Failed to unlink bank account", "error");
+                            }
                           }}
                         >
                           Yes, Unlink
@@ -251,15 +180,18 @@ export default function CandidateWallet({
                   )}
                 </div>
               ) : (
-                <form onSubmit={(e) => {
+                <form onSubmit={async (e) => {
                   e.preventDefault();
-                  setBankAccount({
-                    linked: true,
-                    bankName: e.target.bankName.value,
-                    accountNumber: e.target.accountNumber.value,
-                    accountName: e.target.accountName.value
-                  });
-                  showMessage('Bank account linked successfully!', 'success');
+                  try {
+                    await linkBankAccount({
+                      bankName: e.target.bankName.value,
+                      accountNumber: e.target.accountNumber.value,
+                      accountName: e.target.accountName.value
+                    });
+                    showMessage('Bank account linked successfully!', 'success');
+                  } catch (err) {
+                    showMessage('Failed to link bank account', 'error');
+                  }
                 }}>
                   <div className="mb-3 text-start">
                     <label className="form-label small fw-bold text-secondary">Select bank</label>
@@ -286,7 +218,6 @@ export default function CandidateWallet({
               )}
             </div>
           )}
-
         </div>
 
         {/* Wallet Footer */}

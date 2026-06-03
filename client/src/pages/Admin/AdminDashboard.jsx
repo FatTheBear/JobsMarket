@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Briefcase, BarChart2, FolderTree, Newspaper, CreditCard } from 'lucide-react';
+import { Users, Briefcase, BarChart2, FolderTree, Newspaper, CreditCard, Coins } from 'lucide-react';
 import { adminApi } from '../../services/adminApi';
 import AdminOverview from './AdminOverview';
 import AdminUser from './AdminUser';
@@ -7,6 +7,7 @@ import AdminJob from './AdminJob';
 import AdminCategories from './AdminCategories';
 import AdminNews from './AdminNews';
 import AdminTransaction from './AdminTransaction';
+import AdminCoinFees from './AdminCoinFees';
 import './Admin.css';
 
 const AdminDashboard = () => {
@@ -36,6 +37,11 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      // These tabs manage their own data loading internally
+      if (activeTab === 'coin-fees' || activeTab === 'transactions') {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         if (activeTab === 'overview') {
@@ -51,11 +57,8 @@ const AdminDashboard = () => {
           await fetchCategoriesData();
         } else if (activeTab === 'news') {
           const res = await adminApi.getNews();
-          console.log(">>> DỮ LIỆU NEWS THỰC TẾ TRẢ VỀ LÀ:", res);
           setNewsList(res.data || res);
         }
-        // LƯU Ý: Không cần fetch data giao dịch ở đây vì bên trong file 
-        // AdminTransaction.jsx mình đã tự viết hàm useEffect gọi API riêng rồi.
       } catch (error) {
         console.error("Error loading tab data:", error);
       } finally {
@@ -65,44 +68,40 @@ const AdminDashboard = () => {
     fetchData();
   }, [activeTab]);
 
-  // Hàm xử lý thêm nhanh Kỹ năng mới
   const handleAddSkill = async (name) => {
     try {
       await adminApi.createSkill(name);
-      await fetchCategoriesData(); // Load lại bảng ngay lập tức
+      await fetchCategoriesData();
     } catch (err) {
       alert("Cannot add skill. Please try again.");
     }
   };
 
-  // Hàm xử lý xóa Kỹ năng
   const handleDeleteSkill = async (id) => {
     if (window.confirm("Are you sure you want to delete this skill?")) {
       try {
         await adminApi.deleteSkill(id);
-        await fetchCategoriesData(); // Load lại data sau khi xóa
+        await fetchCategoriesData();
       } catch (err) {
         alert("Error deleting skill!");
       }
     }
   };
 
-  // Hàm xử lý thêm nhanh Ngành nghề mới
   const handleAddIndustry = async (name) => {
     try {
       await adminApi.createIndustry(name);
-      await fetchCategoriesData(); // Load lại bảng ngay lập tức
+      await fetchCategoriesData();
     } catch (err) {
       alert("Cannot add industry. Please try again.");
     }
   };
 
-  // Hàm xử lý xóa Ngành nghề
   const handleDeleteIndustry = async (id) => {
     if (window.confirm("Are you sure you want to delete this industry?")) {
       try {
         await adminApi.deleteIndustry(id);
-        await fetchCategoriesData(); // Load lại data sau khi xóa
+        await fetchCategoriesData();
       } catch (err) {
         alert("Error deleting industry!");
       }
@@ -208,9 +207,8 @@ const AdminDashboard = () => {
           <button onClick={() => setActiveTab('jobs')} className={`sidebar-btn ${activeTab === 'jobs' ? 'active' : ''}`}><Briefcase size={20} /> Job Approval</button>
           <button onClick={() => setActiveTab('categories')} className={`sidebar-btn ${activeTab === 'categories' ? 'active' : ''}`}><FolderTree size={20} /> Categories</button>
           <button onClick={() => setActiveTab('news')} className={`sidebar-btn ${activeTab === 'news' ? 'active' : ''}`}><Newspaper size={20} /> News Management</button>
-          
-          {/* ĐÃ THÊM: Nút chuyển sang tab Giao dịch ví xu trên Sidebar */}
           <button onClick={() => setActiveTab('transactions')} className={`sidebar-btn ${activeTab === 'transactions' ? 'active' : ''}`}><CreditCard size={20} /> Transactions</button>
+          <button onClick={() => setActiveTab('coin-fees')} className={`sidebar-btn ${activeTab === 'coin-fees' ? 'active' : ''}`}><Coins size={20} /> Coin Fees</button>
         </div>
       </div>
       <div className="admin-content">
@@ -237,9 +235,8 @@ const AdminDashboard = () => {
             onDelete={handleDeleteNews}
           />
         )}
-        
-        {/* ĐÃ THÊM: Khớp nối render nội dung component AdminTransaction khi bấm nút */}
         {!loading && activeTab === 'transactions' && <AdminTransaction />}
+        {!loading && activeTab === 'coin-fees' && <AdminCoinFees />}
       </div>
     </div>
   );

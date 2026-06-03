@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/adminController.js");
+const { authMiddleware, adminMiddleware } = require('../middleware/authMiddleware');
+
+// Áp dụng middleware kiểm tra quyền Admin cho toàn bộ route admin
+router.use(authMiddleware, adminMiddleware);
 
 // 1. Quản lý chung & thống kê số liệu
 router.get('/dashboard-stats', adminController.getStats);
@@ -27,10 +31,14 @@ router.post('/news', adminController.createNews);
 router.put('/news/:id', adminController.updateNews);
 router.delete('/news/:id', adminController.deleteNews);
 
-
-
 // 5. Quản lý giao dịch ví xu (Nạp tiền)
 router.get('/transactions', adminController.getTransactions);
 router.put('/transactions/:id/status', adminController.updateTransactionStatus);
+
+// 6. Quản lý Coin Exchange Fees
+router.get('/coin-fees', adminController.getCoinFees);
+router.post('/coin-fees', adminController.createCoinFee);
+router.put('/coin-fees/:id', adminController.updateCoinFee);
+router.delete('/coin-fees/:id', adminController.deleteCoinFee);
 
 module.exports = router;

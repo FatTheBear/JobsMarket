@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.2.0",
+    "@paypal/react-paypal-js": "^9.2.0",
     "axios": "^1.16.1",
     "bootstrap": "^5.3.8",
     "jobsmarket": "file:..",

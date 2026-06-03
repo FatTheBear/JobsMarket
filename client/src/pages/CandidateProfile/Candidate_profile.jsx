@@ -9,14 +9,18 @@ import CandidatePosts from './CandidatePosts';
 import CandidateWallet from './CandidateWallet';
 import CandidateCV from './CandidateCV';
 import CandidateExportModal from './CandidateExportModal';
+import { useWallet } from '../../context/WalletContext';
+
 
 const CandidateProfile = () => {
   const [showEdit, setShowEdit] = useState(false);
   const [showPersonalInfo, setShowPersonalInfo] = useState(false);
   const [activeEditTab, setActiveEditTab] = useState('info'); // 'info' or 'profile'
-  const [coins, setCoins] = useState(1000);
   const [showWallet, setShowWallet] = useState(false);
   const [modalError, setModalError] = useState('');
+  
+  // Real Wallet Data
+  const { coins } = useWallet();
 
   // Dynamic Profile Data State
   const [profileData, setProfileData] = useState({
@@ -43,18 +47,6 @@ const CandidateProfile = () => {
   const [followedBusinesses, setFollowedBusinesses] = useState([]);
 
   const [candidatePosts, setCandidatePosts] = useState([]);
-
-  const [transactions, setTransactions] = useState([
-    { id: 1, type: 'deposit', coins: 100, amount: 50000, date: '2026-05-28 14:30', status: 'completed', method: 'Momo' },
-    { id: 2, type: 'purchase', coins: -20, amount: 0, date: '2026-05-27 09:15', status: 'completed', method: 'System' },
-    { id: 3, type: 'deposit', coins: 50, amount: 25000, date: '2026-05-25 18:00', status: 'completed', method: 'Bank Transfer' },
-  ]);
-  const [bankAccount, setBankAccount] = useState({
-    linked: false,
-    bankName: '',
-    accountNumber: '',
-    accountName: ''
-  });
 
   const [cvFile, setCvFile] = useState(() => {
     const saved = localStorage.getItem('candidate_cv');
@@ -542,7 +534,7 @@ const CandidateProfile = () => {
                       style={{ cursor: 'pointer', border: '1px solid #dee2e6' }}
                     >
                       <span style={{ fontSize: '1.2rem' }}>🪙</span>
-                      <span className="fw-bold text-dark">{coins} Coins</span>
+                      <span className="fw-bold text-dark">{coins || 0} Coins</span>
                       <button className="btn btn-sm btn-primary rounded-circle p-1 d-flex align-items-center justify-content-center" style={{ width: '28px', height: '28px' }}>
                         <i className="fas fa-wallet" style={{ fontSize: '0.8rem' }}></i>
                       </button>
@@ -672,12 +664,6 @@ const CandidateProfile = () => {
           <CandidateWallet
             show={showWallet}
             onClose={() => setShowWallet(false)}
-            coins={coins}
-            setCoins={setCoins}
-            transactions={transactions}
-            setTransactions={setTransactions}
-            bankAccount={bankAccount}
-            setBankAccount={setBankAccount}
           />
 
           {/* Column 3: Interests */}

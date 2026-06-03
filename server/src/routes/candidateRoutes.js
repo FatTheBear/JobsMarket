@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const candidateController = require('../controllers/candidateController');
-const authMiddleware = require('../middleware/authMiddleware'); // Sử dụng file xác thực JWT đã tạo
+const { authMiddleware } = require('../middleware/authMiddleware'); // Sử dụng file xác thực JWT đã tạo
 const { validateOnboarding } = require('../validators/setupProfileValidator');
 
 // Lấy thông tin cá nhân
