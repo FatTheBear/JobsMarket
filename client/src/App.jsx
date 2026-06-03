@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import LandingPage from './pages/LandingPage/LandingPage';
-import { createBrowserRouter, RouterProvider, BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
 import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
@@ -78,7 +77,6 @@ const router = createBrowserRouter([
   { path: "/profile", element: <Home /> },
   { path: "/setup-profile", element: <SetupProfilePage /> },
   { path: "/candidate-profile", element: <CandidateProfile /> },
-  { path: "/company-profile", element: <CompanyProfile /> },
   // {
   //   path: "/candidate-profile",
   //   element: (
