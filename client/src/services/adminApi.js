@@ -100,5 +100,26 @@ deleteSkill: async (id) => {
     return res.data;
   },
 
-};
+  // ==========================================================================
+  // COIN EXCHANGE FEES
+  // ==========================================================================
+  getCoinFees: async () => {
+    const res = await API.get('/admin/coin-fees');
+    return res.data;
+  },
 
+  createCoinFee: async (data) => {
+    const res = await API.post('/admin/coin-fees', data);
+    return res.data;
+  },
+
+  updateCoinFee: async (id, data) => {
+    const res = await API.put(`/admin/coin-fees/${id}`, data);
+    return res.data;
+  },
+
+  deleteCoinFee: async (id) => {
+    const res = await API.delete(`/admin/coin-fees/${id}`);
+    return res.data;
+  }
+};

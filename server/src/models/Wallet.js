@@ -28,36 +28,61 @@ const WalletModel = {
     return true;
   },
 
-  // ⚠️ QUAN TRỌNG: Nạp xu sử dụng TRANSACTION để bảo mật dữ liệu
-  processTopup: async (userId, { coins, amountFiat, method, refCode }) => {
+  createPendingTransaction: async (userId, { coins, amountFiat, refCode, paypalOrderId, feeId }) => {
+    const [result] = await pool.execute(
+      `INSERT INTO Transaction (user_id, amount_fiat, coins, type, payment_method, status, reference_code, paypal_order_id, fee_id) 
+       VALUES (?, ?, ?, 'deposit', 'paypal', 'pending', ?, ?, ?)`,
+      [userId, amountFiat, coins, refCode, paypalOrderId, feeId]
+    );
+    return result.insertId;
+  },
+
+  completePayPalTransaction: async (paypalOrderId) => {
     const connection = await pool.getConnection();
     try {
-      // Bắt đầu Transaction
       await connection.beginTransaction();
 
-      // 1. Tạo bản ghi lịch sử giao dịch ở trạng thái hoàn thành ('completed')
-      const [txResult] = await connection.execute(
-        `INSERT INTO Transaction (user_id, amount_fiat, coins, type, payment_method, status, reference_code) 
-         VALUES (?, ?, ?, 'deposit', ?, 'completed', ?)`,
-        [userId, amountFiat, coins, method, refCode]
+      // Lock row to prevent double capture
+      const [rows] = await connection.execute(
+        'SELECT * FROM Transaction WHERE paypal_order_id = ? FOR UPDATE',
+        [paypalOrderId]
       );
 
-      // 2. Cộng số xu trực tiếp vào tài khoản User
+      if (rows.length === 0) {
+        throw new Error('Transaction not found');
+      }
+
+      const transaction = rows[0];
+
+      if (transaction.status === 'completed') {
+        // Đã hoàn thành trước đó, không làm gì thêm
+        await connection.commit();
+        return { success: true, alreadyCompleted: true };
+      }
+
+      if (transaction.status !== 'pending') {
+        throw new Error('Transaction is not in pending state');
+      }
+
+      // 1. Cập nhật trạng thái
+      await connection.execute(
+        'UPDATE Transaction SET status = "completed" WHERE id = ?',
+        [transaction.id]
+      );
+
+      // 2. Cộng xu
       await connection.execute(
         'UPDATE User SET coins = coins + ? WHERE id = ?',
-        [coins, userId]
+        [transaction.coins, transaction.user_id]
       );
 
-      // Xác nhận thành công và commit thay đổi lên DB
       await connection.commit();
-      return { success: true, transactionId: txResult.insertId };
+      return { success: true, alreadyCompleted: false };
 
     } catch (error) {
-      // Nếu có bất cứ lỗi gì xảy ra, lập tức quay xe (Rollback) khôi phục DB ban đầu
       await connection.rollback();
       throw error;
     } finally {
-      // Giải phóng kết nối về lại pool
       connection.release();
     }
   }

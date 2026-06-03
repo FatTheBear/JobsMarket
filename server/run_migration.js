@@ -231,6 +231,55 @@ async function runMigration() {
         }
         console.log('Successfully completed data migration.');
 
+        // 10. Add Coin_Exchange_Fee table and update Transaction table for PayPal
+        console.log('Creating Coin_Exchange_Fee table and updating Transaction table...');
+        try {
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS \`Coin_Exchange_Fee\` (
+                    \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                    \`price_vnd\` DECIMAL(10, 2) NOT NULL,
+                    \`coins\` INT NOT NULL,
+                    \`label\` VARCHAR(100) DEFAULT NULL,
+                    \`description\` TEXT DEFAULT NULL,
+                    \`is_default\` BOOLEAN DEFAULT FALSE,
+                    \`is_active\` BOOLEAN DEFAULT TRUE,
+                    \`sort_order\` INT DEFAULT 0,
+                    \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            `);
+
+            // Insert default package if not exists
+            const [existingFees] = await pool.query('SELECT * FROM \`Coin_Exchange_Fee\` WHERE \`is_default\` = TRUE');
+            if (existingFees.length === 0) {
+                await pool.query(`
+                    INSERT INTO \`Coin_Exchange_Fee\` (\`price_vnd\`, \`coins\`, \`label\`, \`description\`, \`is_default\`, \`is_active\`, \`sort_order\`)
+                    VALUES (20000, 100, 'Standard Package', 'System default package', TRUE, TRUE, 1);
+                `);
+                console.log('Successfully inserted default Coin_Exchange_Fee package.');
+            }
+
+            // Add columns to Transaction table
+            try {
+                await pool.query(`
+                    ALTER TABLE \`Transaction\`
+                    ADD COLUMN \`paypal_order_id\` VARCHAR(255) DEFAULT NULL AFTER \`reference_code\`,
+                    ADD COLUMN \`fee_id\` INT DEFAULT NULL AFTER \`paypal_order_id\`,
+                    ADD CONSTRAINT \`fk_tx_fee\` FOREIGN KEY (\`fee_id\`) REFERENCES \`Coin_Exchange_Fee\`(\`id\`) ON DELETE SET NULL;
+                `);
+                console.log('Successfully added paypal_order_id and fee_id to Transaction table.');
+            } catch (err) {
+                if (err.code === 'ER_DUP_FIELDNAME') {
+                    console.log('paypal_order_id and fee_id columns already exist in Transaction table.');
+                } else {
+                    throw err;
+                }
+            }
+
+        } catch (error) {
+            console.error('Error creating Coin_Exchange_Fee or updating Transaction table:', error);
+        }
+
         console.log('All migrations completed successfully.');
     } catch (error) {
         console.error('Migration failed:', error);
