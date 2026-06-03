@@ -13,16 +13,24 @@ const authController = {
                 return res.status(400).json({ message: "Email already exists!" });
             }
 
-           
-            const password_hash = password;
-            
+
+            const saltRounds = 10;
+            const password_hash = await bcrypt.hash(password, saltRounds);
+
             const connection = await pool.getConnection();
             await connection.beginTransaction();
 
             try {
+                let dbRole = 'Candidate';
+                if (role === 'company') {
+                    dbRole = 'HR';
+                } else if (role === 'candidate') {
+                    dbRole = 'Candidate';
+                }
+
                 const [userResult] = await connection.execute(
                     'INSERT INTO User (email, password_hash, role) VALUES (?, ?, ?)',
-                    [email, password_hash, role]
+                    [email, password_hash, dbRole]
                 );
 
                 const newUserId = userResult.insertId;
@@ -89,7 +97,7 @@ const authController = {
                         'INSERT INTO Company (hr_id, industry_id, name) VALUES (?, ?, ?)',
                         [newUserId, industry_id, company_name]
                     );
-                } 
+                }
                 else if (role === 'Admin') {
                     // Cấp quyền Admin: Lưu ở bảng User chính là đủ, không cần điền bảng phụ
                     console.log(`--- Đã tạo tài khoản Admin ID: ${newUserId} thành công ---`);

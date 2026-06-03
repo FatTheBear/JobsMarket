@@ -3,7 +3,24 @@ import { useNavigate } from 'react-router-dom';
 import styles from './CompanyProfile.module.css';
 
 const API_URL = 'http://localhost:5000';
-const TEMP_HR_ID = 1;
+
+const getHrId = () => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      const decoded = JSON.parse(jsonPayload);
+      return decoded.id || 1;
+    } catch (e) {
+      return 1;
+    }
+  }
+  return 1;
+};
 
 const EMPLOYEE_OPTIONS = ['Under 10', '10 - 50', '50 - 100', '100 - 300', '300 - 500', '500 - 1000', 'Over 1000'];
 const BRANCH_OPTIONS = ['1', '2 - 5', '5 - 10', '10 - 20', 'Over 20'];
@@ -90,7 +107,8 @@ export default function CompanyProfile() {
 
   const fetchCompany = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/company/${TEMP_HR_ID}`);
+      const hrId = getHrId();
+      const res = await fetch(`${API_URL}/api/company/${hrId}`);
       if (res.ok) {
         const data = await res.json();
         setForm({
@@ -146,10 +164,11 @@ export default function CompanyProfile() {
     if (!form.industry_id) { showToast('Please select an industry', 'error'); return; }
 
     setLoading(true);
+    const hrId = getHrId();
     try {
-      const payload = { ...form, hr_id: TEMP_HR_ID };
+      const payload = { ...form, hr_id: hrId };
       const method = isEdit ? 'PUT' : 'POST';
-      const url = isEdit ? `${API_URL}/api/company/${TEMP_HR_ID}` : `${API_URL}/api/company`;
+      const url = isEdit ? `${API_URL}/api/company/${hrId}` : `${API_URL}/api/company`;
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },

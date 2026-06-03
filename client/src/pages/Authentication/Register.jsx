@@ -33,9 +33,11 @@ export default function Register() {
       email,
       password,
       repeat_password: repeatPassword,
-      full_name: fullName,
       role: selectedRole,
-      accept_terms: true
+      accept_terms: true,
+      ...(selectedRole === 'candidate' 
+        ? { full_name: fullName } 
+        : { company_name: fullName ? `${fullName}'s Company` : 'My Company', industry_id: 10 })
     };
 
     try {
@@ -85,7 +87,7 @@ export default function Register() {
                     <div className="form-floating mb-4">
                       <input
                         type="text"
-                        id="form3Example1cg"
+                        id="fullNameInput"
                         className={`form-control ${styles.formControl}`}
                         placeholder="Your Name"
                         value={fullName}
@@ -93,7 +95,7 @@ export default function Register() {
                       />
                       <label
                         className="form-label"
-                        htmlFor="form3Example1cg"
+                        htmlFor="fullNameInput"
                       >
                         Your Name
                       </label>
