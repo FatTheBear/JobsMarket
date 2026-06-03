@@ -333,6 +333,7 @@ export default function SetupProfilePage() {
   };
 
   // Finish and submit to server
+  // Finish and submit to server
   const handleFinishSetup = async () => {
     if (!formData.display_name.trim()) {
       setApiError('Display Name is mandatory!');

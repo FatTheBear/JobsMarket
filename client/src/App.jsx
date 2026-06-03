@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-
 import LandingPage from './pages/LandingPage/LandingPage';
+import { createBrowserRouter, RouterProvider, BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { SocketProvider } from './context/SocketContext';
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
 import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
 import CandidatePublicProfile from './pages/CandidateProfile/CandidatePublicProfile';
@@ -103,5 +103,9 @@ const router = createBrowserRouter([
 
 // Component App chính chạy RouterProvider
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <SocketProvider>
+      <RouterProvider router={router} />
+    </SocketProvider>
+  );
 }
