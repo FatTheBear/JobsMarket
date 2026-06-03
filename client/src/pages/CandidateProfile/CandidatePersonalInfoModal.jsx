@@ -26,6 +26,12 @@ const CandidatePersonalInfoModal = ({ show, onClose, profileData }) => {
                 <th scope="row" style={{ width: '35%' }} className="text-secondary fw-semibold">Full Name</th>
                 <td className="text-dark fw-medium">{profileData.fullName}</td>
               </tr>
+              {profileData.phone && !profileData.hidePhone && (
+                <tr>
+                  <th scope="row" className="text-secondary fw-semibold">Phone</th>
+                  <td className="text-dark fw-medium">{profileData.phone}</td>
+                </tr>
+              )}
               {profileData.email && (
                 <tr>
                   <th scope="row" className="text-secondary fw-semibold">Email</th>

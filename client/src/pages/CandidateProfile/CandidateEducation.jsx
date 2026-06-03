@@ -1,68 +1,68 @@
 import React from 'react';
 
-const CandidateExperience = ({
-  workExperiences,
+const CandidateEducation = ({
+  educations,
   onOpenModal,
   onDelete,
   showModal,
   onCloseModal,
-  currentExperience,
-  experienceForm,
-  setExperienceForm,
+  currentEducation,
+  educationForm,
+  setEducationForm,
   onSave,
   modalError
 }) => {
   return (
     <>
-      {/* Column 1: Experience Section */}
+      {/* Column 2: Education Section */}
       <div className="col-12 col-lg-3 mb-4 d-flex">
         <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
           <div className="card-body p-4 d-flex flex-column h-100">
             <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
               <div className="d-flex align-items-center gap-2">
-                <span className="fs-5 fw-bold text-dark mb-0">Experience</span>
+                <span className="fs-5 fw-bold text-dark mb-0">Education</span>
               </div>
               <div className="d-flex align-items-center gap-2">
                 <button
                   onClick={() => onOpenModal(null)}
                   className="btn btn-sm btn-outline-primary rounded-circle p-0 d-flex align-items-center justify-content-center"
                   style={{ width: '28px', height: '28px' }}
-                  title="Add Experience"
+                  title="Add Education"
                 >
                   <i className="fas fa-plus" style={{ fontSize: '0.8rem' }}></i>
                 </button>
-                <i className="fas fa-briefcase text-primary fs-4"></i>
+                <i className="fas fa-graduation-cap text-primary fs-4"></i>
               </div>
             </div>
 
             <div className="d-flex flex-column gap-3">
-              {workExperiences.length === 0 ? (
+              {educations.length === 0 ? (
                 <div className="text-center py-5 text-muted small">
-                  <i className="fas fa-briefcase fs-3 mb-2 text-muted opacity-50"></i>
-                  <p className="mb-0">No experiences added yet.</p>
+                  <i className="fas fa-graduation-cap fs-3 mb-2 text-muted opacity-50"></i>
+                  <p className="mb-0">No education records added yet.</p>
                 </div>
               ) : (
-                workExperiences.map((exp, index) => (
-                  <div key={exp.id || index} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
+                educations.map((edu, index) => (
+                  <div key={edu.id || index} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
                     <div className="position-absolute top-0 end-0 mt-3 me-3 d-flex gap-2">
-                      <button onClick={() => onOpenModal(exp)} className="btn btn-link text-primary p-0" title="Edit experience" style={{ textDecoration: 'none' }}>
+                      <button onClick={() => onOpenModal(edu)} className="btn btn-link text-primary p-0" title="Edit education" style={{ textDecoration: 'none' }}>
                         <i className="fas fa-pencil-alt text-muted hover-primary" style={{ fontSize: '0.85rem' }}></i>
                       </button>
-                      <button onClick={() => onDelete(exp.id)} className="btn btn-link text-danger p-0" title="Delete experience" style={{ textDecoration: 'none' }}>
+                      <button onClick={() => onDelete(edu.id)} className="btn btn-link text-danger p-0" title="Delete education" style={{ textDecoration: 'none' }}>
                         <i className="fas fa-trash-alt text-muted hover-danger" style={{ fontSize: '0.85rem' }}></i>
                       </button>
                     </div>
                     <h6 className="fw-bold mb-3 text-dark text-hover-primary" style={{ fontSize: '0.95rem', paddingRight: '45px', lineHeight: '1.4' }}>
-                      {exp.role}
+                      {edu.degree}
                     </h6>
                     <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
                       <span className="text-muted small fw-semibold" style={{ fontSize: '0.75rem' }}>
-                        <i className="fas fa-building text-primary me-1.5"></i>
-                        {exp.company}
+                        <i className="fas fa-university text-primary me-1.5"></i>
+                        {edu.school}
                       </span>
                       <span className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-normal d-inline-flex align-items-center" style={{ fontSize: '0.7rem' }}>
                         <i className="far fa-calendar-alt me-1"></i>
-                        {exp.duration}
+                        {edu.duration}
                       </span>
                     </div>
                   </div>
@@ -73,14 +73,14 @@ const CandidateExperience = ({
         </div>
       </div>
 
-      {/* Experience Add/Edit Modal */}
+      {/* Education Add/Edit Modal */}
       {showModal && (
         <div className="profile-modal-overlay" style={{ zIndex: 1100 }} onClick={onCloseModal}>
           <div className="profile-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="profile-modal-header">
               <h5 className="profile-modal-title">
-                <i className="fas fa-briefcase me-2 text-primary"></i>
-                {currentExperience ? 'Edit Experience' : 'Add Experience'}
+                <i className="fas fa-graduation-cap me-2 text-primary"></i>
+                {currentEducation ? 'Edit Education' : 'Add Education'}
               </h5>
               <button
                 type="button"
@@ -97,24 +97,24 @@ const CandidateExperience = ({
                 </div>
               )}
               <div>
-                <label className="form-label fw-semibold text-secondary small">Job Title / Role</label>
+                <label className="form-label fw-semibold text-secondary small">Degree / Field of Study</label>
                 <input
                   type="text"
                   className="form-control"
-                  value={experienceForm.role}
-                  onChange={(e) => setExperienceForm({ ...experienceForm, role: e.target.value })}
-                  placeholder="e.g. Senior Frontend Developer"
+                  value={educationForm.degree}
+                  onChange={(e) => setEducationForm({ ...educationForm, degree: e.target.value })}
+                  placeholder="e.g. Software Engineering"
                   required
                 />
               </div>
               <div>
-                <label className="form-label fw-semibold text-secondary small">Company Name</label>
+                <label className="form-label fw-semibold text-secondary small">School / Institute</label>
                 <input
                   type="text"
                   className="form-control"
-                  value={experienceForm.company}
-                  onChange={(e) => setExperienceForm({ ...experienceForm, company: e.target.value })}
-                  placeholder="e.g. Google Corporation"
+                  value={educationForm.school}
+                  onChange={(e) => setEducationForm({ ...educationForm, school: e.target.value })}
+                  placeholder="e.g. FPT Aptech"
                   required
                 />
               </div>
@@ -124,18 +124,18 @@ const CandidateExperience = ({
                   <input
                     type="month"
                     className="form-control"
-                    value={experienceForm.startDate || ''}
-                    onChange={(e) => setExperienceForm({ ...experienceForm, startDate: e.target.value })}
+                    value={educationForm.startDate || ''}
+                    onChange={(e) => setEducationForm({ ...educationForm, startDate: e.target.value })}
                     required
                   />
                 </div>
                 <div className="col-6">
-                  <label className="form-label fw-semibold text-secondary small">End Date</label>
+                  <label className="form-label fw-semibold text-secondary small">Graduation Date</label>
                   <input
                     type="month"
                     className="form-control"
-                    value={experienceForm.endDate || ''}
-                    onChange={(e) => setExperienceForm({ ...experienceForm, endDate: e.target.value })}
+                    value={educationForm.gradDate || ''}
+                    onChange={(e) => setEducationForm({ ...educationForm, gradDate: e.target.value })}
                     placeholder="Present"
                   />
                 </div>
@@ -152,27 +152,27 @@ const CandidateExperience = ({
   );
 };
 
-export const CandidateExperienceManager = ({ workExperiences, onOpenModal, onDelete }) => {
+export const CandidateEducationManager = ({ educations, onOpenModal, onDelete }) => {
   return (
     <div>
       <div className="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
-        <h6 className="fw-bold mb-0 text-dark"><i className="fas fa-briefcase me-1.5 text-primary"></i> Experience</h6>
+        <h6 className="fw-bold mb-0 text-dark"><i className="fas fa-graduation-cap me-1.5 text-primary"></i> Education</h6>
         <button type="button" onClick={() => onOpenModal(null)} className="btn btn-xs btn-primary rounded-pill px-2.5 py-1 fw-semibold small">
           <i className="fas fa-plus me-1"></i> Add New
         </button>
       </div>
       <div className="d-flex flex-column gap-2" style={{ maxHeight: '200px', overflowY: 'auto' }}>
-        {workExperiences.map((exp) => (
-          <div key={exp.id} className="d-flex justify-content-between align-items-center p-2.5 rounded border bg-light">
+        {educations.map((edu) => (
+          <div key={edu.id} className="d-flex justify-content-between align-items-center p-2.5 rounded border bg-light">
             <div>
-              <p className="fw-bold mb-0 text-dark small">{exp.role}</p>
-              <p className="mb-0 text-muted small">{exp.company} • {exp.duration}</p>
+              <p className="fw-bold mb-0 text-dark small">{edu.degree}</p>
+              <p className="mb-0 text-muted small">{edu.school} • {edu.duration}</p>
             </div>
             <div className="d-flex gap-1">
-              <button type="button" onClick={() => onOpenModal(exp)} className="btn btn-sm btn-outline-primary px-2 py-1 rounded">
+              <button type="button" onClick={() => onOpenModal(edu)} className="btn btn-sm btn-outline-primary px-2 py-1 rounded">
                 <i className="fas fa-pencil-alt" style={{ fontSize: '0.75rem' }}></i>
               </button>
-              <button type="button" onClick={() => onDelete(exp.id)} className="btn btn-sm btn-outline-danger px-2 py-1 rounded">
+              <button type="button" onClick={() => onDelete(edu.id)} className="btn btn-sm btn-outline-danger px-2 py-1 rounded">
                 <i className="fas fa-trash-alt" style={{ fontSize: '0.75rem' }}></i>
               </button>
             </div>
@@ -183,4 +183,4 @@ export const CandidateExperienceManager = ({ workExperiences, onOpenModal, onDel
   );
 };
 
-export default CandidateExperience;
+export default CandidateEducation;
