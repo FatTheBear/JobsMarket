@@ -27,9 +27,7 @@ export default function Login() {
 
       if (response.status === 200) {
         localStorage.setItem('token', response.data.token);
-<<<<<<< HEAD
-        navigate('/dashboard');
-=======
+        //navigate('/dashboard');
         const { role } = response.data.user;
         const roleLower = role ? role.toLowerCase() : '';
 
@@ -52,12 +50,10 @@ export default function Login() {
             navigate('/setup-profile');
           }
         }
->>>>>>> main
       }
     } catch (error) {
       // 2. Catch Backend Errors
       if (error.response && error.response.data) {
-        setErrorMessage(error.response.data.message || "Invalid email or password!");
       } else {
         setErrorMessage("Connection error! Please ensure the server is running.");
       }
