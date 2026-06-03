@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './LandingPage.module.css'; 
+import styles from './UserDashboard.module.css'; 
 
 const LOCATIONS = [
   'Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Binh Duong', 'Dong Nai', 'Can Tho'
