@@ -1,24 +1,20 @@
 import React, { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import LandingPage from './pages/LandingPage/LandingPage';
 
+import LandingPage from './pages/LandingPage/LandingPage';
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
 import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
 import Login from './pages/Authentication/Login';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import ProtectedRoute from './pages/ProtectedRoute';
-import HomePage from './pages/LandingPage/LandingPage';
-import JobPosting from './components/JobPosting/JobPosting';
-import JobSkillsManager from './components/JobSkillsManager/JobSkillsManager';
-//import CandidateProfilePage from './pages/CandidateProfilePage/CandidateProfilePage';
+import JobPosting from './pages/JobPosting/JobPosting';
+import JobSkillsManager from './pages/JobSkillsManager/JobSkillsManager';
 import VerifyOTP from './pages/Authentication/VerifyOTP';
-import './App.css';
 import AuthPage from './pages/Authentication/AuthPage';
 import Register from './pages/Authentication/Register';
 import UserDashboard from './pages/DashBoard/UserDashboard/UserDashboard';
 import SetupProfilePage from './pages/SetupProfilePage/SetupProfilePage';
 
-// Style
 import './App.css';
 
 // Component Home tạm thời điều hướng Tab giữa Candidate và Company Profile
@@ -77,14 +73,7 @@ const router = createBrowserRouter([
   { path: "/profile", element: <Home /> },
   { path: "/setup-profile", element: <SetupProfilePage /> },
   { path: "/candidate-profile", element: <CandidateProfile /> },
-  // {
-  //   path: "/candidate-profile",
-  //   element: (
-  //     <ProtectedRoute>
-  //       <Candidate_profile />
-  //     </ProtectedRoute>
-  //   )
-  // },
+  { path: "/company-profile/job-posting", element: <JobPosting /> },
   {
     path: "/admin",
     element: (
@@ -105,12 +94,6 @@ const router = createBrowserRouter([
         <JobSkillsManager jobId={null} />
       </div>
     )
-  },
-
-  // Profile
-  {
-    path: "/company-profile",
-    element: <CompanyProfile />
   },
 
   { path: "*", element: <div>404</div> }
