@@ -28,7 +28,7 @@ export default function Login() {
       if (response.status === 200) {
         //navigate('/dashboard');
         localStorage.setItem('token', response.data.token);
-        navigate('/candidate-profile');
+        navigate('/dashboard');
       }
     } catch (error) {
       // 2. Catch Backend Errors

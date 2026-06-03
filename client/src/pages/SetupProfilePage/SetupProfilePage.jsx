@@ -262,6 +262,7 @@ export default function SetupProfilePage() {
   };
 
   // Finish and submit to server
+  // Finish and submit to server
   const handleFinishSetup = async () => {
     if (!formData.display_name.trim()) {
       setApiError('Display Name is mandatory!');
@@ -279,7 +280,7 @@ export default function SetupProfilePage() {
     setApiError('');
     try {
       await axios.post('http://localhost:5000/api/candidate/onboarding', formData, getHeaders());
-      navigate('/candidate-profile');
+      navigate('/dashboard'); 
     } catch (error) {
       console.error(error);
       setApiError(error.response?.data?.message || 'Error occurred while saving profile. Please try again.');
