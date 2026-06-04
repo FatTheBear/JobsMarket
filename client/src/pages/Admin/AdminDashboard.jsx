@@ -8,6 +8,7 @@ import AdminCategories from './AdminCategories';
 import AdminNews from './AdminNews';
 import AdminTransaction from './AdminTransaction';
 import './Admin.css';
+import CreateNewsModal from './CreateNewsModal';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -17,6 +18,9 @@ const AdminDashboard = () => {
   const [categories, setCategories] = useState({ skills: [], industries: [] });
   const [newsList, setNewsList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newsCategories, setNewsCategories] = useState([]);
+  const [editingNews, setEditingNews] = useState(null);
 
   // Đóng gói hàm fetch danh mục ra ngoài để dùng tái sử dụng khi Add/Delete
   const fetchCategoriesData = async () => {
@@ -26,8 +30,8 @@ const AdminDashboard = () => {
         adminApi.getIndustries()
       ]);
       setCategories({
-        skills: Array.isArray(skillsData) ? skillsData : (skillsData?.data || []),
-        industries: Array.isArray(industriesData) ? industriesData : (industriesData?.data || [])
+        skills: Array.isArray(skillsData) ? skillsData : [],
+        industries: Array.isArray(industriesData) ? industriesData : []
       });
     } catch (catErr) {
       console.error("Error fetching categories:", catErr);
@@ -53,6 +57,7 @@ const AdminDashboard = () => {
           const res = await adminApi.getNews();
           console.log(">>> DỮ LIỆU NEWS THỰC TẾ TRẢ VỀ LÀ:", res);
           setNewsList(res.data || res);
+          await fetchNewsCategories();
         }
         // LƯU Ý: Không cần fetch data giao dịch ở đây vì bên trong file 
         // AdminTransaction.jsx mình đã tự viết hàm useEffect gọi API riêng rồi.
@@ -64,6 +69,8 @@ const AdminDashboard = () => {
     };
     fetchData();
   }, [activeTab]);
+
+
 
   // Hàm xử lý thêm nhanh Kỹ năng mới
   const handleAddSkill = async (name) => {
@@ -143,44 +150,26 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleCreateNews = async () => {
-    const title = prompt("Enter article title");
-    if (!title) return;
+  const handleCreateNews = async (data) => {
     try {
-      await adminApi.createNews({
-        title,
-        slug: title.toLowerCase().replace(/\s+/g, '-'),
-        category_id: 1,
-        thumbnail_url: '',
-        short_description: '',
-        content: '',
-        status: 'Draft'
-      });
+      await adminApi.createNews(data);
       await fetchNewsData();
-      alert("Article created successfully!");
     } catch (err) {
-      console.error(err);
       alert("Error creating article");
     }
   };
+  //edit news
+  const handleEditNews = (news) => {
+    setEditingNews(news);
+  };
 
-  const handleEditNews = async (news) => {
-    const newTitle = prompt("Edit article title", news.title);
-    if (!newTitle) return;
+  const handleUpdateNews = async (id, data) => {
     try {
-      await adminApi.updateNews(news.id, {
-        title: newTitle,
-        slug: newTitle.toLowerCase().replace(/\s+/g, '-'),
-        category_id: news.category_id || 1,
-        thumbnail_url: news.thumbnail_url || '',
-        short_description: news.short_description || '',
-        content: news.content || '',
-        status: news.status || 'Draft'
-      });
+      console.log("UPDATE DATA FRONTEND:", data);
+      await adminApi.updateNews(id, data);
       await fetchNewsData();
-      alert("Article updated successfully!");
+      setEditingNews(null);
     } catch (err) {
-      console.error(err);
       alert("Error updating article");
     }
   };
@@ -197,6 +186,14 @@ const AdminDashboard = () => {
       alert("Error deleting article");
     }
   };
+  const fetchNewsCategories = async () => {
+    try {
+      const res = await adminApi.getNewsCategories();
+      setNewsCategories(res.data || res);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <div className="admin-container">
@@ -208,7 +205,7 @@ const AdminDashboard = () => {
           <button onClick={() => setActiveTab('jobs')} className={`sidebar-btn ${activeTab === 'jobs' ? 'active' : ''}`}><Briefcase size={20} /> Job Approval</button>
           <button onClick={() => setActiveTab('categories')} className={`sidebar-btn ${activeTab === 'categories' ? 'active' : ''}`}><FolderTree size={20} /> Categories</button>
           <button onClick={() => setActiveTab('news')} className={`sidebar-btn ${activeTab === 'news' ? 'active' : ''}`}><Newspaper size={20} /> News Management</button>
-          
+
           {/* ĐÃ THÊM: Nút chuyển sang tab Giao dịch ví xu trên Sidebar */}
           <button onClick={() => setActiveTab('transactions')} className={`sidebar-btn ${activeTab === 'transactions' ? 'active' : ''}`}><CreditCard size={20} /> Transactions</button>
         </div>
@@ -219,9 +216,9 @@ const AdminDashboard = () => {
         {!loading && activeTab === 'users' && <AdminUser users={users} onToggleStatus={handleToggleUserStatus} />}
         {!loading && activeTab === 'jobs' && <AdminJob pendingJobs={pendingJobs} onReviewJob={handleReviewJob} />}
         {!loading && activeTab === 'categories' && (
-          <AdminCategories 
-            categories={categories} 
-            onRefresh={fetchCategoriesData} 
+          <AdminCategories
+            categories={categories}
+            onRefresh={fetchCategoriesData}
             onAddSkill={handleAddSkill}
             onAddIndustry={handleAddIndustry}
             onDeleteSkill={handleDeleteSkill}
@@ -232,16 +229,35 @@ const AdminDashboard = () => {
           <AdminNews
             newsList={newsList}
             onRefresh={fetchNewsData}
-            onCreate={handleCreateNews}
+            onCreate={() => setShowCreateModal(true)}
             onEdit={handleEditNews}
             onDelete={handleDeleteNews}
           />
         )}
-        
+
+        {showCreateModal && (
+          <CreateNewsModal
+            onClose={() => setShowCreateModal(false)}
+            onCreate={handleCreateNews}
+            categories={newsCategories}
+          />
+        )}
+
+        {editingNews && (
+          <CreateNewsModal
+            onClose={() => setEditingNews(null)}
+            onCreate={(data) => handleUpdateNews(editingNews.id, data)}
+            categories={newsCategories}
+            initialData={editingNews}
+          />
+        )}
+
         {/* ĐÃ THÊM: Khớp nối render nội dung component AdminTransaction khi bấm nút */}
         {!loading && activeTab === 'transactions' && <AdminTransaction />}
       </div>
     </div>
+
+
   );
 };
 

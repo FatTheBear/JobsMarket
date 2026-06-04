@@ -1,8 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://localhost:5000/api', // Trỏ về /api gốc
-  headers: { 'Content-Type': 'application/json' }
+  baseURL: 'http://localhost:5000/api'
 });
 
 // Gắn token vào header cho mọi request (nếu đã đăng nhập)
@@ -76,21 +75,30 @@ export const adminApi = {
   },
 
   createNews: async (data) => {
-  const res = await API.post('/admin/news', data);
+  const res = await API.post('/admin/news', data, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
   return res.data;
 },
 
-updateNews: async (id, data) => {
-  const res = await API.put(`/admin/news/${id}`, data);
-  return res.data;
-},
+  getNewsCategories: async () => {
+    const res = await API.get('/admin/news-categories');
+    return res.data;
+  },
 
-deleteNews: async (id) => {
-  const res = await API.delete(`/admin/news/${id}`);
-  return res.data;
-},
+  updateNews: async (id, data) => {
+    const res = await API.put(`/admin/news/${id}`, data);
+    return res.data;
+  },
 
-deleteSkill: async (id) => {
+  deleteNews: async (id) => {
+    const res = await API.delete(`/admin/news/${id}`);
+    return res.data;
+  },
+
+  deleteSkill: async (id) => {
     const res = await API.delete(`/admin/skills/${id}`);
     return res.data;
   },
