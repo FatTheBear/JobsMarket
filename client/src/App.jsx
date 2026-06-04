@@ -17,6 +17,7 @@ import AuthPage from './pages/Authentication/AuthPage';
 import Register from './pages/Authentication/Register';
 import UserDashboard from './pages/DashBoard/UserDashboard/UserDashboard';
 import SetupProfilePage from './pages/SetupProfilePage/SetupProfilePage';
+import SearchJobs from './pages/SearchJobs/SearchJobs';
 
 import './App.css';
 
@@ -81,6 +82,10 @@ const router = createBrowserRouter([
         ),
       }
     ]
+  },
+  { 
+    path: "/search-jobs", 
+    element: <SearchJobs /> 
   },
 
   // Trang 404 cho các đường dẫn sai
