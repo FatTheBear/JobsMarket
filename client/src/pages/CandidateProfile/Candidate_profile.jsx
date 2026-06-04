@@ -310,12 +310,20 @@ const CandidateProfile = () => {
     setShowExperienceModal(true);
   };
 
+  const lettersOnlyRegex = /^[\p{L}\s]*$/u;
+
   const handleSaveExperience = (e) => {
     e.preventDefault();
-    if (!experienceForm.role || !experienceForm.company) {
-      setModalError("Please fill in Job Title and Company Name!");
+
+    if (experienceForm.role && !lettersOnlyRegex.test(experienceForm.role)) {
+      setModalError("Job Title / Role cannot contain numbers or special characters!");
       return;
     }
+    if (experienceForm.company && !lettersOnlyRegex.test(experienceForm.company)) {
+      setModalError("Company Name cannot contain numbers or special characters!");
+      return;
+    }
+
     if (!experienceForm.startDate) {
       setModalError("Start Date is required!");
       return;
@@ -385,10 +393,16 @@ const CandidateProfile = () => {
 
   const handleSaveEducation = (e) => {
     e.preventDefault();
-    if (!educationForm.degree || !educationForm.school) {
-      setModalError("Please fill in Degree and School Name!");
+
+    if (educationForm.degree && !lettersOnlyRegex.test(educationForm.degree)) {
+      setModalError("Degree / Field of Study cannot contain numbers or special characters!");
       return;
     }
+    if (educationForm.school && !lettersOnlyRegex.test(educationForm.school)) {
+      setModalError("School / Institute cannot contain numbers or special characters!");
+      return;
+    }
+
     if (!educationForm.startDate) {
       setModalError("Start Date is required!");
       return;
@@ -459,8 +473,9 @@ const CandidateProfile = () => {
 
   const handleSaveSkill = (e) => {
     e.preventDefault();
-    if (!skillForm.name) {
-      setModalError("Please enter a skill name!");
+
+    if (skillForm.name && !lettersOnlyRegex.test(skillForm.name)) {
+      setModalError("Core Skill cannot contain numbers or special characters!");
       return;
     }
 
