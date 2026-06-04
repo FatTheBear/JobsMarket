@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import './JobPosting.css';
 import JobSkillsManager from '../JobSkillsManager/JobSkillsManager';
-
+import { useNavigate } from "react-router-dom";
 const API_URL = 'http://localhost:5000';
 const TEMP_HR_ID = 1;
 
@@ -123,6 +123,7 @@ const isInDateRange = (appliedAt, range) => {
 const todayStr = () => new Date().toISOString().split('T')[0];
 
 export default function JobPosting() {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('applicants');
   const [currentStep, setCurrentStep] = useState(1);
   const [form, setForm] = useState({
@@ -221,6 +222,7 @@ export default function JobPosting() {
   };
 
   const handleSubmit = async (e) => {
+    
     e.preventDefault();
 
     if (!form.title.trim()) {
@@ -264,7 +266,7 @@ export default function JobPosting() {
       if (res.ok) {
         showToast('Job successfully posted', 'success');
 
-        navigate('/company-profile'); // hoặc dashboard
+        navigate('/dashboard'); // hoặc dashboard
       } else {
         showToast(data.message || 'Failed to post job', 'error');
       }

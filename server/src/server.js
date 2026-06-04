@@ -36,7 +36,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/candidate', candidateRoutes);
 //app.use('/api/wallet', walletRoutes);
 app.use('/api/company', companyRoutes);
-app.use('/api/jobs', jobsRoutes);
+app.use('/api', jobsRoutes);
 app.use('/api/skills', skillsRoutes);
 
 io.on('connection', (socket) => {
