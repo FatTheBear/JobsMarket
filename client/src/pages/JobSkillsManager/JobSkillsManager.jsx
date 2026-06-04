@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import './JobSkillsManager.css';
+import './JobSkillsManager.css'; // Sửa lại đúng tên file CSS trên máy của bạn
 
 const API_URL = 'http://localhost:5000';
 
@@ -10,6 +10,12 @@ export default function JobSkillsManager({ jobId }) {
   const [newSkill, setNewSkill] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  
+  // State phục vụ việc tìm kiếm và hiển thị gợi ý (Autocomplete)
+  const [inputValue, setInputValue] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef(null);
 
   useEffect(() => {
     fetchAllSkills();
@@ -18,6 +24,33 @@ export default function JobSkillsManager({ jobId }) {
   useEffect(() => {
     if (jobId) fetchJobSkills(jobId);
   }, [jobId]);
+
+  // Đóng dropdown khi click ra ngoài vùng click của component
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Lọc danh sách gợi ý tự động dựa trên những gì người dùng đang nhập
+  useEffect(() => {
+    const jobSkillIds = jobSkills.map(js => js.id);
+    const availableSkills = allSkills.filter(skill => !jobSkillIds.includes(skill.id));
+
+    if (inputValue.trim() === '') {
+      // Hiển thị tối đa 6 kỹ năng mặc định khi chưa nhập gì
+      setSuggestions(availableSkills.slice(0, 6));
+    } else {
+      const filtered = availableSkills.filter(skill =>
+        skill.name.toLowerCase().includes(inputValue.toLowerCase())
+      );
+      setSuggestions(filtered);
+    }
+  }, [inputValue, allSkills, jobSkills]);
 
   const fetchAllSkills = async () => {
     try {
@@ -37,15 +70,22 @@ export default function JobSkillsManager({ jobId }) {
     }
   };
 
+  // Tạo kỹ năng hoàn toàn mới nếu hệ thống chưa có
   const handleCreateSkill = async () => {
     if (!newSkill.trim()) return;
     try {
       setLoading(true);
       const payload = { name: newSkill.trim() };
-      await axios.post(`${API_URL}/api/skills`, payload);
+      const response = await axios.post(`${API_URL}/api/skills`, payload);
+      
       setNewSkill('');
-      fetchAllSkills();
+      await fetchAllSkills();
       setMessage('Thêm kỹ năng mới thành công');
+      
+      // Nếu có jobId, tự động gán luôn kỹ năng vừa tạo vào công việc này
+      if (jobId && response.data && response.data.id) {
+        await handleAddSkill(response.data.id);
+      }
     } catch (error) {
       console.error('Tạo kỹ năng thất bại:', error);
       setMessage('Tạo kỹ năng thất bại');
@@ -61,6 +101,8 @@ export default function JobSkillsManager({ jobId }) {
       await axios.post(`${API_URL}/api/skills/job/${jobId}`, { skill_id: skillId });
       fetchJobSkills(jobId);
       setMessage('Đã thêm kỹ năng vào công việc');
+      setInputValue('');
+      setIsOpen(false);
       setTimeout(() => setMessage(''), 2500);
     } catch (error) {
       console.error('Thêm kỹ năng thất bại:', error);
@@ -82,7 +124,7 @@ export default function JobSkillsManager({ jobId }) {
   };
 
   return (
-    <div className="skill-manager-card">
+    <div className="skill-manager-card" ref={wrapperRef}>
       <div className="skill-manager-header">
         <div>
           <h3>Quản lý kỹ năng yêu cầu</h3>
@@ -92,51 +134,77 @@ export default function JobSkillsManager({ jobId }) {
       </div>
 
       <div className="skill-manager-body">
-        <div className="skill-manager-form">
-          <input
-            type="text"
-            placeholder="Nhập kỹ năng mới"
-            value={newSkill}
-            onChange={(e) => setNewSkill(e.target.value)}
-          />
-          <button onClick={handleCreateSkill} disabled={loading}>
-            {loading ? 'Đang lưu...' : 'Thêm kỹ năng'}
-          </button>
-        </div>
-
-        <div className="skill-lists">
-          <div className="skill-list">
-            <h4>Danh sách kỹ năng sẵn có</h4>
-            {allSkills.length === 0 ? (
-              <div className="skill-empty">Không có kỹ năng nào.</div>
-            ) : (
-              allSkills.map((skill) => (
-                <div key={skill.id} className="skill-item">
-                  <span>{skill.name}</span>
-                  <button type="button" onClick={() => handleAddSkill(skill.id)}>
-                    Thêm
-                  </button>
-                </div>
-              ))
-            )}
+        
+        {/* Khung chứa các thẻ tag đã chọn và ô nhập input gộp chung */}
+        <div className="skills-input-tags-wrapper">
+          <div className="tags-flex-container">
+            {jobSkills.map((skill) => (
+              <span key={skill.id} className="job-selected-tag">
+                {skill.name}
+                <button 
+                  type="button" 
+                  className="remove-tag-x"
+                  onClick={() => handleRemoveSkill(skill.id)}
+                >
+                  &times;
+                </button>
+              </span>
+            ))}
+            
+            <input
+              type="text"
+              placeholder={jobSkills.length === 0 ? "Tìm kiếm kỹ năng (Ví dụ: ReactJS, Java...)" : ""}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onFocus={() => setIsOpen(true)}
+              className="skills-autocomplete-input"
+            />
           </div>
 
-          <div className="skill-list">
-            <h4>Kỹ năng của công việc</h4>
-            {jobSkills.length === 0 ? (
-              <div className="skill-empty">Chưa có kỹ năng nào được chọn.</div>
-            ) : (
-              jobSkills.map((skill) => (
-                <div key={skill.id} className="skill-item">
-                  <span>{skill.name}</span>
-                  <button type="button" onClick={() => handleRemoveSkill(skill.id)}>
-                    Xóa
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
+          {/* Menu thả xuống hiển thị danh sách gợi ý */}
+          {isOpen && suggestions.length > 0 && (
+            <ul className="skills-autocomplete-dropdown">
+              <li className="dropdown-section-title">Kỹ năng gợi ý</li>
+              {suggestions.map((skill) => (
+                <li 
+                  key={skill.id} 
+                  className="dropdown-suggestion-item"
+                  onClick={() => handleAddSkill(skill.id)}
+                >
+                  <span className="plus-sign">+</span> {skill.name}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Trường hợp không tìm thấy từ khóa nào sẵn có */}
+          {isOpen && suggestions.length === 0 && inputValue.trim() !== '' && (
+            <ul className="skills-autocomplete-dropdown">
+              <li className="dropdown-section-title">Không tìm thấy kỹ năng phù hợp</li>
+              <li className="dropdown-suggestion-item custom-create-prompt" onClick={() => {
+                setNewSkill(inputValue.trim());
+                setIsOpen(false);
+              }}>
+                Tạo nhanh kỹ năng mới: "<strong>{inputValue}</strong>"
+              </li>
+            </ul>
+          )}
         </div>
+
+        {/* Khung tạo mới kỹ năng xuất hiện khi nhấn tạo từ ô gợi ý */}
+        {(newSkill.trim() || (isOpen && suggestions.length === 0 && inputValue.trim() !== '')) && (
+          <div className="skill-manager-form">
+            <input
+              type="text"
+              placeholder="Nhập tên kỹ năng mới"
+              value={newSkill}
+              onChange={(e) => setNewSkill(e.target.value)}
+            />
+            <button type="button" onClick={handleCreateSkill} disabled={loading}>
+              {loading ? 'Đang lưu...' : 'Thêm kỹ năng'}
+            </button>
+          </div>
+        )}
 
         {message && <div className="skill-manager-message">{message}</div>}
       </div>
