@@ -9,6 +9,7 @@ export default function VerifyOTP() {
   const userEmail = location.state?.email;
   const userRole = location.state?.role;
   const navigate = useNavigate();
+  const [error, setError] = useState("");
   
 
   const handleChange = (e) => {
@@ -20,20 +21,33 @@ export default function VerifyOTP() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError("");
+
+        if (!userEmail) {
+            setError("Missing email. Please register again.");
+            return;
+        }
+
+        if (!otp) {
+            setError("Please enter OTP");
+            return;
+        }
 
         try {
             const response = await axios.post(
                 'http://localhost:5000/api/auth/verify-otp',
                 {
                     email: userEmail,
-                    otp: otp
+                    otp: otp.toString().trim()
                 }
             );
 
             if (response.status === 200) {
                 localStorage.setItem('token', response.data.token);
+
                 const apiRole = response.data.user?.role;
                 const roleLower = apiRole ? apiRole.toLowerCase() : '';
+
                 if (roleLower === "company" || roleLower === "hr") {
                     navigate("/company-profile");
                 } else {
@@ -42,12 +56,26 @@ export default function VerifyOTP() {
             }
 
         } catch (error) {
-            console.log(error.response?.data);
+            setError(error.response?.data?.message || "Verify failed");
         }
     };
 
-  const handleResendOTP = () => {
-    console.log("Resend OTP clicked");
+  const handleResendOTP = async () => {
+     try {
+            if (!userEmail) {
+                setError("Missing email");
+                return;
+            }
+
+            await axios.post(
+                'http://localhost:5000/api/auth/resend-otp',
+                { email: userEmail }
+            );
+
+            alert("OTP resent successfully!");
+        } catch (error) {
+            setError(error.response?.data?.message || "Resend failed");
+        }
   };
 
   return (
