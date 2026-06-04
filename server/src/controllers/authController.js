@@ -28,6 +28,14 @@ const authController = {
                     dbRole = 'Candidate';
                 }
 
+                if (role === 'company' && !company_name) {
+                    throw new Error("company_name is required");
+                }
+
+                if (role === 'candidate' && !full_name) {
+                    throw new Error("full_name is required");
+                }
+
                 const [userResult] = await connection.execute(
                     'INSERT INTO User (email, password_hash, role) VALUES (?, ?, ?)',
                     [email, password_hash, dbRole]
@@ -95,7 +103,7 @@ const authController = {
                 else if (role === 'company') {
                     await connection.execute(
                         'INSERT INTO Company (hr_id, industry_id, name) VALUES (?, ?, ?)',
-                        [newUserId, industry_id, company_name]
+                        [newUserId, industry_id || null, company_name]
                     );
                 }
                 else if (role === 'Admin') {
@@ -241,7 +249,61 @@ const authController = {
             console.error("Login Error:", error);
             return res.status(500).json({ message: "Internal server error!" });
         }
+    },
+
+       resendOtp: async (req, res) => {
+        const { email } = req.body;
+
+        try {
+            const crypto = require('crypto');
+            const nodemailer = require('nodemailer');
+
+            const otp = crypto.randomInt(100000, 999999).toString();
+            const expiresAt = new Date(Date.now() + 5 * 60000);
+
+            const connection = await pool.getConnection();
+
+            const [result] = await connection.execute(
+                'UPDATE User SET verification_code = ?, code_expires_at = ? WHERE email = ?',
+                [otp, expiresAt, email]
+            );
+
+            connection.release();
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ message: "User not found!" });
+            }
+
+            if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+                const transporter = nodemailer.createTransport({
+                    service: 'gmail',
+                    auth: {
+                        user: process.env.EMAIL_USER,
+                        pass: process.env.EMAIL_PASS
+                    }
+                });
+
+                await transporter.sendMail({
+                    from: process.env.EMAIL_USER,
+                    to: email,
+                    subject: 'Resend OTP - JobsMarket',
+                    html: `
+                        <p>Your new OTP is: <b>${otp}</b></p>
+                    `
+                });
+            }
+
+            return res.status(200).json({
+                message: "OTP resent successfully!"
+            });
+
+        } catch (error) {
+            return res.status(500).json({
+                message: error.message
+            });
+        }
     }
+
 };
 
 module.exports = authController;

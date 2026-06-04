@@ -67,13 +67,11 @@ const CandidateProfileModel = {
     },
     // 3. Cập nhật thông tin profile
     updateByUserId: async (user_id, updateData) => {
-        const { full_name, display_name, phone, avatar_url, headline, about, years_of_experience, skills, is_public, education, experience, address, cv_url } = updateData;
-
+        const { full_name, display_name, phone, avatar_url, headline, about, years_of_experience, is_public, address, cv_url } = updateData;
         const connection = await pool.getConnection();
         try {
             await connection.beginTransaction();
 
-            // 1. Lấy profile ID
             const [profiles] = await connection.execute(
                 'SELECT id FROM Candidate_Profile WHERE user_id = ?',
                 [user_id]
@@ -85,11 +83,11 @@ const CandidateProfileModel = {
             }
             const profileId = profiles[0].id;
 
-            // 2. Cập nhật Candidate_Profile
+            // Đã loại bỏ cột skills JSON ra khỏi lệnh UPDATE
             await connection.execute(
                 `UPDATE Candidate_Profile 
                  SET full_name = ?, display_name = ?, phone = ?, avatar_url = ?, headline = ?, 
-                     about = ?, years_of_experience = ?, skills = ?, is_public = ?, address = ?, cv_url = ?
+                     about = ?, years_of_experience = ?, is_public = ?, address = ?, cv_url = ?
                  WHERE id = ?`,
                 [
                     full_name,
@@ -99,54 +97,23 @@ const CandidateProfileModel = {
                     headline || null,
                     about || null,
                     years_of_experience || 0,
-                    skills ? (typeof skills === 'string' ? skills : JSON.stringify(skills)) : null,
                     is_public !== undefined ? is_public : true,
                     address || null,
                     cv_url || null,
                     profileId
                 ]
             );
-
-            // 3. Đồng bộ Candidate_Education
-            await connection.execute('DELETE FROM Candidate_Education WHERE candidate_id = ?', [profileId]);
-            if (education) {
-                const parsedEdu = typeof education === 'string' ? JSON.parse(education) : education;
-                if (Array.isArray(parsedEdu)) {
-                    for (const item of parsedEdu) {
-                        await connection.execute(
-                            'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
-                            [profileId, item.school || 'School', item.degree || 'Degree', item.startDate || '2026-01', item.gradDate || null]
-                        );
-                    }
-                }
-            }
-
-            // 4. Đồng bộ Candidate_Experience
-            await connection.execute('DELETE FROM Candidate_Experience WHERE candidate_id = ?', [profileId]);
-            if (experience) {
-                const parsedExp = typeof experience === 'string' ? JSON.parse(experience) : experience;
-                if (Array.isArray(parsedExp)) {
-                    for (const item of parsedExp) {
-                        await connection.execute(
-                            'INSERT INTO Candidate_Experience (candidate_id, company_name, role, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
-                            [profileId, item.company || 'Company', item.role || 'Role', item.startDate || '2026-01', item.endDate || null]
-                        );
-                    }
-                }
-            }
-
             await connection.commit();
-            connection.release();
             return true;
         } catch (error) {
             await connection.rollback();
-            connection.release();
             throw error;
+        } finally {
+            connection.release();
         }
     },
     // 4. Lấy danh sách doanh nghiệp đề xuất kèm trạng thái Follow
     getRecommendedCompanies: async (candidateUserId) => {
-        // Lấy profile id trước
         const [profiles] = await pool.execute(
             'SELECT id FROM Candidate_Profile WHERE user_id = ?',
             [candidateUserId]
@@ -164,7 +131,7 @@ const CandidateProfileModel = {
         );
         return rows;
     },
-    // 5. Cập nhật toàn bộ thông tin onboarding trong một Transaction
+    // 5. Cập nhật toàn bộ thông tin onboarding trong một Transaction (BẢN ĐÃ FIX CHUẨN)
     updateOnboardingData: async (user_id, onboardingData) => {
         console.log("[DEBUG ONBOARDING PAYLOAD]", onboardingData);
         const connection = await pool.getConnection();
@@ -190,11 +157,10 @@ const CandidateProfileModel = {
                 profileId = profiles[0].id;
             }
 
-            // Cập nhật Candidate_Profile
+            // 1. Cập nhật bảng Candidate_Profile (LOẠI BỎ CỘT SKILLS JSON)
             await connection.execute(
                 `UPDATE Candidate_Profile 
-                 SET display_name = ?, phone = ?, avatar_url = ?, headline = ?, 
-                     address = ?, skills = ?
+                 SET display_name = ?, phone = ?, avatar_url = ?, headline = ?, address = ?
                  WHERE id = ?`,
                 [
                     display_name || null,
@@ -202,59 +168,75 @@ const CandidateProfileModel = {
                     avatar_url || null,
                     headline || null,
                     address || null,
-                    skills ? (typeof skills === 'string' ? skills : JSON.stringify(skills)) : null,
                     profileId
                 ]
             );
 
-            // Đồng bộ Candidate_Education
+            // 2. Đồng bộ Candidate_Education
             await connection.execute('DELETE FROM Candidate_Education WHERE candidate_id = ?', [profileId]);
-            if (education) {
-                const parsedEdu = typeof education === 'string' ? JSON.parse(education) : education;
-                if (Array.isArray(parsedEdu)) {
-                    for (const item of parsedEdu) {
-                        await connection.execute(
-                            'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
-                            [profileId, item.school || 'School', item.degree || 'Degree', item.startDate || '2026-01', item.gradDate || null]
-                        );
-                    }
+            if (education && Array.isArray(education)) {
+                for (const item of education) {
+                    await connection.execute(
+                        'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
+                        [profileId, item.school || 'School', item.degree || 'Degree', item.startDate || '2026-01', item.gradDate || null]
+                    );
                 }
             }
 
-            // Đồng bộ Candidate_Experience
+            // 3. Đồng bộ Candidate_Experience
             await connection.execute('DELETE FROM Candidate_Experience WHERE candidate_id = ?', [profileId]);
-            if (experience) {
-                const parsedExp = typeof experience === 'string' ? JSON.parse(experience) : experience;
-                if (Array.isArray(parsedExp)) {
-                    for (const item of parsedExp) {
-                        await connection.execute(
-                            'INSERT INTO Candidate_Experience (candidate_id, company_name, role, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
-                            [profileId, item.company || 'Company', item.role || 'Role', item.startDate || '2026-01', item.endDate || null]
-                        );
-                    }
+            if (experience && Array.isArray(experience)) {
+                for (const item of experience) {
+                    await connection.execute(
+                        'INSERT INTO Candidate_Experience (candidate_id, company_name, role, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
+                        [profileId, item.company || 'Company', item.role || 'Role', item.startDate || '2026-01', item.endDate || null]
+                    );
                 }
             }
 
-            // Cập nhật Company_Follower
-            if (followedCompanyIds && Array.isArray(followedCompanyIds)) {
-                await connection.execute(
-                    'DELETE FROM Company_Follower WHERE candidate_id = ?',
-                    [profileId]
-                );
+            // 4. ĐỒNG BỘ SKILLS VÀO BẢNG CHUẨN (SKILL & CANDIDATE_SKILL)
+            await connection.execute('DELETE FROM candidate_skill WHERE candidate_id = ?', [profileId]);
+            if (skills && Array.isArray(skills)) {
+                for (const skillName of skills) {
+                    const trimmedSkill = skillName.trim();
+                    if (!trimmedSkill) continue;
 
-                for (const companyId of followedCompanyIds) {
-                    const [companyExists] = await connection.execute(
-                        'SELECT id FROM Company WHERE id = ?',
-                        [companyId]
+                    // Kiểm tra xem skill này đã có trong bảng từ điển 'skill' chưa
+                    const [existingSkills] = await connection.execute(
+                        'SELECT id FROM skill WHERE skill_name = ?',
+                        [trimmedSkill]
                     );
 
+                    let currentSkillId;
+                    if (existingSkills.length > 0) {
+                        currentSkillId = existingSkills[0].id; // Lấy ID cũ
+                    } else {
+                        // Thêm mới vào từ điển
+                        const [insertSkillResult] = await connection.execute(
+                            'INSERT INTO skill (skill_name) VALUES (?)',
+                            [trimmedSkill]
+                        );
+                        currentSkillId = insertSkillResult.insertId; // Lấy ID mới tạo
+                    }
+
+                    // Lưu vào bảng cầu nối Candidate_Skill
+                    await connection.execute(
+                        'INSERT INTO candidate_skill (candidate_id, skill_id) VALUES (?, ?)',
+                        [profileId, currentSkillId]
+                    );
+                }
+            }
+
+            // 5. Cập nhật Company_Follower
+            if (followedCompanyIds && Array.isArray(followedCompanyIds)) {
+                await connection.execute('DELETE FROM Company_Follower WHERE candidate_id = ?', [profileId]);
+                for (const companyId of followedCompanyIds) {
+                    const [companyExists] = await connection.execute('SELECT id FROM Company WHERE id = ?', [companyId]);
                     if (companyExists.length > 0) {
                         await connection.execute(
                             'INSERT INTO Company_Follower (candidate_id, company_id) VALUES (?, ?)',
                             [profileId, companyId]
                         );
-                    } else {
-                        console.log(`[ONBOARDING] Skipping follow for non-existent company ID: ${companyId}`);
                     }
                 }
             }

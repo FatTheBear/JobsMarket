@@ -73,7 +73,7 @@ export default function CandidateDashboard() {
 
   const handleLogout = () => {
     // Thêm logic xóa token/localStorage ở đây
-    navigate('/login');
+    navigate('/');
   };
 
   return (

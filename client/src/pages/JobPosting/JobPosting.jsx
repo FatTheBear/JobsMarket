@@ -3,10 +3,10 @@ import './JobPosting.css';
 import JobSkillsManager from '../JobSkillsManager/JobSkillsManager';
 
 const API_URL = 'http://localhost:5000';
-const TEMP_HR_ID = 1; // Tạm thời dùng HR id cố định
+const TEMP_HR_ID = 1;
 
 const TEMPLATES = [
-  { id: '', label: 'Chọn mẫu tin tuyển...' },
+  { id: '', label: 'Select template...' },
   { id: 'frontend', label: 'Frontend Developer' },
   { id: 'backend', label: 'Backend Developer' },
   { id: 'designer', label: 'UI/UX Designer' },
@@ -14,157 +14,68 @@ const TEMPLATES = [
 
 const TEMPLATE_CONTENT = {
   frontend: {
-    description:
-      'Thiết kế, xây dựng giao diện web, tối ưu trải nghiệm người dùng, phối hợp với team product và dev để hiện thực hóa yêu cầu.',
-    requirements:
-      '- Thành thạo React/Next.js\n- Hiểu biết HTML/CSS/JavaScript\n- Có kinh nghiệm làm việc với REST API\n- Ưu tiên có kiến thức về TypeScript',
-    benefits:
-      '- Lương cạnh tranh\n- Thưởng theo dự án\n- Chế độ BHXH/BHYT\n- Đào tạo nội bộ thường xuyên',
+    description: 'Design and build web interfaces, optimize user experience, and collaborate with product/dev teams.',
+    requirements: '- Proficient in React/Next.js\n- Good understanding of HTML/CSS/JavaScript\n- Experience with REST APIs\n- TypeScript knowledge is a plus',
+    benefits: '- Competitive salary\n- Project bonuses\n- Social insurance\n- Regular internal training',
   },
   backend: {
-    description:
-      'Xây dựng API, tối ưu hệ thống backend, quản lý database và thực hiện tích hợp giữa các service khác nhau.',
-    requirements:
-      '- Thành thạo Node.js/Express hoặc Python/Django\n- Hiểu biết MySQL hoặc MongoDB\n- Có kinh nghiệm thiết kế API REST\n- Ưu tiên biết Docker và CI/CD',
-    benefits:
-      '- Môi trường chuyên nghiệp\n- Thưởng hiệu suất\n- Khám sức khỏe định kỳ\n- Team building hàng tháng',
+    description: 'Build APIs, optimize backend systems, manage databases, and integrate various services.',
+    requirements: '- Proficient in Node.js/Express or Python/Django\n- Strong MySQL or MongoDB knowledge\n- REST API design experience\n- Docker & CI/CD experience is a plus',
+    benefits: '- Professional environment\n- Performance bonuses\n- Annual health check\n- Monthly team building',
   },
   designer: {
-    description:
-      'Thiết kế giao diện web/mobile, xây dựng hệ thống nhận diện thương hiệu và phối hợp với dev để đưa sản phẩm ra mắt.',
-    requirements:
-      '- Có kinh nghiệm Figma/Adobe XD\n- Hiểu UX/UI cơ bản\n- Có portfolio thiết kế\n- Ưu tiên biết HTML/CSS cơ bản',
-    benefits:
-      '- Lương theo năng lực\n- Chế độ nghỉ lễ đầy đủ\n- Môi trường sáng tạo\n- Cơ hội thăng tiến',
+    description: 'Design web/mobile interfaces, build brand identity systems, and collaborate with developers.',
+    requirements: '- Experience with Figma/Adobe XD\n- Basic UX/UI knowledge\n- Design portfolio required\n- Basic HTML/CSS is a plus',
+    benefits: '- Salary based on performance\n- Full holiday benefits\n- Creative environment\n- Promotion opportunities',
   },
 };
 
-const JOB_OPTIONS = ['Chọn việc làm', 'Frontend Developer', 'Backend Developer', 'UI/UX Designer'];
-const LANGUAGE_OPTIONS = ['Chọn ngôn ngữ', 'Tiếng Việt', 'Tiếng Anh', 'Tiếng Nhật'];
-const DEGREE_OPTIONS = ['Chọn bằng cấp', 'Cao đẳng', 'Đại học', 'Thạc sĩ'];
+const JOB_OPTIONS = ['Select Job', 'Frontend Developer', 'Backend Developer', 'UI/UX Designer'];
+const LANGUAGE_OPTIONS = ['Select Language', 'Vietnamese', 'English', 'Japanese'];
+const DEGREE_OPTIONS = ['Select Degree', 'College', 'Bachelor', 'Master'];
 const STATUS_TABS = [
-  { id: 'all', label: 'Tất cả', count: 0 },
-  { id: 'unread', label: 'Chưa xem', count: 0 },
-  { id: 'shortlist', label: 'Hồ sơ phù hợp', count: 0 },
-  { id: 'contacted', label: 'Liên hệ ứng viên', count: 0 },
-  { id: 'interview', label: 'Mời phỏng vấn', count: 0 },
-  { id: 'offer', label: 'Gửi offer', count: 0 },
-  { id: 'hired', label: 'Tuyển thành công', count: 0 },
-  { id: 'rejected', label: 'Từ chối', count: 0 },
+  { id: 'all', label: 'All', count: 0 },
+  { id: 'unread', label: 'Unread', count: 0 },
+  { id: 'shortlist', label: 'Shortlisted', count: 0 },
+  { id: 'contacted', label: 'Contacted', count: 0 },
+  { id: 'interview', label: 'Interview', count: 0 },
+  { id: 'offer', label: 'Offered', count: 0 },
+  { id: 'hired', label: 'Hired', count: 0 },
+  { id: 'rejected', label: 'Rejected', count: 0 },
 ];
 
 const APPLICANTS_DATA = [
   {
     id: 1,
-    name: 'Nguyễn Văn An',
+    name: 'Nguyen Van An',
     email: 'an.nguyen@example.com',
     phone: '0909123456',
-    school: 'Đại học Bách Khoa',
-    major: 'Công nghệ thông tin',
+    school: 'Bach Khoa University',
+    major: 'Information Technology',
     jobTitle: 'Frontend Developer',
     status: 'unread',
-    language: 'Tiếng Anh',
-    degree: 'Đại học',
+    language: 'English',
+    degree: 'Bachelor',
     label: 'React, UI',
     appliedAt: '2026-05-28',
-    location: 'Hồ Chí Minh',
-    experience: '3 năm',
+    location: 'Ho Chi Minh',
+    experience: '3 years',
   },
   {
     id: 2,
-    name: 'Trần Thị Bình',
+    name: 'Tran Thi Binh',
     email: 'binh.tran@example.com',
     phone: '0912345678',
-    school: 'Đại học Kinh tế Quốc dân',
-    major: 'Quản trị kinh doanh',
+    school: 'National Economics University',
+    major: 'Business Administration',
     jobTitle: 'Backend Developer',
     status: 'shortlist',
-    language: 'Tiếng Việt',
-    degree: 'Đại học',
+    language: 'Vietnamese',
+    degree: 'Bachelor',
     label: 'Node.js, REST API',
     appliedAt: '2026-05-27',
-    location: 'Hà Nội',
-    experience: '4 năm',
-  },
-  {
-    id: 3,
-    name: 'Lê Thị Hoa',
-    email: 'hoa.le@example.com',
-    phone: '0987654321',
-    school: 'Đại học FPT',
-    major: 'Thiết kế đồ họa',
-    jobTitle: 'UI/UX Designer',
-    status: 'contacted',
-    language: 'Tiếng Anh',
-    degree: 'Cao đẳng',
-    label: 'Figma, Adobe XD',
-    appliedAt: '2026-05-26',
-    location: 'Đà Nẵng',
-    experience: '2 năm',
-  },
-  {
-    id: 4,
-    name: 'Phạm Minh Tuấn',
-    email: 'tuan.pham@example.com',
-    phone: '0909876543',
-    school: 'Đại học Công nghệ',
-    major: 'Khoa học máy tính',
-    jobTitle: 'Frontend Developer',
-    status: 'interview',
-    language: 'Tiếng Việt',
-    degree: 'Đại học',
-    label: 'React, Vue',
-    appliedAt: '2026-05-25',
-    location: 'Hải Phòng',
-    experience: '5 năm',
-  },
-  {
-    id: 5,
-    name: 'Vũ Ngọc Lan',
-    email: 'lan.vu@example.com',
-    phone: '0911223344',
-    school: 'Đại học Ngoại thương',
-    major: 'Kinh tế',
-    jobTitle: 'Backend Developer',
-    status: 'offer',
-    language: 'Tiếng Anh',
-    degree: 'Đại học',
-    label: 'Java, Spring',
-    appliedAt: '2026-05-24',
-    location: 'Hà Nội',
-    experience: '3 năm',
-  },
-  {
-    id: 6,
-    name: 'Bùi Thanh Sơn',
-    email: 'son.bui@example.com',
-    phone: '0933456789',
-    school: 'Đại học FPT',
-    major: 'Công nghệ thông tin',
-    jobTitle: 'UI/UX Designer',
-    status: 'hired',
-    language: 'Tiếng Anh',
-    degree: 'Đại học',
-    label: 'Sketch, InVision',
-    appliedAt: '2026-05-23',
-    location: 'Cần Thơ',
-    experience: '4 năm',
-  },
-  {
-    id: 7,
-    name: 'Đinh Thị Mai',
-    email: 'mai.dinh@example.com',
-    phone: '0945566778',
-    school: 'Đại học Văn Lang',
-    major: 'Thiết kế',
-    jobTitle: 'UI/UX Designer',
-    status: 'rejected',
-    language: 'Tiếng Việt',
-    degree: 'Cao đẳng',
-    label: 'Figma, UX research',
-    appliedAt: '2026-05-22',
-    location: 'Biên Hòa',
-    experience: '1 năm',
+    location: 'Hanoi',
+    experience: '4 years',
   },
 ];
 
@@ -174,13 +85,13 @@ const parseDate = (value) => {
 };
 
 const STATUS_LABELS = {
-  unread: 'Chưa xem',
-  shortlist: 'Hồ sơ phù hợp',
-  contacted: 'Đã liên hệ',
-  interview: 'Mời phỏng vấn',
-  offer: 'Gửi offer',
-  hired: 'Tuyển thành công',
-  rejected: 'Từ chối',
+  unread: 'Unread',
+  shortlist: 'Shortlisted',
+  contacted: 'Contacted',
+  interview: 'Interview',
+  offer: 'Offered',
+  hired: 'Hired',
+  rejected: 'Rejected',
 };
 
 const normalizeText = (text) =>
@@ -213,6 +124,7 @@ const todayStr = () => new Date().toISOString().split('T')[0];
 
 export default function JobPosting() {
   const [activeSection, setActiveSection] = useState('applicants');
+  const [currentStep, setCurrentStep] = useState(1);
   const [form, setForm] = useState({
     title: '',
     template: '',
@@ -224,6 +136,7 @@ export default function JobPosting() {
     salary_max: '',
     job_type: 'Full-time',
     deadline: '',
+    loc: ''
   });
   const [filters, setFilters] = useState({
     search: '',
@@ -259,8 +172,7 @@ export default function JobPosting() {
           applicant.major,
           applicant.jobTitle,
           applicant.label,
-        ]
-          .join(' '));
+        ].join(' '));
         if (!haystack.includes(query)) return false;
       }
       if (!isInDateRange(applicant.appliedAt, filters.date)) return false;
@@ -273,7 +185,7 @@ export default function JobPosting() {
       if (tab.id === 'all') {
         return { ...tab, count: APPLICANTS_DATA.length };
       }
-      return { ...tab, count: APPLICANTS_DATA.filter((applicant) => applicant.status === tab.id).length };
+      return { ...tab, count: APPLICANTS_DATA.filter((a) => a.status === tab.id).length };
     });
   }, []);
 
@@ -312,27 +224,26 @@ export default function JobPosting() {
     e.preventDefault();
 
     if (!form.title.trim()) {
-      showToast('Tiêu đề công việc là bắt buộc', 'error');
+      showToast('Job title is required', 'error');
       return;
     }
     if (!form.description.trim()) {
-      showToast('Mô tả công việc không được để trống', 'error');
+      showToast('Job description is required', 'error');
       return;
     }
     if (!form.requirements.trim()) {
-      showToast('Yêu cầu công việc không được để trống', 'error');
+      showToast('Job requirements are required', 'error');
       return;
     }
-
     if (form.salary_min && form.salary_max && parseInt(form.salary_min) > parseInt(form.salary_max)) {
-      showToast('Mức lương tối thiểu không được lớn hơn tối đa', 'error');
+      showToast('Minimum salary cannot exceed maximum salary', 'error');
+      return;
+    }
+    if (form.deadline && form.deadline < todayStr()) {
+      showToast('Deadline must be today or later', 'error');
       return;
     }
 
-    if (form.deadline && form.deadline < todayStr()) {
-      showToast('Hạn nộp hồ sơ phải là hôm nay hoặc sau này', 'error');
-      return;
-    }
 
     setLoading(true);
     try {
@@ -347,21 +258,18 @@ export default function JobPosting() {
         hr_id: TEMP_HR_ID,
       };
 
-      const res = await fetch(`${API_URL}/api/jobs`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      const res = await axios.post('http://localhost:5000/api/jobs', payload);
       const data = await res.json();
 
       if (res.ok) {
-        showToast('Tạo tin tuyển dụng thành công', 'success');
-        setPostedJobId(data.jobId);
+        showToast('Job successfully posted', 'success');
+
+        navigate('/company-profile'); // hoặc dashboard
       } else {
-        showToast(data.message || 'Tạo tin thất bại', 'error');
+        showToast(data.message || 'Failed to post job', 'error');
       }
     } catch {
-      showToast('Không kết nối được tới server', 'error');
+      showToast('Failed to connect to the server', 'error');
     } finally {
       setLoading(false);
     }
@@ -379,128 +287,141 @@ export default function JobPosting() {
       salary_max: '',
       job_type: 'Full-time',
       deadline: '',
+      loc: ''
     });
     setPostedJobId(null);
   };
 
+  // ==========================================
+  // RENDER UI
+  // ==========================================
   return (
     <div className="job-posting-page">
       <div className="job-posting-shell">
+
+        {/* ========================================== */}
+        {/* CỘT TRÁI: SIDEBAR CỦA COMPANY              */}
+        {/* ========================================== */}
         <aside className="jp-sidebar">
           <div className="jp-sidebar-brand">JobsMarket</div>
           <div className="jp-sidebar-section-title">
             <span className="jp-sidebar-icon">☰</span>
-            Bảng thông tin
+            Dashboard
           </div>
           <div className="jp-menu-group">
-            <div className="jp-menu-title">QUẢN LÝ TIN TUYỂN DỤNG</div>
-            <button className="jp-menu-item">Danh sách việc làm <span>0</span></button>
+            <div className="jp-menu-title">JOB MANAGEMENT</div>
+            <button className="jp-menu-item">Job List <span>0</span></button>
             <button
               className={`jp-menu-item ${activeSection === 'post' ? 'active' : ''}`}
               onClick={() => setActiveSection('post')}
             >
-              Tạo việc làm mới
+              Post a New Job
             </button>
           </div>
           <div className="jp-menu-group">
-            <div className="jp-menu-title">QUẢN LÝ ỨNG VIÊN</div>
+            <div className="jp-menu-title">CANDIDATE MANAGEMENT</div>
             <button
               className={`jp-menu-item ${activeSection === 'applicants' ? 'active' : ''}`}
               onClick={() => setActiveSection('applicants')}
             >
-              Ứng viên ứng tuyển <span>{APPLICANTS_DATA.length}</span>
+              Applied Candidates <span>{APPLICANTS_DATA.length}</span>
             </button>
-            <button className="jp-menu-item">Ứng viên đã lưu <span>0</span></button>
-            <button className="jp-menu-item">Ứng viên đã mở contact</button>
-            <button className="jp-menu-item">Ứng viên hỗ trợ <span>0</span></button>
-            <button className="jp-menu-item">Ứng viên yêu cầu kết nối</button>
-            <button className="jp-menu-item">Tìm kiếm ứng viên</button>
+            <button className="jp-menu-item">Saved Candidates <span>0</span></button>
+            <button className="jp-menu-item">Unlocked Contacts</button>
+            <button className="jp-menu-item">Supported Candidates <span>0</span></button>
+            <button className="jp-menu-item">Connection Requests</button>
+            <button className="jp-menu-item">Search Candidates</button>
           </div>
           <div className="jp-promo-card">
-            <div className="jp-promo-title">TÍNH NĂNG MỚI</div>
-            <div className="jp-promo-action">Kết nối Zalo với ứng viên</div>
+            <div className="jp-promo-title">NEW FEATURE</div>
+            <div className="jp-promo-action">Connect via Zalo</div>
           </div>
         </aside>
 
+        {/* ========================================== */}
+        {/* CỘT PHẢI: NỘI DUNG CHÍNH                   */}
+        {/* ========================================== */}
         <main className="jp-content">
           <div className="jp-header-row">
             <div>
               <div className="jp-breadcrumb">
-                Bảng thông tin / {activeSection === 'applicants' ? 'Ứng viên ứng tuyển' : 'Đăng tuyển việc làm mới'}
+                Dashboard / {activeSection === 'applicants' ? 'Applied Candidates' : 'Post a New Job'}
               </div>
               <h2 className="jp-page-heading">
-                {activeSection === 'applicants' ? 'Ứng viên ứng tuyển' : 'Đăng tuyển việc làm mới'}
+                {activeSection === 'applicants' ? 'Applied Candidates' : 'Post a New Job'}
               </h2>
             </div>
-            <button className="jp-post-button">Đăng tin tuyển dụng mới</button>
+            <button className="jp-post-button" onClick={() => setActiveSection('post')}>Post New Job</button>
           </div>
 
           {activeSection === 'applicants' ? (
             <>
+              {/* FILTER SECTION */}
               <div className="jp-card jp-filter-card">
                 <div className="jp-card-body jp-filter-grid">
                   <div className="jp-filter-item jp-filter-full">
-                    <label>Tìm kiếm theo từ khóa</label>
+                    <label>Search by keyword</label>
                     <input
                       type="text"
                       name="search"
                       value={filters.search}
                       onChange={handleFilterChange}
-                      placeholder="Tên ứng viên, email, SDT, trường học, chuyên ngành, vị trí từng làm..."
+                      placeholder="Candidate name, email, phone, school, major..."
                     />
                   </div>
                   <div className="jp-filter-item">
-                    <label>Việc làm đang tuyển</label>
+                    <label>Active Jobs</label>
                     <select name="job" value={filters.job} onChange={handleFilterChange}>
                       {JOB_OPTIONS.map((option) => (
-                        <option key={option} value={option === 'Chọn việc làm' ? '' : option}>{option}</option>
+                        <option key={option} value={option === 'Select Job' ? '' : option}>{option}</option>
                       ))}
                     </select>
                   </div>
                   <div className="jp-filter-item">
-                    <label>Ngày ứng tuyển</label>
+                    <label>Application Date</label>
                     <input
                       type="text"
                       name="date"
                       value={filters.date}
                       onChange={handleFilterChange}
-                      placeholder="01/06/2025 - 01/06/2026"
+                      placeholder="DD/MM/YYYY - DD/MM/YYYY"
                     />
                   </div>
                   <div className="jp-filter-item">
-                    <label>Ngôn ngữ</label>
+                    <label>Language</label>
                     <select name="language" value={filters.language} onChange={handleFilterChange}>
                       {LANGUAGE_OPTIONS.map((option) => (
-                        <option key={option} value={option === 'Chọn ngôn ngữ' ? '' : option}>{option}</option>
+                        <option key={option} value={option === 'Select Language' ? '' : option}>{option}</option>
                       ))}
                     </select>
                   </div>
                   <div className="jp-filter-item">
-                    <label>Bằng cấp</label>
+                    <label>Degree</label>
                     <select name="degree" value={filters.degree} onChange={handleFilterChange}>
                       {DEGREE_OPTIONS.map((option) => (
-                        <option key={option} value={option === 'Chọn bằng cấp' ? '' : option}>{option}</option>
+                        <option key={option} value={option === 'Select Degree' ? '' : option}>{option}</option>
                       ))}
                     </select>
                   </div>
                   <div className="jp-filter-item jp-filter-full">
-                    <label>Nhãn của ứng viên</label>
+                    <label>Candidate Labels</label>
                     <input
                       type="text"
                       name="label"
                       value={filters.label}
                       onChange={handleFilterChange}
-                      placeholder="Chọn nhãn ứng viên"
+                      placeholder="Search by candidate labels"
                     />
                   </div>
                   <div className="jp-filter-footer">
                     <button type="button" className="jp-btn jp-btn-outline" onClick={resetFilters}>
-                      Xóa bộ lọc
+                      Clear Filters
                     </button>
                   </div>
                 </div>
               </div>
 
+              {/* STATUS TABS */}
               <div className="jp-card jp-status-card">
                 <div className="jp-status-tabs">
                   {statusTabsWithCounts.map((tab) => (
@@ -518,20 +439,21 @@ export default function JobPosting() {
               <div className="jp-table-bar">
                 <div />
                 <div className="jp-export-actions">
-                  <button className="jp-btn jp-btn-outline">Xuất Excel</button>
-                  <button className="jp-btn jp-btn-primary">Tải toàn bộ</button>
+                  <button className="jp-btn jp-btn-outline">Export Excel</button>
+                  <button className="jp-btn jp-btn-primary">Download All</button>
                 </div>
               </div>
 
+              {/* TABLE DATA */}
               <div className="jp-card jp-table-card">
                 <div className="jp-table-wrapper">
                   <table className="jp-data-table">
                     <thead>
                       <tr>
-                        <th>ỨNG VIÊN</th>
-                        <th>VIỆC LÀM ỨNG TUYỂN</th>
-                        <th>TRẠNG THÁI</th>
-                        <th>NGÀY ỨNG TUYỂN</th>
+                        <th>CANDIDATE</th>
+                        <th>APPLIED JOB</th>
+                        <th>STATUS</th>
+                        <th>APPLICATION DATE</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -558,21 +480,25 @@ export default function JobPosting() {
                               <div className="jp-applicant-meta">{applicant.label}</div>
                             </td>
                             <td>
-                              <span className={`jp-status-badge jp-status-${applicant.status}`}>{STATUS_LABELS[applicant.status] || 'Không rõ'}</span>
+                              <span className={`jp-status-badge jp-status-${applicant.status}`}>
+                                {STATUS_LABELS[applicant.status] || 'Unknown'}
+                              </span>
                             </td>
-                            <td>{new Date(applicant.appliedAt).toLocaleDateString('vi-VN')}</td>
+                            <td>{new Date(applicant.appliedAt).toLocaleDateString('en-US')}</td>
                           </tr>
                         ))
                       ) : (
                         <tr>
                           <td colSpan="4" className="jp-table-empty-cell">
-                            Không tìm thấy kết quả nào.
+                            No results found.
                           </td>
                         </tr>
                       )}
                     </tbody>
                   </table>
                 </div>
+
+                {/* MODAL PROFILE */}
                 {selectedApplicant && (
                   <div className="jp-modal-overlay" onClick={closeApplicantProfile}>
                     <div className="jp-modal" onClick={(e) => e.stopPropagation()}>
@@ -588,189 +514,181 @@ export default function JobPosting() {
                       <div className="jp-modal-body">
                         <div className="jp-modal-grid">
                           <div className="jp-modal-section">
-                            <h3>Thông tin liên hệ</h3>
+                            <h3>Contact Information</h3>
                             <p><strong>Email:</strong> {selectedApplicant.email}</p>
-                            <p><strong>Điện thoại:</strong> {selectedApplicant.phone}</p>
-                            <p><strong>Trường:</strong> {selectedApplicant.school}</p>
-                            <p><strong>Chuyên ngành:</strong> {selectedApplicant.major}</p>
-                            <p><strong>Bằng cấp:</strong> {selectedApplicant.degree}</p>
+                            <p><strong>Phone:</strong> {selectedApplicant.phone}</p>
+                            <p><strong>School:</strong> {selectedApplicant.school}</p>
+                            <p><strong>Major:</strong> {selectedApplicant.major}</p>
+                            <p><strong>Degree:</strong> {selectedApplicant.degree}</p>
                           </div>
                           <div className="jp-modal-section">
-                            <h3>Hồ sơ ứng tuyển</h3>
-                            <p><strong>Vị trí ứng tuyển:</strong> {selectedApplicant.jobTitle}</p>
-                            <p><strong>Nhận diện kỹ năng:</strong> {selectedApplicant.label}</p>
-                            <p><strong>Ngôn ngữ:</strong> {selectedApplicant.language}</p>
-                            <p><strong>Kinh nghiệm:</strong> {selectedApplicant.experience}</p>
-                            <p><strong>Trạng thái:</strong> {STATUS_LABELS[selectedApplicant.status] || selectedApplicant.status}</p>
-                            <p><strong>Ngày nộp:</strong> {new Date(selectedApplicant.appliedAt).toLocaleDateString('vi-VN')}</p>
+                            <h3>Application Details</h3>
+                            <p><strong>Applied Position:</strong> {selectedApplicant.jobTitle}</p>
+                            <p><strong>Identified Skills:</strong> {selectedApplicant.label}</p>
+                            <p><strong>Language:</strong> {selectedApplicant.language}</p>
+                            <p><strong>Experience:</strong> {selectedApplicant.experience}</p>
+                            <p><strong>Status:</strong> {STATUS_LABELS[selectedApplicant.status] || selectedApplicant.status}</p>
+                            <p><strong>Date Applied:</strong> {new Date(selectedApplicant.appliedAt).toLocaleDateString('en-US')}</p>
                           </div>
                         </div>
                         <div className="jp-modal-section jp-modal-notes">
-                          <h3>Ghi chú</h3>
+                          <h3>Notes</h3>
                           <p>
-                            Mở rộng profile thực tế bằng cách tích hợp dữ liệu Candidate Profile từ hệ thống. Hiện tại đây là dữ liệu mẫu để mô phỏng luồng xem hồ sơ ứng viên.
+                            Expand the actual profile by integrating Candidate Profile data from the system. Currently, this is mock data to simulate the applicant tracking flow.
                           </p>
                         </div>
                         <div className="jp-modal-actions">
-                          <button className="jp-btn jp-btn-primary" onClick={closeApplicantProfile}>Đóng</button>
+                          <button className="jp-btn jp-btn-primary" onClick={closeApplicantProfile}>Close</button>
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
-                <div className="jp-pagination">{filteredApplicants.length} ứng viên</div>
+                <div className="jp-pagination">{filteredApplicants.length} applicants</div>
               </div>
             </>
           ) : (
             <>
+              {/* JOB POSTING STEPPER */}
               <div className="jp-stepper">
-                <div className="jp-step active">
+                <div className={`jp-step ${currentStep === 1 ? 'active' : ''}`}>
                   <div className="jp-step-number">1</div>
-                  <div className="jp-step-text">Thông tin cơ bản</div>
+                  <div className="jp-step-text">Basic Info</div>
                 </div>
-                <div className="jp-step">
+                <div className={`jp-step ${currentStep === 2 ? 'active' : ''}`}>
                   <div className="jp-step-number">2</div>
-                  <div className="jp-step-text">Thông tin chi tiết</div>
+                  <div className="jp-step-text">Details</div>
                 </div>
-                <div className="jp-step">
+                <div className={`jp-step ${currentStep === 3 ? 'active' : ''}`}>
                   <div className="jp-step-number">3</div>
-                  <div className="jp-step-text">Thông tin kích hoạt</div>
+                  <div className="jp-step-text">Plan & Post</div>
                 </div>
               </div>
 
+              {/* FORM SECTIONS */}
               <div className="jp-grid">
+                
                 <section className="jp-form-panel">
                   <div className="jp-card">
-                    <div className="jp-card-title">Thông tin cơ bản</div>
+                    <div className="jp-card-title">Job Information</div>
                     <div className="jp-card-body">
-                      <div className="jp-field">
-                        <label>Tiêu đề công việc <span>*</span></label>
-                        <input
-                          type="text"
-                          name="title"
-                          value={form.title}
-                          onChange={handleChange}
-                          placeholder="Nhập tiêu đề công việc"
-                        />
-                      </div>
 
-                      <div className="jp-field">
-                        <label>Chọn từ mẫu có sẵn</label>
-                        <select
-                          name="template"
-                          value={form.template}
-                          onChange={(e) => setTemplate(e.target.value)}
-                        >
-                          {TEMPLATES.map((item) => (
-                            <option key={item.id} value={item.id}>{item.label}</option>
-                          ))}
-                        </select>
-                      </div>
+                      {/* BƯỚC 1 */}
+                      {currentStep === 1 && (
+                        <>
+                          <div className="jp-field">
+                            <label>Job Title <span>*</span></label>
+                            <input type="text" name="title" value={form.title} onChange={handleChange} placeholder="Enter job title" />
+                          </div>
 
-                      <div className="jp-field">
-                        <label>Mô tả công việc <span>*</span></label>
-                        <textarea
-                          name="description"
-                          rows="6"
-                          value={form.description}
-                          onChange={handleChange}
-                          placeholder="Mô tả nhiệm vụ, phạm vi công việc"
-                        />
-                      </div>
+                          <div className="jp-field">
+                            <label>Select from templates</label>
+                            <select name="template" value={form.template} onChange={(e) => setTemplate(e.target.value)}>
+                              {TEMPLATES.map((item) => (
+                                <option key={item.id} value={item.id}>{item.label}</option>
+                              ))}
+                            </select>
+                          </div>
 
-                      <div className="jp-field">
-                        <label>Yêu cầu công việc <span>*</span></label>
-                        <textarea
-                          name="requirements"
-                          rows="6"
-                          value={form.requirements}
-                          onChange={handleChange}
-                          placeholder="Liệt kê kỹ năng và kinh nghiệm cần thiết"
-                        />
-                      </div>
+                          <div className="jp-field">
+                            <label>Job Description <span>*</span></label>
+                            <textarea name="description" rows="6" value={form.description} onChange={handleChange} placeholder="Describe the main tasks and scope of work" />
+                          </div>
 
-                      <div className="jp-field">
-                        <label>Quyền lợi được hưởng</label>
-                        <textarea
-                          name="benefits"
-                          rows="4"
-                          value={form.benefits}
-                          onChange={handleChange}
-                          placeholder="Mô tả phúc lợi, chế độ đãi ngộ"
-                        />
-                      </div>
+                          <div className="jp-field">
+                            <label>Job Requirements <span>*</span></label>
+                            <textarea name="requirements" rows="6" value={form.requirements} onChange={handleChange} placeholder="List necessary skills and experience" />
+                          </div>
 
-                      <div className="jp-field">
-                        <label>Email nhận CV ứng viên</label>
-                        <input
-                          type="text"
-                          name="email"
-                          value={form.email}
-                          onChange={handleChange}
-                          placeholder="ví dụ: hr@company.com"
-                        />
-                      </div>
+                          <div className="jp-field">
+                            <label>Benefits</label>
+                            <textarea name="benefits" rows="4" value={form.benefits} onChange={handleChange} placeholder="Describe perks, allowances, and benefits" />
+                          </div>
 
-                      <div className="jp-row jp-row-two">
-                        <div className="jp-field">
-                          <label>Mức lương tối thiểu</label>
-                          <input
-                            type="number"
-                            name="salary_min"
-                            value={form.salary_min}
-                            onChange={handleChange}
-                            placeholder="0"
-                          />
+                          <div className="jp-field">
+                            <label>Email to receive CVs</label>
+                            <input type="text" name="email" value={form.email} onChange={handleChange} placeholder="e.g., hr@company.com" />
+                          </div>
+                        </>
+                      )}
+
+                      {/* BƯỚC 2 */}
+                      {currentStep === 2 && (
+                        <>
+                          <div className="jp-row jp-row-two">
+                            <div className="jp-field">
+                              <label>Minimum Salary</label>
+                              <input type="number" name="salary_min" value={form.salary_min} onChange={handleChange} placeholder="0" />
+                            </div>
+                            <div className="jp-field">
+                              <label>Maximum Salary</label>
+                              <input type="number" name="salary_max" value={form.salary_max} onChange={handleChange} placeholder="0" />
+                            </div>
+                          </div>
+                          <div className="jp-row jp-row-two">
+                            <div className="jp-field">
+                              <label>Job Type</label>
+                              <select name="job_type" value={form.job_type} onChange={handleChange}>
+                                <option value="Full-time">Full-time</option>
+                                <option value="Part-time">Part-time</option>
+                                <option value="Freelance">Freelance</option>
+                              </select>
+                            </div>
+                            <div className="jp-field">
+                              <label>Application Deadline</label>
+                              <input type="date" name="deadline" value={form.deadline} onChange={handleChange} min={todayStr()} />
+                            </div>
+                          </div>
+                          <div className="jp-field">
+                            <label>Location</label>
+                            <input type="text" name="loc" value={form.loc || ''} onChange={handleChange} placeholder="e.g., Ho Chi Minh City" />
+                          </div>
+                        </>
+                      )}
+
+                      {/* BƯỚC 3 */}
+                      {currentStep === 3 && (
+                        <div className="jp-pricing-plans">
+                          <h3>Select your posting plan</h3>
+                          <div className="plan-card">
+                            <h4>FREE Plan</h4>
+                            <p>Post up to 2 jobs for new members</p>
+                            <input type="radio" name="plan" value="free" defaultChecked />
+                          </div>
+                          <div className="plan-card premium">
+                            <h4>GOLD Plan</h4>
+                            <p>Post 10 featured jobs per day</p>
+                            <input type="radio" name="plan" value="gold" />
+                          </div>
                         </div>
-                        <div className="jp-field">
-                          <label>Mức lương tối đa</label>
-                          <input
-                            type="number"
-                            name="salary_max"
-                            value={form.salary_max}
-                            onChange={handleChange}
-                            placeholder="0"
-                          />
-                        </div>
-                      </div>
+                      )}
+                    </div> {/* Đóng jp-card-body */}
+                  </div> {/* Đóng jp-card */}
 
-                      <div className="jp-row jp-row-two">
-                        <div className="jp-field">
-                          <label>Hình thức làm việc</label>
-                          <select name="job_type" value={form.job_type} onChange={handleChange}>
-                            <option value="Full-time">Full-time</option>
-                            <option value="Part-time">Part-time</option>
-                            <option value="Freelance">Freelance</option>
-                          </select>
-                        </div>
-                        <div className="jp-field">
-                          <label>Hạn nộp hồ sơ</label>
-                          <input
-                            type="date"
-                            name="deadline"
-                            value={form.deadline}
-                            onChange={handleChange}
-                            min={todayStr()}
-                          />
-                        </div>
-                      </div>
+                  {/* BUTTON ACTIONS */}
+                  <div className="jp-actions">
+                    {currentStep > 1 && (
+                      <button type="button" className="jp-btn jp-btn-cancel" onClick={() => setCurrentStep(prev => prev - 1)}>
+                        Back
+                      </button>
+                    )}
 
-                      <div className="jp-actions">
-                        <button type="button" className="jp-btn jp-btn-cancel" onClick={handleReset}>
-                          Hủy bỏ
-                        </button>
-                        <button type="button" className="jp-btn jp-btn-primary" onClick={handleSubmit} disabled={loading}>
-                          {loading ? 'Đang tạo...' : 'Tạo công việc'}
-                        </button>
-                      </div>
-                    </div>
+                    {currentStep < 3 ? (
+                      <button type="button" className="jp-btn jp-btn-primary" onClick={() => setCurrentStep(prev => prev + 1)}>
+                        Next
+                      </button>
+                    ) : (
+                      <button type="button" className="jp-btn jp-btn-primary" onClick={handleSubmit} disabled={loading}>
+                        {loading ? "Creating..." : "Confirm & Post Job"}
+                      </button>
+                    )}
                   </div>
 
                   {postedJobId && (
                     <div className="jp-card jp-card-fit">
-                      <div className="jp-card-title">Hoàn tất</div>
+                      <div className="jp-card-title">Completed</div>
                       <div className="jp-card-body">
-                        Tin tuyển dụng đã được tạo. Bấm tiếp tục để thêm kỹ năng yêu cầu cho công việc.
+                        Job posting has been created. Continue to add required skills below.
                       </div>
                     </div>
                   )}
@@ -780,18 +698,17 @@ export default function JobPosting() {
 
                 <aside className="jp-guide-panel">
                   <div className="jp-guide-card">
-                    <div className="jp-guide-title">Hướng dẫn</div>
+                    <div className="jp-guide-title">Guidelines</div>
                     <ul>
-                      <li>Mô tả nhiệm vụ chính, yêu cầu kỹ năng, kinh nghiệm và địa điểm làm việc.</li>
-                      <li>Không nên dùng icon, biểu tượng, chỉ văn bản rõ ràng.</li>
-                      <li>Phần yêu cầu cần ít nhất 3 thông tin cụ thể.</li>
-                      <li>Quyền lợi nên ghi rõ: lương, thưởng, đãi ngộ.</li>
+                      <li>Describe the main tasks, required skills, and location clearly.</li>
+                      <li>Avoid using excessive emojis or icons; keep text professional.</li>
+                      <li>List at least 3 specific requirements.</li>
+                      <li>Clearly state benefits such as salary and allowances.</li>
                     </ul>
                   </div>
                   <div className="jp-guide-card jp-hint-card">
-                    <div className="jp-guide-title">Gợi ý JD</div>
-                    <p>Nếu có mẫu tin tuyển trước đó, chọn mẫu để tự động điền nội dung.</p>
-                    <p>Em sẽ tiếp tục mở rộng thành các bước chi tiết giống JobsGO nếu cần.</p>
+                    <div className="jp-guide-title">JD Suggestions</div>
+                    <p>Select a template to auto-fill job descriptions based on standard industry roles.</p>
                   </div>
                 </aside>
               </div>
