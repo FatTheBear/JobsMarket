@@ -104,7 +104,6 @@ const CandidateEducation = ({
                   value={educationForm.degree}
                   onChange={(e) => setEducationForm({ ...educationForm, degree: e.target.value })}
                   placeholder="e.g. Software Engineering"
-                  required
                 />
               </div>
               <div>
@@ -115,7 +114,6 @@ const CandidateEducation = ({
                   value={educationForm.school}
                   onChange={(e) => setEducationForm({ ...educationForm, school: e.target.value })}
                   placeholder="e.g. FPT Aptech"
-                  required
                 />
               </div>
               <div className="row g-3">
