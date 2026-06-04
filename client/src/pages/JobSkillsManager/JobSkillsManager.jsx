@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import './JobSkillsManager.css'; // Sửa lại đúng tên file CSS trên máy của bạn
+import './JobSkillsManager.css';
 
 const API_URL = 'http://localhost:5000';
 
@@ -11,7 +11,6 @@ export default function JobSkillsManager({ jobId }) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   
-  // State phục vụ việc tìm kiếm và hiển thị gợi ý (Autocomplete)
   const [inputValue, setInputValue] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -25,7 +24,6 @@ export default function JobSkillsManager({ jobId }) {
     if (jobId) fetchJobSkills(jobId);
   }, [jobId]);
 
-  // Đóng dropdown khi click ra ngoài vùng click của component
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
@@ -36,13 +34,11 @@ export default function JobSkillsManager({ jobId }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Lọc danh sách gợi ý tự động dựa trên những gì người dùng đang nhập
   useEffect(() => {
     const jobSkillIds = jobSkills.map(js => js.id);
     const availableSkills = allSkills.filter(skill => !jobSkillIds.includes(skill.id));
 
     if (inputValue.trim() === '') {
-      // Hiển thị tối đa 6 kỹ năng mặc định khi chưa nhập gì
       setSuggestions(availableSkills.slice(0, 6));
     } else {
       const filtered = availableSkills.filter(skill =>
@@ -70,19 +66,15 @@ export default function JobSkillsManager({ jobId }) {
     }
   };
 
-  // Tạo kỹ năng hoàn toàn mới nếu hệ thống chưa có
   const handleCreateSkill = async () => {
     if (!newSkill.trim()) return;
     try {
       setLoading(true);
       const payload = { name: newSkill.trim() };
       const response = await axios.post(`${API_URL}/api/skills`, payload);
-      
       setNewSkill('');
       await fetchAllSkills();
       setMessage('Thêm kỹ năng mới thành công');
-      
-      // Nếu có jobId, tự động gán luôn kỹ năng vừa tạo vào công việc này
       if (jobId && response.data && response.data.id) {
         await handleAddSkill(response.data.id);
       }
@@ -106,7 +98,6 @@ export default function JobSkillsManager({ jobId }) {
       setTimeout(() => setMessage(''), 2500);
     } catch (error) {
       console.error('Thêm kỹ năng thất bại:', error);
-      setMessage('Thêm kỹ năng thất bại');
     }
   };
 
@@ -119,7 +110,6 @@ export default function JobSkillsManager({ jobId }) {
       setTimeout(() => setMessage(''), 2500);
     } catch (error) {
       console.error('Xóa kỹ năng thất bại:', error);
-      setMessage('Xóa kỹ năng thất bại');
     }
   };
 
@@ -134,8 +124,6 @@ export default function JobSkillsManager({ jobId }) {
       </div>
 
       <div className="skill-manager-body">
-        
-        {/* Khung chứa các thẻ tag đã chọn và ô nhập input gộp chung */}
         <div className="skills-input-tags-wrapper">
           <div className="tags-flex-container">
             {jobSkills.map((skill) => (
@@ -153,15 +141,25 @@ export default function JobSkillsManager({ jobId }) {
             
             <input
               type="text"
-              placeholder={jobSkills.length === 0 ? "Tìm kiếm kỹ năng (Ví dụ: ReactJS, Java...)" : ""}
+              placeholder={jobSkills.length === 0 ? "Tìm kiếm kỹ năng..." : ""}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onFocus={() => setIsOpen(true)}
               className="skills-autocomplete-input"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && inputValue.trim() !== '') {
+                  e.preventDefault();
+                  if (suggestions.length > 0) {
+                    handleAddSkill(suggestions[0].id);
+                  } else {
+                    setNewSkill(inputValue.trim());
+                    setIsOpen(false);
+                  }
+                }
+              }}
             />
           </div>
 
-          {/* Menu thả xuống hiển thị danh sách gợi ý */}
           {isOpen && suggestions.length > 0 && (
             <ul className="skills-autocomplete-dropdown">
               <li className="dropdown-section-title">Kỹ năng gợi ý</li>
@@ -177,7 +175,6 @@ export default function JobSkillsManager({ jobId }) {
             </ul>
           )}
 
-          {/* Trường hợp không tìm thấy từ khóa nào sẵn có */}
           {isOpen && suggestions.length === 0 && inputValue.trim() !== '' && (
             <ul className="skills-autocomplete-dropdown">
               <li className="dropdown-section-title">Không tìm thấy kỹ năng phù hợp</li>
@@ -191,7 +188,6 @@ export default function JobSkillsManager({ jobId }) {
           )}
         </div>
 
-        {/* Khung tạo mới kỹ năng xuất hiện khi nhấn tạo từ ô gợi ý */}
         {(newSkill.trim() || (isOpen && suggestions.length === 0 && inputValue.trim() !== '')) && (
           <div className="skill-manager-form">
             <input
