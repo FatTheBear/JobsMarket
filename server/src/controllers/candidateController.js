@@ -71,6 +71,39 @@ const candidateController = {
             console.error(error);
             return res.status(500).json({ message: "Internal server error!" });
         }
+    },
+
+    // Lấy thông tin public của candidate bằng profile ID
+    getPublicProfile: async (req, res) => {
+        try {
+            const profileId = req.params.id;
+            const profile = await CandidateProfileModel.findByProfileId(profileId);
+
+            if (!profile) {
+                return res.status(404).json({ message: "Candidate profile not found!" });
+            }
+
+            // Parse các trường JSON
+            if (profile.skills && typeof profile.skills === 'string') {
+                profile.skills = JSON.parse(profile.skills);
+            }
+            if (profile.education && typeof profile.education === 'string') {
+                profile.education = JSON.parse(profile.education);
+            }
+
+            // Kiểm tra tính riêng tư của Profile
+            const isOwner = req.user && req.user.id === profile.user_id;
+            const isAdmin = req.user && req.user.role === 'Admin';
+            
+            if (!profile.is_public && !isOwner && !isAdmin) {
+                return res.status(403).json({ message: "This profile is private." });
+            }
+
+            return res.status(200).json(profile);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Internal server error!" });
+        }
     }
 };
 

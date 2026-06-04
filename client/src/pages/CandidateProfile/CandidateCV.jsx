@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const CandidateCV = ({ cvFile, setCvFile, setModalError }) => {
-  const handleCvUpload = (e) => {
-    setModalError('');
-    const file = e.target.files[0];
+  const [isDragging, setIsDragging] = useState(false);
+
+  const processFile = (file) => {
     if (!file) return;
+    setModalError('');
 
     const allowedTypes = [
       'application/pdf',
@@ -13,11 +14,13 @@ const CandidateCV = ({ cvFile, setCvFile, setModalError }) => {
     ];
     const fileExt = file.name.split('.').pop().toLowerCase();
     
+    // Check both mime type and file extension for maximum compatibility
     if (!allowedTypes.includes(file.type) && !['pdf', 'doc', 'docx'].includes(fileExt)) {
       setModalError("Invalid file type! Only PDF, DOC, or DOCX files are allowed.");
       return;
     }
 
+    // Size limit verification: 10MB
     if (file.size > 10 * 1024 * 1024) {
       setModalError("File size exceeds 10MB! Please upload a smaller document.");
       return;
@@ -36,6 +39,28 @@ const CandidateCV = ({ cvFile, setCvFile, setModalError }) => {
       localStorage.setItem('candidate_cv', JSON.stringify(cvObj));
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleCvUpload = (e) => {
+    const file = e.target.files[0];
+    processFile(file);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    processFile(file);
   };
 
   const handleCvDelete = () => {
@@ -71,8 +96,20 @@ const CandidateCV = ({ cvFile, setCvFile, setModalError }) => {
           </div>
         </div>
       ) : (
-        <div className="p-5 border border-2 rounded-3 text-center bg-light hover-bg-light-dark transition-all" style={{ borderStyle: 'dashed', cursor: 'pointer' }} onClick={() => document.getElementById('cvFileInput').click()}>
-          <i className="fas fa-cloud-upload-alt text-primary fs-1 mb-3"></i>
+        <div 
+          className="p-5 border border-2 rounded-3 text-center transition-all" 
+          style={{ 
+            borderStyle: 'dashed', 
+            cursor: 'pointer',
+            borderColor: isDragging ? '#22c55e' : '#cbd5e1',
+            backgroundColor: isDragging ? '#f0fdf4' : '#f8fafc'
+          }} 
+          onClick={() => document.getElementById('cvFileInput').click()}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          <i className={`fas fa-cloud-upload-alt fs-1 mb-3 transition-all ${isDragging ? 'text-success scale-110' : 'text-primary'}`}></i>
           <h6 className="fw-bold text-dark mb-1">Drag and drop your CV here, or click to browse</h6>
           <p className="text-secondary small mb-0">Supports PDF, DOC, DOCX formats up to 10MB</p>
           <input

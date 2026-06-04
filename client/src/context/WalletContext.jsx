@@ -2,12 +2,13 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 const WalletContext = createContext();
-const API_URL = 'http://localhost:5000/api/wallet'; // Hãy điều chỉnh theo cổng Backend của bạn
+const API_URL = 'http://localhost:5000/api/wallet';
 
 export function WalletProvider({ children }) {
   const [coins, setCoins] = useState(0);
   const [showWallet, setShowWallet] = useState(false);
   const [transactions, setTransactions] = useState([]);
+  const [coinFees, setCoinFees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [bankAccount, setBankAccount] = useState({
     linked: false,
@@ -16,13 +17,11 @@ export function WalletProvider({ children }) {
     accountName: ''
   });
 
-  // Cấu hình Header chứa Token gửi lên server để xác thực
   const getAuthHeader = () => {
     const token = localStorage.getItem('token');
     return { headers: { Authorization: `Bearer ${token}` } };
   };
 
-  // 1. Tải thông tin ví (Số dư xu & Ngân hàng liên kết) từ Database
   const fetchWalletInfo = async () => {
     try {
       setLoading(true);
@@ -39,58 +38,68 @@ export function WalletProvider({ children }) {
         setBankAccount({ linked: false, bankName: '', accountNumber: '', accountName: '' });
       }
     } catch (error) {
-      console.error("Failed to load wallet data:", error.response?.data?.message || error.message);
+      console.error("Failed to load wallet data:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // 2. Tải lịch sử giao dịch từ Database
   const fetchTransactions = async () => {
     try {
       const res = await axios.get(`${API_URL}/transactions`, getAuthHeader());
       setTransactions(res.data);
     } catch (error) {
-      console.error("Failed to load transaction history:", error.response?.data?.message || error.message);
+      console.error("Failed to load transaction history:", error);
     }
   };
 
-  // 3. API Nạp tiền & lưu trực tiếp vào cơ sở dữ liệu
-  const rechargeCoins = async (amountCoins, price, method) => {
+  const fetchCoinFees = async () => {
     try {
-      const payload = { coins: amountCoins, amountFiat: price, method };
-      const res = await axios.post(`${API_URL}/topup`, payload, getAuthHeader());
+      const res = await axios.get(`${API_URL}/coin-fees`, getAuthHeader());
+      setCoinFees(res.data);
+    } catch (error) {
+      console.error("Failed to load coin fees:", error);
+    }
+  };
 
-      // Cập nhật lại giao diện ngay sau khi nạp thành công
+  const createPayPalOrder = async (feeId) => {
+    try {
+      const res = await axios.post(`${API_URL}/paypal/create-order`, { feeId }, getAuthHeader());
+      return res.data.id; // Trả về orderID cho PayPal SDK
+    } catch (error) {
+      console.error("Failed to create PayPal order:", error);
+      throw error;
+    }
+  };
+
+  const capturePayPalOrder = async (orderID) => {
+    try {
+      const res = await axios.post(`${API_URL}/paypal/capture-order`, { orderID }, getAuthHeader());
       await fetchWalletInfo();
       await fetchTransactions();
-
-      alert(res.data.message);
+      return res.data;
     } catch (error) {
-      alert("Top-up failed: " + (error.response?.data?.message || error.message));
+      console.error("Failed to capture PayPal order:", error);
+      throw error;
     }
   };
 
-  // 4. API Liên kết ngân hàng
   const linkBankAccount = async (bankDetails) => {
     try {
       const res = await axios.post(`${API_URL}/link-bank`, bankDetails, getAuthHeader());
-
-      // Reload lại thông tin ví từ DB
       await fetchWalletInfo();
-
       alert(res.data.message);
     } catch (error) {
       alert("Bank account linking failed: " + (error.response?.data?.message || error.message));
     }
   };
 
-  // Tự động tải dữ liệu khi Token thay đổi (Người dùng đăng nhập hoặc đổi tài khoản)
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
       fetchWalletInfo();
       fetchTransactions();
+      fetchCoinFees();
     }
   }, []);
 
@@ -100,11 +109,14 @@ export function WalletProvider({ children }) {
       showWallet,
       setShowWallet,
       transactions,
+      coinFees,
       bankAccount,
       loading,
       fetchWalletInfo,
       fetchTransactions,
-      rechargeCoins,
+      fetchCoinFees,
+      createPayPalOrder,
+      capturePayPalOrder,
       linkBankAccount
     }}>
       {children}

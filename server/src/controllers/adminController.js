@@ -1,4 +1,5 @@
 const db = require('../config/db'); 
+const CoinExchangeFeeModel = require('../models/CoinExchangeFee');
 
 // 1. Lấy dữ liệu tổng quan (Đồng bộ chuẩn db.query)
 exports.getStats = async (req, res) => {
@@ -355,5 +356,48 @@ exports.deleteIndustry = async (req, res) => {
     } catch (error) {
         console.error("DELETE INDUSTRY ERROR:", error);
         res.status(500).json({ message: "Error deleting industry" });
+    }
+};
+
+// =========================================================
+// COIN EXCHANGE FEES
+// =========================================================
+
+exports.getCoinFees = async (req, res) => {
+    try {
+        const fees = await CoinExchangeFeeModel.getAll();
+        res.json(fees);
+    } catch (error) {
+        console.error("GET COIN FEES ERROR:", error);
+        res.status(500).json({ message: "Error fetching coin packages", error: error.message });
+    }
+};
+
+exports.createCoinFee = async (req, res) => {
+    try {
+        const result = await CoinExchangeFeeModel.create(req.body);
+        res.status(201).json({ message: "Coin package created successfully", fee: result });
+    } catch (error) {
+        res.status(500).json({ message: "Error creating coin package", error: error.message });
+    }
+};
+
+exports.updateCoinFee = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await CoinExchangeFeeModel.update(id, req.body);
+        res.json({ message: "Coin package updated successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Error updating coin package", error: error.message });
+    }
+};
+
+exports.deleteCoinFee = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await CoinExchangeFeeModel.delete(id);
+        res.json({ message: "Coin package deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ message: "Error deleting coin package", error: error.message });
     }
 };
