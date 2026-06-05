@@ -385,6 +385,10 @@ export default function JobPosting() {
 
   return (
     <div className="job-posting-page">
+      {/* Toast */}
+      <div className={`jp-toast ${toast.show ? 'show' : ''} ${toast.type}`}>
+        {toast.type === 'success' ? '✅' : '❌'} {toast.message}
+      </div>
       <div className="job-posting-shell">
         <aside className="jp-sidebar">
           <div className="jp-sidebar-brand">JobsMarket</div>
@@ -640,142 +644,156 @@ export default function JobPosting() {
 
               <div className="jp-grid">
                 <section className="jp-form-panel">
-                  <div className="jp-card">
-                    <div className="jp-card-title">Thông tin cơ bản</div>
-                    <div className="jp-card-body">
-                      <div className="jp-field">
-                        <label>Tiêu đề công việc <span>*</span></label>
-                        <input
-                          type="text"
-                          name="title"
-                          value={form.title}
-                          onChange={handleChange}
-                          placeholder="Nhập tiêu đề công việc"
-                        />
-                      </div>
-
-                      <div className="jp-field">
-                        <label>Chọn từ mẫu có sẵn</label>
-                        <select
-                          name="template"
-                          value={form.template}
-                          onChange={(e) => setTemplate(e.target.value)}
-                        >
-                          {TEMPLATES.map((item) => (
-                            <option key={item.id} value={item.id}>{item.label}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="jp-field">
-                        <label>Mô tả công việc <span>*</span></label>
-                        <textarea
-                          name="description"
-                          rows="6"
-                          value={form.description}
-                          onChange={handleChange}
-                          placeholder="Mô tả nhiệm vụ, phạm vi công việc"
-                        />
-                      </div>
-
-                      <div className="jp-field">
-                        <label>Yêu cầu công việc <span>*</span></label>
-                        <textarea
-                          name="requirements"
-                          rows="6"
-                          value={form.requirements}
-                          onChange={handleChange}
-                          placeholder="Liệt kê kỹ năng và kinh nghiệm cần thiết"
-                        />
-                      </div>
-
-                      <div className="jp-field">
-                        <label>Quyền lợi được hưởng</label>
-                        <textarea
-                          name="benefits"
-                          rows="4"
-                          value={form.benefits}
-                          onChange={handleChange}
-                          placeholder="Mô tả phúc lợi, chế độ đãi ngộ"
-                        />
-                      </div>
-
-                      <div className="jp-field">
-                        <label>Email nhận CV ứng viên</label>
-                        <input
-                          type="text"
-                          name="email"
-                          value={form.email}
-                          onChange={handleChange}
-                          placeholder="ví dụ: hr@company.com"
-                        />
-                      </div>
-
-                      <div className="jp-row jp-row-two">
+                  {!postedJobId ? (
+                    <div className="jp-card">
+                      <div className="jp-card-title">Thông tin cơ bản</div>
+                      <div className="jp-card-body">
                         <div className="jp-field">
-                          <label>Mức lương tối thiểu</label>
+                          <label>Tiêu đề công việc <span>*</span></label>
                           <input
-                            type="number"
-                            name="salary_min"
-                            value={form.salary_min}
+                            type="text"
+                            name="title"
+                            value={form.title}
                             onChange={handleChange}
-                            placeholder="0"
+                            placeholder="Nhập tiêu đề công việc"
                           />
                         </div>
-                        <div className="jp-field">
-                          <label>Mức lương tối đa</label>
-                          <input
-                            type="number"
-                            name="salary_max"
-                            value={form.salary_max}
-                            onChange={handleChange}
-                            placeholder="0"
-                          />
-                        </div>
-                      </div>
 
-                      <div className="jp-row jp-row-two">
                         <div className="jp-field">
-                          <label>Hình thức làm việc</label>
-                          <select name="job_type" value={form.job_type} onChange={handleChange}>
-                            <option value="Full-time">Full-time</option>
-                            <option value="Part-time">Part-time</option>
-                            <option value="Freelance">Freelance</option>
+                          <label>Chọn từ mẫu có sẵn</label>
+                          <select
+                            name="template"
+                            value={form.template}
+                            onChange={(e) => setTemplate(e.target.value)}
+                          >
+                            {TEMPLATES.map((item) => (
+                              <option key={item.id} value={item.id}>{item.label}</option>
+                            ))}
                           </select>
                         </div>
+
                         <div className="jp-field">
-                          <label>Hạn nộp hồ sơ</label>
-                          <input
-                            type="date"
-                            name="deadline"
-                            value={form.deadline}
+                          <label>Mô tả công việc <span>*</span></label>
+                          <textarea
+                            name="description"
+                            rows="6"
+                            value={form.description}
                             onChange={handleChange}
-                            min={todayStr()}
+                            placeholder="Mô tả nhiệm vụ, phạm vi công việc"
                           />
+                        </div>
+
+                        <div className="jp-field">
+                          <label>Yêu cầu công việc <span>*</span></label>
+                          <textarea
+                            name="requirements"
+                            rows="6"
+                            value={form.requirements}
+                            onChange={handleChange}
+                            placeholder="Liệt kê kỹ năng và kinh nghiệm cần thiết"
+                          />
+                        </div>
+
+                        <div className="jp-field">
+                          <label>Quyền lợi được hưởng</label>
+                          <textarea
+                            name="benefits"
+                            rows="4"
+                            value={form.benefits}
+                            onChange={handleChange}
+                            placeholder="Mô tả phúc lợi, chế độ đãi ngộ"
+                          />
+                        </div>
+
+                        <div className="jp-field">
+                          <label>Email nhận CV ứng viên</label>
+                          <input
+                            type="text"
+                            name="email"
+                            value={form.email}
+                            onChange={handleChange}
+                            placeholder="ví dụ: hr@company.com"
+                          />
+                        </div>
+
+                        <div className="jp-row jp-row-two">
+                          <div className="jp-field">
+                            <label>Mức lương tối thiểu</label>
+                            <input
+                              type="number"
+                              name="salary_min"
+                              value={form.salary_min}
+                              onChange={handleChange}
+                              placeholder="0"
+                            />
+                          </div>
+                          <div className="jp-field">
+                            <label>Mức lương tối đa</label>
+                            <input
+                              type="number"
+                              name="salary_max"
+                              value={form.salary_max}
+                              onChange={handleChange}
+                              placeholder="0"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="jp-row jp-row-two">
+                          <div className="jp-field">
+                            <label>Hình thức làm việc</label>
+                            <select name="job_type" value={form.job_type} onChange={handleChange}>
+                              <option value="Full-time">Full-time</option>
+                              <option value="Part-time">Part-time</option>
+                              <option value="Freelance">Freelance</option>
+                            </select>
+                          </div>
+                          <div className="jp-field">
+                            <label>Hạn nộp hồ sơ</label>
+                            <input
+                              type="date"
+                              name="deadline"
+                              value={form.deadline}
+                              onChange={handleChange}
+                              min={todayStr()}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="jp-actions">
+                          <button type="button" className="jp-btn jp-btn-cancel" onClick={handleReset}>
+                            Hủy bỏ
+                          </button>
+                          <button type="button" className="jp-btn jp-btn-primary" onClick={handleSubmit} disabled={loading}>
+                            {loading ? 'Đang tạo...' : 'Tạo công việc'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="jp-card jp-card-fit">
+                        <div className="jp-card-title">🎉 Đăng tin thành công!</div>
+                        <div className="jp-card-body" style={{ color: '#00b14f', fontWeight: '500' }}>
+                          Tin tuyển dụng đã được tạo thành công. Vui lòng thêm các kỹ năng yêu cầu cho công việc bên dưới.
                         </div>
                       </div>
 
-                      <div className="jp-actions">
-                        <button type="button" className="jp-btn jp-btn-cancel" onClick={handleReset}>
-                          Hủy bỏ
-                        </button>
-                        <button type="button" className="jp-btn jp-btn-primary" onClick={handleSubmit} disabled={loading}>
-                          {loading ? 'Đang tạo...' : 'Tạo công việc'}
+                      <JobSkillsManager jobId={postedJobId} />
+                      
+                      <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                        <button 
+                          className="jp-btn jp-btn-primary" 
+                          onClick={() => {
+                            handleReset();
+                            setActiveSection('applicants');
+                          }}
+                        >
+                          Hoàn tất & Về trang danh sách
                         </button>
                       </div>
-                    </div>
-                  </div>
-
-                  {postedJobId && (
-                    <div className="jp-card jp-card-fit">
-                      <div className="jp-card-title">Hoàn tất</div>
-                      <div className="jp-card-body">
-                        Tin tuyển dụng đã được tạo. Bấm tiếp tục để thêm kỹ năng yêu cầu cho công việc.
-                      </div>
-                    </div>
+                    </>
                   )}
-
-                  {postedJobId && <JobSkillsManager jobId={postedJobId} />}
                 </section>
 
                 <aside className="jp-guide-panel">

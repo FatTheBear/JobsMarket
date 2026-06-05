@@ -96,24 +96,31 @@ export default function JobDetail() {
       </div>
 
       <div className="job-header-card">
-        <div className="job-header-info">
-          <h1>{job.title}</h1>
-          <div className="company-name">{job.company_name}</div>
-          <div className="job-meta">
-            <div className="job-meta-item">
-              <span>💰</span> {job.salary_min && job.salary_max ? `${job.salary_min} - ${job.salary_max} VNĐ` : 'Thỏa thuận'}
-            </div>
-            <div className="job-meta-item">
-              <span>📍</span> Hồ Chí Minh
-            </div>
-            <div className="job-meta-item">
-              <span>⏳</span> Hạn nộp: {new Date(job.deadline).toLocaleDateString('vi-VN')}
+        <div className="job-header-inner">
+          <div className="job-header-info">
+            <h1>{job.title}</h1>
+            <div className="company-name">{job.company_name}</div>
+            <div className="job-meta">
+              <div className="job-meta-item">
+                <span>💰</span> {
+                  (job.salary_min && job.salary_max) 
+                    ? `${(job.salary_min / 1000000).toLocaleString('vi-VN')} - ${(job.salary_max / 1000000).toLocaleString('vi-VN')} triệu VNĐ`
+                    : (job.salary_min ? `Từ ${(job.salary_min / 1000000).toLocaleString('vi-VN')} triệu VNĐ` : 
+                      (job.salary_max ? `Đến ${(job.salary_max / 1000000).toLocaleString('vi-VN')} triệu VNĐ` : 'Thỏa thuận'))
+                }
+              </div>
+              <div className="job-meta-item">
+                <span>📍</span> {job.company_address || 'Hồ Chí Minh'}
+              </div>
+              <div className="job-meta-item">
+                <span>⏳</span> Hạn nộp: {new Date(job.deadline).toLocaleDateString('vi-VN')}
+              </div>
             </div>
           </div>
+          <button className="apply-btn" onClick={handleApplyClick}>
+            Ứng tuyển ngay
+          </button>
         </div>
-        <button className="apply-btn" onClick={handleApplyClick}>
-          Ứng tuyển ngay
-        </button>
       </div>
 
       <div className="job-content-grid">
@@ -133,10 +140,10 @@ export default function JobDetail() {
             {job.logo_url ? (
               <img src={job.logo_url} alt="Company Logo" className="company-logo" />
             ) : (
-              <div className="company-logo" style={{ background: '#e2e8f0', display: 'inline-block' }}></div>
+              <div className="company-logo-placeholder">🏢</div>
             )}
             <h3>{job.company_name}</h3>
-            {job.company_website && <p><a href={job.company_website} target="_blank" rel="noreferrer">Website công ty</a></p>}
+            {job.company_website && <a href={job.company_website} target="_blank" rel="noreferrer" className="company-website-btn">Website công ty</a>}
           </div>
         </div>
       </div>

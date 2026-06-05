@@ -705,3 +705,33 @@
     width: 100%;
   }
 }
+.jp-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 9999;
+  transform: translateX(120%);
+  transition: transform 0.3s ease;
+}
+
+.jp-toast.show {
+  transform: translateX(0);
+}
+
+.jp-toast.success {
+  border-left: 4px solid #00b14f;
+  color: #00b14f;
+}
+
+.jp-toast.error {
+  border-left: 4px solid #dc3545;
+  color: #dc3545;
+}
