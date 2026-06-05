@@ -435,7 +435,7 @@ exports.getTransactions = async (req, res) => {
         const [transactions] = await db.query(query);
         res.json(transactions);
     } catch (error) {
-        console.error("❌ Lỗi tại getTransactions:", error.message);
+        console.error("Lỗi tại getTransactions:", error.message);
         res.status(500).json({ message: error.message });
     }
 };
@@ -479,7 +479,7 @@ exports.updateTransactionStatus = async (req, res) => {
                 "UPDATE `User` SET coins = coins + ? WHERE id = ?",
                 [transaction.coins, transaction.user_id]
             );
-            console.log(`✅ Đã cộng ${transaction.coins} xu cho User ID: ${transaction.user_id}`);
+            console.log(`Đã cộng ${transaction.coins} xu cho User ID: ${transaction.user_id}`);
         }
 
         await connection.commit();
@@ -490,7 +490,7 @@ exports.updateTransactionStatus = async (req, res) => {
     } catch (error) {
         await connection.rollback();
         connection.release();
-        console.error("❌ Lỗi tại updateTransactionStatus:", error.message);
+        console.error("Lỗi tại updateTransactionStatus:", error.message);
         res.status(500).json({ message: error.message });
     }
 };
