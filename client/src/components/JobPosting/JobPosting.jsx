@@ -386,6 +386,11 @@ export default function JobPosting() {
 
   return (
     <div className="job-posting-page">
+      {/* Toast Notification */}
+      <div className={`jp-toast ${toast.show ? 'show' : ''} ${toast.type}`}>
+        {toast.message}
+      </div>
+
       <div className="job-posting-shell">
         <aside className="jp-sidebar">
           <div className="jp-sidebar-brand">JobsMarket</div>
@@ -640,8 +645,38 @@ export default function JobPosting() {
               </div>
 
               <div className="jp-grid">
-                <section className="jp-form-panel">
-                  <div className="jp-card">
+                {postedJobId ? (
+                  <section className="jp-form-panel">
+                    <div className="jp-card jp-card-fit">
+                      <div className="jp-card-title">🎉 Đăng tin thành công!</div>
+                      <div className="jp-card-body">
+                        Tin tuyển dụng của bạn đã được đăng. Hãy thêm các kỹ năng yêu cầu (Job Skills) để ứng viên có thể dễ dàng tìm kiếm.
+                      </div>
+                    </div>
+                    <JobSkillsManager jobId={postedJobId} />
+                    <div className="jp-actions" style={{ marginTop: '20px' }}>
+                      <button 
+                        type="button" 
+                        className="jp-btn jp-btn-outline" 
+                        onClick={() => {
+                          setPostedJobId(null);
+                          handleReset();
+                        }}
+                      >
+                        Đăng tin khác
+                      </button>
+                      <button 
+                        type="button" 
+                        className="jp-btn jp-btn-primary" 
+                        onClick={() => window.location.href = '/company-profile'}
+                      >
+                        Hoàn tất & Về Profile
+                      </button>
+                    </div>
+                  </section>
+                ) : (
+                  <section className="jp-form-panel">
+                    <div className="jp-card">
                     <div className="jp-card-title">Thông tin cơ bản</div>
                     <div className="jp-card-body">
                       <div className="jp-field">
@@ -764,20 +799,10 @@ export default function JobPosting() {
                           {loading ? 'Đang tạo...' : 'Tạo công việc'}
                         </button>
                       </div>
-                    </div>
-                  </div>
-
-                  {postedJobId && (
-                    <div className="jp-card jp-card-fit">
-                      <div className="jp-card-title">Hoàn tất</div>
-                      <div className="jp-card-body">
-                        Tin tuyển dụng đã được tạo. Bấm tiếp tục để thêm kỹ năng yêu cầu cho công việc.
                       </div>
                     </div>
-                  )}
-
-                  {postedJobId && <JobSkillsManager jobId={postedJobId} />}
-                </section>
+                  </section>
+                )}
 
                 <aside className="jp-guide-panel">
                   <div className="jp-guide-card">
