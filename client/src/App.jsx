@@ -90,15 +90,6 @@ const router = createBrowserRouter([
     path: "/job-posting",
     element: <JobPosting />
   },
-  {
-    path: "/job-skills",
-    element: (
-      <div style={{ maxWidth: 820, margin: '40px auto', padding: '0 20px' }}>
-        <h1 style={{ fontFamily: 'Inter,sans-serif', marginBottom: 24 }}>🎯 Job Skills Manager</h1>
-        <JobSkillsManager jobId={null} />
-      </div>
-    )
-  },
   { 
     path: "/search-jobs", 
     element: <SearchJobs /> 
