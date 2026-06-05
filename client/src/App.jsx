@@ -16,6 +16,7 @@ import Register from './pages/Authentication/Register';
 import UserDashboard from './pages/DashBoard/UserDashboard/UserDashboard';
 import SetupProfilePage from './pages/SetupProfilePage/SetupProfilePage';
 import SearchJobs from './pages/SearchJobs/SearchJobs';
+import JobDetail from './pages/JobDetail/JobDetail';
 
 import './App.css';
 
@@ -101,6 +102,10 @@ const router = createBrowserRouter([
   { 
     path: "/search-jobs", 
     element: <SearchJobs /> 
+  },
+  {
+    path: "/job/:id",
+    element: <JobDetail />
   },
 
   { path: "*", element: <div>404</div> }

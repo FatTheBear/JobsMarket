@@ -1,0 +1,241 @@
+.job-detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  font-family: 'Inter', sans-serif;
+  background-color: #f4f7f6;
+  min-height: 100vh;
+}
+
+.job-header-card {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  margin-bottom: 24px;
+}
+
+.job-header-info h1 {
+  font-size: 28px;
+  color: #1a202c;
+  margin: 0 0 10px 0;
+}
+
+.company-name {
+  font-size: 18px;
+  color: #4a5568;
+  margin-bottom: 16px;
+  font-weight: 500;
+}
+
+.job-meta {
+  display: flex;
+  gap: 20px;
+  color: #718096;
+  font-size: 15px;
+}
+
+.job-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.apply-btn {
+  background: #00b14f; /* Màu xanh lá chuẩn JobsGO/TopCV */
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.apply-btn:hover {
+  background: #009944;
+  transform: translateY(-2px);
+}
+
+.job-content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+.job-main-col {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.job-section {
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.job-section h2 {
+  font-size: 20px;
+  color: #2d3748;
+  margin-top: 0;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.job-section p {
+  line-height: 1.6;
+  color: #4a5568;
+  white-space: pre-wrap;
+}
+
+.job-side-col {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.company-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  text-align: center;
+}
+
+.company-logo {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid #edf2f7;
+}
+
+/* Modal CV Selection */
+.cv-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.cv-modal {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 600px;
+  padding: 32px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.cv-modal h2 {
+  margin-top: 0;
+  margin-bottom: 24px;
+  color: #1a202c;
+  font-size: 22px;
+}
+
+.cv-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.cv-item {
+  padding: 16px;
+  border: 2px solid #edf2f7;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cv-item:hover {
+  border-color: #cbd5e0;
+  background: #f7fafc;
+}
+
+.cv-item.selected {
+  border-color: #00b14f;
+  background: #f0fdf4;
+}
+
+.cv-name {
+  font-weight: 500;
+  color: #2d3748;
+}
+
+.cv-date {
+  font-size: 13px;
+  color: #718096;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.btn-cancel {
+  background: #edf2f7;
+  color: #4a5568;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-submit {
+  background: #00b14f;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-submit:disabled {
+  background: #9ae6b4;
+  cursor: not-allowed;
+}
+
+/* Toast */
+.jd-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 16px 24px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 500;
+  transform: translateX(150%);
+  transition: transform 0.3s ease;
+  z-index: 1001;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.jd-toast.show {
+  transform: translateX(0);
+}
+
+.jd-toast.success { background: #00b14f; }
+.jd-toast.error { background: #e53e3e; }
