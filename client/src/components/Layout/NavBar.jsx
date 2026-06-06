@@ -39,8 +39,8 @@ const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
 const navigate = useNavigate();
 const location = useLocation();
 // Tạm thời comment logic localStorage lại, dùng state cứng
-const [isLoggedIn, setIsLoggedIn] = useState(true); // Ép cứng là true để xem nó còn giật không
-const [role, setRole] = useState('company');        // Ép cứng role để test menu
+// const [isLoggedIn, setIsLoggedIn] = useState(true); // Ép cứng là true để xem nó còn giật không
+// const [role, setRole] = useState('company');        // Ép cứng role để test menu
 
 // 2. useEffect để lấy dữ liệu từ localStorage đúng 1 lần khi load trang
 // useEffect(() => {

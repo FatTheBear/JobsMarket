@@ -35,6 +35,16 @@ const CandidateProfileModel = {
         );
         profile.experience = experience;
 
+        // Lấy danh sách Skills
+        const [skills] = await pool.execute(
+            `SELECT s.skill_name as name, cs.level 
+             FROM candidate_skill cs 
+             JOIN skill s ON cs.skill_id = s.id 
+             WHERE cs.candidate_id = ?`,
+            [profile.id]
+        );
+        profile.skills = skills;
+
         return profile;
     },
     // Tìm profile bằng profile_id (Dùng cho trang public profile)
@@ -67,7 +77,7 @@ const CandidateProfileModel = {
     },
     // 3. Cập nhật thông tin profile
     updateByUserId: async (user_id, updateData) => {
-        const { full_name, display_name, phone, avatar_url, headline, about, years_of_experience, is_public, address, cv_url } = updateData;
+        const { full_name, display_name, phone, avatar_url, headline, about, years_of_experience, is_public, address, cv_url, education, experience, skills } = updateData;
         const connection = await pool.getConnection();
         try {
             await connection.beginTransaction();
@@ -82,8 +92,21 @@ const CandidateProfileModel = {
                 return false;
             }
             const profileId = profiles[0].id;
+            // tính số năm kinh nghiệm lưu vào DB
+            let calculatedYears = 0;
+            if (experience && Array.isArray(experience)) {
+                let totalMonths = 0;
+                experience.forEach(exp => {
+                    if (exp.startDate) {
+                        const start = new Date(exp.startDate);
+                        const end = exp.endDate ? new Date(exp.endDate) : new Date();
+                        const diffMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+                        if (diffMonths > 0) totalMonths += diffMonths;
+                    }
+                });
+                calculatedYears = Math.round((totalMonths / 12) * 10) / 10;
+            }
 
-            // Đã loại bỏ cột skills JSON ra khỏi lệnh UPDATE
             await connection.execute(
                 `UPDATE Candidate_Profile 
                  SET full_name = ?, display_name = ?, phone = ?, avatar_url = ?, headline = ?, 
@@ -96,13 +119,67 @@ const CandidateProfileModel = {
                     avatar_url || null,
                     headline || null,
                     about || null,
-                    years_of_experience || 0,
+                    calculatedYears,
                     is_public !== undefined ? is_public : true,
                     address || null,
                     cv_url || null,
                     profileId
                 ]
             );
+            // lưu học vấn
+            if (education && Array.isArray(education)) {
+                await connection.execute('DELETE FROM Candidate_Education WHERE candidate_id = ?', [profileId]);
+                for (const item of education) {
+                    await connection.execute(
+                        'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
+                        [profileId, item.school || '', item.degree || '', item.startDate || null, item.gradDate || null]
+                    );
+                }
+            }
+
+            //lưu kinh nghiệm
+            if (experience && Array.isArray(experience)) {
+                await connection.execute('DELETE FROM Candidate_Experience WHERE candidate_id = ?', [profileId]);
+                for (const item of experience) {
+                    await connection.execute(
+                        'INSERT INTO Candidate_Experience (candidate_id, company_name, role, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
+                        [profileId, item.company || '', item.role || '', item.startDate || null, item.endDate || null]
+                    );
+                }
+            }
+            //lưu skill và level
+            if (skills && Array.isArray(skills)) {
+                await connection.execute('DELETE FROM candidate_skill WHERE candidate_id = ?', [profileId]);
+                for (const skillItem of skills) {
+                    const trimmedSkill = skillItem.name.trim();
+                    if (!trimmedSkill) continue;
+
+                    // 1. Kiểm tra xem skill này đã có trong từ điển chưa
+                    const [existingSkills] = await connection.execute(
+                        'SELECT id FROM skill WHERE skill_name = ?',
+                        [trimmedSkill]
+                    );
+
+                    let currentSkillId;
+                    if (existingSkills.length > 0) {
+                        currentSkillId = existingSkills[0].id;
+                    } else {
+                        const [insertSkillResult] = await connection.execute(
+                            'INSERT INTO skill (skill_name) VALUES (?)',
+                            [trimmedSkill]
+                        );
+                        currentSkillId = insertSkillResult.insertId;
+                    }
+
+                    // 2. Lưu vào bảng cầu nối Candidate_Skill kèm theo cột level
+                    await connection.execute(
+                        'INSERT INTO candidate_skill (candidate_id, skill_id, level) VALUES (?, ?, ?)',
+                        [profileId, currentSkillId, skillItem.level || 0]
+                    );
+                }
+            }
+
+
             await connection.commit();
             return true;
         } catch (error) {
