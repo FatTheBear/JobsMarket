@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import ApplyModal from '../../components/ApplyModal/ApplyModal';
 import './JobDetail.css';
 
 const API_URL = 'http://localhost:5000';
@@ -10,25 +11,18 @@ export default function JobDetail() {
   const navigate = useNavigate();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showApplyModal, setShowApplyModal] = useState(false);
 
-  // Modal CV state
-  const [showModal, setShowModal] = useState(false);
-  const [myCVs, setMyCVs] = useState([]);
-  const [selectedCVId, setSelectedCVId] = useState(null);
-  const [applying, setApplying] = useState(false);
-  
   // Toast
   const [toast, setToast] = useState({ show: false, msg: '', type: '' });
 
   const showToast = (msg, type) => {
     setToast({ show: true, msg, type });
-    setTimeout(() => setToast({ show: false, msg: '', type: '' }), 3000);
+    setTimeout(() => setToast({ show: false, msg: '', type: '' }), 3500);
   };
 
   useEffect(() => {
     fetchJobDetail();
-    // Simulate fetching CVs of the logged-in candidate
-    fetchCandidateCVs();
   }, [id]);
 
   const fetchJobDetail = async () => {
@@ -42,47 +36,14 @@ export default function JobDetail() {
     }
   };
 
-  const fetchCandidateCVs = async () => {
-    // In a real app, you would fetch CVs for the logged in user via token
-    // For now we mock it to simulate TopCV/JobsGo UX
-    const mockCVs = [
-      { id: 1, name: 'CV_Frontend_Dev.pdf', updatedAt: '2026-06-01' },
-      { id: 2, name: 'CV_English_Version.pdf', updatedAt: '2026-05-20' }
-    ];
-    setMyCVs(mockCVs);
-  };
-
   const handleApplyClick = () => {
-    // Ideally check if user is logged in here
     const userStr = localStorage.getItem('user');
     if (!userStr) {
       showToast('Vui lòng đăng nhập để ứng tuyển', 'error');
       setTimeout(() => navigate('/login'), 2000);
       return;
     }
-    setShowModal(true);
-  };
-
-  const submitApplication = async () => {
-    if (!selectedCVId) {
-      showToast('Vui lòng chọn CV', 'error');
-      return;
-    }
-    setApplying(true);
-    try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      await axios.post(`${API_URL}/api/applications`, {
-        user_id: user.id,
-        job_id: id,
-        cv_id: selectedCVId
-      });
-      showToast('Nộp đơn thành công! Nhà tuyển dụng sẽ sớm liên hệ', 'success');
-      setShowModal(false);
-    } catch (err) {
-      showToast(err.response?.data?.message || 'Có lỗi xảy ra khi nộp đơn', 'error');
-    } finally {
-      setApplying(false);
-    }
+    setShowApplyModal(true);
   };
 
   if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Đang tải...</div>;
@@ -95,6 +56,7 @@ export default function JobDetail() {
         {toast.msg}
       </div>
 
+      {/* Hero Header */}
       <div className="job-header-card">
         <div className="job-header-inner">
           <div className="job-header-info">
@@ -102,11 +64,14 @@ export default function JobDetail() {
             <div className="company-name">{job.company_name}</div>
             <div className="job-meta">
               <div className="job-meta-item">
-                <span>💰</span> {
-                  (job.salary_min && job.salary_max) 
-                    ? `${(job.salary_min / 1000000).toLocaleString('vi-VN')} - ${(job.salary_max / 1000000).toLocaleString('vi-VN')} triệu VNĐ`
-                    : (job.salary_min ? `Từ ${(job.salary_min / 1000000).toLocaleString('vi-VN')} triệu VNĐ` : 
-                      (job.salary_max ? `Đến ${(job.salary_max / 1000000).toLocaleString('vi-VN')} triệu VNĐ` : 'Thỏa thuận'))
+                <span>💰</span>
+                {(job.salary_min && job.salary_max)
+                  ? `${(job.salary_min / 1000000).toLocaleString('vi-VN')} - ${(job.salary_max / 1000000).toLocaleString('vi-VN')} triệu VNĐ`
+                  : (job.salary_min
+                    ? `Từ ${(job.salary_min / 1000000).toLocaleString('vi-VN')} triệu VNĐ`
+                    : (job.salary_max
+                      ? `Đến ${(job.salary_max / 1000000).toLocaleString('vi-VN')} triệu VNĐ`
+                      : 'Thỏa thuận'))
                 }
               </div>
               <div className="job-meta-item">
@@ -123,6 +88,7 @@ export default function JobDetail() {
         </div>
       </div>
 
+      {/* Content Grid */}
       <div className="job-content-grid">
         <div className="job-main-col">
           <div className="job-section">
@@ -143,44 +109,27 @@ export default function JobDetail() {
               <div className="company-logo-placeholder">🏢</div>
             )}
             <h3>{job.company_name}</h3>
-            {job.company_website && <a href={job.company_website} target="_blank" rel="noreferrer" className="company-website-btn">Website công ty</a>}
+            {job.company_website && (
+              <a href={job.company_website} target="_blank" rel="noreferrer" className="company-website-btn">
+                Website công ty
+              </a>
+            )}
           </div>
         </div>
       </div>
 
-      {/* CV Selection Modal */}
-      {showModal && (
-        <div className="cv-modal-overlay">
-          <div className="cv-modal">
-            <h2>Chọn CV để ứng tuyển</h2>
-            <p style={{ marginBottom: 16, color: '#4a5568' }}>Bạn muốn dùng CV nào để ứng tuyển vào vị trí <strong>{job.title}</strong>?</p>
-            
-            <div className="cv-list">
-              {myCVs.map(cv => (
-                <div 
-                  key={cv.id} 
-                  className={`cv-item ${selectedCVId === cv.id ? 'selected' : ''}`}
-                  onClick={() => setSelectedCVId(cv.id)}
-                >
-                  <div>
-                    <div className="cv-name">{cv.name}</div>
-                    <div className="cv-date">Cập nhật: {cv.updatedAt}</div>
-                  </div>
-                  <div>
-                    <input type="radio" checked={selectedCVId === cv.id} readOnly />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="modal-actions">
-              <button className="btn-cancel" onClick={() => setShowModal(false)} disabled={applying}>Hủy</button>
-              <button className="btn-submit" onClick={submitApplication} disabled={applying}>
-                {applying ? 'Đang gửi...' : 'Nộp CV này'}
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Apply Modal — Component riêng biệt */}
+      {showApplyModal && (
+        <ApplyModal
+          jobId={id}
+          jobTitle={job.title}
+          onClose={() => setShowApplyModal(false)}
+          onSuccess={(msg) => {
+            setShowApplyModal(false);
+            showToast(msg, 'success');
+          }}
+          onError={(msg) => showToast(msg, 'error')}
+        />
       )}
     </div>
   );
