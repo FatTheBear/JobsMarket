@@ -18,7 +18,8 @@ const CandidateProfile = () => {
   const [activeEditTab, setActiveEditTab] = useState('info'); // 'info' or 'profile'
   const [showWallet, setShowWallet] = useState(false);
   const [modalError, setModalError] = useState('');
-  
+
+
   // Real Wallet Data
   const { coins } = useWallet();
 
@@ -200,47 +201,96 @@ const CandidateProfile = () => {
     loadProfile();
   }, []);
 
-  // Event Handlers for General Info & Avatar Upload
+  // Helper: save data to server directly (bypasses React state timing issues)
+  const saveToServer = async (overrideData = {}) => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const formData = new FormData();
+      formData.append('full_name', profileData.fullName);
+      formData.append('display_name', profileData.displayName);
+      formData.append('phone', profileData.phone || '');
+      formData.append('headline', profileData.jobTitle || '');
+      formData.append('address', profileData.address || '');
+      if (cvFile) formData.append('cv_url', JSON.stringify(cvFile));
+
+      const currentEdu = overrideData.educations || educations;
+      const currentExp = overrideData.workExperiences || workExperiences;
+      const currentSkills = overrideData.skills || skills;
+
+      formData.append('education', JSON.stringify(currentEdu.map(edu => ({
+        school: edu.school, degree: edu.degree, startDate: edu.startDate, gradDate: edu.gradDate
+      }))));
+      formData.append('experience', JSON.stringify(currentExp.map(exp => ({
+        company: exp.company, role: exp.role, startDate: exp.startDate, endDate: exp.endDate
+      }))));
+      formData.append('skills', JSON.stringify(currentSkills.map(s => ({ name: s.name, level: s.level }))));
+
+      await axios.put('http://localhost:5000/api/candidate/profile', formData, {
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+      });
+      console.log('Auto-saved successfully!');
+    } catch (err) {
+      console.error('Auto-save failed:', err);
+    }
+  };
+
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
     if (!token) return;
 
     try {
-      const payload = {
-        full_name: editProfileForm.fullName,
-        display_name: editProfileForm.displayName,
-        phone: editProfileForm.phone || '',
-        avatar_url: editProfileForm.avatar,
-        headline: editProfileForm.jobTitle,
-        address: editProfileForm.address,
-        cv_url: cvFile ? JSON.stringify(cvFile) : null,
-        education: educations.map(edu => ({
-          school: edu.school,
-          degree: edu.degree,
-          startDate: edu.startDate,
-          gradDate: edu.gradDate
-        })),
-        experience: workExperiences.map(exp => ({
-          company: exp.company,
-          role: exp.role,
-          startDate: exp.startDate,
-          endDate: exp.endDate
-        }))
-      };
+      // Tạo đối tượng FormData để chứa cả text và file
+      const formData = new FormData();
+      formData.append('full_name', editProfileForm.fullName);
+      formData.append('display_name', editProfileForm.displayName);
+      formData.append('phone', editProfileForm.phone || '');
+      formData.append('headline', editProfileForm.jobTitle || '');
+      formData.append('address', editProfileForm.address || '');
 
-      await axios.put('http://localhost:5000/api/candidate/profile', payload, {
-        headers: { Authorization: `Bearer ${token}` }
+      if (cvFile) formData.append('cv_url', JSON.stringify(cvFile));
+
+      // Các trường dạng mảng thì phải chuyển thành chuỗi JSON trước khi nhét vào FormData
+      formData.append('education', JSON.stringify(educations.map(edu => ({
+        school: edu.school,
+        degree: edu.degree,
+        startDate: edu.startDate,
+        gradDate: edu.gradDate
+      }))));
+
+      formData.append('experience', JSON.stringify(workExperiences.map(exp => ({
+        company: exp.company,
+        role: exp.role,
+        startDate: exp.startDate,
+        endDate: exp.endDate
+      }))));
+
+      formData.append('skills', JSON.stringify(skills.map(skill => ({ name: skill.name, level: skill.level }))));
+
+      if (editProfileForm.avatarFile) {
+        formData.append('avatar', editProfileForm.avatarFile);
+      }
+
+      await axios.put('http://localhost:5000/api/candidate/profile', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data"
+        }
       });
 
       setProfileData(editProfileForm);
       localStorage.setItem('hide_phone_' + editProfileForm.email, editProfileForm.hidePhone ? 'true' : 'false');
-      setShowEdit(false);
+      if (e.type !== 'autosave') {
+        setShowEdit(false);
+      }
     } catch (err) {
       console.error("Failed to save profile changes:", err);
       setModalError("Error occurred while saving profile. Please try again.");
     }
   };
+
+
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
@@ -262,7 +312,8 @@ const CandidateProfile = () => {
     reader.onloadend = () => {
       setEditProfileForm(prev => ({
         ...prev,
-        avatar: reader.result
+        avatar: reader.result,
+        avatarFile: file
       }));
     };
     reader.readAsDataURL(file);
@@ -360,18 +411,21 @@ const CandidateProfile = () => {
     const finalExperience = {
       role: experienceForm.role,
       company: experienceForm.company,
-      duration: durationText
+      duration: durationText,
+      startDate: experienceForm.startDate,
+      endDate: experienceForm.endDate
     };
 
+    let newWorkExperiences;
     if (currentExperience) {
-      // Edit
-      setWorkExperiences(prev => prev.map(item => item.id === currentExperience.id ? { ...item, ...finalExperience } : item));
+      newWorkExperiences = workExperiences.map(item => item.id === currentExperience.id ? { ...item, ...finalExperience } : item);
     } else {
-      // Add
       const newId = workExperiences.length > 0 ? Math.max(...workExperiences.map(i => i.id)) + 1 : 1;
-      setWorkExperiences(prev => [...prev, { id: newId, ...finalExperience }]);
+      newWorkExperiences = [...workExperiences, { id: newId, ...finalExperience }];
     }
+    setWorkExperiences(newWorkExperiences);
     setShowExperienceModal(false);
+    saveToServer({ workExperiences: newWorkExperiences });
   };
 
   const handleOpenEducationModal = (edu = null) => {
@@ -441,21 +495,28 @@ const CandidateProfile = () => {
       gradDate: educationForm.gradDate
     };
 
+    let newEducations;
     if (currentEducation) {
-      setEducations(prev => prev.map(item => item.id === currentEducation.id ? { ...item, ...finalEducation } : item));
+      newEducations = educations.map(item => item.id === currentEducation.id ? { ...item, ...finalEducation } : item);
     } else {
       const newId = educations.length > 0 ? Math.max(...educations.map(i => i.id)) + 1 : 1;
-      setEducations(prev => [...prev, { id: newId, ...finalEducation }]);
+      newEducations = [...educations, { id: newId, ...finalEducation }];
     }
+    setEducations(newEducations);
     setShowEducationModal(false);
+    saveToServer({ educations: newEducations });
   };
 
   const handleDeleteExperience = (id) => {
-    setWorkExperiences(prev => prev.filter(item => item.id !== id));
+    const newWorkExperiences = workExperiences.filter(item => item.id !== id);
+    setWorkExperiences(newWorkExperiences);
+    saveToServer({ workExperiences: newWorkExperiences });
   };
 
   const handleDeleteEducation = (id) => {
-    setEducations(prev => prev.filter(item => item.id !== id));
+    const newEducations = educations.filter(item => item.id !== id);
+    setEducations(newEducations);
+    saveToServer({ educations: newEducations });
   };
 
   // Event Handlers for Skill CRUD
@@ -479,19 +540,22 @@ const CandidateProfile = () => {
       return;
     }
 
+    let newSkills;
     if (currentSkill) {
-      // Edit
-      setSkills(prev => prev.map(item => item.id === currentSkill.id ? { ...item, ...skillForm } : item));
+      newSkills = skills.map(item => item.id === currentSkill.id ? { ...item, ...skillForm } : item);
     } else {
-      // Add
       const newId = skills.length > 0 ? Math.max(...skills.map(i => i.id)) + 1 : 1;
-      setSkills(prev => [...prev, { id: newId, ...skillForm }]);
+      newSkills = [...skills, { id: newId, ...skillForm }];
     }
+    setSkills(newSkills);
     setShowSkillModal(false);
+    saveToServer({ skills: newSkills });
   };
 
   const handleDeleteSkill = (id) => {
-    setSkills(prev => prev.filter(item => item.id !== id));
+    const newSkills = skills.filter(item => item.id !== id);
+    setSkills(newSkills);
+    saveToServer({ skills: newSkills });
   };
 
   return (
@@ -554,6 +618,17 @@ const CandidateProfile = () => {
                         <i className="fas fa-wallet" style={{ fontSize: '0.8rem' }}></i>
                       </button>
                     </div>
+
+                    {/* Export CV Button */}
+                    <button
+                      type="button"
+                      className="btn btn-success rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                      style={{ width: '42px', height: '42px' }}
+                      title="Export CV"
+                      onClick={() => setShowExportModal(true)}
+                    >
+                      <i className="fas fa-file-export text-white" style={{ fontSize: '1.1rem' }}></i>
+                    </button>
 
                     {/* Edit Profile (Settings Gear Icon) */}
                     <button
@@ -750,14 +825,6 @@ const CandidateProfile = () => {
               </button>
               <button
                 type="button"
-                className={`btn btn-link nav-tab-btn py-3 text-decoration-none fw-semibold ${activeEditTab === 'profile' ? 'active text-primary border-bottom border-primary border-3' : 'text-muted'}`}
-                onClick={() => setActiveEditTab('profile')}
-                style={{ borderRadius: '0' }}
-              >
-                <i className="fas fa-list me-1.5"></i> Qualifications
-              </button>
-              <button
-                type="button"
                 className={`btn btn-link nav-tab-btn py-3 text-decoration-none fw-semibold ${activeEditTab === 'cv' ? 'active text-primary border-bottom border-primary border-3' : 'text-muted'}`}
                 onClick={() => setActiveEditTab('cv')}
                 style={{ borderRadius: '0' }}
@@ -915,25 +982,7 @@ const CandidateProfile = () => {
                 </div>
               )}
 
-              {activeEditTab === 'profile' && (
-                <div className="d-flex flex-column gap-4">
-                  <CandidateEducationManager
-                    educations={educations}
-                    onOpenModal={handleOpenEducationModal}
-                    onDelete={handleDeleteEducation}
-                  />
-                  <CandidateExperienceManager
-                    workExperiences={workExperiences}
-                    onOpenModal={handleOpenExperienceModal}
-                    onDelete={handleDeleteExperience}
-                  />
-                  <CandidateSkillsManager
-                    skills={skills}
-                    onOpenModal={handleOpenSkillModal}
-                    onDelete={handleDeleteSkill}
-                  />
-                </div>
-              )}
+
 
               {activeEditTab === 'cv' && (
                 <CandidateCV
@@ -945,11 +994,6 @@ const CandidateProfile = () => {
 
               {/* Form Footer */}
               <div className="profile-modal-footer mt-4 pt-3 border-top d-flex gap-2 justify-content-end bg-white">
-                {activeEditTab === 'profile' && (
-                  <button type="button" className="btn btn-success px-4 d-inline-flex align-items-center gap-1.5 fw-semibold shadow-sm text-white" onClick={() => setShowExportModal(true)}>
-                    <i className="fas fa-file-export"></i> Export
-                  </button>
-                )}
                 <button type="button" className="btn btn-light border" onClick={() => setShowEdit(false)}>
                   {activeEditTab === 'info' ? 'Cancel' : 'Close'}
                 </button>
