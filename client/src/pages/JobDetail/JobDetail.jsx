@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import ApplyModal from '../../components/ApplyModal/ApplyModal';
+import ApplyModal from '../ApplyModal/ApplyModal';
 import './JobDetail.css';
 
 const API_URL = 'http://localhost:5000';
