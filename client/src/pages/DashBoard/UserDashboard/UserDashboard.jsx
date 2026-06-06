@@ -88,7 +88,7 @@ export default function CandidateDashboard() {
               <span className={styles.navName}>JobsMarket</span>
             </div>
             <div className={styles.navMenu}>
-              <button className={styles.navMenuItem} onClick={() => navigate('/jobs')}>Find Jobs</button>
+              <button className={styles.navMenuItem} onClick={() => navigate('/search-jobs')}>Find Jobs</button>
               <button className={styles.navMenuItem} onClick={() => navigate('/companies')}>Companies</button>
             </div>
           </div>

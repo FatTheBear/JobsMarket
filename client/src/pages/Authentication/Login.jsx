@@ -27,7 +27,8 @@ export default function Login() {
 
       if (response.status === 200) {
         localStorage.setItem('token', response.data.token);
-        //navigate('/dashboard');
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        
         const { role } = response.data.user;
         const roleLower = role ? role.toLowerCase() : '';
 
