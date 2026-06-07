@@ -6,6 +6,19 @@ import './JobDetail.css';
 
 const API_URL = 'http://localhost:5000';
 
+const saveAppliedJobId = (jobId) => {
+  const ids = JSON.parse(localStorage.getItem('appliedJobIds') || '[]');
+  const numId = Number(jobId);
+  if (!ids.includes(numId)) {
+    localStorage.setItem('appliedJobIds', JSON.stringify([...ids, numId]));
+  }
+};
+
+const isLocallyApplied = (jobId) => {
+  const ids = JSON.parse(localStorage.getItem('appliedJobIds') || '[]');
+  return ids.includes(Number(jobId));
+};
+
 export default function JobDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -14,7 +27,6 @@ export default function JobDetail() {
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
 
-  // Toast
   const [toast, setToast] = useState({ show: false, msg: '', type: '' });
 
   const showToast = (msg, type) => {
@@ -26,7 +38,14 @@ export default function JobDetail() {
     fetchJobDetail();
   }, [id]);
 
+  useEffect(() => {
+    if (job) {
+      checkAppliedStatus(job.title);
+    }
+  }, [job, id]);
+
   const fetchJobDetail = async () => {
+    setLoading(true);
     try {
       const res = await axios.get(`${API_URL}/api/jobs/${id}`);
       setJob(res.data);
@@ -34,6 +53,31 @@ export default function JobDetail() {
       showToast('Không thể tải thông tin công việc', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkAppliedStatus = async (jobTitle) => {
+    if (isLocallyApplied(id)) {
+      setHasApplied(true);
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      const res = await axios.get(`${API_URL}/api/candidate/applications`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const alreadyApplied = (res.data || []).some(
+        (app) => app.jobTitle === jobTitle
+      );
+      if (alreadyApplied) {
+        setHasApplied(true);
+        saveAppliedJobId(id);
+      }
+    } catch {
+      // Bỏ qua — user chưa đăng nhập hoặc chưa có profile
     }
   };
 
@@ -52,12 +96,10 @@ export default function JobDetail() {
 
   return (
     <div className="job-detail-container">
-      {/* Toast Notification */}
       <div className={`jd-toast ${toast.show ? 'show' : ''} ${toast.type}`}>
         {toast.msg}
       </div>
 
-      {/* Hero Header */}
       <div className="job-header-card">
         <div className="job-header-inner">
           <div className="job-header-info">
@@ -95,7 +137,6 @@ export default function JobDetail() {
         </div>
       </div>
 
-      {/* Content Grid */}
       <div className="job-content-grid">
         <div className="job-main-col">
           <div className="job-section">
@@ -125,7 +166,6 @@ export default function JobDetail() {
         </div>
       </div>
 
-      {/* Apply Modal — Component riêng biệt */}
       {showApplyModal && (
         <ApplyModal
           jobId={id}
@@ -134,9 +174,16 @@ export default function JobDetail() {
           onSuccess={(msg) => {
             setShowApplyModal(false);
             setHasApplied(true);
+            saveAppliedJobId(id);
             showToast(msg, 'success');
           }}
-          onError={(msg) => showToast(msg, 'error')}
+          onError={(msg) => {
+            if (msg.includes('đã ứng tuyển')) {
+              setHasApplied(true);
+              saveAppliedJobId(id);
+            }
+            showToast(msg, 'error');
+          }}
         />
       )}
     </div>
