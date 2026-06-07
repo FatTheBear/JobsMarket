@@ -49,7 +49,7 @@ const STATUS_TABS = [
   { id: 'contacted', label: 'Liên hệ ứng viên', count: 0 },
   { id: 'interview', label: 'Mời phỏng vấn', count: 0 },
   { id: 'offer', label: 'Gửi offer', count: 0 },
-  { id: 'hired', label: 'Tuyển thành công', count: 0 },
+  { id: 'hired', label: 'Hired successfully', count: 0 },
   { id: 'rejected', label: 'Từ chối', count: 0 },
 ];
 
@@ -179,7 +179,7 @@ const STATUS_LABELS = {
   contacted: 'Đã liên hệ',
   interview: 'Mời phỏng vấn',
   offer: 'Gửi offer',
-  hired: 'Tuyển thành công',
+  hired: 'Hired successfully',
   rejected: 'Từ chối',
 };
 
@@ -356,10 +356,10 @@ export default function JobPosting() {
       const data = await res.json();
 
       if (res.ok) {
-        showToast('Tạo tin tuyển dụng thành công', 'success');
+        showToast('Job posted successfully', 'success');
         setPostedJobId(data.jobId);
       } else {
-        showToast(data.message || 'Tạo tin thất bại', 'error');
+        showToast(data.message || 'Job posting failed', 'error');
       }
     } catch {
       showToast('Không kết nối được tới server', 'error');
@@ -451,7 +451,7 @@ export default function JobPosting() {
                     />
                   </div>
                   <div className="jp-filter-item">
-                    <label>Việc làm đang tuyển</label>
+                    <label>Currently hiring</label>
                     <select name="job" value={filters.job} onChange={handleFilterChange}>
                       {JOB_OPTIONS.map((option) => (
                         <option key={option} value={option === 'Chọn việc làm' ? '' : option}>{option}</option>
@@ -761,7 +761,7 @@ export default function JobPosting() {
                           Hủy bỏ
                         </button>
                         <button type="button" className="jp-btn jp-btn-primary" onClick={handleSubmit} disabled={loading}>
-                          {loading ? 'Đang tạo...' : 'Tạo công việc'}
+                          {loading ? 'Posting...' : 'Post Job'}
                         </button>
                       </div>
                     </div>

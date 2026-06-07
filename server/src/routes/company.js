@@ -9,7 +9,7 @@ router.get('/meta/industries', async (req, res) => {
     res.json(rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Lỗi server', error: err.message });
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
@@ -25,12 +25,12 @@ router.get('/:hr_id', async (req, res) => {
       [hr_id]
     );
     if (rows.length === 0) {
-      return res.status(404).json({ message: 'Chưa có thông tin công ty' });
+      return res.status(404).json({ message: 'Company information not found' });
     }
     res.json(rows[0]);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Lỗi server', error: err.message });
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
@@ -40,7 +40,7 @@ router.post('/', async (req, res) => {
     const { hr_id, industry_id, name, logo_url, website, address } = req.body;
 
     if (!hr_id || !industry_id || !name) {
-      return res.status(400).json({ message: 'Thiếu thông tin bắt buộc: hr_id, industry_id, name' });
+      return res.status(400).json({ message: 'Missing required information: hr_id, industry_id, name' });
     }
 
     const [result] = await pool.query(
@@ -49,13 +49,13 @@ router.post('/', async (req, res) => {
       [hr_id, industry_id, name, logo_url || null, website || null, address || null]
     );
 
-    res.status(201).json({ message: 'Tạo công ty thành công', id: result.insertId });
+    res.status(201).json({ message: 'Company created successfully', id: result.insertId });
   } catch (err) {
     if (err.code === 'ER_DUP_ENTRY') {
-      return res.status(409).json({ message: 'HR này đã có công ty, dùng PUT để cập nhật' });
+      return res.status(409).json({ message: 'This HR already has a company, use PUT to update' });
     }
     console.error(err);
-    res.status(500).json({ message: 'Lỗi server', error: err.message });
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 
@@ -66,7 +66,7 @@ router.put('/:hr_id', async (req, res) => {
     const { industry_id, name, logo_url, website, address } = req.body;
 
     if (!industry_id || !name) {
-      return res.status(400).json({ message: 'Thiếu thông tin bắt buộc: industry_id, name' });
+      return res.status(400).json({ message: 'Missing required information: industry_id, name' });
     }
 
     const [result] = await pool.query(
@@ -77,13 +77,13 @@ router.put('/:hr_id', async (req, res) => {
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Không tìm thấy công ty để cập nhật' });
+      return res.status(404).json({ message: 'Company not found to update' });
     }
 
-    res.json({ message: 'Cập nhật thành công' });
+    res.json({ message: 'Updated successfully' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Lỗi server', error: err.message });
+    res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
 

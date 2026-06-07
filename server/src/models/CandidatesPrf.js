@@ -73,6 +73,27 @@ const CandidateProfileModel = {
         );
         profile.experience = experience;
 
+        // Lấy danh sách Skills
+        const [skills] = await pool.execute(
+            `SELECT s.skill_name as name, cs.level 
+             FROM candidate_skill cs 
+             JOIN skill s ON cs.skill_id = s.id 
+             WHERE cs.candidate_id = ?`,
+            [profile.id]
+        );
+        profile.skills = skills;
+
+        // Lấy danh sách Interests (Công ty đã theo dõi)
+        const [interests] = await pool.execute(
+            `SELECT c.id, c.name, i.name as industry_name
+             FROM Company c
+             JOIN Company_Follower cf ON c.id = cf.company_id
+             LEFT JOIN Industry i ON c.industry_id = i.id
+             WHERE cf.candidate_id = ?`,
+            [profile.id]
+        );
+        profile.interests = interests;
+
         return profile;
     },
     // 3. Cập nhật thông tin profile
@@ -274,7 +295,10 @@ const CandidateProfileModel = {
             // 4. ĐỒNG BỘ SKILLS VÀO BẢNG CHUẨN (SKILL & CANDIDATE_SKILL)
             await connection.execute('DELETE FROM candidate_skill WHERE candidate_id = ?', [profileId]);
             if (skills && Array.isArray(skills)) {
-                for (const skillName of skills) {
+                for (const skillItem of skills) {
+                    // Xử lý cả trường hợp frontend gửi chuỗi "React" hoặc object {name: "React", level: 90}
+                    const skillName = typeof skillItem === 'string' ? skillItem : skillItem.name;
+                    const skillLevel = typeof skillItem === 'object' ? (skillItem.level || 0) : 0;
                     const trimmedSkill = skillName.trim();
                     if (!trimmedSkill) continue;
 
@@ -296,10 +320,10 @@ const CandidateProfileModel = {
                         currentSkillId = insertSkillResult.insertId; // Lấy ID mới tạo
                     }
 
-                    // Lưu vào bảng cầu nối Candidate_Skill
+                    // Lưu vào bảng cầu nối Candidate_Skill kèm level
                     await connection.execute(
-                        'INSERT INTO candidate_skill (candidate_id, skill_id) VALUES (?, ?)',
-                        [profileId, currentSkillId]
+                        'INSERT INTO candidate_skill (candidate_id, skill_id, level) VALUES (?, ?, ?)',
+                        [profileId, currentSkillId, skillLevel]
                     );
                 }
             }

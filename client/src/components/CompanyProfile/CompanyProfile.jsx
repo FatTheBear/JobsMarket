@@ -83,7 +83,7 @@ export default function CompanyProfile() {
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      showToast('File quá lớn. Vui lòng chọn file dưới 5MB', 'error');
+      showToast('File is too large. Please select a file under 5MB', 'error');
       return;
     }
     const reader = new FileReader();
@@ -103,7 +103,7 @@ export default function CompanyProfile() {
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     if (!form.name.trim() || !form.industry_id) {
-      showToast('Vui lòng điền đầy đủ các trường bắt buộc', 'error');
+      showToast('Please fill in all required fields', 'error');
       return;
     }
     setLoading(true);
@@ -115,13 +115,13 @@ export default function CompanyProfile() {
       });
       const data = await res.json();
       if (res.ok) {
-        showToast(isEdit ? 'Cập nhật thành công!' : 'Tạo hồ sơ thành công!', 'success');
+        showToast(isEdit ? 'Updated successfully!' : 'Profile created successfully!', 'success');
         setIsEdit(true);
       } else {
-        showToast(data.message || 'Có lỗi xảy ra', 'error');
+        showToast(data.message || 'An error occurred', 'error');
       }
     } catch {
-      showToast('Không thể kết nối server.', 'error');
+      showToast('Cannot connect to server.', 'error');
     } finally {
       setLoading(false);
     }
@@ -138,7 +138,7 @@ export default function CompanyProfile() {
         {toast.message}
       </div>
 
-      <h1 className="cv-page-title">{isEdit ? 'Cập nhật thông tin công ty' : 'Tạo hồ sơ công ty'}</h1>
+      <h1 className="cv-page-title">{isEdit ? 'Update thông tin công ty' : 'Create profile công ty'}</h1>
 
       <div>
         <div className="cv-card" style={{ marginBottom: '24px' }}>
@@ -149,7 +149,7 @@ export default function CompanyProfile() {
                 {logoPreview ? <img src={logoPreview} alt="Logo" /> : <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" /></svg>}
               </div>
               <div className="cv-logo-info">
-                <p>Tải lên logo công ty của bạn. Dung lượng tối đa: <strong>5MB</strong>.</p>
+                <p>Upload your company logo. Max size: <strong>5MB</strong>.</p>
                 <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleLogoChange} />
                 <button type="button" className="cv-btn cv-btn-secondary" onClick={() => fileInputRef.current.click()}>📁 Chọn ảnh</button>
                 {logoPreview && <button type="button" className="cv-btn cv-btn-secondary" onClick={() => { setLogoPreview(null); setForm(prev => ({...prev, logo_url: ''})); }}>🗑 Xóa ảnh</button>}
@@ -212,7 +212,7 @@ export default function CompanyProfile() {
   className="cv-btn cv-btn-primary"
   disabled={loading}
   onClick={handleSubmit}
->{loading ? 'Đang lưu...' : isEdit ? '💾 Cập nhật' : '✅ Tạo hồ sơ'}</button>
+>{loading ? 'Saving...' : isEdit ? '💾 Update' : '✅ Create profile'}</button>
         </div>
       </div>
     </div>
