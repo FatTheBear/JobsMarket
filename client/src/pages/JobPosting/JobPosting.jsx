@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import './JobPosting.css';
 import JobSkillsManager from '../JobSkillsManager/JobSkillsManager';
 import { useNavigate } from "react-router-dom";
+import axios from 'axios';
 const API_URL = 'http://localhost:5000';
 const TEMP_HR_ID = 1;
 
@@ -223,8 +224,8 @@ export default function JobPosting() {
 
   const handleSubmit = async (e) => {
     
-    e.preventDefault();
-
+    if (e) e.preventDefault();
+    console.log("👉 Đã vào được hàm handleSubmit!");
     if (!form.title.trim()) {
       showToast('Job title is required', 'error');
       return;
@@ -248,33 +249,43 @@ export default function JobPosting() {
 
 
     setLoading(true);
-    try {
-      const payload = {
-        title: form.title,
-        description: form.description,
-        requirements: form.requirements,
-        salary_min: form.salary_min ? parseInt(form.salary_min) : null,
-        salary_max: form.salary_max ? parseInt(form.salary_max) : null,
-        job_type: form.job_type,
-        deadline: form.deadline || null,
-        hr_id: TEMP_HR_ID,
-      };
+  try {
+    const payload = {
+      title: form.title,
+      description: form.description,
+      requirements: form.requirements,
+      salary_min: form.salary_min ? parseInt(form.salary_min) : null,
+      salary_max: form.salary_max ? parseInt(form.salary_max) : null,
+      job_type: form.job_type,
+      deadline: form.deadline || null,
+      hr_id: TEMP_HR_ID,
+    };
 
-      const res = await axios.post('http://localhost:5000/api/jobs', payload);
-      const data = await res.json();
+    // 1. Gọi Axios (Nó sẽ tự throw Error nếu server trả về 4xx, 5xx)
+    const res = await axios.post('http://localhost:5000/api/jobs', payload);
 
-      if (res.ok) {
-        showToast('Job successfully posted', 'success');
-
-        navigate('/dashboard'); // hoặc dashboard
-      } else {
-        showToast(data.message || 'Failed to post job', 'error');
-      }
-    } catch {
-      showToast('Failed to connect to the server', 'error');
-    } finally {
-      setLoading(false);
+    // 2. Với Axios, cứ xuống được dòng này nghĩa là status là 2xx (Thành công)
+    showToast('Job successfully posted', 'success');
+    navigate('/company-profile'); 
+    
+  } catch (error) {
+    // 3. Bắt lỗi chuẩn mực: Phân biệt lỗi do Server hay lỗi mất mạng
+    console.error("Lỗi chi tiết:", error);
+    
+    if (error.response) {
+      // Lỗi do Backend trả về (Ví dụ: 400 Thiếu dữ liệu, 404 Không tìm thấy công ty)
+      const serverMessage = error.response.data.message || 'Lỗi từ máy chủ';
+      showToast(serverMessage, 'error');
+    } else if (error.request) {
+      // Lỗi không gọi được tới server (Mất mạng, sập server)
+      showToast('Không thể kết nối đến Server', 'error');
+    } else {
+      // Lỗi cú pháp code React
+      showToast('Có lỗi bất ngờ xảy ra', 'error');
     }
+  } finally {
+    setLoading(false);
+  }
   };
 
   const handleReset = () => {
@@ -680,7 +691,7 @@ export default function JobPosting() {
                         Next
                       </button>
                     ) : (
-                      <button type="button" className="jp-btn jp-btn-primary" onClick={handleSubmit} disabled={loading}>
+                      <button type="button" className="jp-btn jp-btn-primary" onClick={(e)=>{handleSubmit(e)}}disabled={loading}>
                         {loading ? "Creating..." : "Confirm & Post Job"}
                       </button>
                     )}

@@ -31,21 +31,11 @@ const MENU_CONFIG = {
 };
 
 export default function NavBar() {
-
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [role, setRole] = useState('guest');
-  const [userName, setUserName] = useState('User');
-  const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  // Tạm thời comment logic localStorage lại, dùng state cứng
-  // const [isLoggedIn, setIsLoggedIn] = useState(true); // Ép cứng là true để xem nó còn giật không
-  // const [role, setRole] = useState('company');        // Ép cứng role để test menu
-  //2. useEffect để lấy dữ liệu từ localStorage đúng 1 lần khi load trang
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const isLoggedIn = !!token;
+console.log("navRENDER");
+   const [isLoggedIn, setIsLoggedIn] = useState(
+  !!localStorage.getItem("token")
+);
+const [role, setRole] = useState(()=> {
     const rawRole = localStorage.getItem("role");
     const roleMap = {
 
@@ -56,15 +46,55 @@ export default function NavBar() {
       Admin: "admin",
 
     };
-    const role = isLoggedIn ? (roleMap[rawRole] || "candidate") : "guest";
-    const menuItems = MENU_CONFIG[role] || [];
-    const handleLogout = () => {
+
+    return roleMap[rawRole] || "guest";
+  });
+
+  const [userName, setUserName] = useState('User');
+  const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Tạm thời comment logic localStorage lại, dùng state cứng
+  // const [isLoggedIn, setIsLoggedIn] = useState(true); // Ép cứng là true để xem nó còn giật không
+  // const [role, setRole] = useState('company');        // Ép cứng role để test menu
+  //2. useEffect để lấy dữ liệu từ localStorage đúng 1 lần khi load trang
+  useEffect(() => {
+   
+  
+  //   const token = localStorage.getItem("token");
+  //   setIsLoggedIn(!!token);
+  //   const rawRole = localStorage.getItem("role");
+  //   const roleMap = {
+
+  //     HR: "company",
+
+  //     Candidate: "candidate",
+
+  //     Admin: "admin",
+
+  //   };
+  //   setRole(
+  //   token
+  //     ? (roleMap[rawRole] || "candidate")
+  //     : "guest"
+  // );
+
+  setUserName(
+    localStorage.getItem("userName") || "User"
+  );
+
+  setAvatarUrl(
+    localStorage.getItem("avatarUrl") || "/default-avatar.png"
+  );
+  }, []);
+  const menuItems = MENU_CONFIG[role] || [];
+  const handleLogout = () => {
       localStorage.clear();
       navigate('/');
       window.location.reload();
     };
-  }, []);
-}
+
 return (
   <nav className="minimal-navbar">
     {/* TRÁI: Logo (Bấm vào để về trang chủ) */}

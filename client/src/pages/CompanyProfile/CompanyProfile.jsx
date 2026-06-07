@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './CompanyProfile.module.css';
@@ -28,6 +29,7 @@ const AGE_OPTIONS = ['Under 22', '22 - 25', '25 - 30', '30 - 35', 'Over 35'];
 const TABS = ['Tổng quan', 'Cơ cấu', 'Hình ảnh', 'Khác'];
 
 export default function CompanyProfile() {
+  console.log("CompanyProfile render");
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
