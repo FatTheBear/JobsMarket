@@ -68,29 +68,8 @@ export default function HomePage() {
 
   return (
     <div className={styles.page}>
-      {/* ───── NAVBAR ───── */}
-      <nav className={styles.navbar}>
-        <div className={styles.navInner}>
-          <div className={styles.navLeft}>
-            <div className={styles.navBrand} onClick={() => navigate('/')}>
-              <span className={styles.navLogo}>💼</span>
-              <span className={styles.navName}>JobsMarket</span>
-            </div>
-            <div className={styles.navMenu}>
-              <button className={styles.navMenuItem} onClick={() => navigate('/auth')}>Find Jobs</button>
-              <button className={styles.navMenuItem} onClick={() => navigate('/auth')}>Companies</button>
-              <button className={styles.navMenuItem} onClick={() => navigate('/auth')}>Career Guide</button>
-            </div>
-          </div>
-          <div className={styles.navRight}>
-            <button className={styles.navAlert} onClick={() => navigate('/auth')}>🔔 Job Alerts</button>
-            <button className={styles.navBtnOutline} onClick={() => navigate('/login')}>Sign In</button>
-            <button className={styles.navBtnEmployer} onClick={() => navigate('/auth')}>
-              🏢 For Employers
-            </button>
-          </div>
-        </div>
-      </nav>
+      
+      {/* LƯU Ý: Phần <nav> cứng ở đây đã được xóa bỏ để nhường chỗ cho Navbar động từ MainLayout */}
 
       {/* ───── BANNER SLIDER ───── */}
       <section className={styles.banner} style={{ background: BANNERS[bannerIdx].bg }}>

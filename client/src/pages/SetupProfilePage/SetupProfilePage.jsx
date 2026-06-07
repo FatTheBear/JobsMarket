@@ -188,6 +188,12 @@ export default function SetupProfilePage() {
   const addSkill = () => {
     if (!newSkillName.trim()) return;
 
+    if (!lettersOnlyRegex.test(newSkillName.trim())) {
+      setApiError('Core Skill cannot contain numbers or special characters!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     if (formData.skills.some(s => s.name.toLowerCase() === newSkillName.trim().toLowerCase())) {
       setApiError('This skill is already added!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -223,23 +229,25 @@ export default function SetupProfilePage() {
     });
   };
 
+  const lettersOnlyRegex = /^[\p{L}\s]*$/u;
+
   const validateEducation = () => {
     for (let i = 0; i < formData.education.length; i++) {
       const edu = formData.education[i];
       const hasContent = edu.school.trim() || edu.degree.trim() || edu.startDate || edu.gradDate;
       if (hasContent) {
-        if (!edu.school.trim()) {
-          setApiError(`School / Institute is required!`);
+        if (edu.school.trim() && !lettersOnlyRegex.test(edu.school)) {
+          setApiError(`School / Institute cannot contain numbers or special characters!`);
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return false;
         }
-        if (!edu.degree.trim()) {
-          setApiError(`Degree / Field of Study is required!`);
+        if (edu.degree.trim() && !lettersOnlyRegex.test(edu.degree)) {
+          setApiError(`Degree / Field of Study cannot contain numbers or special characters!`);
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return false;
         }
         if (!edu.startDate) {
-          setApiError(`Start Date is required!`);
+          setApiError(`Start Date is required if education is filled!`);
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return false;
         }
@@ -271,18 +279,18 @@ export default function SetupProfilePage() {
       const exp = formData.experience[i];
       const hasContent = exp.company.trim() || exp.role.trim() || exp.startDate || exp.endDate;
       if (hasContent) {
-        if (!exp.company.trim()) {
-          setApiError(`Company Name is required!`);
+        if (exp.company.trim() && !lettersOnlyRegex.test(exp.company)) {
+          setApiError(`Company Name cannot contain numbers or special characters!`);
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return false;
         }
-        if (!exp.role.trim()) {
-          setApiError(`Job Title / Role is required!`);
+        if (exp.role.trim() && !lettersOnlyRegex.test(exp.role)) {
+          setApiError(`Job Title / Role cannot contain numbers or special characters!`);
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return false;
         }
         if (!exp.startDate) {
-          setApiError(`Start Date is required!`);
+          setApiError(`Start Date is required if experience is filled!`);
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return false;
         }
@@ -317,6 +325,21 @@ export default function SetupProfilePage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
+      if (!lettersOnlyRegex.test(formData.display_name.trim())) {
+        setApiError('Display Name can only contain letters and spaces!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (formData.phone.trim() && !/^\d{10}$/.test(formData.phone.trim())) {
+        setApiError('Phone Number must be exactly 10 digits!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (formData.headline.trim() && !lettersOnlyRegex.test(formData.headline)) {
+        setApiError('Job Title / Headline cannot contain numbers or special characters!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
     }
     if (currentStep === 2) {
       if (!validateEducation() || !validateExperience()) {
@@ -337,6 +360,18 @@ export default function SetupProfilePage() {
   const handleFinishSetup = async () => {
     if (!formData.display_name.trim()) {
       setApiError('Display Name is mandatory!');
+      setCurrentStep(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (!lettersOnlyRegex.test(formData.display_name.trim())) {
+      setApiError('Display Name can only contain letters and spaces!');
+      setCurrentStep(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (formData.phone.trim() && !/^\d{10}$/.test(formData.phone.trim())) {
+      setApiError('Phone Number must be exactly 10 digits!');
       setCurrentStep(1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
@@ -606,7 +641,7 @@ export default function SetupProfilePage() {
                         />
                       </div>
                       <div className="form-field">
-                        <label style={{ fontSize: '0.85rem' }}>End Date (Leave blank if current)</label>
+                        <label style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}>End Date <span style={{ fontWeight: 'normal', fontSize: '0.75rem' }}>(Leave blank if current)</span></label>
                         <input
                           type="month"
                           value={exp.endDate || ''}

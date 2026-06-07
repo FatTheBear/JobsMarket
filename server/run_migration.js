@@ -204,7 +204,7 @@ async function runMigration() {
                             // Check if it looks like an education or experience item
                             const isEdu = item.school || item.degree;
                             const isExp = item.company || item.role;
-                            
+
                             if (isEdu) {
                                 await pool.query(
                                     'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
@@ -283,8 +283,8 @@ async function runMigration() {
         console.log('All migrations completed successfully.');
     } catch (error) {
         console.error('Migration failed:', error);
-    
-        
+    }
+
 
 
     console.log('--- Starting DB Structure Update Migration ---');
@@ -355,31 +355,28 @@ async function runMigration() {
         `);
         console.log('-> job_skill table is ready.');
 
-        // Create candidate_skill junction table
+        // Tạo bảng candidate_skill
         console.log('Creating candidate_skill table...');
         await pool.query(`
             CREATE TABLE IF NOT EXISTS \`candidate_skill\` (
                 \`candidate_id\` INT(11) NOT NULL,
                 \`skill_id\` INT(11) NOT NULL,
+                \`level\` INT DEFAULT 0,
                 PRIMARY KEY (\`candidate_id\`, \`skill_id\`),
-                CONSTRAINT \`fk_cs_candidate\` FOREIGN KEY (\`candidate_id\`) REFERENCES \`user\` (\`id\`) ON DELETE CASCADE ON UPDATE CASCADE,
+                CONSTRAINT \`fk_cs_candidate\` FOREIGN KEY (\`candidate_id\`) REFERENCES \`Candidate_Profile\` (\`id\`) ON DELETE CASCADE ON UPDATE CASCADE,
                 CONSTRAINT \`fk_cs_skill\` FOREIGN KEY (\`skill_id\`) REFERENCES \`skill\` (\`id\`) ON DELETE CASCADE ON UPDATE CASCADE
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
         `);
         console.log('-> candidate_skill table is ready.');
 
-        console.log('\n=== MIGRATION COMPLETED SUCCESSFULLY ===');
-        process.exit(0); // Exit process with success code
-
     } catch (dbError) {
         console.error('\n[CRITICAL ERROR] Table creation failed:', dbError.message);
         process.exit(1); // Exit process with failure code
-    }
 
-
-await pool.end();
-        console.log('Database connection closed.');
     }
+    await pool.end();
+    console.log('Database connection closed.');
 }
+
 
 runMigration();

@@ -35,9 +35,9 @@ router.post('/', async (req, res) => {
     const company_id = companies[0].id;
 
     const [result] = await pool.query(
-      `INSERT INTO Job_Posting (company_id, hr_id, title, description, requirements, salary_min, salary_max, job_type, deadline, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Approved')`,
-      [company_id, hr_id, title, description, requirements, salary_min || null, salary_max || null, job_type, deadline || null]
+      `INSERT INTO Job_Posting (company_id, hr_id, title, description, requirements, salary_min, salary_max, job_type, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Approved')`,
+      [company_id, hr_id, title, description, requirements, salary_min || null, salary_max || null, job_type]
     );
 
     res.status(201).json({ message: 'Job posted successfully!', jobId: result.insertId });

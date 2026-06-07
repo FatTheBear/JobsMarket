@@ -104,7 +104,6 @@ const CandidateSkills = ({
                   value={skillForm.name}
                   onChange={(e) => setSkillForm({ ...skillForm, name: e.target.value })}
                   placeholder="e.g. React.js, Tailwind CSS"
-                  required
                 />
               </div>
               <div>

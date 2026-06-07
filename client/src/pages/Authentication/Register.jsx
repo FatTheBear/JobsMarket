@@ -37,7 +37,7 @@ export default function Register() {
       accept_terms: true,
       ...(selectedRole === 'candidate' 
         ? { full_name: fullName } 
-        : { company_name: fullName ? `${fullName}'s Company` : 'My Company', industry_id: 10 })
+        : { company_name: fullName ? `${fullName}'s Company` : 'My Company', industry_id: 1 })
     };
 
     try {

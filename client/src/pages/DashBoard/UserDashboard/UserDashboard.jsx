@@ -1,48 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from './UserDashboard.module.css'; 
+import styles from './UserDashboard.module.css';
+import axios from 'axios';
+import ApplyJobModal from './ApplyJobModal';
 
 const LOCATIONS = [
   'Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Binh Duong', 'Dong Nai', 'Can Tho'
-];
-
-const JOB_POSTINGS = [
-  {
-    id: 1,
-    title: 'Senior React Developer',
-    company: 'Tech Solutions Corp',
-    salary: '$2000 - $3500',
-    jobType: 'Full-time',
-    description: 'We are looking for a Senior React Developer to join our dynamic team and lead frontend development projects.',
-    requirements: 'Strong proficiency in JavaScript/TypeScript, React.js, Redux, and modern CSS frameworks. 3+ years of experience.',
-    benefits: 'Premium health insurance, 13th-month salary, flexible work hours, hybrid working mode.',
-    location: 'Ho Chi Minh City',
-    workingHours: '8:00 AM - 5:00 PM, Monday - Friday',
-    degreeRequirement: 'Bachelor\'s Degree in Computer Science or related fields',
-    experience: '3+ years',
-    ageRequirement: '22 - 35',
-    languageRequirement: 'English (Intermediate)',
-    employerPhone: '0901 234 567',
-    employerEmail: 'hr@techsolutions.com'
-  },
-  {
-    id: 2,
-    title: 'Digital Marketing Specialist',
-    company: 'Creative Agency',
-    salary: '$1000 - $1800',
-    jobType: 'Part-time',
-    description: 'Join us to plan and execute comprehensive digital marketing campaigns across SEO, SEM, and social media channels.',
-    requirements: 'Experience in Google Ads, Facebook Ads, SEO optimization, content creation, and data analytics.',
-    benefits: 'Competitive commission, professional training programs, active and creative working environment.',
-    location: 'Hanoi',
-    workingHours: 'Flexible, 24 hours/week',
-    degreeRequirement: 'College/University degree in Marketing, Business or related fields',
-    experience: '1+ year',
-    ageRequirement: 'Under 30',
-    languageRequirement: 'English (Fluent)',
-    employerPhone: '0987 654 321',
-    employerEmail: 'careers@creativeagency.com'
-  }
 ];
 
 export default function CandidateDashboard() {
@@ -51,6 +14,10 @@ export default function CandidateDashboard() {
   const [selectedLocation, setSelectedLocation] = useState('');
   const [bannerIdx, setBannerIdx] = useState(0);
   const bannerTimerRef = useRef(null);
+  const [jobs, setJobs] = useState([]);
+  
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
 
   // Đổi Banner thành Danh mục các ngành nghề
   const INDUSTRY_BANNERS = [
@@ -73,12 +40,24 @@ export default function CandidateDashboard() {
 
   const handleLogout = () => {
     // Thêm logic xóa token/localStorage ở đây
-    navigate('/login');
+    navigate('/');
   };
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/jobs');
+        setJobs(response.data); // Nhét dữ liệu tải về vào biến jobs
+      } catch (error) {
+        console.error("Error loading job list:", error);
+      }
+    };
+    fetchJobs();
+  }, [])
 
   return (
     <div className={styles.page}>
-      
+
       {/* ───── NAVBAR (Logged In View) ───── */}
       <nav className={styles.navbar}>
         <div className={styles.navInner}>
@@ -167,37 +146,29 @@ export default function CandidateDashboard() {
           <div className={styles.sectionHeader} style={{ marginBottom: '40px' }}>
             <h2 className={styles.sectionTitle}>RECOMMENDED FOR YOU</h2>
           </div>
-          
+
           {/* Job Postings Grid */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
-            {JOB_POSTINGS.map(job => (
+            {jobs.map(job => (
               <div key={job.id} style={{ backgroundColor: 'white', borderRadius: '12px', padding: '25px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', border: '1px solid #eee' }}>
-                
-                {/* Header: Title, Company, Job Type */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #f0f0f0', paddingBottom: '15px', marginBottom: '20px' }}>
                   <div>
                     <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#1e3a6e', margin: '0 0 5px 0' }}>{job.title}</h3>
-                    <div style={{ fontSize: '16px', color: '#555', fontWeight: '500' }}>🏢 {job.company}</div>
+                    <div style={{ fontSize: '16px', color: '#555', fontWeight: '500' }}>🏢 {job.companyName}</div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#27ae60', marginBottom: '5px' }}>{job.salary}</div>
+                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#27ae60', marginBottom: '5px' }}>{job.salaryFrom} - {job.salaryTo} {job.salaryUnit}</div>
                     <span style={{ backgroundColor: job.jobType === 'Full-time' ? '#e1f5fe' : '#fff0f6', color: job.jobType === 'Full-time' ? '#0288d1' : '#c2185b', padding: '5px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: 'bold' }}>
                       {job.jobType}
                     </span>
                   </div>
                 </div>
-
-                {/* Job Details Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', fontSize: '15px', color: '#444' }}>
-                  
-                  {/* Left Column */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    <div><strong style={{ color: '#333' }}>📝 Job Description:</strong> <br/>{job.description}</div>
-                    <div><strong style={{ color: '#333' }}>🎯 Requirements:</strong> <br/>{job.requirements}</div>
-                    <div><strong style={{ color: '#333' }}>✨ Benefits:</strong> <br/>{job.benefits}</div>
+                    <div><strong style={{ color: '#333' }}>📝 Job Description:</strong> <br />{job.description}</div>
+                    <div><strong style={{ color: '#333' }}>🎯 Requirements:</strong> <br />{job.requirements}</div>
+                    <div><strong style={{ color: '#333' }}>✨ Benefits:</strong> <br />{job.benefits}</div>
                   </div>
-
-                  {/* Right Column */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px' }}>
                     <div><strong>📍 Location:</strong> {job.location}</div>
                     <div><strong>⏰ Working Hours:</strong> {job.workingHours}</div>
@@ -210,12 +181,10 @@ export default function CandidateDashboard() {
                     <div style={{ fontSize: '14px' }}><strong>✉️ Email:</strong> {job.employerEmail}</div>
                   </div>
                 </div>
-
-                {/* Apply Button */}
                 <div style={{ marginTop: '25px', display: 'flex', justifyContent: 'flex-end' }}>
-                  <button 
+                  <button
                     style={{ backgroundColor: '#2563ab', color: 'white', border: 'none', padding: '12px 30px', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' }}
-                    onClick={() => console.log('Applying for', job.id)}
+                    onClick={() => { setSelectedJob(job); setShowApplyModal(true); }}
                   >
                     Apply Now
                   </button>
@@ -223,9 +192,15 @@ export default function CandidateDashboard() {
               </div>
             ))}
           </div>
-
         </div>
       </section>
+
+      <ApplyJobModal
+        show={showApplyModal}
+        onClose={() => { setShowApplyModal(false); setSelectedJob(null); }}
+        job={selectedJob}
+        onApplySuccess={() => alert('Apply successful! The employer will contact you soon.')}
+      />
 
       {/* ───── FOOTER ───── */}
       <footer className={styles.footer}>

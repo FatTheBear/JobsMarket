@@ -1,0 +1,101 @@
+/* Container chính của thẻ */
+.job-card-container {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+  background-color: #ffffff;
+  border: 1px solid #e4e6e8;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  margin-bottom: 16px;
+}
+
+/* Hiệu ứng nổi lên khi hover chuột */
+.job-card-container:hover {
+  border-color: #0a66c2; /* Màu xanh biển đậm chuẩn doanh nghiệp */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Khung chứa Logo */
+.job-card-logo {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  margin-right: 16px;
+  border: 1px solid #f0f2f5;
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
+}
+
+.job-card-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Giữ nguyên tỷ lệ logo, không bị méo */
+  padding: 4px;
+}
+
+/* Phần chữ bên phải */
+.job-card-body {
+  flex: 1;
+  min-width: 0; /* Rất quan trọng để text-overflow hoạt động */
+}
+
+/* Tiêu đề công việc */
+.job-card-title {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Cắt chữ thành ... nếu quá dài */
+}
+
+/* Tên công ty */
+.job-card-company {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #595959;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Khu vực chứa các thẻ Tag */
+.job-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px; /* Khoảng cách giữa các tag */
+}
+
+/* Style chung cho tag */
+.job-tag {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 4px;
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+/* Tùy chỉnh màu sắc riêng cho từng loại tag (giúp UI bắt mắt hơn) */
+.tag-salary {
+  background-color: #e6f7ff;
+  color: #0050b3; /* Xanh nước biển */
+}
+
+.tag-location {
+  background-color: #f6ffed;
+  color: #389e0d; /* Xanh lá */
+}
+
+.tag-type {
+  background-color: #fff0f6;
+  color: #c41d7f; /* Đỏ tía */
+}

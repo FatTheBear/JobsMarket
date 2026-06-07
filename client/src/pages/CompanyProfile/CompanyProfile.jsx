@@ -203,7 +203,7 @@ export default function CompanyProfile() {
         </div>
         <button
           className={styles.btnPostJob}
-          onClick={() => navigate('/company-profile/job-posting')}
+          onClick={() => navigate('/company/jobs/create')}
         >
           Đăng tin tuyển dụng mới
         </button>

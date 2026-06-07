@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import LandingPage from './pages/LandingPage/LandingPage';
-import { createBrowserRouter, RouterProvider, BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { SocketProvider } from './context/SocketContext';
+import MainLayout from './components/layout/MainLayout'; // <-- Nhớ trỏ đúng đường dẫn thư mục nhé!
+
+import LandingPage from './pages/LandingPage/LandingPage';
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
 import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
 import CandidatePublicProfile from './pages/CandidateProfile/CandidatePublicProfile';
@@ -26,35 +28,10 @@ function Home() {
 
   return (
     <div className="app-wrapper">
-      {/* Premium Dashboard Header */}
-      <header className="dashboard-header">
-        <div className="header-brand">
-          <span className="brand-logo">💼</span>
-          <span className="brand-name">JobsMarket</span>
-          <span className="brand-badge">Developer Mode</span>
-        </div>
-        <nav className="header-nav">
-          <button
-            className={`nav-tab-btn ${activeTab === 'candidate' ? 'active' : ''}`}
-            onClick={() => setActiveTab('candidate')}
-          >
-            👤 Candidate Profile
-          </button>
-          <button
-            className={`nav-tab-btn ${activeTab === 'company' ? 'active' : ''}`}
-            onClick={() => setActiveTab('company')}
-          >
-            🏢 Company Profile
-          </button>
-        </nav>
-      </header>
-
-      {/* Main Content Area */}
+      
       <main className="dashboard-main">
         {activeTab === 'candidate' ? <CandidateProfile /> : <CompanyProfile />}
       </main>
-
-      {/* Footer */}
       <footer className="dashboard-footer">
         <p>© 2026 JobsMarket Platform • The Breakthrough Recruitment Experience</p>
       </footer>
@@ -62,51 +39,60 @@ function Home() {
   );
 }
 
-// Cấu hình danh sách các đường dẫn (Routes) toàn hệ thống
+// CẤU HÌNH ĐỊNH TUYẾN
 const router = createBrowserRouter([
-  { path: "/", element: <LandingPage /> },
-
-  // Authentication
+  // ==========================================
+  // NHÓM 1: CÁC TRANG TỰ DO (KHÔNG CÓ NAVBAR CHUNG)
+  // ==========================================
   { path: "/auth", element: <AuthPage /> },
   { path: "/register", element: <Register /> },
   { path: "/login", element: <Login /> },
-  { path: "/company-profile", element: <CompanyProfile /> },
   { path: "/verify-otp", element: <VerifyOTP /> },
-  { path: "/dashboard", element: <UserDashboard /> },
-  { path: "/profile", element: <Home /> },
   { path: "/setup-profile", element: <SetupProfilePage /> },
-  { path: "/candidate-profile", element: <CandidateProfile /> },
-  { path: "/candidate/:id", element: <CandidatePublicProfile /> },
-  { path: "/company-profile/job-posting", element: <JobPosting /> },
-  {
-    path: "/admin",
-    element: (
-      <ProtectedRoute requiredRole="Admin">
-        <AdminDashboard />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/job-posting",
-    element: <JobPosting />
-  },
-  { 
-    path: "/search-jobs", 
-    element: <SearchJobs /> 
-  },
-  {
-    path: "/job/:id",
-    element: <JobDetail />
+
+  // ==========================================
+  // NHÓM 2: CÁC TRANG BỌC BỞI MAIN LAYOUT (CÓ NAVBAR)
+  // ==========================================
+    element: <MainLayout />, // <-- Đặt cái khuôn ở đây
+    children: [     
+      { path: "/", element: <LandingPage /> },         // <-- Tất cả đường link bên trong sẽ tự động đổ vào vị trí <Outlet />
+      { path: "/dashboard", element: <UserDashboard /> },
+      { path: "/company-profile", element: <CompanyProfile /> },
+      { path: "/job-posting", element: <JobPosting /> },
+      { path: "/company/jobs/create", element: <JobPosting /> },
+      { path: "/company-profile/job-posting", element: <JobPosting /> },
+      { path: "/profile", element: <Home /> },
+      { path: "/candidate-profile", element: <CandidateProfile /> },
+      { path: "/candidate/:id", element: <CandidatePublicProfile /> },
+      {
+        path: "/admin",
+        element: (
+          <ProtectedRoute requiredRole="Admin">
+            <AdminDashboard />
+          </ProtectedRoute>
+        ),
+      },
+      { 
+        path: "/search-jobs", 
+        element: <SearchJobs /> 
+      },
+      {
+        path: "/job/:id",
+        element: <JobDetail />
+      }
+    ]
   },
 
-  { path: "*", element: <div>404</div> }
+
+  // Trang 404 cho các đường dẫn sai
+  { path: "*", element: <div>404 - Trang không tồn tại</div> }
 ]);
 
 // Component App chính chạy RouterProvider
 export default function App() {
   return (
-    <SocketProvider>
+    //<SocketProvider>
       <RouterProvider router={router} />
-    </SocketProvider>
+    //</SocketProvider>
   );
 }
