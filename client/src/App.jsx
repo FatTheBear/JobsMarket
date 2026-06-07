@@ -53,6 +53,7 @@ const router = createBrowserRouter([
   // ==========================================
   // NHÓM 2: CÁC TRANG BỌC BỞI MAIN LAYOUT (CÓ NAVBAR)
   // ==========================================
+  {
     element: <MainLayout />, // <-- Đặt cái khuôn ở đây
     children: [     
       { path: "/", element: <LandingPage /> },         // <-- Tất cả đường link bên trong sẽ tự động đổ vào vị trí <Outlet />

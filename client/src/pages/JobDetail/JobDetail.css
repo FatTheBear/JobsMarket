@@ -101,6 +101,21 @@
   box-shadow: 0 6px 20px rgba(0, 177, 79, 0.4);
 }
 
+.apply-btn.applied {
+  background: #e0e0e0;
+  color: #888;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  border: 2px solid #ccc;
+}
+
+.apply-btn.applied:hover {
+  background: #e0e0e0;
+  transform: none;
+  box-shadow: none;
+}
+
 /* ==========================================================================
    CONTENT GRID
    ========================================================================== */

@@ -28,7 +28,7 @@ export default function ApplyModal({ jobId, jobTitle, onClose, onSuccess, onErro
     setLoadingCVs(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.get(`${API_URL}/api/candidate/cvs`, {
+      const res = await axios.get(`${API_URL}/api/candidate/my-cvs`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMyCVs(res.data || []);
@@ -97,9 +97,9 @@ export default function ApplyModal({ jobId, jobTitle, onClose, onSuccess, onErro
                 >
                   <div className="apply-cv-icon">📄</div>
                   <div className="apply-cv-info">
-                    <div className="apply-cv-name">{cv.cv_name}</div>
+                    <div className="apply-cv-name">{cv.name || cv.cv_name}</div>
                     <div className="apply-cv-date">
-                      Cập nhật: {new Date(cv.updated_at).toLocaleDateString('vi-VN')}
+                      Cập nhật: {cv.uploadedAt || (cv.updated_at ? new Date(cv.updated_at).toLocaleDateString('vi-VN') : '')}
                     </div>
                   </div>
                   <div className="apply-cv-radio">

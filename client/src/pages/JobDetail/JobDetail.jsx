@@ -12,6 +12,7 @@ export default function JobDetail() {
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showApplyModal, setShowApplyModal] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
 
   // Toast
   const [toast, setToast] = useState({ show: false, msg: '', type: '' });
@@ -82,9 +83,15 @@ export default function JobDetail() {
               </div>
             </div>
           </div>
-          <button className="apply-btn" onClick={handleApplyClick}>
-            Ứng tuyển ngay
-          </button>
+          {hasApplied ? (
+            <button className="apply-btn applied" disabled>
+              ✓ Đã ứng tuyển
+            </button>
+          ) : (
+            <button className="apply-btn" onClick={handleApplyClick}>
+              Ứng tuyển ngay
+            </button>
+          )}
         </div>
       </div>
 
@@ -126,6 +133,7 @@ export default function JobDetail() {
           onClose={() => setShowApplyModal(false)}
           onSuccess={(msg) => {
             setShowApplyModal(false);
+            setHasApplied(true);
             showToast(msg, 'success');
           }}
           onError={(msg) => showToast(msg, 'error')}
