@@ -4,7 +4,6 @@ import JobSkillsManager from '../JobSkillsManager/JobSkillsManager';
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 const API_URL = 'http://localhost:5000';
-const TEMP_HR_ID = 1;
 
 const TEMPLATES = [
   { id: '', label: 'Select template...' },
@@ -153,6 +152,7 @@ export default function JobPosting() {
   const [loading, setLoading] = useState(false);
   const [postedJobId, setPostedJobId] = useState(null);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
+  const navigate = useNavigate();
 
   const openApplicantProfile = (applicant) => setSelectedApplicant(applicant);
   const closeApplicantProfile = () => setSelectedApplicant(null);
@@ -249,6 +249,7 @@ export default function JobPosting() {
 
 
     setLoading(true);
+<<<<<<< HEAD
   try {
     const payload = {
       title: form.title,
@@ -282,6 +283,42 @@ export default function JobPosting() {
     } else {
       // Lỗi cú pháp code React
       showToast('Có lỗi bất ngờ xảy ra', 'error');
+=======
+    try {
+      const currentUserId = localStorage.getItem('userId');
+      const payload = {
+        title: form.title,
+        description: form.description,
+        requirements: form.requirements,
+        salary_min: form.salary_min ? parseInt(form.salary_min) : null,
+        salary_max: form.salary_max ? parseInt(form.salary_max) : null,
+        job_type: form.job_type,
+        deadline: form.deadline || null,
+        hr_id: currentUserId,
+      };
+      // Gọi API bằng axios
+      const token = localStorage.getItem('token');
+      const res = await axios.post('http://localhost:5000/api/jobs', payload, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      // Axios tự động coi status 2xx (như 200, 201) là thành công
+      if (res.status === 201 || res.status === 200) {
+        showToast('Job successfully posted', 'success');
+
+        // Đợi 1 chút để user đọc được thông báo rồi mới chuyển trang
+        setTimeout(() => {
+          navigate('/company-profile');
+        }, 1500);
+      }
+    } catch (error) {
+      // Axios sẽ nhảy vào catch nếu API trả về lỗi (status >= 400)
+      const errorMsg = error.response?.data?.message || 'Failed to post job';
+      showToast(errorMsg, 'error');
+    } finally {
+      setLoading(false);
+>>>>>>> 670897cd2a78b4ea0bba360b6169f78f2afd490d
     }
   } finally {
     setLoading(false);
@@ -580,7 +617,7 @@ export default function JobPosting() {
 
               {/* FORM SECTIONS */}
               <div className="jp-grid">
-                
+
                 <section className="jp-form-panel">
                   <div className="jp-card">
                     <div className="jp-card-title">Job Information</div>
@@ -727,6 +764,12 @@ export default function JobPosting() {
               </div>
             </>
           )}
+          {toast.show && (
+            <div className={`toast-message ${toast.type}`} style={{ position: 'fixed', top: '20px', right: '20px', padding: '15px', background: toast.type === 'error' ? 'red' : 'green', color: 'white', borderRadius: '5px', zIndex: 9999 }}>
+              {toast.message}
+            </div>
+          )}
+
         </main>
       </div>
     </div>

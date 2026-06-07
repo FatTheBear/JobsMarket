@@ -325,6 +325,16 @@ export default function SetupProfilePage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
+      if (!lettersOnlyRegex.test(formData.display_name.trim())) {
+        setApiError('Display Name can only contain letters and spaces!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (formData.phone.trim() && !/^\d{10}$/.test(formData.phone.trim())) {
+        setApiError('Phone Number must be exactly 10 digits!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
       if (formData.headline.trim() && !lettersOnlyRegex.test(formData.headline)) {
         setApiError('Job Title / Headline cannot contain numbers or special characters!');
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -350,6 +360,18 @@ export default function SetupProfilePage() {
   const handleFinishSetup = async () => {
     if (!formData.display_name.trim()) {
       setApiError('Display Name is mandatory!');
+      setCurrentStep(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (!lettersOnlyRegex.test(formData.display_name.trim())) {
+      setApiError('Display Name can only contain letters and spaces!');
+      setCurrentStep(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (formData.phone.trim() && !/^\d{10}$/.test(formData.phone.trim())) {
+      setApiError('Phone Number must be exactly 10 digits!');
       setCurrentStep(1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
