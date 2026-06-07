@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Candidate_profile.css';
 import CandidatePersonalInfoModal from './CandidatePersonalInfoModal';
@@ -9,10 +10,12 @@ import CandidatePosts from './CandidatePosts';
 import CandidateWallet from './CandidateWallet';
 import CandidateCV from './CandidateCV';
 import CandidateExportModal from './CandidateExportModal';
+import CandidateAppliedJobs from './CandidateAppliedJobs';
 import { useWallet } from '../../context/WalletContext';
 
 
 const CandidateProfile = () => {
+  const navigate = useNavigate();
   const [showEdit, setShowEdit] = useState(false);
   const [showPersonalInfo, setShowPersonalInfo] = useState(false);
   const [activeEditTab, setActiveEditTab] = useState('info'); // 'info' or 'profile'
@@ -49,12 +52,26 @@ const CandidateProfile = () => {
 
   const [candidatePosts, setCandidatePosts] = useState([]);
 
-  const [cvFile, setCvFile] = useState(() => {
-    const saved = localStorage.getItem('candidate_cv');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const [cvList, setCvList] = useState([]); // Mảng chứa danh sách CV
+
+  // Hàm gọi API lấy danh sách CV
+  const fetchCVs = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const res = await axios.get('http://localhost:5000/api/candidate/my-cvs', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setCvList(res.data);
+    } catch (err) {
+      console.error("Lỗi lấy danh sách CV:", err);
+    }
+  };
+
 
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showCVModal, setShowCVModal] = useState(false); // Trạng thái mở/đóng cửa sổ CV
+  const [showAppliedJobsModal, setShowAppliedJobsModal] = useState(false); // Trạng thái mở/đóng lịch sử ứng tuyển
 
   // Temporary Form States for Modals
   const [editProfileForm, setEditProfileForm] = useState(null);
@@ -94,14 +111,6 @@ const CandidateProfile = () => {
           hidePhone: localStorage.getItem('hide_phone_' + profile.email) === 'true',
           avatar: profile.avatar_url || prev.avatar
         }));
-
-        if (profile.cv_url) {
-          try {
-            setCvFile(JSON.parse(profile.cv_url));
-          } catch (e) {
-            console.error("Failed to parse cv_url from DB:", e);
-          }
-        }
 
         if (profile.skills && Array.isArray(profile.skills)) {
           setSkills(profile.skills.map((s, idx) => ({ id: idx + 1, name: s.name, level: s.level })));
@@ -199,6 +208,7 @@ const CandidateProfile = () => {
     };
 
     loadProfile();
+    fetchCVs(); // lấy danh sách CV
   }, []);
 
   // Helper: save data to server directly (bypasses React state timing issues)
@@ -212,7 +222,6 @@ const CandidateProfile = () => {
       formData.append('phone', profileData.phone || '');
       formData.append('headline', profileData.jobTitle || '');
       formData.append('address', profileData.address || '');
-      if (cvFile) formData.append('cv_url', JSON.stringify(cvFile));
 
       const currentEdu = overrideData.educations || educations;
       const currentExp = overrideData.workExperiences || workExperiences;
@@ -240,6 +249,26 @@ const CandidateProfile = () => {
     const token = localStorage.getItem('token');
     if (!token) return;
 
+    // Validate Display Name
+    if (!editProfileForm.displayName.trim()) {
+      setModalError('Display Name is required!');
+      return;
+    }
+    if (!lettersOnlyRegex.test(editProfileForm.displayName.trim())) {
+      setModalError('Display Name can only contain letters and spaces!');
+      return;
+    }
+    // Validate Full Name
+    if (editProfileForm.fullName.trim() && !lettersOnlyRegex.test(editProfileForm.fullName.trim())) {
+      setModalError('Full Name can only contain letters and spaces!');
+      return;
+    }
+    // Validate Phone Number
+    if (editProfileForm.phone && editProfileForm.phone.trim() && !/^\d{10}$/.test(editProfileForm.phone.trim())) {
+      setModalError('Phone Number must be exactly 10 digits!');
+      return;
+    }
+
     try {
       // Tạo đối tượng FormData để chứa cả text và file
       const formData = new FormData();
@@ -248,9 +277,6 @@ const CandidateProfile = () => {
       formData.append('phone', editProfileForm.phone || '');
       formData.append('headline', editProfileForm.jobTitle || '');
       formData.append('address', editProfileForm.address || '');
-
-      if (cvFile) formData.append('cv_url', JSON.stringify(cvFile));
-
       // Các trường dạng mảng thì phải chuyển thành chuỗi JSON trước khi nhét vào FormData
       formData.append('education', JSON.stringify(educations.map(edu => ({
         school: edu.school,
@@ -561,6 +587,12 @@ const CandidateProfile = () => {
   return (
     <section className="profile-section">
       <div className="container py-5">
+        {/* Navigation back */}
+        <div className="mb-4">
+          <button onClick={() => navigate('/dashboard')} className="btn btn-outline-secondary d-inline-flex align-items-center gap-1.5 fw-semibold shadow-sm rounded-pill">
+            <i className="fas fa-arrow-left"></i> Back to Home
+          </button>
+        </div>
 
         <div className="row">
           <div className="col-12">
@@ -589,17 +621,20 @@ const CandidateProfile = () => {
                     {profileData.jobTitle && <p className="text-muted mb-1">{profileData.jobTitle}</p>}
                     {profileData.address && <p className="text-muted mb-3">{profileData.address}</p>}
                     <div className="d-flex flex-wrap gap-2 justify-content-center justify-content-md-start">
-                      <button type="button" className="btn btn-primary">
-                        Follow
+                      <button
+                        type="button"
+                        onClick={() => setShowCVModal(true)}
+                        className="btn btn-outline-success d-inline-flex align-items-center gap-1.5 fw-semibold shadow-sm rounded"
+                      >
+                        <i className="far fa-file-pdf text-success"></i> Manage My CVs ({cvList.length})
                       </button>
-                      <button type="button" className="btn btn-outline-primary">
-                        Message
+                      <button
+                        type="button"
+                        onClick={() => setShowAppliedJobsModal(true)}
+                        className="btn btn-outline-primary d-inline-flex align-items-center gap-1.5 fw-semibold shadow-sm rounded"
+                      >
+                        <i className="fas fa-history text-primary"></i> Applied Jobs
                       </button>
-                      {cvFile && (
-                        <a href={cvFile.dataUrl} download={cvFile.name} className="btn btn-outline-success d-inline-flex align-items-center gap-1.5 fw-semibold shadow-sm rounded">
-                          <i className={cvFile.name.endsWith('.pdf') ? "far fa-file-pdf text-danger" : "far fa-file-word text-primary"}></i> My CV
-                        </a>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -619,16 +654,7 @@ const CandidateProfile = () => {
                       </button>
                     </div>
 
-                    {/* Export CV Button */}
-                    <button
-                      type="button"
-                      className="btn btn-success rounded-circle d-flex align-items-center justify-content-center shadow-sm"
-                      style={{ width: '42px', height: '42px' }}
-                      title="Export CV"
-                      onClick={() => setShowExportModal(true)}
-                    >
-                      <i className="fas fa-file-export text-white" style={{ fontSize: '1.1rem' }}></i>
-                    </button>
+                    {/* Export CV Button has been moved */}
 
                     {/* Edit Profile (Settings Gear Icon) */}
                     <button
@@ -646,63 +672,7 @@ const CandidateProfile = () => {
             </div>
           </div>
 
-          <div className="col-12">
-            <div className="card mb-4 border-0 shadow-sm analytics-card">
-              <div className="card-body p-4">
-                <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
-                  <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2">
-                    <span className="fs-5 fw-bold text-dark mb-0">Analysis</span>
-                    <span className="badge bg-light text-muted border rounded-pill d-inline-flex align-items-center py-1.5 px-2.5 fw-normal small">
-                      <i className="fas fa-lock text-warning me-1.5" style={{ fontSize: '0.8rem' }}></i>
-                      Privacy with you (Only you can see)
-                    </span>
-                  </div>
-                  <i className="fas fa-chart-line text-primary fs-4"></i>
-                </div>
 
-                <div className="row g-3">
-                  <div className="col-12 col-md-4">
-                    <div className="p-3 rounded bg-light border-start border-primary border-3 hover-shadow-sm transition-all h-100">
-                      <p className="text-secondary small fw-semibold mb-1">Views</p>
-                      <div className="d-flex align-items-baseline gap-2">
-                        <span className="fs-3 fw-bold text-dark">428</span>
-                        <span className="text-success small fw-bold">
-                          <i className="fas fa-arrow-up me-1"></i>12.4%
-                        </span>
-                      </div>
-                      <p className="text-muted small mb-0">Last 7 days</p>
-                    </div>
-                  </div>
-
-                  <div className="col-12 col-md-4">
-                    <div className="p-3 rounded bg-light border-start border-success border-3 hover-shadow-sm transition-all h-100">
-                      <p className="text-secondary small fw-semibold mb-1">Post</p>
-                      <div className="d-flex align-items-baseline gap-2">
-                        <span className="fs-3 fw-bold text-dark">1,254</span>
-                        <span className="text-success small fw-bold">
-                          <i className="fas fa-arrow-up me-1"></i>28.6%
-                        </span>
-                      </div>
-                      <p className="text-muted small mb-0">Last 7 days</p>
-                    </div>
-                  </div>
-
-                  <div className="col-12 col-md-4">
-                    <div className="p-3 rounded bg-light border-start border-info border-3 hover-shadow-sm transition-all h-100">
-                      <p className="text-secondary small fw-semibold mb-1">Follower Rate</p>
-                      <div className="d-flex align-items-baseline gap-2">
-                        <span className="fs-3 fw-bold text-dark">8.5%</span>
-                        <span className="text-success small fw-bold">
-                          <i className="fas fa-arrow-up me-1"></i>Up
-                        </span>
-                      </div>
-                      <p className="text-muted small mb-0">Total 295 followers</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Sub-Components extracted for cleaner layout */}
           <CandidatePersonalInfoModal
@@ -775,17 +745,17 @@ const CandidateProfile = () => {
                     </div>
                   ) : (
                     followedBusinesses.map((biz) => (
-                      <div key={biz.id} className="experience-item p-3 rounded border bg-light hover-shadow-sm transition-all d-flex align-items-center justify-content-between">
-                        <div className="d-flex align-items-center gap-2">
+                      <div key={biz.id} className="experience-item p-3 rounded border bg-light hover-shadow-sm transition-all d-flex flex-column align-items-start gap-2">
+                        <div className="d-flex align-items-center gap-2 w-100">
                           <div className="d-flex align-items-center justify-content-center bg-white rounded-circle shadow-sm" style={{ width: '40px', height: '40px', minWidth: '40px' }}>
                             <i className="fas fa-building text-primary fs-6"></i>
                           </div>
-                          <div>
-                            <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '0.85rem' }}>{biz.name}</h6>
-                            <p className="mb-0 text-muted" style={{ fontSize: '0.7rem' }}>{biz.category}</p>
+                          <div style={{ minWidth: 0 }}>
+                            <h6 className="fw-bold mb-0 text-dark text-truncate" style={{ fontSize: '0.85rem' }} title={biz.name}>{biz.name}</h6>
+                            <p className="mb-0 text-muted text-truncate" style={{ fontSize: '0.7rem' }}>{biz.category}</p>
                           </div>
                         </div>
-                        <button className="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-0.5 fw-semibold d-flex align-items-center gap-1" style={{ fontSize: '0.7rem' }}>
+                        <button className="btn btn-xs btn-outline-primary rounded-pill px-3 py-1 fw-semibold d-flex align-items-center justify-content-center gap-1 w-100 mt-1" style={{ fontSize: '0.75rem' }}>
                           <i className="fas fa-check" style={{ fontSize: '0.6rem' }}></i> Followed
                         </button>
                       </div>
@@ -813,26 +783,6 @@ const CandidateProfile = () => {
               </h5>
             </div>
 
-            {/* Tab Headers */}
-            <div className="d-flex border-bottom bg-light px-3">
-              <button
-                type="button"
-                className={`btn btn-link nav-tab-btn py-3 text-decoration-none fw-semibold ${activeEditTab === 'info' ? 'active text-primary border-bottom border-primary border-3' : 'text-muted'}`}
-                onClick={() => setActiveEditTab('info')}
-                style={{ borderRadius: '0' }}
-              >
-                <i className="fas fa-info-circle me-1.5"></i> Information
-              </button>
-              <button
-                type="button"
-                className={`btn btn-link nav-tab-btn py-3 text-decoration-none fw-semibold ${activeEditTab === 'cv' ? 'active text-primary border-bottom border-primary border-3' : 'text-muted'}`}
-                onClick={() => setActiveEditTab('cv')}
-                style={{ borderRadius: '0' }}
-              >
-                <i className="far fa-file-pdf me-1.5"></i> My CV
-              </button>
-            </div>
-
             <form onSubmit={handleSaveProfile} className="profile-modal-body p-4 scrollable-modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
               {modalError && (
                 <div className="alert alert-danger py-2 px-3 mb-3 small border-0 shadow-sm" role="alert">
@@ -840,166 +790,184 @@ const CandidateProfile = () => {
                 </div>
               )}
 
-              {activeEditTab === 'info' && (
-                <div className="d-flex flex-column gap-3">
-                  {/* Upload Avatar */}
-                  <div className="d-flex flex-column align-items-center gap-2 mb-3 bg-light p-3 rounded border">
-                    <img
-                      src={editProfileForm.avatar}
-                      alt="avatar preview"
-                      className="rounded-circle shadow border"
-                      style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+              <div className="d-flex flex-column gap-3">
+                {/* Upload Avatar */}
+                <div className="d-flex flex-column align-items-center gap-2 mb-3 bg-light p-3 rounded border">
+                  <img
+                    src={editProfileForm.avatar}
+                    alt="avatar preview"
+                    className="rounded-circle shadow border"
+                    style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                  />
+                  <label className="btn btn-sm btn-outline-primary mt-2 position-relative cursor-pointer">
+                    <i className="fas fa-upload me-1.5"></i> Upload Avatar
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      className="position-absolute opacity-0 top-0 start-0 w-100 h-100 cursor-pointer"
+                      style={{ zIndex: 2 }}
                     />
-                    <label className="btn btn-sm btn-outline-primary mt-2 position-relative cursor-pointer">
-                      <i className="fas fa-upload me-1.5"></i> Upload Avatar
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleAvatarChange}
-                        className="position-absolute opacity-0 top-0 start-0 w-100 h-100 cursor-pointer"
-                        style={{ zIndex: 2 }}
-                      />
-                    </label>
-                    <span className="text-muted small">Max size: 5MB</span>
-                  </div>
+                  </label>
+                  <span className="text-muted small">Max size: 5MB</span>
+                </div>
 
-                  {/* General Info */}
-                  <div className="row g-3">
-                    <div className="col-12 col-md-6">
-                      <label className="form-label fw-semibold text-secondary small">Display Name</label>
+                {/* General Info */}
+                <div className="row g-3">
+                  <div className="col-12 col-md-6">
+                    <label className="form-label fw-semibold text-secondary small">Display Name</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editProfileForm.displayName}
+                      onChange={(e) => setEditProfileForm({ ...editProfileForm, displayName: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label fw-semibold text-secondary small">Full Name</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editProfileForm.fullName}
+                      onChange={(e) => setEditProfileForm({ ...editProfileForm, fullName: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label fw-semibold text-secondary small">Job Title</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editProfileForm.jobTitle}
+                      onChange={(e) => setEditProfileForm({ ...editProfileForm, jobTitle: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label fw-semibold text-secondary small">Nationality</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editProfileForm.nationality}
+                      onChange={(e) => setEditProfileForm({ ...editProfileForm, nationality: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label fw-semibold text-secondary small">Phone Number</label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      value={editProfileForm.phone || ''}
+                      onChange={(e) => setEditProfileForm({ ...editProfileForm, phone: e.target.value })}
+                      placeholder="e.g., +84 901 234 567"
+                    />
+                  </div>
+                  <div className="col-12 col-md-6 d-flex align-items-center">
+                    <div className="form-check form-switch mt-4">
                       <input
-                        type="text"
-                        className="form-control"
-                        value={editProfileForm.displayName}
-                        onChange={(e) => setEditProfileForm({ ...editProfileForm, displayName: e.target.value })}
-                        required
+                        className="form-check-input"
+                        type="checkbox"
+                        id="hidePhoneCheckbox"
+                        checked={editProfileForm.hidePhone || false}
+                        onChange={(e) => setEditProfileForm({ ...editProfileForm, hidePhone: e.target.checked })}
                       />
-                    </div>
-                    <div className="col-12 col-md-6">
-                      <label className="form-label fw-semibold text-secondary small">Full Name</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={editProfileForm.fullName}
-                        onChange={(e) => setEditProfileForm({ ...editProfileForm, fullName: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="col-12 col-md-6">
-                      <label className="form-label fw-semibold text-secondary small">Job Title</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={editProfileForm.jobTitle}
-                        onChange={(e) => setEditProfileForm({ ...editProfileForm, jobTitle: e.target.value })}
-                      />
-                    </div>
-                    <div className="col-12 col-md-6">
-                      <label className="form-label fw-semibold text-secondary small">Nationality</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={editProfileForm.nationality}
-                        onChange={(e) => setEditProfileForm({ ...editProfileForm, nationality: e.target.value })}
-                      />
-                    </div>
-                    <div className="col-12 col-md-6">
-                      <label className="form-label fw-semibold text-secondary small">Phone Number</label>
-                      <input
-                        type="tel"
-                        className="form-control"
-                        value={editProfileForm.phone || ''}
-                        onChange={(e) => setEditProfileForm({ ...editProfileForm, phone: e.target.value })}
-                        placeholder="e.g., +84 901 234 567"
-                      />
-                    </div>
-                    <div className="col-12 col-md-6 d-flex align-items-center">
-                      <div className="form-check form-switch mt-4">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id="hidePhoneCheckbox"
-                          checked={editProfileForm.hidePhone || false}
-                          onChange={(e) => setEditProfileForm({ ...editProfileForm, hidePhone: e.target.checked })}
-                        />
-                        <label className="form-check-label fw-semibold text-secondary small mb-0" htmlFor="hidePhoneCheckbox">
-                          Hide phone in Contact Info
-                        </label>
-                      </div>
-                    </div>
-                    <div className="col-12">
-                      <label className="form-label fw-semibold text-secondary small">Address / Country</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={editProfileForm.address}
-                        onChange={(e) => setEditProfileForm({ ...editProfileForm, address: e.target.value })}
-                      />
+                      <label className="form-check-label fw-semibold text-secondary small mb-0" htmlFor="hidePhoneCheckbox">
+                        Hide phone in Contact Info
+                      </label>
                     </div>
                   </div>
-
-                  {/* Contact & Links */}
-                  <h6 className="fw-bold border-bottom pb-2 mt-4 text-dark"><i className="fas fa-link me-1.5 text-primary"></i> Contact & Social Links</h6>
-                  <div className="row g-3">
-                    <div className="col-12 col-md-6">
-                      <label className="form-label fw-semibold text-secondary small">Email</label>
-                      <input
-                        type="email"
-                        className="form-control"
-                        value={editProfileForm.email}
-                        onChange={(e) => setEditProfileForm({ ...editProfileForm, email: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div className="col-12 col-md-6">
-                      <label className="form-label fw-semibold text-secondary small">Portfolio</label>
-                      <input
-                        type="url"
-                        className="form-control"
-                        value={editProfileForm.portfolio}
-                        onChange={(e) => setEditProfileForm({ ...editProfileForm, portfolio: e.target.value })}
-                      />
-                    </div>
-                    <div className="col-12 col-md-6">
-                      <label className="form-label fw-semibold text-secondary small">GitHub</label>
-                      <input
-                        type="url"
-                        className="form-control"
-                        value={editProfileForm.github}
-                        onChange={(e) => setEditProfileForm({ ...editProfileForm, github: e.target.value })}
-                      />
-                    </div>
-                    <div className="col-12 col-md-6">
-                      <label className="form-label fw-semibold text-secondary small">Facebook</label>
-                      <input
-                        type="url"
-                        className="form-control"
-                        value={editProfileForm.facebook}
-                        onChange={(e) => setEditProfileForm({ ...editProfileForm, facebook: e.target.value })}
-                      />
-                    </div>
+                  <div className="col-12">
+                    <label className="form-label fw-semibold text-secondary small">Address / Country</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editProfileForm.address}
+                      onChange={(e) => setEditProfileForm({ ...editProfileForm, address: e.target.value })}
+                    />
                   </div>
                 </div>
-              )}
 
-
-
-              {activeEditTab === 'cv' && (
-                <CandidateCV
-                  cvFile={cvFile}
-                  setCvFile={setCvFile}
-                  setModalError={setModalError}
-                />
-              )}
-
-              {/* Form Footer */}
+                {/* Contact & Links */}
+                <h6 className="fw-bold border-bottom pb-2 mt-4 text-dark"><i className="fas fa-link me-1.5 text-primary"></i> Contact & Social Links</h6>
+                <div className="row g-3">
+                  <div className="col-12 col-md-6">
+                    <label className="form-label fw-semibold text-secondary small">Email</label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      value={editProfileForm.email}
+                      onChange={(e) => setEditProfileForm({ ...editProfileForm, email: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label fw-semibold text-secondary small">Portfolio</label>
+                    <input
+                      type="url"
+                      className="form-control"
+                      value={editProfileForm.portfolio}
+                      onChange={(e) => setEditProfileForm({ ...editProfileForm, portfolio: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label fw-semibold text-secondary small">GitHub</label>
+                    <input
+                      type="url"
+                      className="form-control"
+                      value={editProfileForm.github}
+                      onChange={(e) => setEditProfileForm({ ...editProfileForm, github: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <label className="form-label fw-semibold text-secondary small">Facebook</label>
+                    <input
+                      type="url"
+                      className="form-control"
+                      value={editProfileForm.facebook}
+                      onChange={(e) => setEditProfileForm({ ...editProfileForm, facebook: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>              {/* Form Footer */}
               <div className="profile-modal-footer mt-4 pt-3 border-top d-flex gap-2 justify-content-end bg-white">
                 <button type="button" className="btn btn-light border" onClick={() => setShowEdit(false)}>
-                  {activeEditTab === 'info' ? 'Cancel' : 'Close'}
+                  Cancel
                 </button>
-                {activeEditTab === 'info' && <button type="submit" className="btn btn-primary px-4">Save Changes</button>}
+                <button type="submit" className="btn btn-primary px-4">Save Changes</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Manage CV Modal */}
+      {showCVModal && (
+        <div className="profile-modal-overlay" onClick={() => setShowCVModal(false)}>
+          <div className="profile-modal-card profile-modal-large" onClick={(e) => e.stopPropagation()}>
+            <div className="profile-modal-header d-flex justify-content-between align-items-center">
+              <h5 className="profile-modal-title mb-0 d-flex align-items-center">
+                <i className="far fa-file-pdf me-2 text-primary"></i>
+                Manage My CVs
+              </h5>
+              <div className="d-flex align-items-center gap-3">
+                <button
+                  type="button"
+                  className="btn btn-outline-success btn-sm d-flex align-items-center gap-2 px-3 fw-semibold rounded-pill"
+                  title="Export CV from Profile"
+                  onClick={() => setShowExportModal(true)}
+                >
+                  <i className="fas fa-file-export"></i> Auto-Generate CV
+                </button>
+                <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowCVModal(false)}></button>
+              </div>
+            </div>
+            <div className="profile-modal-body p-4 scrollable-modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+              <CandidateCV
+                cvList={cvList}
+                fetchCVs={fetchCVs}
+                setModalError={setModalError}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -1013,6 +981,12 @@ const CandidateProfile = () => {
         workExperiences={workExperiences}
         skills={skills}
         setModalError={setModalError}
+      />
+
+      {/* Modal Applied Jobs */}
+      <CandidateAppliedJobs 
+        show={showAppliedJobsModal} 
+        onClose={() => setShowAppliedJobsModal(false)} 
       />
     </section>
   );

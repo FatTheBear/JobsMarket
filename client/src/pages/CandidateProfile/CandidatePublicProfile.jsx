@@ -123,24 +123,16 @@ export default function CandidatePublicProfile() {
           }
         }
 
-        // Load followed businesses (Interests)
-        try {
-          const followRes = await axios.get('http://localhost:5000/api/candidate/companies', {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (followRes.data && Array.isArray(followRes.data)) {
-            const followedOnly = followRes.data.filter(c => c.is_followed);
-            if (followedOnly.length > 0) {
-              setFollowedBusinesses(followedOnly.map(c => ({
-                id: c.id,
-                name: c.name,
-                category: c.industry_name || 'Technology',
-                followers: 'Premium Recruiter'
-              })));
-            }
-          }
-        } catch (followErr) {
-          console.error("Failed to load followed companies:", followErr);
+        // Load followed businesses (Interests) directly from the public profile
+        if (profile.interests && Array.isArray(profile.interests) && profile.interests.length > 0) {
+          setFollowedBusinesses(profile.interests.map(c => ({
+            id: c.id,
+            name: c.name,
+            category: c.industry_name || 'Technology',
+            followers: 'Premium Recruiter'
+          })));
+        } else {
+          setFollowedBusinesses([]);
         }
 
         setLoading(false);
@@ -185,8 +177,8 @@ export default function CandidatePublicProfile() {
 
         {/* Navigation back */}
         <div className="mb-4">
-          <button onClick={() => navigate(-1)} className="btn btn-outline-secondary d-inline-flex align-items-center gap-1.5 fw-semibold shadow-sm rounded-pill">
-            <i className="fas fa-arrow-left"></i> Back
+          <button onClick={() => navigate('/dashboard')} className="btn btn-outline-secondary d-inline-flex align-items-center gap-1.5 fw-semibold shadow-sm rounded-pill">
+            <i className="fas fa-arrow-left"></i> Back to Home
           </button>
         </div>
 
@@ -379,17 +371,17 @@ export default function CandidatePublicProfile() {
                     </div>
                   ) : (
                     followedBusinesses.map((biz) => (
-                      <div key={biz.id} className="experience-item p-3 rounded border bg-light hover-shadow-sm transition-all d-flex align-items-center justify-content-between">
-                        <div className="d-flex align-items-center gap-2">
+                      <div key={biz.id} className="experience-item p-3 rounded border bg-light hover-shadow-sm transition-all d-flex flex-column align-items-start gap-2">
+                        <div className="d-flex align-items-center gap-2 w-100">
                           <div className="d-flex align-items-center justify-content-center bg-white rounded-circle shadow-sm" style={{ width: '40px', height: '40px', minWidth: '40px' }}>
                             <i className="fas fa-building text-primary fs-6"></i>
                           </div>
-                          <div>
-                            <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '0.85rem' }}>{biz.name}</h6>
-                            <p className="mb-0 text-muted" style={{ fontSize: '0.7rem' }}>{biz.category}</p>
+                          <div style={{ minWidth: 0 }}>
+                            <h6 className="fw-bold mb-0 text-dark text-truncate" style={{ fontSize: '0.85rem' }} title={biz.name}>{biz.name}</h6>
+                            <p className="mb-0 text-muted text-truncate" style={{ fontSize: '0.7rem' }}>{biz.category}</p>
                           </div>
                         </div>
-                        <button className="btn btn-xs btn-outline-primary rounded-pill px-2.5 py-0.5 fw-semibold d-flex align-items-center gap-1" style={{ fontSize: '0.7rem' }}>
+                        <button className="btn btn-xs btn-outline-primary rounded-pill px-3 py-1 fw-semibold d-flex align-items-center justify-content-center gap-1 w-100 mt-1" style={{ fontSize: '0.75rem' }}>
                           <i className="fas fa-check" style={{ fontSize: '0.6rem' }}></i> Followed
                         </button>
                       </div>

@@ -23,7 +23,7 @@ const jobController = {
             const hr_id = req.user?.id || req.userId; 
 
             if (!hr_id) {
-                return res.status(401).json({ message: "Không tìm thấy thông tin Nhà tuyển dụng! Vui lòng đăng nhập lại." });
+                return res.status(401).json({ message: "Not found thông tin Nhà tuyển dụng! Vui lòng đăng nhập lại." });
             }
 
             // 1. Tìm company_id của Công ty thuộc quyền quản lý của HR này
@@ -69,13 +69,13 @@ const jobController = {
             }
 
             res.status(201).json({ 
-                message: "Đăng tin tuyển dụng thành công! Đang chờ Admin phê duyệt.", 
+                message: "Job posted successfully! Đang chờ Admin phê duyệt.", 
                 jobId: job_id 
             });
 
         } catch (error) {
             console.error("Lỗi xử lý Job Posting:", error);
-            res.status(500).json({ message: "Lỗi hệ thống khi đăng tin tuyển dụng" });
+            res.status(500).json({ message: "System error while posting job" });
         }
     }
 };

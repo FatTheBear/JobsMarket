@@ -296,7 +296,7 @@ exports.updateTransactionStatus = async (req, res) => {
         );
 
         if (rows.length === 0) {
-            throw new Error("Giao dịch không tồn tại!");
+            throw new Error("Transaction does not exist!");
         }
 
         const transaction = rows[0];
