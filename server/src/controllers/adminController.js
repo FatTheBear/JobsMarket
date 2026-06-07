@@ -1,28 +1,138 @@
-const db = require('../config/db'); 
+const db = require('../config/db');
 
 // 1. Lấy dữ liệu tổng quan (Đồng bộ chuẩn db.query)
 exports.getStats = async (req, res) => {
     try {
-        const [userCount] = await db.query("SELECT COUNT(*) as count FROM `user` WHERE role != 'Admin'");
-        const [candidateCount] = await db.query("SELECT COUNT(*) as count FROM `user` WHERE role = 'Candidate'");
-        const [hrCount] = await db.query("SELECT COUNT(*) as count FROM `user` WHERE role = 'HR'");
-        const [jobCount] = await db.query("SELECT COUNT(*) as count FROM `job_posting` WHERE status = 'Pending'");
-        const [activeJobCount] = await db.query("SELECT COUNT(*) as count FROM `job_posting` WHERE status = 'Approved'");
-        const [appCount] = await db.query("SELECT COUNT(*) as count FROM `application`");
-        const [industryCount] = await db.query("SELECT COUNT(*) as count FROM `industry`");
+
+        const [userCount] =
+            await db.query(`
+        SELECT
+          COUNT(CASE WHEN role != 'Admin' THEN 1 END) totalUsers,
+          COUNT(CASE WHEN role = 'Candidate' THEN 1 END) candidatesCount,
+          COUNT(CASE WHEN role = 'HR' THEN 1 END) hrCount,
+          COUNT(CASE WHEN role = 'Admin' THEN 1 END) adminCount
+        FROM user
+      `);
+
+        const [jobStats] =
+            await db.query(`
+        SELECT
+          COUNT(*) totalJobs,
+          COUNT(CASE WHEN status='Approved' THEN 1 END) approvedJobs,
+          COUNT(CASE WHEN status='Pending' THEN 1 END) pendingJobs,
+          COUNT(CASE WHEN status='Rejected' THEN 1 END) rejectedJobs
+        FROM job_posting
+      `);
+
+        const [applicationStats] =
+            await db.query(`
+        SELECT
+          COUNT(*) totalApplications,
+
+          COUNT(CASE WHEN status='Applied' THEN 1 END) appliedCount,
+          COUNT(CASE WHEN status='Reviewing' THEN 1 END) reviewingCount,
+          COUNT(CASE WHEN status='Interviewing' THEN 1 END) interviewingCount,
+          COUNT(CASE WHEN status='Offered' THEN 1 END) offeredCount,
+          COUNT(CASE WHEN status='Rejected' THEN 1 END) rejectedApplicationCount
+
+        FROM application
+      `);
+
+        const [companyStats] =
+            await db.query(`
+        SELECT COUNT(*) totalCompanies
+        FROM company
+      `);
+
+        const [newsStats] =
+            await db.query(`
+        SELECT COUNT(*) totalNews
+        FROM news
+      `);
+
+        const [cvStats] =
+            await db.query(`
+        SELECT COUNT(*) totalCVs
+        FROM candidate_cv
+      `);
+
+        const [skillStats] =
+            await db.query(`
+        SELECT COUNT(*) totalSkills
+        FROM skill
+      `);
+
+        const [industryStats] =
+            await db.query(`
+        SELECT COUNT(*) totalIndustries
+        FROM industry
+      `);
+
+        const [transactionStats] =
+            await db.query(`
+        SELECT
+          COUNT(*) totalTransactions,
+
+          COUNT(
+            CASE WHEN status='completed'
+            THEN 1
+            END
+          ) successfulTransactions,
+
+          COUNT(
+            CASE WHEN status='pending'
+            THEN 1
+            END
+          ) pendingTransactions,
+
+          COALESCE(
+            SUM(
+              CASE
+                WHEN status='completed'
+                THEN amount_fiat
+                ELSE 0
+              END
+            ),
+            0
+          ) totalRevenue
+
+        FROM transaction
+      `);
 
         res.json({
-            totalUsers: userCount[0].count,
-            candidatesCount: candidateCount[0].count,
-            hrCount: hrCount[0].count,
-            pendingJobs: jobCount[0].count,
-            activeJobs: activeJobCount[0].count,
-            totalApplications: appCount[0].count,
-            industriesCount: industryCount[0].count
+            totalUsers: userCount[0].totalUsers,
+            candidatesCount: userCount[0].candidatesCount,
+            hrCount: userCount[0].hrCount,
+
+            pendingJobs: jobStats[0].pendingJobs,
+            approvedJobs: jobStats[0].approvedJobs,
+            rejectedJobs: jobStats[0].rejectedJobs,
+
+            totalApplications: applicationStats[0].totalApplications,
+
+            appliedCount: applicationStats[0].appliedCount,
+            reviewingCount: applicationStats[0].reviewingCount,
+            interviewingCount: applicationStats[0].interviewingCount,
+            offeredCount: applicationStats[0].offeredCount,
+            rejectedApplicationCount: applicationStats[0].rejectedApplicationCount,
+
+            totalCompanies: companyStats[0].totalCompanies,
+            totalNews: newsStats[0].totalNews,
+            totalCVs: cvStats[0].totalCVs,
+            totalSkills: skillStats[0].totalSkills,
+
+            totalIndustries: industryStats[0].totalIndustries,
+            industriesCount: industryStats[0].totalIndustries,
+
+            pendingTransactions: transactionStats[0].pendingTransactions,
+            totalRevenue: transactionStats[0].totalRevenue
         });
+
     } catch (error) {
-        console.error("❌ Lỗi tại getStats:", error.message);
-        res.status(500).json({ message: error.message });
+        console.error(error);
+        res.status(500).json({
+            message: error.message
+        });
     }
 };
 
@@ -106,11 +216,23 @@ exports.getIndustries = async (req, res) => {
 // 8. Lấy danh sách tin tức kèm cơ chế fallback an toàn
 exports.getNews = async (req, res) => {
     try {
-        const [newsList] = await db.query("SELECT * FROM `news`");
+        const [newsList] = await db.query(`
+            SELECT
+                n.*,
+                nc.name AS category_name
+            FROM news n
+            LEFT JOIN news_category nc
+                ON n.category_id = nc.id
+            ORDER BY n.created_at DESC
+        `);
+
         res.json(newsList);
+
     } catch (error) {
         console.error("NEWS ERROR:", error);
-        res.status(500).json({ message: error.message });
+        res.status(500).json({
+            message: error.message
+        });
     }
 };
 
@@ -141,102 +263,142 @@ exports.createIndustry = async (req, res) => {
 // 11. Tạo bài viết mới
 exports.createNews = async (req, res) => {
     try {
+        console.log("FILE:", req.file);
+
         const {
             title,
             slug,
             category_id,
-            thumbnail_url,
             short_description,
             content,
-            status
+            status,
+            is_featured,
+            published_at
         } = req.body;
 
-        const query = `
-            INSERT INTO news (
-                admin_id,
-                category_id,
+        // ép kiểu an toàn
+        const categoryId = Number(category_id) || 1;
+        const featured = Number(is_featured) || 0;
+
+        if (!title || !slug) {
+            return res.status(400).json({
+                message: "Title và slug là bắt buộc"
+            });
+        }
+
+        const thumbnail_url = req.file
+            ? `/uploads/${req.file.filename}`
+            : "";
+
+        const [result] = await db.query(
+            `INSERT INTO news (
+        admin_id,
+        category_id,
+        title,
+        slug,
+        thumbnail_url,
+        short_description,
+        content,
+        status,
+        is_featured,
+        published_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                5,
+                categoryId,
                 title,
                 slug,
                 thumbnail_url,
-                short_description,
-                content,
-                status
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `;
+                short_description || "",
+                content || "",
+                status || "Draft",
+                featured,
+                published_at || null
+            ]
+        );
 
-        const [result] = await db.query(query, [
-            5,
-            category_id || 1,
-            title,
-            slug,
-            thumbnail_url || '',
-            short_description || '',
-            content || '',
-            status || 'Draft'
-        ]);
-
-        res.json({
+        return res.json({
             success: true,
             insertedId: result.insertId
         });
 
-    } catch (error) {
-        console.error("CREATE NEWS ERROR:", error);
-        res.status(500).json({
-            message: error.message
+    } catch (err) {
+        console.error("CREATE NEWS ERROR:", err);
+        return res.status(500).json({
+            message: err.message
         });
     }
 };
 
-// 12. Cập nhật bài viết
 exports.updateNews = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const {
-            title,
-            slug,
-            category_id,
-            thumbnail_url,
-            short_description,
-            content,
-            status
-        } = req.body;
+  try {
+    const { id } = req.params;
 
-        const query = `
-            UPDATE news
-            SET
-                title = ?,
-                slug = ?,
-                category_id = ?,
-                thumbnail_url = ?,
-                short_description = ?,
-                content = ?,
-                status = ?
-            WHERE id = ?
-        `;
+    const {
+      title,
+      slug,
+      category_id,
+      short_description,
+      content,
+      status,
+      thumbnail_url
+    } = req.body;
 
-        await db.query(query, [
-            title,
-            slug,
-            category_id,
-            thumbnail_url,
-            short_description,
-            content,
-            status,
-            id
-        ]);
+    const categoryId = Number(category_id);
 
-        res.json({
-            success: true
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            message: error.message
-        });
+    // 1. validate cứng
+    if (!title || !slug || !categoryId) {
+      return res.status(400).json({
+        message: "Missing title, slug, category_id"
+      });
     }
+
+    // 2. check category tồn tại
+    const [cat] = await db.query(
+      "SELECT id FROM news_category WHERE id = ?",
+      [categoryId]
+    );
+
+    if (cat.length === 0) {
+      return res.status(400).json({
+        message: "Invalid category_id"
+      });
+    }
+
+    // 3. fix thumbnail không bị xoá khi update
+    const finalThumbnail =
+      req.file
+        ? `/uploads/${req.file.filename}`
+        : thumbnail_url || null;
+
+    await db.query(
+      `UPDATE news SET
+        title = ?,
+        slug = ?,
+        category_id = ?,
+        thumbnail_url = ?,
+        short_description = ?,
+        content = ?,
+        status = ?
+      WHERE id = ?`,
+      [
+        title,
+        slug,
+        categoryId,
+        finalThumbnail,
+        short_description || "",
+        content || "",
+        status || "Draft",
+        id
+      ]
+    );
+
+    res.json({ success: true });
+
+  } catch (err) {
+    console.error("UPDATE NEWS ERROR:", err);
+    res.status(500).json({ message: err.message });
+  }
 };
 
 // 13. Xóa bài viết
@@ -282,7 +444,7 @@ exports.getTransactions = async (req, res) => {
 exports.updateTransactionStatus = async (req, res) => {
     const { id } = req.params; // ID của Giao dịch
     const { status } = req.body; // 'completed' hoặc 'failed'
-    
+
     // Tạo connection để dùng Transaction nhằm đảm bảo an toàn dữ liệu khi cộng xu
     const connection = await db.getConnection();
     await connection.beginTransaction();
@@ -290,7 +452,7 @@ exports.updateTransactionStatus = async (req, res) => {
     try {
         // Kiểm tra xem giao dịch có tồn tại và đang ở trạng thái pending không
         const [rows] = await connection.execute(
-            "SELECT * FROM `Transaction` WHERE id = ? FOR UPDATE", 
+            "SELECT * FROM `Transaction` WHERE id = ? FOR UPDATE",
             [id]
         );
 
@@ -322,13 +484,52 @@ exports.updateTransactionStatus = async (req, res) => {
 
         await connection.commit();
         connection.release();
-        
+
         res.json({ success: true, message: "Xử lý giao dịch thành công!" });
 
     } catch (error) {
         await connection.rollback();
         connection.release();
         console.error("❌ Lỗi tại updateTransactionStatus:", error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// 16. Xóa Kỹ năng
+exports.deleteSkill = async (req, res) => {
+    const { id } = req.params;
+    try {
+        // Kiểm tra xem skill có đang được sử dụng trong job nào không (tùy chọn)
+        await db.query("DELETE FROM `skill` WHERE id = ?", [id]);
+        res.json({ success: true, message: "Skill deleted successfully!" });
+    } catch (error) {
+        console.error("DELETE SKILL ERROR:", error);
+        res.status(500).json({ message: "Error deleting skill" });
+    }
+};
+
+// 17. Xóa Ngành nghề
+exports.deleteIndustry = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await db.query("DELETE FROM `industry` WHERE id = ?", [id]);
+        res.json({ success: true, message: "Industry deleted successfully!" });
+    } catch (error) {
+        console.error("DELETE INDUSTRY ERROR:", error);
+        res.status(500).json({ message: "Error deleting industry" });
+    }
+};
+//18. chọn news_category
+exports.getNewsCategories = async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT id, name 
+            FROM news_category
+            ORDER BY id ASC
+        `);
+
+        res.json(rows);
+    } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };

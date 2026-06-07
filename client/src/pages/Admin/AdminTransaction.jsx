@@ -15,7 +15,7 @@ const AdminTransaction = () => {
             setTransactions(res.data);
             setLoading(false);
         } catch (error) {
-            console.error("Lỗi lấy danh sách giao dịch:", error);
+            console.error("Error fetching transactions:", error);
             setLoading(false);
         }
     };
@@ -25,8 +25,8 @@ const AdminTransaction = () => {
     }, []);
 
     const handleUpdateStatus = async (id, newStatus) => {
-        const actionText = newStatus === 'completed' ? 'DUYỆT' : 'TỪ CHỐI';
-        if (!window.confirm(`Bạn có chắc chắn muốn ${actionText} giao dịch này không?`)) return;
+        const actionText = newStatus === 'completed' ? 'APPROVE' : 'REJECT';
+        if (!window.confirm(`Are you sure you want to ${actionText} this transaction?`)) return;
         
         try {
             const token = localStorage.getItem('token');
@@ -34,34 +34,34 @@ const AdminTransaction = () => {
                 { status: newStatus },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            alert("Xử lý giao dịch thành công!");
+            alert("Transaction processed successfully!");
             fetchTransactions(); // Tải lại danh sách sau khi update thành công
         } catch (error) {
-            alert(error.response?.data?.message || "Có lỗi xảy ra!");
+            alert(error.response?.data?.message || "An error occurred!");
         }
     };
 
     if (loading) {
-        return <div className="admin-title">Đang tải dữ liệu giao dịch...</div>;
+        return <div className="admin-title">Loading transaction data...</div>;
     }
 
     return (
         <div>
-           
-            <h2 className="admin-title" style={{ color: '#38bdf8' }}>Quản Lý Giao Dịch Ví Xu</h2>
             
-          
+            <h2 className="admin-title" style={{ color: '#38bdf8' }}>Manage Coin Transactions</h2>
+            
+        
             <div className="table-container">
                 <table className="admin-table">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Email Người Dùng</th>
-                            <th>Số Tiền (VND)</th>
-                            <th>Xu Quy Đổi</th>
-                            <th>Mã Tham Chiếu</th>
-                            <th>Trạng Thái</th>
-                            <th>Hành Động</th>
+                            <th>User Email</th>
+                            <th>Amount (VND)</th>
+                            <th>Coins</th>
+                            <th>Reference Code</th>
+                            <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -86,13 +86,13 @@ const AdminTransaction = () => {
                                     {tx.reference_code || 'N/A'}
                                 </td>
                                 <td>
-                                   
+                                    
                                     <span className={`status-badge ${
                                         tx.status === 'completed' ? 'approved' : 
                                         tx.status === 'failed' ? 'rejected' : 'pending'
                                     }`}>
-                                        {tx.status === 'completed' ? 'Thành công' : 
-                                         tx.status === 'failed' ? 'Đã hủy' : 'Chờ duyệt'}
+                                        {tx.status === 'completed' ? 'Completed' : 
+                                         tx.status === 'failed' ? 'Cancelled' : 'Pending'}
                                     </span>
                                 </td>
                                 <td>
@@ -104,18 +104,18 @@ const AdminTransaction = () => {
                                                 className="btn-approve"
                                                 style={{ padding: '6px 12px', fontSize: '13px' }}
                                             >
-                                                Duyệt nạp
+                                                Approve
                                             </button>
                                             <button 
                                                 onClick={() => handleUpdateStatus(tx.id, 'failed')} 
                                                 className="btn-reject"
                                                 style={{ padding: '6px 12px', fontSize: '13px' }}
                                             >
-                                                Từ chối
+                                                Reject
                                             </button>
                                         </div>
                                     ) : (
-                                        <span style={{ color: '#64748b', fontSize: '14px' }}>Hoàn thành</span>
+                                        <span style={{ color: '#64748b', fontSize: '14px' }}>Processed</span>
                                     )}
                                 </td>
                             </tr>
