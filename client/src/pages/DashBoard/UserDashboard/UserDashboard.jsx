@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styles from './UserDashboard.module.css';
 import axios from 'axios';
 import ApplyJobModal from './ApplyJobModal';
+import JobCard from '../../../components/Jobs/JobCard';
 
 const LOCATIONS = [
   'Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Binh Duong', 'Dong Nai', 'Can Tho'
@@ -15,7 +16,7 @@ export default function CandidateDashboard() {
   const [bannerIdx, setBannerIdx] = useState(0);
   const bannerTimerRef = useRef(null);
   const [jobs, setJobs] = useState([]);
-  
+
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
 
@@ -57,30 +58,6 @@ export default function CandidateDashboard() {
 
   return (
     <div className={styles.page}>
-
-      {/* ───── NAVBAR (Logged In View) ───── */}
-      <nav className={styles.navbar}>
-        <div className={styles.navInner}>
-          <div className={styles.navLeft}>
-            <div className={styles.navBrand} style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-              <span className={styles.navLogo}>💼</span>
-              <span className={styles.navName}>JobsMarket</span>
-            </div>
-            <div className={styles.navMenu}>
-              <button className={styles.navMenuItem} onClick={() => navigate('/search-jobs')}>Find Jobs</button>
-              <button className={styles.navMenuItem} onClick={() => navigate('/companies')}>Companies</button>
-            </div>
-          </div>
-          <div className={styles.navRight}>
-            <button className={styles.navAlert}>🔔 Alerts</button>
-            {/* Đổi thành nút điều hướng vào Profile và nút Đăng xuất */}
-            <button className={styles.navBtnOutline} onClick={() => navigate('/candidate-profile')}>My Profile</button>
-            <button className={styles.navBtnEmployer} style={{ backgroundColor: '#dc3545', color: 'white' }} onClick={handleLogout}>
-              Logout
-            </button>
-          </div>
-        </div>
-      </nav>
 
       {/* ───── INDUSTRY BANNER SLIDER ───── */}
       <section className={styles.banner} style={{ background: INDUSTRY_BANNERS[bannerIdx].bg }}>
@@ -147,51 +124,27 @@ export default function CandidateDashboard() {
             <h2 className={styles.sectionTitle}>RECOMMENDED FOR YOU</h2>
           </div>
 
-          {/* Job Postings Grid */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
-            {jobs.map(job => (
-              <div key={job.id} style={{ backgroundColor: 'white', borderRadius: '12px', padding: '25px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', border: '1px solid #eee' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #f0f0f0', paddingBottom: '15px', marginBottom: '20px' }}>
-                  <div>
-                    <h3 style={{ fontSize: '22px', fontWeight: 'bold', color: '#1e3a6e', margin: '0 0 5px 0' }}>{job.title}</h3>
-                    <div style={{ fontSize: '16px', color: '#555', fontWeight: '500' }}>🏢 {job.companyName}</div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#27ae60', marginBottom: '5px' }}>{job.salaryFrom} - {job.salaryTo} {job.salaryUnit}</div>
-                    <span style={{ backgroundColor: job.jobType === 'Full-time' ? '#e1f5fe' : '#fff0f6', color: job.jobType === 'Full-time' ? '#0288d1' : '#c2185b', padding: '5px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: 'bold' }}>
-                      {job.jobType}
-                    </span>
-                  </div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', fontSize: '15px', color: '#444' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    <div><strong style={{ color: '#333' }}>📝 Job Description:</strong> <br />{job.description}</div>
-                    <div><strong style={{ color: '#333' }}>🎯 Requirements:</strong> <br />{job.requirements}</div>
-                    <div><strong style={{ color: '#333' }}>✨ Benefits:</strong> <br />{job.benefits}</div>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px' }}>
-                    <div><strong>📍 Location:</strong> {job.location}</div>
-                    <div><strong>⏰ Working Hours:</strong> {job.workingHours}</div>
-                    <div><strong>🎓 Degree:</strong> {job.degreeRequirement}</div>
-                    <div><strong>💼 Experience:</strong> {job.experience}</div>
-                    <div><strong>🎂 Age Requirement:</strong> {job.ageRequirement}</div>
-                    <div><strong>🗣️ Language:</strong> {job.languageRequirement}</div>
-                    <hr style={{ borderTop: '1px solid #ddd', margin: '10px 0' }} />
-                    <div style={{ fontSize: '14px' }}><strong>📞 Contact:</strong> {job.employerPhone}</div>
-                    <div style={{ fontSize: '14px' }}><strong>✉️ Email:</strong> {job.employerEmail}</div>
-                  </div>
-                </div>
-                <div style={{ marginTop: '25px', display: 'flex', justifyContent: 'flex-end' }}>
-                  <button
-                    style={{ backgroundColor: '#2563ab', color: 'white', border: 'none', padding: '12px 30px', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer' }}
-                    onClick={() => { setSelectedJob(job); setShowApplyModal(true); }}
-                  >
-                    Apply Now
-                  </button>
-                </div>
+          <section className={`${styles.section} ${styles.sectionGray}`} style={{ padding: '60px 0' }}>
+            <div className={styles.container}>
+              <div className={styles.sectionHeader} style={{ marginBottom: '40px' }}>
+                <h2 className={styles.sectionTitle}>RECOMMENDED FOR YOU</h2>
               </div>
-            ))}
-          </div>
+
+              {/* Job Postings Grid */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
+                {jobs.map(job => (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    onApply={() => {
+                      setSelectedJob(job);
+                      setShowApplyModal(true);
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
         </div>
       </section>
 

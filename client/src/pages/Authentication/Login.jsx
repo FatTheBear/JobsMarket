@@ -33,23 +33,11 @@ export default function Login() {
         const roleLower = role ? role.toLowerCase() : '';
 
         if (roleLower === 'company' || roleLower === 'hr') {
-          navigate('/company-profile');
+          navigate('/company/profile'); 
         } else if (roleLower === 'admin') {
           navigate('/admin');
         } else {
-          try {
-            const profileRes = await axios.get('http://localhost:5000/api/candidate/profile', {
-              headers: { Authorization: `Bearer ${response.data.token}` }
-            });
-            const profile = profileRes.data;
-            if (profile && profile.display_name) {
-              navigate('/dashboard');
-            } else {
-              navigate('/setup-profile');
-            }
-          } catch (err) {
-            navigate('/setup-profile');
-          }
+          navigate('/dashboard');
         }
       }
     } catch (error) {
