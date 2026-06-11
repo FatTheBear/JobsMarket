@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { SocketProvider } from './context/SocketContext';
 import MainLayout from './components/layout/MainLayout'; // <-- Nhớ trỏ đúng đường dẫn thư mục nhé!
-
+import CompanySidebar from './components/layout/CompanySidebar';
 import LandingPage from './pages/LandingPage/LandingPage';
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
 import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
@@ -20,6 +20,7 @@ import SetupProfilePage from './pages/SetupProfilePage/SetupProfilePage';
 import SearchJobs from './pages/SearchJobs/SearchJobs';
 
 import './App.css';
+import CompanyDashboard from './pages/DashBoard/CompanyDashboard/CompanyDashboard';
 
 // Component Home tạm thời điều hướng Tab giữa Candidate và Company Profile
 function Home() {
@@ -40,27 +41,18 @@ function Home() {
 
 // CẤU HÌNH ĐỊNH TUYẾN
 const router = createBrowserRouter([
-  // ==========================================
-  // NHÓM 1: CÁC TRANG TỰ DO (KHÔNG CÓ NAVBAR CHUNG)
-  // ==========================================
   { path: "/auth", element: <AuthPage /> },
   { path: "/register", element: <Register /> },
   { path: "/login", element: <Login /> },
   { path: "/verify-otp", element: <VerifyOTP /> },
   { path: "/setup-profile", element: <SetupProfilePage /> },
 
-  // ==========================================
-  // NHÓM 2: CÁC TRANG BỌC BỞI MAIN LAYOUT (CÓ NAVBAR)
-  // ==========================================
+  // NHÓM 2: CÁC TRANG BỌC BỞI MAIN LAYOUT
   {
-    element: <MainLayout />, // <-- Đặt cái khuôn ở đây
+    element: <MainLayout />,
     children: [     
-      { path: "/", element: <LandingPage /> },         // <-- Tất cả đường link bên trong sẽ tự động đổ vào vị trí <Outlet />
+      { path: "/", element: <LandingPage /> },         
       { path: "/dashboard", element: <UserDashboard /> },
-      { path: "/company-profile", element: <CompanyProfile /> },
-      { path: "/job-posting", element: <JobPosting /> },
-      { path: "/company/jobs/create", element: <JobPosting /> },
-      { path: "/company-profile/job-posting", element: <JobPosting /> },
       { path: "/profile", element: <Home /> },
       { path: "/candidate-profile", element: <CandidateProfile /> },
       { path: "/candidate/:id", element: <CandidatePublicProfile /> },
@@ -73,6 +65,17 @@ const router = createBrowserRouter([
           </div>
         )
       },
+      
+   
+      {
+        path: "/company",
+        element: <CompanyDashboard />,
+        children: [
+          { path: "profile", element: <CompanyProfile /> }, 
+          { path: "post-job", element: <JobPosting /> },    
+        ]
+      },
+
       {
         path: "/admin",
         element: (
@@ -83,12 +86,8 @@ const router = createBrowserRouter([
       }
     ]
   },
-  { 
-    path: "/search-jobs", 
-    element: <SearchJobs /> 
-  },
-
-  // Trang 404 cho các đường dẫn sai
+  
+  { path: "/search-jobs", element: <SearchJobs /> },
   { path: "*", element: <div>404 - Trang không tồn tại</div> }
 ]);
 

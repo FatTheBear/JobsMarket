@@ -30,7 +30,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const candidateRoutes = require('./routes/candidateRoutes');
 const walletRoutes = require('./routes/walletRoutes');
 const companyRoutes = require('./routes/company');
-const jobsRoutes = require('./routes/jobs');
+const jobs = require('./routes/jobs');
 const skillsRoutes = require('./routes/skills');
 
 app.use('/api/auth', authRoutes);
@@ -38,8 +38,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/candidate', candidateRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/company', companyRoutes);
-app.use('/api', jobsRoutes);
 app.use('/api/skills', skillsRoutes);
+app.use('/api/jobs', jobs);
 
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);

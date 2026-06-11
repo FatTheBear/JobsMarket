@@ -52,7 +52,7 @@ const [role, setRole] = useState(()=> {
 
   const [userName, setUserName] = useState('User');
   const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
-  const navigate = useNavigate();
+  //const navigate = useNavigate();
   const location = useLocation();
 
   // Tạm thời comment logic localStorage lại, dùng state cứng
@@ -122,16 +122,18 @@ return (
         // --- HIỂN THỊ KHI ĐÃ ĐĂNG NHẬP ---
         <>
           <div className="nav-user-info">
-            <img
+            {/* <img
               src={avatarUrl}
               alt="Avatar"
               className="nav-avatar"
-              onError={(e) => { e.target.src = '/default-avatar.png' }}
-            />
+              onError={
+                (e) => { e.target.src = '/default-avatar.png' }}
+            /> */}
+            <div className="nav-avatar">User</div>
             <span className="nav-user-name">{userName}</span>
           </div>
           <button className="nav-logout-btn" onClick={handleLogout} title="Log out">
-            Sign out
+            Log out
           </button>
         </>
       ) : (
@@ -140,7 +142,7 @@ return (
           <button className="nav-link" onClick={() => navigate('/auth')}>
             For Employers
           </button>
-          {/* Nút Sign In điều hướng tới /auth như bạn yêu cầu */}
+          
           <button className="nav-signin-btn" onClick={() => navigate('/auth')}>
             Sign In
           </button>

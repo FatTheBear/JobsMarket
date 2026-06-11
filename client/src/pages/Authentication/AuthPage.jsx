@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import styles from './Register.module.css';
+
 export default function AuthPage() {
   return (
     <section
@@ -47,7 +47,6 @@ export default function AuthPage() {
               {/* Candidate Card */}
               <Link
                 to="/register"
-                state={{ role: "candidate" }}
                 className="text-decoration-none"
               >
                 <div
@@ -76,7 +75,6 @@ export default function AuthPage() {
               {/* Company Card */}
               <Link
                 to="/register"
-                state={{ role: "company" }}
                 className="text-decoration-none"
               >
                 <div

@@ -4,7 +4,13 @@ const WalletModel = {
   // Lấy thông tin số dư xu và liên kết ngân hàng của User
   getWalletInfo: async (userId) => {
     const [rows] = await pool.execute(
-      'SELECT coins, bank_name, bank_account_number, bank_account_name FROM User WHERE id = ?',
+      `SELECT 
+        0 AS coins, 
+        NULL AS bank_name, 
+        NULL AS bank_account_number, 
+        NULL AS bank_account_name 
+      FROM User 
+      WHERE id = ?`,
       [userId]
     );
     return rows[0];
