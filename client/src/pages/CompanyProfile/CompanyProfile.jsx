@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './CompanyProfile.module.css';
@@ -28,6 +29,7 @@ const AGE_OPTIONS = ['Under 22', '22 - 25', '25 - 30', '30 - 35', 'Over 35'];
 const TABS = ['Tổng quan', 'Cơ cấu', 'Hình ảnh', 'Khác'];
 
 export default function CompanyProfile() {
+  console.log("CompanyProfile render");
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -203,33 +205,14 @@ export default function CompanyProfile() {
         </div>
         <button
           className={styles.btnPostJob}
-          onClick={() => navigate('/company/jobs/create')}
+          //onClick={() => navigate('/company/jobs/create')}
         >
           Đăng tin tuyển dụng mới
         </button>
       </div>
 
       <div className={styles.layout}>
-        {/* Sidebar */}
-        <aside className={styles.sidebar}>
-          <div className={styles.sidebarSection}>
-            <div className={styles.sidebarLabel}>QUẢN LÝ TIN TUYỂN DỤNG</div>
-            <button className={`${styles.sidebarItem} ${styles.sidebarItemActive}`}><span>📄</span> Tạo việc làm mới <span className={styles.badge}>0</span></button>
-            <button className={styles.sidebarItem}><span>📁</span> Danh sách việc làm <span className={styles.badge}>0</span></button>
-          </div>
-          <div className={styles.sidebarSection}>
-            <div className={styles.sidebarLabel}>QUẢN LÝ ỨNG VIÊN</div>
-            <button className={styles.sidebarItem}><span>👤</span> Ứng viên ứng tuyển <span className={styles.badge}>0</span></button>
-            <button className={styles.sidebarItem}><span>💾</span> Ứng viên đã lưu</button>
-            <button className={styles.sidebarItem}><span>🔎</span> Tìm kiếm ứng viên</button>
-          </div>
-          <div className={styles.sidebarSection}>
-            <div className={styles.sidebarLabel}>HỒ SƠ</div>
-            <button className={`${styles.sidebarItem} ${styles.sidebarItemActive}`}><span>🏢</span> Hồ sơ công ty</button>
-            <button className={styles.sidebarItem}><span>⚙️</span> Cài đặt tài khoản</button>
-          </div>
-        </aside>
-
+        
         {/* Main Content */}
         <main className={styles.main}>
           <div className={styles.pageHeader}>

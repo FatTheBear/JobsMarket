@@ -705,3 +705,22 @@
     width: 100%;
   }
 }
+.toast-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 15px 30px;
+  color: white;
+  border-radius: 5px;
+  z-index: 99999;
+  text-align: center;
+}
+
+.toast-message.success {
+  background-color: green;
+}
+
+.toast-message.error {
+  background-color: red;
+}

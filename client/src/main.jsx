@@ -18,11 +18,11 @@ const initialOptions = {
 };
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+  // <StrictMode>
     <PayPalScriptProvider options={initialOptions}>
       <WalletProvider>
         <App />
       </WalletProvider>
     </PayPalScriptProvider>
-  </StrictMode>,
+  // </StrictMode>,
 )

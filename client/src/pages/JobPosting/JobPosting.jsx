@@ -2,9 +2,8 @@ import React, { useState, useMemo } from 'react';
 import './JobPosting.css';
 import JobSkillsManager from '../JobSkillsManager/JobSkillsManager';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-
 const API_URL = 'http://localhost:5000';
+import { useNavigate } from "react-router-dom";
 
 const TEMPLATES = [
   { id: '', label: 'Select template...' },
@@ -124,6 +123,7 @@ const isInDateRange = (appliedAt, range) => {
 const todayStr = () => new Date().toISOString().split('T')[0];
 
 export default function JobPosting() {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('applicants');
   const [currentStep, setCurrentStep] = useState(1);
   const [form, setForm] = useState({
@@ -152,8 +152,7 @@ export default function JobPosting() {
   const [loading, setLoading] = useState(false);
   const [postedJobId, setPostedJobId] = useState(null);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
-  const navigate = useNavigate();
-
+  
   const openApplicantProfile = (applicant) => setSelectedApplicant(applicant);
   const closeApplicantProfile = () => setSelectedApplicant(null);
 
@@ -223,8 +222,8 @@ export default function JobPosting() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-
+    if (e) e.preventDefault();
+    
     if (!form.title.trim()) {
       showToast('Job title is required', 'error');
       return;
@@ -246,7 +245,6 @@ export default function JobPosting() {
       return;
     }
 
-
     setLoading(true);
     try {
       const currentUserId = localStorage.getItem('userId');
@@ -260,24 +258,21 @@ export default function JobPosting() {
         deadline: form.deadline || null,
         hr_id: currentUserId,
       };
-      // Gọi API bằng axios
+      
       const token = localStorage.getItem('token');
       const res = await axios.post('http://localhost:5000/api/jobs', payload, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      // Axios tự động coi status 2xx (như 200, 201) là thành công
+      
       if (res.status === 201 || res.status === 200) {
         showToast('Job successfully posted', 'success');
-
-        // Đợi 1 chút để user đọc được thông báo rồi mới chuyển trang
         setTimeout(() => {
-          navigate('/company-profile');
+          navigate('/company/profile');
         }, 1500);
       }
     } catch (error) {
-      // Axios sẽ nhảy vào catch nếu API trả về lỗi (status >= 400)
       const errorMsg = error.response?.data?.message || 'Failed to post job';
       showToast(errorMsg, 'error');
     } finally {
@@ -306,52 +301,8 @@ export default function JobPosting() {
   // RENDER UI
   // ==========================================
   return (
-    <div className="job-posting-page">
-      <div className="job-posting-shell">
-
-        {/* ========================================== */}
-        {/* CỘT TRÁI: SIDEBAR CỦA COMPANY              */}
-        {/* ========================================== */}
-        <aside className="jp-sidebar">
-          <div className="jp-sidebar-brand">JobsMarket</div>
-          <div className="jp-sidebar-section-title">
-            <span className="jp-sidebar-icon">☰</span>
-            Dashboard
-          </div>
-          <div className="jp-menu-group">
-            <div className="jp-menu-title">JOB MANAGEMENT</div>
-            <button className="jp-menu-item">Job List <span>0</span></button>
-            <button
-              className={`jp-menu-item ${activeSection === 'post' ? 'active' : ''}`}
-              onClick={() => setActiveSection('post')}
-            >
-              Post a New Job
-            </button>
-          </div>
-          <div className="jp-menu-group">
-            <div className="jp-menu-title">CANDIDATE MANAGEMENT</div>
-            <button
-              className={`jp-menu-item ${activeSection === 'applicants' ? 'active' : ''}`}
-              onClick={() => setActiveSection('applicants')}
-            >
-              Applied Candidates <span>{APPLICANTS_DATA.length}</span>
-            </button>
-            <button className="jp-menu-item">Saved Candidates <span>0</span></button>
-            <button className="jp-menu-item">Unlocked Contacts</button>
-            <button className="jp-menu-item">Supported Candidates <span>0</span></button>
-            <button className="jp-menu-item">Connection Requests</button>
-            <button className="jp-menu-item">Search Candidates</button>
-          </div>
-          <div className="jp-promo-card">
-            <div className="jp-promo-title">NEW FEATURE</div>
-            <div className="jp-promo-action">Connect via Zalo</div>
-          </div>
-        </aside>
-
-        {/* ========================================== */}
-        {/* CỘT PHẢI: NỘI DUNG CHÍNH                   */}
-        {/* ========================================== */}
-        <main className="jp-content">
+ 
+        <main className="main-form">
           <div className="jp-header-row">
             <div>
               <div className="jp-breadcrumb">
@@ -525,20 +476,20 @@ export default function JobPosting() {
                         <div className="jp-modal-grid">
                           <div className="jp-modal-section">
                             <h3>Contact Information</h3>
-                            <p><strong>Email:</strong> {selectedApplicant.email}</p>
-                            <p><strong>Phone:</strong> {selectedApplicant.phone}</p>
-                            <p><strong>School:</strong> {selectedApplicant.school}</p>
-                            <p><strong>Major:</strong> {selectedApplicant.major}</p>
-                            <p><strong>Degree:</strong> {selectedApplicant.degree}</p>
+                            <p>Email: {selectedApplicant.email}</p>
+                            <p>Phone: {selectedApplicant.phone}</p>
+                            <p>School: {selectedApplicant.school}</p>
+                            <p>Major: {selectedApplicant.major}</p>
+                            <p>Degree: {selectedApplicant.degree}</p>
                           </div>
                           <div className="jp-modal-section">
                             <h3>Application Details</h3>
-                            <p><strong>Applied Position:</strong> {selectedApplicant.jobTitle}</p>
-                            <p><strong>Identified Skills:</strong> {selectedApplicant.label}</p>
-                            <p><strong>Language:</strong> {selectedApplicant.language}</p>
-                            <p><strong>Experience:</strong> {selectedApplicant.experience}</p>
-                            <p><strong>Status:</strong> {STATUS_LABELS[selectedApplicant.status] || selectedApplicant.status}</p>
-                            <p><strong>Date Applied:</strong> {new Date(selectedApplicant.appliedAt).toLocaleDateString('en-US')}</p>
+                            <p>Applied Position: {selectedApplicant.jobTitle}</p>
+                            <p>Identified Skills: {selectedApplicant.label}</p>
+                            <p>Language: {selectedApplicant.language}</p>
+                            <p>Experience: {selectedApplicant.experience}</p>
+                            <p>Status: {STATUS_LABELS[selectedApplicant.status] || selectedApplicant.status}</p>
+                            <p>Date Applied: {new Date(selectedApplicant.appliedAt).toLocaleDateString('en-US')}</p>
                           </div>
                         </div>
                         <div className="jp-modal-section jp-modal-notes">
@@ -577,7 +528,6 @@ export default function JobPosting() {
 
               {/* FORM SECTIONS */}
               <div className="jp-grid">
-
                 <section className="jp-form-panel">
                   <div className="jp-card">
                     <div className="jp-card-title">Job Information</div>
@@ -672,8 +622,8 @@ export default function JobPosting() {
                           </div>
                         </div>
                       )}
-                    </div> {/* Đóng jp-card-body */}
-                  </div> {/* Đóng jp-card */}
+                    </div>
+                  </div>
 
                   {/* BUTTON ACTIONS */}
                   <div className="jp-actions">
@@ -688,7 +638,7 @@ export default function JobPosting() {
                         Next
                       </button>
                     ) : (
-                      <button type="button" className="jp-btn jp-btn-primary" onClick={handleSubmit} disabled={loading}>
+                      <button type="button" className="jp-btn jp-btn-primary" onClick={(e)=>{handleSubmit(e)}} disabled={loading}>
                         {loading ? "Creating..." : "Confirm & Post Job"}
                       </button>
                     )}
@@ -724,14 +674,14 @@ export default function JobPosting() {
               </div>
             </>
           )}
-          {toast.show && (
-            <div className={`toast-message ${toast.type}`} style={{ position: 'fixed', top: '20px', right: '20px', padding: '15px', background: toast.type === 'error' ? 'red' : 'green', color: 'white', borderRadius: '5px', zIndex: 9999 }}>
-              {toast.message}
-            </div>
-          )}
+      {toast.show && (
+        <div className={`toast-message ${toast.type}`}>
+          {toast.message}
+        </div>
+      )}
 
         </main>
-      </div>
-    </div>
+      
+    
   );
 }

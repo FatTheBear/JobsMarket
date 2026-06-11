@@ -45,7 +45,6 @@ export function WalletProvider({ children }) {
   };
 
   const fetchTransactions = async () => {
-    return;
     try {
       const res = await axios.get(`${API_URL}/transactions`, getAuthHeader());
       setTransactions(res.data);
