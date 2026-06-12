@@ -80,4 +80,29 @@ router.get('/candidate/:userId', async (req, res) => {
   }
 });
 
+// GET /api/applications/hr/:hrId - Get all applications for jobs posted by this HR
+router.get('/hr/:hrId', async (req, res) => {
+  try {
+    const { hrId } = req.params;
+    const query = `
+      SELECT a.*, 
+             cp.full_name AS candidate_name, cp.user_id, cp.phone, cp.avatar_url, cp.skills AS candidate_skills, cp.years_of_experience,
+             jp.title AS job_title, 
+             cv.file_url, cv.cv_name, cv.file_type,
+             (SELECT COUNT(*) FROM Saved_Candidate sc WHERE sc.hr_id = ? AND sc.candidate_id = a.candidate_id) AS is_saved
+      FROM Application a
+      JOIN Job_Posting jp ON a.job_id = jp.id
+      JOIN Candidate_Profile cp ON a.candidate_id = cp.id
+      JOIN Candidate_CV cv ON a.cv_id = cv.id
+      WHERE jp.hr_id = ?
+      ORDER BY a.applied_at DESC
+    `;
+    const [rows] = await pool.query(query, [hrId, hrId]);
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching applications for HR:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 module.exports = router;

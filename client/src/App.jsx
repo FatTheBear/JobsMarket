@@ -19,6 +19,8 @@ import SetupProfilePage from './pages/SetupProfilePage/SetupProfilePage';
 import SearchJobs from './pages/SearchJobs/SearchJobs';
 import JobDetail from './pages/JobDetail/JobDetail';
 import CompanyDashboard from './pages/DashBoard/CompanyDashboard/CompanyDashboard';
+import AppliedCandidates from './pages/AppliedCandidates/AppliedCandidates';
+import SavedCandidates from './pages/SavedCandidates/SavedCandidates';
 
 import './App.css';
 
@@ -67,6 +69,8 @@ const router = createBrowserRouter([
         children: [
           { path: "profile", element: <CompanyProfile /> },
           { path: "post-job", element: <JobPosting /> },
+          { path: "applicants", element: <AppliedCandidates /> },
+          { path: "saved-candidates", element: <SavedCandidates /> },
         ]
       },
       {
