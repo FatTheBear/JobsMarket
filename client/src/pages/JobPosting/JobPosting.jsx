@@ -133,6 +133,7 @@ export default function JobPosting() {
     requirements: '',
     benefits: '',
     email: '',
+    salary_type: 'specific',
     salary_min: '',
     salary_max: '',
     job_type: 'Full-time',
@@ -225,23 +226,29 @@ export default function JobPosting() {
     if (e) e.preventDefault();
     
     if (!form.title.trim()) {
-      showToast('Job title is required', 'error');
+      showToast('Vui lòng nhập tiêu đề công việc', 'error');
       return;
     }
     if (!form.description.trim()) {
-      showToast('Job description is required', 'error');
+      showToast('Vui lòng nhập mô tả công việc', 'error');
       return;
     }
     if (!form.requirements.trim()) {
-      showToast('Job requirements are required', 'error');
+      showToast('Vui lòng nhập yêu cầu công việc', 'error');
       return;
     }
-    if (form.salary_min && form.salary_max && parseInt(form.salary_min) > parseInt(form.salary_max)) {
-      showToast('Minimum salary cannot exceed maximum salary', 'error');
-      return;
+    if (form.salary_type === 'specific') {
+      if (!form.salary_min || !form.salary_max) {
+        showToast('Vui lòng nhập đầy đủ Lương tối thiểu và Lương tối đa', 'error');
+        return;
+      }
+      if (parseInt(form.salary_min) > parseInt(form.salary_max)) {
+        showToast('Lương tối thiểu không được lớn hơn Lương tối đa', 'error');
+        return;
+      }
     }
     if (form.deadline && form.deadline < todayStr()) {
-      showToast('Deadline must be today or later', 'error');
+      showToast('Hạn nộp hồ sơ phải từ hôm nay trở đi', 'error');
       return;
     }
 
@@ -252,8 +259,8 @@ export default function JobPosting() {
         title: form.title,
         description: form.description,
         requirements: form.requirements,
-        salary_min: form.salary_min ? parseInt(form.salary_min) : null,
-        salary_max: form.salary_max ? parseInt(form.salary_max) : null,
+        salary_min: form.salary_type === 'specific' ? parseInt(form.salary_min) : (form.salary_type === 'unpaid' ? 0 : null),
+        salary_max: form.salary_type === 'specific' ? parseInt(form.salary_max) : (form.salary_type === 'unpaid' ? 0 : null),
         job_type: form.job_type,
         deadline: form.deadline || null,
         hr_id: currentUserId,
@@ -288,6 +295,7 @@ export default function JobPosting() {
       requirements: '',
       benefits: '',
       email: '',
+      salary_type: 'specific',
       salary_min: '',
       salary_max: '',
       job_type: 'Full-time',
@@ -575,16 +583,33 @@ export default function JobPosting() {
                       {/* BƯỚC 2 */}
                       {currentStep === 2 && (
                         <>
-                          <div className="jp-row jp-row-two">
-                            <div className="jp-field">
-                              <label>Minimum Salary</label>
-                              <input type="number" name="salary_min" value={form.salary_min} onChange={handleChange} placeholder="0" />
-                            </div>
-                            <div className="jp-field">
-                              <label>Maximum Salary</label>
-                              <input type="number" name="salary_max" value={form.salary_max} onChange={handleChange} placeholder="0" />
+                          <div className="jp-field">
+                            <label>Loại Lương <span>*</span></label>
+                            <div className="jp-salary-type-options" style={{ display: 'flex', gap: '20px', marginBottom: '15px' }}>
+                              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                                <input type="radio" name="salary_type" value="specific" checked={form.salary_type === 'specific'} onChange={handleChange} /> Cụ thể
+                              </label>
+                              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                                <input type="radio" name="salary_type" value="negotiable" checked={form.salary_type === 'negotiable'} onChange={handleChange} /> Thoả thuận
+                              </label>
+                              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                                <input type="radio" name="salary_type" value="unpaid" checked={form.salary_type === 'unpaid'} onChange={handleChange} /> Không lương (Thực tập)
+                              </label>
                             </div>
                           </div>
+
+                          {form.salary_type === 'specific' && (
+                            <div className="jp-row jp-row-two">
+                              <div className="jp-field">
+                                <label>Lương tối thiểu (VNĐ) <span>*</span></label>
+                                <input type="number" name="salary_min" value={form.salary_min} onChange={handleChange} placeholder="VD: 10000000" />
+                              </div>
+                              <div className="jp-field">
+                                <label>Lương tối đa (VNĐ) <span>*</span></label>
+                                <input type="number" name="salary_max" value={form.salary_max} onChange={handleChange} placeholder="VD: 20000000" />
+                              </div>
+                            </div>
+                          )}
                           <div className="jp-row jp-row-two">
                             <div className="jp-field">
                               <label>Job Type</label>
