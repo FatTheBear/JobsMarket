@@ -26,14 +26,23 @@ export default function Login() {
       });
 
       if (response.status === 200) {
-        //navigate('/dashboard');
         localStorage.setItem('token', response.data.token);
-        navigate('/candidate-profile');
+        localStorage.setItem('userId', response.data.user.id);
+        
+        const { role } = response.data.user;
+        const roleLower = role ? role.toLowerCase() : '';
+
+        if (roleLower === 'company' || roleLower === 'hr') {
+          navigate('/company/profile'); 
+        } else if (roleLower === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (error) {
       // 2. Catch Backend Errors
       if (error.response && error.response.data) {
-        setErrorMessage(error.response.data.message || "Invalid email or password!");
       } else {
         setErrorMessage("Connection error! Please ensure the server is running.");
       }

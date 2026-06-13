@@ -15,7 +15,7 @@ const CandidateExperience = ({
   return (
     <>
       {/* Column 1: Experience Section */}
-      <div className="col-12 col-lg-4 mb-4 d-flex">
+      <div className="col-12 col-lg-3 mb-4 d-flex">
         <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
           <div className="card-body p-4 d-flex flex-column h-100">
             <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
@@ -104,7 +104,6 @@ const CandidateExperience = ({
                   value={experienceForm.role}
                   onChange={(e) => setExperienceForm({ ...experienceForm, role: e.target.value })}
                   placeholder="e.g. Senior Frontend Developer"
-                  required
                 />
               </div>
               <div>
@@ -115,7 +114,6 @@ const CandidateExperience = ({
                   value={experienceForm.company}
                   onChange={(e) => setExperienceForm({ ...experienceForm, company: e.target.value })}
                   placeholder="e.g. Google Corporation"
-                  required
                 />
               </div>
               <div className="row g-3">

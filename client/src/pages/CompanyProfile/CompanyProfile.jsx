@@ -1,15 +1,36 @@
+
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './CompanyProfile.module.css';
 import HRPostJob from "../../components/HR/HRPostJob";
 const API_URL = 'http://localhost:5000';
-const TEMP_HR_ID = 1;
+
+const getHrId = () => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      const decoded = JSON.parse(jsonPayload);
+      return decoded.id || 1;
+    } catch (e) {
+      return 1;
+    }
+  }
+  return 1;
+};
 
 const EMPLOYEE_OPTIONS = ['Under 10', '10 - 50', '50 - 100', '100 - 300', '300 - 500', '500 - 1000', 'Over 1000'];
 const BRANCH_OPTIONS = ['1', '2 - 5', '5 - 10', '10 - 20', 'Over 20'];
 const AGE_OPTIONS = ['Under 22', '22 - 25', '25 - 30', '30 - 35', 'Over 35'];
-const TABS = ['Overview', 'HR Structure', 'Images', 'Other'];
+const TABS = ['Tổng quan', 'Cơ cấu', 'Hình ảnh', 'Khác'];
 
 export default function CompanyProfile() {
+  console.log("CompanyProfile render");
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
@@ -89,7 +110,8 @@ export default function CompanyProfile() {
 
   const fetchCompany = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/company/${TEMP_HR_ID}`);
+      const hrId = getHrId();
+      const res = await fetch(`${API_URL}/api/company/${hrId}`);
       if (res.ok) {
         const data = await res.json();
         setForm({
@@ -145,10 +167,11 @@ export default function CompanyProfile() {
     if (!form.industry_id) { showToast('Please select an industry', 'error'); return; }
 
     setLoading(true);
+    const hrId = getHrId();
     try {
-      const payload = { ...form, hr_id: TEMP_HR_ID };
+      const payload = { ...form, hr_id: hrId };
       const method = isEdit ? 'PUT' : 'POST';
-      const url = isEdit ? `${API_URL}/api/company/${TEMP_HR_ID}` : `${API_URL}/api/company`;
+      const url = isEdit ? `${API_URL}/api/company/${hrId}` : `${API_URL}/api/company`;
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -187,46 +210,37 @@ export default function CompanyProfile() {
 
       {/* Top bar */}
       <div className={styles.topBar}>
-        <div className={styles.breadcrumb}>
-          <span>Dashboard</span>
-          <span className={styles.breadcrumbSep}>›</span>
-          <span className={styles.breadcrumbCurrent}>Company Profile</span>
+        <div>
+          <div className={styles.breadcrumb}>Bảng thông tin</div>
+          <h1 className={styles.pageTitle}>Hồ sơ công ty</h1>
         </div>
-       <button className={styles.btnPostJob} onClick={() => setIsPostJobModalOpen(true)}>
-    📢 Post a New Job
-</button>
+        <button
+          className={styles.btnPostJob}
+          onClick={() => navigate('/company/jobs/create')}
+        >
+          Đăng tin tuyển dụng mới
+        </button>
       </div>
 
       <div className={styles.layout}>
-        {/* Sidebar */}
-        <aside className={styles.sidebar}>
-          <div className={styles.sidebarSection}>
-            <div className={styles.sidebarLabel}>JOB MANAGEMENT</div>
-            <a className={styles.sidebarItem}><span>📋</span> Job Listings <span className={styles.badge}>0</span></a>
-            <a className={styles.sidebarItem}><span>➕</span> Post New Job</a>
-          </div>
-          <div className={styles.sidebarSection}>
-            <div className={styles.sidebarLabel}>CANDIDATE MANAGEMENT</div>
-            <a className={styles.sidebarItem}><span>👥</span> Applied Candidates <span className={styles.badge}>0</span></a>
-            <a className={styles.sidebarItem}><span>🔖</span> Saved Candidates</a>
-            <a className={styles.sidebarItem}><span>👁️</span> Viewed Candidates</a>
-            <a className={styles.sidebarItem}><span>🔍</span> Search Candidates</a>
-          </div>
-          <div className={styles.sidebarSection}>
-            <div className={styles.sidebarLabel}>ACCOUNT</div>
-            <a className={`${styles.sidebarItem} ${styles.sidebarItemActive}`}><span>🏢</span> Company Profile</a>
-            <a className={styles.sidebarItem}><span>👤</span> Account Settings</a>
-          </div>
-        </aside>
-
+        
         {/* Main Content */}
         <main className={styles.main}>
-          {/* Page header */}
           <div className={styles.pageHeader}>
-            <h1 className={styles.pageTitle}>Company Profile</h1>
+            <div>
+              <div className={styles.pageSubTitle}>Thông tin công ty</div>
+              <h1 className={styles.pageTitle}>Hồ sơ công ty</h1>
+            </div>
+            <div className={styles.headerActions}>
+              <button
+                className={styles.btnOutline}
+                onClick={() => navigate('/company-profile/job-posting')}
+              >
+                Xem danh sách việc làm
+              </button>
+            </div>
           </div>
 
-          {/* Tabs */}
           <div className={styles.tabs}>
             {TABS.map((tab, i) => (
               <button
@@ -237,6 +251,21 @@ export default function CompanyProfile() {
                 {tab}
               </button>
             ))}
+          </div>
+
+          <div className={styles.summaryGrid}>
+            <div className={styles.summaryCard}>
+              <div className={styles.summaryTitle}>Thông tin công ty</div>
+              <div className={styles.summaryRow}><strong>Tên công ty:</strong> {form.name || 'Chưa cập nhật'}</div>
+              <div className={styles.summaryRow}><strong>Ngành nghề:</strong> {industries.find(i => String(i.id) === String(form.industry_id))?.name || 'Chưa chọn'}</div>
+              <div className={styles.summaryRow}><strong>Website:</strong> {form.website || 'Chưa cập nhật'}</div>
+            </div>
+            <div className={styles.summaryCard}>
+              <div className={styles.summaryTitle}>Số liệu nhanh</div>
+              <div className={styles.summaryRow}><strong>Việc làm:</strong> 0</div>
+              <div className={styles.summaryRow}><strong>Ứng viên ứng tuyển:</strong> 0</div>
+              <div className={styles.summaryRow}><strong>Hồ sơ đã lưu:</strong> 0</div>
+            </div>
           </div>
 
           {/* ── TAB 0: Overview ── */}

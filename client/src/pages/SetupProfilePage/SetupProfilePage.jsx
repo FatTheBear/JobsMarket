@@ -18,6 +18,7 @@ export default function SetupProfilePage() {
     headline: '',
     address: '',
     education: [], // Allowed to be empty list
+    experience: [], // Allowed to be empty list
     skills: [],    // Allowed to be empty list
     followedCompanyIds: [] // Allowed to be empty list
   });
@@ -82,6 +83,13 @@ export default function SetupProfilePage() {
 
     if (!file) {
       setFormData(prev => ({ ...prev, avatar_url: '' }));
+      return;
+    }
+
+    // Validate file type (only images allowed)
+    if (!file.type.startsWith('image/')) {
+      setApiError('Invalid file type! Only image files (png, jpg, jpeg, gif, webp) are allowed.');
+      e.target.value = ''; // Reset file input
       return;
     }
 
@@ -156,9 +164,35 @@ export default function SetupProfilePage() {
     setFormData((prev) => ({ ...prev, education: updated }));
   };
 
+  // Experience item management
+  const handleExperienceChange = (index, field, value) => {
+    const updated = [...formData.experience];
+    updated[index][field] = value;
+    setFormData((prev) => ({ ...prev, experience: updated }));
+    setApiError('');
+  };
+
+  const addExperience = () => {
+    setFormData((prev) => ({
+      ...prev,
+      experience: [...prev.experience, { company: '', role: '', startDate: '', endDate: '' }]
+    }));
+  };
+
+  const removeExperience = (index) => {
+    const updated = formData.experience.filter((_, i) => i !== index);
+    setFormData((prev) => ({ ...prev, experience: updated }));
+  };
+
   // Skills dynamic list management
   const addSkill = () => {
     if (!newSkillName.trim()) return;
+
+    if (!lettersOnlyRegex.test(newSkillName.trim())) {
+      setApiError('Core Skill cannot contain numbers or special characters!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
 
     if (formData.skills.some(s => s.name.toLowerCase() === newSkillName.trim().toLowerCase())) {
       setApiError('This skill is already added!');
@@ -195,23 +229,25 @@ export default function SetupProfilePage() {
     });
   };
 
+  const lettersOnlyRegex = /^[\p{L}\s]*$/u;
+
   const validateEducation = () => {
     for (let i = 0; i < formData.education.length; i++) {
       const edu = formData.education[i];
       const hasContent = edu.school.trim() || edu.degree.trim() || edu.startDate || edu.gradDate;
       if (hasContent) {
-        if (!edu.school.trim()) {
-          setApiError(`School / Institute is required!`);
+        if (edu.school.trim() && !lettersOnlyRegex.test(edu.school)) {
+          setApiError(`School / Institute cannot contain numbers or special characters!`);
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return false;
         }
-        if (!edu.degree.trim()) {
-          setApiError(`Degree / Field of Study is required!`);
+        if (edu.degree.trim() && !lettersOnlyRegex.test(edu.degree)) {
+          setApiError(`Degree / Field of Study cannot contain numbers or special characters!`);
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return false;
         }
         if (!edu.startDate) {
-          setApiError(`Start Date is required!`);
+          setApiError(`Start Date is required if education is filled!`);
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return false;
         }
@@ -238,6 +274,49 @@ export default function SetupProfilePage() {
     return true;
   };
 
+  const validateExperience = () => {
+    for (let i = 0; i < formData.experience.length; i++) {
+      const exp = formData.experience[i];
+      const hasContent = exp.company.trim() || exp.role.trim() || exp.startDate || exp.endDate;
+      if (hasContent) {
+        if (exp.company.trim() && !lettersOnlyRegex.test(exp.company)) {
+          setApiError(`Company Name cannot contain numbers or special characters!`);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return false;
+        }
+        if (exp.role.trim() && !lettersOnlyRegex.test(exp.role)) {
+          setApiError(`Job Title / Role cannot contain numbers or special characters!`);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return false;
+        }
+        if (!exp.startDate) {
+          setApiError(`Start Date is required if experience is filled!`);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return false;
+        }
+
+        // Start date year must be <= current year
+        const startYear = parseInt(exp.startDate.split('-')[0]);
+        const currentYear = new Date().getFullYear();
+        if (startYear > currentYear) {
+          setApiError(`Start year (${startYear}) cannot be in the future (must be <= ${currentYear})!`);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return false;
+        }
+
+        // End date cannot be earlier than start date
+        if (exp.endDate) {
+          if (exp.endDate < exp.startDate) {
+            setApiError(`End Date cannot be earlier than Start Date!`);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return false;
+          }
+        }
+      }
+    }
+    return true;
+  };
+
   // Navigation validation (only full_name is required!)
   const nextStep = () => {
     if (currentStep === 1) {
@@ -246,9 +325,24 @@ export default function SetupProfilePage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
+      if (!lettersOnlyRegex.test(formData.display_name.trim())) {
+        setApiError('Display Name can only contain letters and spaces!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (formData.phone.trim() && !/^\d{10}$/.test(formData.phone.trim())) {
+        setApiError('Phone Number must be exactly 10 digits!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (formData.headline.trim() && !lettersOnlyRegex.test(formData.headline)) {
+        setApiError('Job Title / Headline cannot contain numbers or special characters!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
     }
     if (currentStep === 2) {
-      if (!validateEducation()) {
+      if (!validateEducation() || !validateExperience()) {
         return;
       }
     }
@@ -262,6 +356,7 @@ export default function SetupProfilePage() {
   };
 
   // Finish and submit to server
+  // Finish and submit to server
   const handleFinishSetup = async () => {
     if (!formData.display_name.trim()) {
       setApiError('Display Name is mandatory!');
@@ -269,8 +364,20 @@ export default function SetupProfilePage() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
+    if (!lettersOnlyRegex.test(formData.display_name.trim())) {
+      setApiError('Display Name can only contain letters and spaces!');
+      setCurrentStep(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    if (formData.phone.trim() && !/^\d{10}$/.test(formData.phone.trim())) {
+      setApiError('Phone Number must be exactly 10 digits!');
+      setCurrentStep(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
 
-    if (!validateEducation()) {
+    if (!validateEducation() || !validateExperience()) {
       setCurrentStep(2);
       return;
     }
@@ -279,7 +386,7 @@ export default function SetupProfilePage() {
     setApiError('');
     try {
       await axios.post('http://localhost:5000/api/candidate/onboarding', formData, getHeaders());
-      navigate('/candidate-profile');
+      navigate('/dashboard');
     } catch (error) {
       console.error(error);
       setApiError(error.response?.data?.message || 'Error occurred while saving profile. Please try again.');
@@ -483,6 +590,69 @@ export default function SetupProfilePage() {
                 ))}
                 <button type="button" className="add-dynamic-btn" onClick={addEducation}>
                   + Add Education Record
+                </button>
+              </div>
+
+              {/* Dynamic Experience Section */}
+              <div className="dynamic-list-wrapper" style={{ marginTop: '20px' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: '600', color: '#334155' }}>Work Experience</h3>
+                {formData.experience.map((exp, idx) => (
+                  <div key={idx} className="education-card" style={{ position: 'relative' }}>
+                    <button
+                      type="button"
+                      className="remove-btn"
+                      onClick={() => removeExperience(idx)}
+                      style={{ position: 'absolute', top: '12px', right: '12px' }}
+                      title="Remove record"
+                    >
+                      ✕
+                    </button>
+
+                    {/* Line 1: Company & Role */}
+                    <div className="form-group-grid">
+                      <div className="form-field">
+                        <label style={{ fontSize: '0.85rem' }}>Company Name</label>
+                        <input
+                          type="text"
+                          placeholder="e.g., Google Corporation"
+                          value={exp.company || ''}
+                          onChange={(e) => handleExperienceChange(idx, 'company', e.target.value)}
+                        />
+                      </div>
+                      <div className="form-field">
+                        <label style={{ fontSize: '0.85rem' }}>Job Title / Role</label>
+                        <input
+                          type="text"
+                          placeholder="e.g., Senior Software Developer"
+                          value={exp.role || ''}
+                          onChange={(e) => handleExperienceChange(idx, 'role', e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Line 2: Start Date & End Date */}
+                    <div className="date-fields-aligned-row" style={{ marginTop: '15px' }}>
+                      <div className="form-field">
+                        <label style={{ fontSize: '0.85rem' }}>Start Date</label>
+                        <input
+                          type="month"
+                          value={exp.startDate || ''}
+                          onChange={(e) => handleExperienceChange(idx, 'startDate', e.target.value)}
+                        />
+                      </div>
+                      <div className="form-field">
+                        <label style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}>End Date <span style={{ fontWeight: 'normal', fontSize: '0.75rem' }}>(Leave blank if current)</span></label>
+                        <input
+                          type="month"
+                          value={exp.endDate || ''}
+                          onChange={(e) => handleExperienceChange(idx, 'endDate', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <button type="button" className="add-dynamic-btn" onClick={addExperience}>
+                  + Add Work Experience
                 </button>
               </div>
 

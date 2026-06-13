@@ -1,0 +1,222 @@
+.skill-manager-card {
+  background: #ffffff;[cite: 1]
+  border: 1px solid #e5e7eb;[cite: 1]
+  border-radius: 22px;[cite: 1]
+  padding: 24px;[cite: 1]
+  margin-top: 20px;[cite: 1]
+  position: relative; /* Giữ menu dropdown không bị lệch khỏi layout */
+}
+
+.skill-manager-header {
+  display: flex;[cite: 1]
+  align-items: center;[cite: 1]
+  justify-content: space-between;[cite: 1]
+  gap: 16px;[cite: 1]
+  margin-bottom: 18px;[cite: 1]
+}
+
+.skill-manager-header h3 {
+  margin: 0;[cite: 1]
+  font-size: 18px;[cite: 1]
+  font-weight: 800;[cite: 1]
+  color: #111827;[cite: 1]
+}
+
+.skill-manager-header p {
+  margin: 8px 0 0;[cite: 1]
+  color: #4b5563;[cite: 1]
+  line-height: 1.6;[cite: 1]
+}
+
+.skill-manager-job-id {
+  font-size: 13px;[cite: 1]
+  color: #475569;[cite: 1]
+  background: #f8fafc;[cite: 1]
+  border: 1px solid #e2e8f0;[cite: 1]
+  padding: 10px 14px;[cite: 1]
+  border-radius: 999px;[cite: 1]
+}
+
+.skill-manager-body {
+  display: flex;[cite: 1]
+  flex-direction: column;[cite: 1]
+  gap: 18px;[cite: 1]
+}
+
+/* ==========================================================================
+   CẢI TIẾN: KHUNG CHỨA TAGS VÀ Ô INPUT TÌM KIẾM AUTOCOMPLETE GỘP CHUNG
+   ========================================================================== */
+.skills-input-tags-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* Thiết kế flex box co giãn bọc cả thẻ tag và ô nhập input vào làm một */
+.tags-flex-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  padding: 10px 14px;
+  background: #ffffff;
+  min-height: 48px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Hiệu ứng sáng viền màu đỏ thương hiệu JobsMarket khi click vào ô nhập */
+.tags-flex-container:focus-within {
+  border-color: #ef4444; 
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+/* Giao diện thẻ Tag kỹ năng đã chọn (màu đỏ nhạt thanh lịch) */
+.job-selected-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fee2e2; 
+  color: #991b1b; 
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Thiết kế nút xóa dấu x nhỏ bên phải mỗi Tag */
+.remove-tag-x {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 0 2px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.remove-tag-x:hover {
+  color: #7f1d1d;
+}
+
+/* Ô nhập chữ tàng hình border lọt lòng phía sau các thẻ tag */
+.skills-autocomplete-input {
+  border: none !important;
+  outline: none !important;
+  padding: 4px 8px !important;
+  font-size: 14px;
+  color: #111827;
+  flex: 1;
+  min-width: 150px;
+  background: transparent;
+}
+
+/* ==========================================================================
+   CẢI TIẾN: MENU GỢI Ý THẢ XUỐNG (DROPDOWN AUTOCOMPLETE)
+   ========================================================================== */
+.skills-autocomplete-dropdown {
+  position: absolute;
+  top: 105%;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  z-index: 50;
+  padding: 8px 0;
+  margin: 0;
+  list-style: none;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.dropdown-section-title {
+  padding: 6px 16px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.dropdown-suggestion-item {
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #334155;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.15s;
+}
+
+.dropdown-suggestion-item:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.dropdown-suggestion-item .plus-sign {
+  color: #ef4444;
+  font-weight: bold;
+}
+
+.custom-create-prompt {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.custom-create-prompt strong {
+  color: #ef4444;
+}
+
+/* ==========================================================================
+   FORM TẠO MỚI KHI KHÔNG TÌM THẤY TỪ KHÓA SẴN CÓ
+   ========================================================================== */
+.skill-manager-form {
+  display: grid;[cite: 1]
+  grid-template-columns: 1fr auto;[cite: 1]
+  gap: 12px;[cite: 1]
+  margin-top: 10px;
+  padding: 14px;
+  background: #f8fafc;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+}
+
+.skill-manager-form input {
+  border: 1px solid #cbd5e1;[cite: 1]
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;[cite: 1]
+  color: #111827;[cite: 1]
+  outline: none;[cite: 1]
+}
+
+.skill-manager-form button {
+  border: none;[cite: 1]
+  border-radius: 10px;
+  background: #ef4444;[cite: 1]
+  color: white;[cite: 1]
+  padding: 10px 18px;
+  font-weight: 700;[cite: 1]
+  cursor: pointer;[cite: 1]
+}
+
+.skill-manager-form button:disabled {
+  background: #fca5a5;
+  cursor: not-allowed;
+}
+
+.skill-manager-message {
+  color: #047857;[cite: 1]
+  background: #ddf6e4;[cite: 1]
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid #d1fae5;[cite: 1]
+  font-weight: 600;[cite: 1]
+  font-size: 13px;
+}

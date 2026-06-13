@@ -1,0 +1,199 @@
+.search-jobs-container {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 0 20px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ==========================================================================
+   THÀNH PHẦN 1: THANH TÌM KIẾM VÀ BỘ LỌC (SEARCH BAR & FILTERS)
+   ========================================================================== */
+.search-header-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+  margin-bottom: 30px;
+}
+
+.search-form-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.search-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-group span {
+  position: absolute;
+  left: 14px;
+  color: #94a3b8;
+}
+
+.search-form-grid input,
+.search-form-grid select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #111827;
+  outline: none;
+  background-color: #ffffff;
+  transition: border-color 0.2s;
+}
+
+.search-form-grid input {
+  padding-left: 38px; /* Chừa chỗ cho icon kính lúp */
+}
+
+.search-form-grid input:focus,
+.search-form-grid select:focus {
+  border-color: #ef4444; /* Màu đỏ thương hiệu JobsMarket */
+}
+
+.search-submit-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-weight: 700;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.search-submit-btn:hover {
+  opacity: 0.9;
+}
+
+/* ==========================================================================
+   THÀNH PHẦN 2: DANH SÁCH KẾT QUẢ CÔNG VIỆC (JOB LISTINGS)
+   ========================================================================== */
+.results-count {
+  font-size: 15px;
+  color: #475569;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.jobs-grid-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.job-card-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.job-card-item:hover {
+  border-color: #fca5a5;
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.05);
+  transform: translateY(-2px);
+}
+
+.job-card-left {
+  flex: 1;
+}
+
+.job-card-title {
+  margin: 0 0 6px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.job-card-company {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+.job-card-info-tags {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 14px;
+}
+
+/* Hiển thị danh sách thẻ kỹ năng của Job */
+.job-card-skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.job-card-skill-tag {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.job-card-right {
+  margin-left: 20px;
+}
+
+.view-detail-btn {
+  background: transparent;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+  padding: 10px 18px;
+  font-weight: 600;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-detail-btn:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.no-results-box {
+  text-align: center;
+  padding: 40px;
+  background: #f8fafc;
+  border-radius: 12px;
+  color: #64748b;
+  border: 1px dashed #cbd5e1;
+}
+
+@media (max-width: 768px) {
+  .search-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .job-card-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .job-card-right {
+    margin-left: 0;
+    width: 100%;
+  }
+  .view-detail-btn {
+    width: 100%;
+    text-align: center;
+  }
+}

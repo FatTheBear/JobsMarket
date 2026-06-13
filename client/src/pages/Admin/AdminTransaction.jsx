@@ -22,6 +22,13 @@ const AdminTransaction = () => {
 
     useEffect(() => {
         fetchTransactions();
+        
+        // Polling: Tự động cập nhật danh sách mỗi 5 giây
+        const interval = setInterval(() => {
+            fetchTransactions();
+        }, 5000);
+        
+        return () => clearInterval(interval);
     }, []);
 
     const handleUpdateStatus = async (id, newStatus) => {

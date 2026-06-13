@@ -15,7 +15,7 @@ const CandidateSkills = ({
   return (
     <>
       {/* Column 2: Skill Section */}
-      <div className="col-12 col-lg-4 mb-4 d-flex">
+      <div className="col-12 col-lg-3 mb-4 d-flex">
         <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
           <div className="card-body p-4 d-flex flex-column h-100">
             <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
@@ -104,7 +104,6 @@ const CandidateSkills = ({
                   value={skillForm.name}
                   onChange={(e) => setSkillForm({ ...skillForm, name: e.target.value })}
                   placeholder="e.g. React.js, Tailwind CSS"
-                  required
                 />
               </div>
               <div>

@@ -4,11 +4,17 @@ const pool = require('../config/db');
 
 // POST /api/jobs - Create a new job posting
 router.post('/', async (req, res) => {
+  console.log("Data get from Frontend:", req.body);
   try {
     const { hr_id, title, description, requirements, salary_min, salary_max, job_type, deadline } = req.body;
 
-    if (!hr_id || !title || !job_type) {
-      return res.status(400).json({ message: 'Missing required fields' });
+    const requiredFields = { title, job_type, hr_id };
+    const missingFields = Object.keys(requiredFields).filter(key => !requiredFields[key]);
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        message: `Missing required fields: ${missingFields.join(', ')}`
+      });
     }
 
     // Validate salary range
@@ -35,9 +41,9 @@ router.post('/', async (req, res) => {
     const company_id = companies[0].id;
 
     const [result] = await pool.query(
-      `INSERT INTO Job_Posting (company_id, hr_id, title, description, requirements, salary_min, salary_max, job_type, deadline, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Approved')`,
-      [company_id, hr_id, title, description, requirements, salary_min || null, salary_max || null, job_type, deadline || null]
+      `INSERT INTO Job_Posting (company_id, hr_id, title, description, requirements, salary_min, salary_max, job_type, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending')`,
+      [company_id, hr_id, title, description, requirements, salary_min || null, salary_max || null, job_type]
     );
 
     res.status(201).json({ message: 'Job posted successfully!', jobId: result.insertId });
