@@ -1,8 +1,11 @@
-require('dotenv').config();
 const express = require("express");
 const cors = require("cors");
 const { Server } = require('socket.io');
 const http = require('http');
+const dotenv = require("dotenv");
+
+
+
 const app = express();
 const server = http.createServer(app);
 const path = require('path');
@@ -18,6 +21,7 @@ const io = new Server(server, {
   }
 })
 // Database connection
+app.use('/uploads', express.static('uploads'));
 require('./config/db');
 
 // Routes
@@ -49,9 +53,13 @@ io.on('connection', (socket) => {
   });
 });
 
+
+
+
 app.get("/", (req, res) => {
   res.send("JobsMarket API running...");
 });
+
 
 const PORT = process.env.PORT || 5000;
 
