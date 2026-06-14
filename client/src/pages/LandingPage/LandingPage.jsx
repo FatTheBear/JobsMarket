@@ -77,16 +77,16 @@ const EMPLOYERS_BY_INDUSTRY = {
 };
 
 const CATEGORIES = [
-  { icon: '💻', name: 'Information Technology', count: '3,200+' },
-  { icon: '💰', name: 'Finance & Banking', count: '1,800+' },
-  { icon: '🎨', name: 'Marketing & PR', count: '950+' },
-  { icon: '🏭', name: 'Manufacturing & Engineering', count: '2,100+' },
-  { icon: '🏥', name: 'Healthcare & Pharmacy', count: '780+' },
-  { icon: '📚', name: 'Education & Training', count: '640+' },
-  { icon: '🚚', name: 'Logistics & Transportation', count: '1,100+' },
-  { icon: '🛒', name: 'Sales & Business', count: '2,800+' },
-  { icon: '🏢', name: 'Real Estate', count: '920+' },
-  { icon: '⚖️', name: 'Legal & Law', count: '430+' },
+  { iconFile: 'it.png', name: 'Information Technology', count: '3,200+' },
+  { iconFile: 'finance.png', name: 'Finance & Banking', count: '1,800+' },
+  { iconFile: 'marketing.png', name: 'Marketing & PR', count: '950+' },
+  { iconFile: 'engineering.png', name: 'Manufacturing & Engineering', count: '2,100+' },
+  { iconFile: 'healthcare.png', name: 'Healthcare & Pharmacy', count: '780+' },
+  { iconFile: 'education.png', name: 'Education & Training', count: '640+' },
+  { iconFile: 'logistics.png', name: 'Logistics & Transportation', count: '1,100+' },
+  { iconFile: 'sales.png', name: 'Sales & Business', count: '2,800+' },
+  { iconFile: 'realestate.png', name: 'Real Estate', count: '920+' },
+  { iconFile: 'legal.png', name: 'Legal & Law', count: '430+' },
 ];
 
 const LOCATIONS = [
@@ -293,7 +293,10 @@ export default function HomePage() {
           <div className={styles.categoriesGrid}>
             {CATEGORIES.map((cat, i) => (
               <div key={i} className={styles.categoryCard} onClick={() => navigate('/auth')}>
-                <div className={styles.categoryIcon}>{cat.icon}</div>
+                <div className={styles.categoryIcon}>
+                  <img src={`/icons/${cat.iconFile}`} alt={cat.name} onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
+                  <span style={{ display: 'none', fontSize: '32px' }}>📁</span>
+                </div>
                 <div className={styles.categoryName}>{cat.name}</div>
                 <div className={styles.categoryCount}>{cat.count} jobs</div>
               </div>
