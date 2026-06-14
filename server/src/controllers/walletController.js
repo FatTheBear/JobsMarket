@@ -25,17 +25,6 @@ const walletController = {
     }
   },
 
-  linkBank: async (req, res) => {
-    try {
-      const userId = req.user.id;
-      const { bankName, accountNumber, accountName } = req.body;
-      await WalletModel.linkBank(userId, { bankName, accountNumber, accountName });
-      res.json({ message: "Bank account linked successfully!" });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to link bank account", error: error.message });
-    }
-  },
-
   getActiveFees: async (req, res) => {
     try {
       const fees = await CoinExchangeFeeModel.getActive();
