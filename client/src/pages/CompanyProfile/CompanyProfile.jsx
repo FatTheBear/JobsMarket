@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './CompanyProfile.module.css';
-
+import HRPostJob from "../../components/HR/HRPostJob";
 const API_URL = 'http://localhost:5000';
 
 const getHrId = () => {
@@ -34,6 +34,7 @@ export default function CompanyProfile() {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
+  const [isPostJobModalOpen, setIsPostJobModalOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [logoPreview, setLogoPreview] = useState(null);
   const fileInputRef = useRef();
@@ -195,7 +196,17 @@ export default function CompanyProfile() {
       {/* Toast */}
       <div className={`${styles.toast} ${toast.show ? styles.toastShow : ''} ${toast.type === 'error' ? styles.toastError : styles.toastSuccess}`}>
         {toast.type === 'success' ? '✅' : '❌'} {toast.message}
+
       </div>
+
+    {isPostJobModalOpen && (
+    <div className={styles.modalOverlay}>
+        <div className={styles.modalContent}>
+            <button className={styles.closeBtn} onClick={() => setIsPostJobModalOpen(false)}>✕</button>
+            <HRPostJob />
+        </div>
+    </div>
+)}
 
       {/* Top bar */}
       <div className={styles.topBar}>
@@ -205,7 +216,7 @@ export default function CompanyProfile() {
         </div>
         <button
           className={styles.btnPostJob}
-          //onClick={() => navigate('/company/jobs/create')}
+          onClick={() => navigate('/company/jobs/create')}
         >
           Đăng tin tuyển dụng mới
         </button>

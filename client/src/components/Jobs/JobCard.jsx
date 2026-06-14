@@ -1,5 +1,5 @@
 import React from 'react';
-import './JobCard.module.css';
+// import './JobCard.css';
 
 export default function JobCard({ job, onSelect }) {
   // 1. Destructure data from the job object
