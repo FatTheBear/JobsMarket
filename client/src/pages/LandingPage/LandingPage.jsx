@@ -3,23 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import styles from './LandingPage.module.css';
 
 const HOT_JOBS = [
-  { id: 1, title: 'Frontend Developer (ReactJS)', company: 'FPT Software', salary: '$800 - $1,500', location: 'Ho Chi Minh City', logo: '🏢', tag: 'Hot', isNew: true },
-  { id: 2, title: 'Product Manager', company: 'VNG Corporation', salary: '$1,500 - $2,500', location: 'Ho Chi Minh City', logo: '🏢', tag: 'Top', isNew: false },
-  { id: 3, title: 'Data Analyst', company: 'Tiki', salary: '$700 - $1,200', location: 'Hanoi', logo: '🏢', tag: 'Top', isNew: true },
-  { id: 4, title: 'UX/UI Designer', company: 'Momo', salary: '$900 - $1,800', location: 'Ho Chi Minh City', logo: '🏢', tag: 'Hot', isNew: false },
-  { id: 5, title: 'Backend Engineer (NodeJS)', company: 'Shopee', salary: '$1,200 - $2,000', location: 'Ho Chi Minh City', logo: '🏢', tag: 'VIP', isNew: true },
-  { id: 6, title: 'DevOps Engineer', company: 'VinAI', salary: '$1,300 - $2,200', location: 'Hanoi', logo: '🏢', tag: 'Top', isNew: false },
+  { id: 1, title: 'Frontend Developer (ReactJS)', company: 'FPT Software', salary: '18 - 30 triệu', location: 'TP. Hồ Chí Minh', color: '#FF6B35', initial: 'FPT', tag: 'Hot', isNew: true },
+  { id: 2, title: 'Product Manager', company: 'VNG Corporation', salary: '35 - 55 triệu', location: 'TP. Hồ Chí Minh', color: '#6B46C1', initial: 'VNG', tag: 'Top', isNew: false },
+  { id: 3, title: 'Data Analyst', company: 'Tiki', salary: '15 - 25 triệu', location: 'Hà Nội', color: '#0064E0', initial: 'TKI', tag: 'Top', isNew: true },
+  { id: 4, title: 'UX/UI Designer', company: 'MoMo', salary: '20 - 40 triệu', location: 'TP. Hồ Chí Minh', color: '#A50064', initial: 'MM', tag: 'Hot', isNew: false },
+  { id: 5, title: 'Backend Engineer (NodeJS)', company: 'Shopee', salary: '25 - 45 triệu', location: 'TP. Hồ Chí Minh', color: '#EE4D2D', initial: 'SPE', tag: 'VIP', isNew: true },
+  { id: 6, title: 'DevOps Engineer', company: 'VinAI Research', salary: '30 - 50 triệu', location: 'Hà Nội', color: '#005BB5', initial: 'VIN', tag: 'Top', isNew: false },
 ];
 
 const TOP_EMPLOYERS = [
-  { name: 'FPT Software', logo: '🔵', jobs: 120 },
-  { name: 'VNG', logo: '🟣', jobs: 85 },
-  { name: 'Shopee', logo: '🟠', jobs: 200 },
-  { name: 'Tiki', logo: '🔴', jobs: 65 },
-  { name: 'MoMo', logo: '🟣', jobs: 95 },
-  { name: 'VinAI', logo: '🔵', jobs: 45 },
-  { name: 'Grab', logo: '🟢', jobs: 78 },
-  { name: 'VNPT', logo: '🔵', jobs: 110 },
+  { name: 'FPT Software', color: '#FF6B35', initial: 'FPT', jobs: 120 },
+  { name: 'VNG', color: '#6B46C1', initial: 'VNG', jobs: 85 },
+  { name: 'Shopee', color: '#EE4D2D', initial: 'SPE', jobs: 200 },
+  { name: 'Tiki', color: '#0064E0', initial: 'TKI', jobs: 65 },
+  { name: 'MoMo', color: '#A50064', initial: 'MM', jobs: 95 },
+  { name: 'VinAI', color: '#005BB5', initial: 'VIN', jobs: 45 },
+  { name: 'Grab', color: '#00B14F', initial: 'GRB', jobs: 78 },
+  { name: 'VNPT', color: '#003087', initial: 'VNP', jobs: 110 },
 ];
 
 const CATEGORIES = [
@@ -50,9 +50,9 @@ export default function HomePage() {
   const bannerTimerRef = useRef(null);
 
   const BANNERS = [
-    { bg: 'linear-gradient(135deg, #1e3a6e 0%, #2563ab 60%, #1e5c8b 100%)', title: 'Find Your Dream Job in 2026', sub: 'Over 26,000 career opportunities are waiting for you' },
-    { bg: 'linear-gradient(135deg, #0f2d5e 0%, #c0392b 100%)', title: 'Connecting Talent & Enterprise', sub: '#1 Recruitment Platform in Vietnam' },
-    { bg: 'linear-gradient(135deg, #1a4731 0%, #27ae60 100%)', title: 'Apply Fast — Get Hired Quickly', sub: 'Upload your CV for free and receive offers from top employers' },
+    { bg: 'linear-gradient(135deg, #1e3a6e 0%, #2563ab 60%, #1e5c8b 100%)', title: 'Tìm Việc Làm Phù Hợp Với Bạn', sub: 'Hơn 26,000 cơ hội nghề nghiệp từ các doanh nghiệp hàng đầu Việt Nam' },
+    { bg: 'linear-gradient(135deg, #0f2d5e 0%, #c0392b 100%)', title: 'Kết Nối Nhân Tài & Doanh Nghiệp', sub: 'Nền tảng tuyển dụng #1 — nhanh chóng, minh bạch, hiệu quả' },
+    { bg: 'linear-gradient(135deg, #1a4731 0%, #27ae60 100%)', title: 'Nộp CV Ngay — Nhận Offer Sớm', sub: 'Upload CV miễn phí và nhận lời mời từ nhà tuyển dụng trong 24h' },
   ];
 
   useEffect(() => {
@@ -83,7 +83,7 @@ export default function HomePage() {
           {/* Search Box */}
           <div className={styles.searchBox}>
             <div className={styles.searchBoxTitle}>
-              <h2>Seize your success with <span className={styles.jobCount}>26,047</span> career opportunities</h2>
+              <h2>Cơ hội nghề nghiệp dành cho bạn — <span className={styles.jobCount}>26,047</span> việc làm đang chờ</h2>
             </div>
             <div className={styles.searchRow}>
               <div className={styles.searchField}>
@@ -115,8 +115,8 @@ export default function HomePage() {
               </button>
             </div>
             <div className={styles.searchFooter}>
-              <span>📄 Upload your resume to apply faster and get noticed by employers</span>
-              <button className={styles.uploadResumeBtn} onClick={() => navigate('/auth')}>UPLOAD NOW</button>
+              <span>📄 Upload CV để ứng tuyển nhanh hơn và được nhà tuyển dụng chú ý</span>
+              <button className={styles.uploadResumeBtn} onClick={() => navigate('/auth')}>UPLOAD NGAY</button>
             </div>
           </div>
         </div>
@@ -142,9 +142,14 @@ export default function HomePage() {
           <div className={styles.employersGrid}>
             {TOP_EMPLOYERS.map((emp, i) => (
               <div key={i} className={styles.employerCard} onClick={() => navigate('/auth')}>
-                <div className={styles.employerLogo}>{emp.logo}</div>
+                <div
+                  className={styles.employerLogo}
+                  style={{ background: emp.color }}
+                >
+                  {emp.initial}
+                </div>
                 <div className={styles.employerName}>{emp.name}</div>
-                <div className={styles.employerJobs}>{emp.jobs} jobs</div>
+                <div className={styles.employerJobs}>{emp.jobs} việc làm</div>
               </div>
             ))}
           </div>
@@ -172,7 +177,12 @@ export default function HomePage() {
             {HOT_JOBS.map(job => (
               <div key={job.id} className={styles.jobCard} onClick={() => navigate('/auth')}>
                 <div className={styles.jobCardLeft}>
-                  <div className={styles.jobLogo}>{job.logo}</div>
+                  <div
+                    className={styles.jobLogo}
+                    style={{ background: job.color, color: '#fff', fontSize: '12px', fontWeight: 800, letterSpacing: '0.5px' }}
+                  >
+                    {job.initial}
+                  </div>
                   <div className={styles.jobInfo}>
                     <div className={styles.jobTitle}>{job.title}</div>
                     <div className={styles.jobCompany}>{job.company}</div>
@@ -184,7 +194,7 @@ export default function HomePage() {
                 </div>
                 <div className={styles.jobTags}>
                   <span className={`${styles.jobTag} ${styles['jobTag' + job.tag]}`}>{job.tag}</span>
-                  {job.isNew && <span className={styles.jobTagNew}>New</span>}
+                  {job.isNew && <span className={styles.jobTagNew}>Mới</span>}
                 </div>
               </div>
             ))}
@@ -245,7 +255,7 @@ export default function HomePage() {
               <div className={styles.ctaIcon}>🏢</div>
               <div>
                 <h3 className={styles.ctaTitle}>For Employers</h3>
-                <p className={styles.ctaDesc}>Post jobs for free, find quality candidates, and reach 5M+ potential applicants across Vietnam.</p>
+                <p className={styles.ctaDesc}>Đăng tin tuyển dụng miễn phí, tìm ứng viên chất lượng và tiếp cận hơn 5 triệu hồ sơ ứng viên trên toàn quốc.</p>
               </div>
             </div>
             <div className={styles.ctaButtons}>
