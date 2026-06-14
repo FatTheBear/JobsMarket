@@ -42,7 +42,7 @@ router.post('/', async (req, res) => {
 
     const [result] = await pool.query(
       `INSERT INTO Job_Posting (company_id, hr_id, title, description, requirements, salary_min, salary_max, job_type, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Approved')`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending')`,
       [company_id, hr_id, title, description, requirements, salary_min || null, salary_max || null, job_type]
     );
 
