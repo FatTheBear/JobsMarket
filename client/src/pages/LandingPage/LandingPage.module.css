@@ -385,6 +385,32 @@
   border-radius: 2px;
 }
 
+/* ─── NEW SECTION HEADER STYLE (CENTERED / GREEN) ─── */
+.sectionHeaderCol {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.sectionTitleGreen {
+  font-size: 26px;
+  font-weight: 700;
+  color: #00b14f;
+  margin: 0 0 10px;
+}
+
+.sectionSub {
+  font-size: 15px;
+  color: #555;
+  margin: 0;
+}
+
+.linkText {
+  color: #00b14f;
+  text-decoration: underline;
+  cursor: pointer;
+  font-weight: 500;
+}
+
 /* ─── INDUSTRY TABS ─── */
 .industryTabs {
   display: flex;
@@ -686,42 +712,44 @@
 /* ─── CATEGORIES ─── */
 .categoriesGrid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
 }
 
 .categoryCard {
-  background: #fff;
-  border: 1px solid #e8e8e8;
-  border-radius: 10px;
-  padding: 20px 14px;
+  background: #f4f5f5;
+  border: none;
+  border-radius: 8px;
+  padding: 24px 16px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.25s;
+  transition: all 0.25s ease-in-out;
 }
 
 .categoryCard:hover {
-  box-shadow: 0 6px 20px rgba(30,58,110,0.12);
-  border-color: #1e3a6e;
+  background: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   transform: translateY(-3px);
 }
 
 .categoryIcon {
-  font-size: 30px;
-  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
 }
 
 .categoryName {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   color: #333;
-  margin-bottom: 6px;
-  line-height: 1.3;
+  margin-bottom: 8px;
+  line-height: 1.4;
 }
 
 .categoryCount {
   font-size: 13px;
-  color: #e53935;
+  color: #00b14f;
   font-weight: 500;
 }
 

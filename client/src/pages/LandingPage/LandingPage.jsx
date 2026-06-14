@@ -77,16 +77,14 @@ const EMPLOYERS_BY_INDUSTRY = {
 };
 
 const CATEGORIES = [
-  { iconFile: 'it.png', name: 'Information Technology', count: '3,200+' },
-  { iconFile: 'finance.png', name: 'Finance & Banking', count: '1,800+' },
-  { iconFile: 'marketing.png', name: 'Marketing & PR', count: '950+' },
-  { iconFile: 'engineering.png', name: 'Manufacturing & Engineering', count: '2,100+' },
-  { iconFile: 'healthcare.png', name: 'Healthcare & Pharmacy', count: '780+' },
-  { iconFile: 'education.png', name: 'Education & Training', count: '640+' },
-  { iconFile: 'logistics.png', name: 'Logistics & Transportation', count: '1,100+' },
-  { iconFile: 'sales.png', name: 'Sales & Business', count: '2,800+' },
-  { iconFile: 'realestate.png', name: 'Real Estate', count: '920+' },
-  { iconFile: 'legal.png', name: 'Legal & Law', count: '430+' },
+  { iconFile: 'sales.png', name: 'Kinh doanh - Bán hàng', count: '10.312' },
+  { iconFile: 'marketing.png', name: 'Marketing - PR - Quảng cáo', count: '7.538' },
+  { iconFile: 'customer_service.png', name: 'Chăm sóc khách hàng', count: '1.629' },
+  { iconFile: 'hr.png', name: 'Nhân sự - Hành chính - Pháp chế', count: '3.591' },
+  { iconFile: 'it.png', name: 'Công nghệ Thông tin', count: '1.920' },
+  { iconFile: 'finance.png', name: 'Tài chính - Ngân hàng - Bảo hiểm', count: '1.230' },
+  { iconFile: 'realestate.png', name: 'Bất động sản', count: '425' },
+  { iconFile: 'accounting.png', name: 'Kế toán - Kiểm toán - Thuế', count: '5.055' },
 ];
 
 const LOCATIONS = [
@@ -287,8 +285,9 @@ export default function HomePage() {
       {/* ───── CATEGORIES ───── */}
       <section className={styles.section}>
         <div className={styles.container}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>POPULAR INDUSTRIES</h2>
+          <div className={styles.sectionHeaderCol}>
+            <h2 className={styles.sectionTitleGreen}>Top ngành nghề nổi bật</h2>
+            <p className={styles.sectionSub}>Bạn muốn tìm việc mới? Xem danh sách việc làm <span className={styles.linkText} onClick={() => navigate('/auth')}>tại đây</span></p>
           </div>
           <div className={styles.categoriesGrid}>
             {CATEGORIES.map((cat, i) => (
@@ -298,7 +297,7 @@ export default function HomePage() {
                   <span style={{ display: 'none', fontSize: '32px' }}>📁</span>
                 </div>
                 <div className={styles.categoryName}>{cat.name}</div>
-                <div className={styles.categoryCount}>{cat.count} jobs</div>
+                <div className={styles.categoryCount}>{cat.count} việc làm</div>
               </div>
             ))}
           </div>
