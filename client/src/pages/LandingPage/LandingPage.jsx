@@ -11,16 +11,70 @@ const HOT_JOBS = [
   { id: 6, title: 'DevOps Engineer', company: 'VinAI Research', salary: '30 - 50 triệu', location: 'Hà Nội', color: '#005BB5', initial: 'VIN', tag: 'Top', isNew: false },
 ];
 
-const TOP_EMPLOYERS = [
-  { name: 'FPT Software', color: '#FF6B35', initial: 'FPT', jobs: 120 },
-  { name: 'VNG', color: '#6B46C1', initial: 'VNG', jobs: 85 },
-  { name: 'Shopee', color: '#EE4D2D', initial: 'SPE', jobs: 200 },
-  { name: 'Tiki', color: '#0064E0', initial: 'TKI', jobs: 65 },
-  { name: 'MoMo', color: '#A50064', initial: 'MM', jobs: 95 },
-  { name: 'VinAI', color: '#005BB5', initial: 'VIN', jobs: 45 },
-  { name: 'Grab', color: '#00B14F', initial: 'GRB', jobs: 78 },
-  { name: 'VNPT', color: '#003087', initial: 'VNP', jobs: 110 },
-];
+const EMPLOYER_INDUSTRIES = ['Tất cả', 'IT - Phần mềm', 'Ngân hàng', 'Bất động sản', 'Tài chính', 'Bán lẻ - FMCG', 'Sản xuất'];
+
+const EMPLOYERS_BY_INDUSTRY = {
+  'IT - Phần mềm': [
+    { name: 'FPT Software', industry: 'IT - Phần mềm', color: '#FF6B35', initial: 'FPT', jobs: 120 },
+    { name: 'VNG Corporation', industry: 'IT - Phần mềm', color: '#6B46C1', initial: 'VNG', jobs: 85 },
+    { name: 'Shopee Việt Nam', industry: 'IT - Phần mềm', color: '#EE4D2D', initial: 'SPE', jobs: 200 },
+    { name: 'Tiki', industry: 'IT - Phần mềm', color: '#0064E0', initial: 'TKI', jobs: 65 },
+    { name: 'MoMo', industry: 'IT - Phần mềm', color: '#A50064', initial: 'MM', jobs: 95 },
+    { name: 'VinAI Research', industry: 'IT - Phần mềm', color: '#005BB5', initial: 'VIN', jobs: 45 },
+    { name: 'Grab Việt Nam', industry: 'IT - Phần mềm', color: '#00B14F', initial: 'GRB', jobs: 78 },
+    { name: 'VNPT Technology', industry: 'IT - Phần mềm', color: '#003087', initial: 'VNP', jobs: 110 },
+  ],
+  'Ngân hàng': [
+    { name: 'Vietcombank', industry: 'Ngân hàng', color: '#006633', initial: 'VCB', jobs: 88 },
+    { name: 'Techcombank', industry: 'Ngân hàng', color: '#D0021B', initial: 'TCB', jobs: 72 },
+    { name: 'VPBank', industry: 'Ngân hàng', color: '#00A651', initial: 'VPB', jobs: 95 },
+    { name: 'MB Bank', industry: 'Ngân hàng', color: '#003882', initial: 'MB', jobs: 60 },
+    { name: 'BIDV', industry: 'Ngân hàng', color: '#004B8D', initial: 'BIDV', jobs: 105 },
+    { name: 'Agribank', industry: 'Ngân hàng', color: '#007B40', initial: 'AGR', jobs: 130 },
+    { name: 'ACB', industry: 'Ngân hàng', color: '#E8992C', initial: 'ACB', jobs: 55 },
+    { name: 'VietinBank', industry: 'Ngân hàng', color: '#CC0000', initial: 'VTB', jobs: 80 },
+  ],
+  'Bất động sản': [
+    { name: 'Vinhomes', industry: 'Bất động sản', color: '#003399', initial: 'VHM', jobs: 42 },
+    { name: 'Novaland', industry: 'Bất động sản', color: '#C8922A', initial: 'NVL', jobs: 38 },
+    { name: 'Phú Mỹ Hưng', industry: 'Bất động sản', color: '#2E6DA4', initial: 'PMH', jobs: 25 },
+    { name: 'Đất Xanh Group', industry: 'Bất động sản', color: '#00A651', initial: 'ĐXG', jobs: 30 },
+    { name: 'Nam Long Group', industry: 'Bất động sản', color: '#E31E24', initial: 'NLG', jobs: 18 },
+    { name: 'Hưng Thịnh Corp', industry: 'Bất động sản', color: '#F7941D', initial: 'HTC', jobs: 22 },
+    { name: 'Sunshine Group', industry: 'Bất động sản', color: '#F5A623', initial: 'SGR', jobs: 15 },
+    { name: 'Him Lam Land', industry: 'Bất động sản', color: '#8B4513', initial: 'HLL', jobs: 12 },
+  ],
+  'Tài chính': [
+    { name: 'Manulife Việt Nam', industry: 'Tài chính', color: '#00A651', initial: 'MNL', jobs: 68 },
+    { name: 'Prudential VN', industry: 'Tài chính', color: '#CC0000', initial: 'PRU', jobs: 55 },
+    { name: 'AIA Việt Nam', industry: 'Tài chính', color: '#CC0000', initial: 'AIA', jobs: 48 },
+    { name: 'Bảo Việt Group', industry: 'Tài chính', color: '#003082', initial: 'BVH', jobs: 72 },
+    { name: 'SSI Securities', industry: 'Tài chính', color: '#003082', initial: 'SSI', jobs: 35 },
+    { name: 'VNDirect', industry: 'Tài chính', color: '#1A5276', initial: 'VND', jobs: 28 },
+    { name: 'Dragon Capital', industry: 'Tài chính', color: '#8E44AD', initial: 'DRC', jobs: 20 },
+    { name: 'MB Capital', industry: 'Tài chính', color: '#003882', initial: 'MBC', jobs: 32 },
+  ],
+  'Bán lẻ - FMCG': [
+    { name: 'Unilever Việt Nam', industry: 'Bán lẻ - FMCG', color: '#1F5EA8', initial: 'UNI', jobs: 88 },
+    { name: 'Nestlé Việt Nam', industry: 'Bán lẻ - FMCG', color: '#D9534F', initial: 'NES', jobs: 62 },
+    { name: 'Masan Group', industry: 'Bán lẻ - FMCG', color: '#C0392B', initial: 'MSN', jobs: 110 },
+    { name: 'The Gioi Di Dong', industry: 'Bán lẻ - FMCG', color: '#E8992C', initial: 'MWG', jobs: 145 },
+    { name: 'Bachhoaxanh', industry: 'Bán lẻ - FMCG', color: '#00A651', initial: 'BHX', jobs: 98 },
+    { name: 'Circle K VN', industry: 'Bán lẻ - FMCG', color: '#CC0000', initial: 'CK', jobs: 55 },
+    { name: 'P&G Việt Nam', industry: 'Bán lẻ - FMCG', color: '#003087', initial: 'P&G', jobs: 45 },
+    { name: 'Heineken VN', industry: 'Bán lẻ - FMCG', color: '#008000', initial: 'HNK', jobs: 38 },
+  ],
+  'Sản xuất': [
+    { name: 'Vinamilk', industry: 'Sản xuất', color: '#003087', initial: 'VNM', jobs: 92 },
+    { name: 'TH True Milk', industry: 'Sản xuất', color: '#00A651', initial: 'TH', jobs: 68 },
+    { name: 'Sabeco', industry: 'Sản xuất', color: '#C0392B', initial: 'SAB', jobs: 45 },
+    { name: 'Hoa Phat Group', industry: 'Sản xuất', color: '#CC4700', initial: 'HPG', jobs: 130 },
+    { name: 'Viettel Group', industry: 'Sản xuất', color: '#CC0000', initial: 'VTL', jobs: 175 },
+    { name: 'Samsung HCMC', industry: 'Sản xuất', color: '#1428A0', initial: 'SAM', jobs: 220 },
+    { name: 'Toyota VN', industry: 'Sản xuất', color: '#CC0000', initial: 'TYT', jobs: 40 },
+    { name: 'Panasonic VN', industry: 'Sản xuất', color: '#003087', initial: 'PAN', jobs: 35 },
+  ],
+};
 
 const CATEGORIES = [
   { icon: '💻', name: 'Information Technology', count: '3,200+' },
@@ -46,6 +100,7 @@ export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [activeTab, setActiveTab] = useState(0);
+  const [activeIndustry, setActiveIndustry] = useState('Tất cả');
   const [bannerIdx, setBannerIdx] = useState(0);
   const bannerTimerRef = useRef(null);
 
@@ -137,10 +192,28 @@ export default function HomePage() {
       <section className={styles.section}>
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>TOP EMPLOYERS</h2>
+            <h2 className={styles.sectionTitle}>THƯƠNG HIỆU LỚN TIÊU BIỂU</h2>
           </div>
+
+          {/* Industry Filter Tabs */}
+          <div className={styles.industryTabs}>
+            {EMPLOYER_INDUSTRIES.map((ind) => (
+              <button
+                key={ind}
+                className={`${styles.industryTab} ${activeIndustry === ind ? styles.industryTabActive : ''}`}
+                onClick={() => setActiveIndustry(ind)}
+              >
+                {ind}
+              </button>
+            ))}
+          </div>
+
+          {/* Companies Grid - 2 columns */}
           <div className={styles.employersGrid}>
-            {TOP_EMPLOYERS.map((emp, i) => (
+            {(activeIndustry === 'Tất cả'
+              ? Object.values(EMPLOYERS_BY_INDUSTRY).flat().slice(0, 8)
+              : (EMPLOYERS_BY_INDUSTRY[activeIndustry] || [])
+            ).map((emp, i) => (
               <div key={i} className={styles.employerCard} onClick={() => navigate('/auth')}>
                 <div
                   className={styles.employerLogo}
@@ -148,13 +221,19 @@ export default function HomePage() {
                 >
                   {emp.initial}
                 </div>
-                <div className={styles.employerName}>{emp.name}</div>
-                <div className={styles.employerJobs}>{emp.jobs} việc làm</div>
+                <div className={styles.employerInfo}>
+                  <div className={styles.employerName}>{emp.name}</div>
+                  <div className={styles.employerIndustry}>{emp.industry}</div>
+                  <div className={styles.employerJobs}>
+                    <span className={styles.jobsIcon}>🏢</span> {emp.jobs} việc làm
+                  </div>
+                </div>
               </div>
             ))}
           </div>
+
           <div className={styles.viewMore}>
-            <button onClick={() => navigate('/auth')}>View more <span>→</span></button>
+            <button onClick={() => navigate('/auth')}>Xem thêm <span>→</span></button>
           </div>
         </div>
       </section>
