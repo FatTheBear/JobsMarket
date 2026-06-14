@@ -28,7 +28,7 @@ function Home() {
 
   return (
     <div className="app-wrapper">
-      
+
       <main className="dashboard-main">
         {activeTab === 'candidate' ? <CandidateProfile /> : <CompanyProfile />}
       </main>
@@ -50,11 +50,19 @@ const router = createBrowserRouter([
   // NHÓM 2: CÁC TRANG BỌC BỞI MAIN LAYOUT
   {
     element: <MainLayout />,
-    children: [     
-      { path: "/", element: <LandingPage /> },         
+    children: [
+      { path: "/", element: <LandingPage /> },
       { path: "/dashboard", element: <UserDashboard /> },
       { path: "/profile", element: <Home /> },
-      { path: "/candidate-profile", element: <CandidateProfile /> },
+      {
+        path: "/candidate-profile",
+        element: (
+          <ProtectedRoute requiredRole="Candidate">
+            <CandidateProfile />
+          </ProtectedRoute>
+        )
+      },
+
       { path: "/candidate/:id", element: <CandidatePublicProfile /> },
       {
         path: "/job-skills",
@@ -65,14 +73,14 @@ const router = createBrowserRouter([
           </div>
         )
       },
-      
-   
+
+
       {
         path: "/company",
         element: <CompanyDashboard />,
         children: [
-          { path: "profile", element: <CompanyProfile /> }, 
-          { path: "post-job", element: <JobPosting /> },    
+          { path: "profile", element: <CompanyProfile /> },
+          { path: "post-job", element: <JobPosting /> },
         ]
       },
 
@@ -86,7 +94,7 @@ const router = createBrowserRouter([
       }
     ]
   },
-  
+
   { path: "/search-jobs", element: <SearchJobs /> },
   { path: "*", element: <div>404 - Trang không tồn tại</div> }
 ]);
@@ -95,7 +103,7 @@ const router = createBrowserRouter([
 export default function App() {
   return (
     //<SocketProvider>
-      <RouterProvider router={router} />
+    <RouterProvider router={router} />
     //</SocketProvider>
   );
 }

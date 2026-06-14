@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import JobCard from './JobCard';
 import JobDetail from './JobDetail';
-import './JobList.css';
+import './JobList.module.css';
 
 const API_URL = 'http://localhost:5000';
 
@@ -17,11 +17,11 @@ export default function JobList() {
       try {
         setLoading(true);
         const response = await fetch(`${API_URL}/api/jobs`);
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch jobs from server');
         }
-        
+
         const data = await response.json();
         setJobs(data);
       } catch (err) {
@@ -68,10 +68,10 @@ export default function JobList() {
       {!loading && !error && jobs.length > 0 && (
         <div className="job-cards-grid">
           {jobs.map((jobItem) => (
-            <JobCard 
-              key={jobItem.id} 
-              job={jobItem} 
-              onSelect={(clickedJob) => setSelectedJob(clickedJob)} 
+            <JobCard
+              key={jobItem.id}
+              job={jobItem}
+              onSelect={(clickedJob) => setSelectedJob(clickedJob)}
             />
           ))}
         </div>
@@ -79,9 +79,9 @@ export default function JobList() {
 
       {/* Job Detail Modal Popup */}
       {selectedJob && (
-        <JobDetail 
-          job={selectedJob} 
-          onClose={() => setSelectedJob(null)} 
+        <JobDetail
+          job={selectedJob}
+          onClose={() => setSelectedJob(null)}
         />
       )}
     </div>

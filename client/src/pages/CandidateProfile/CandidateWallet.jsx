@@ -7,7 +7,7 @@ export default function CandidateWallet({
   show,
   onClose
 }) {
-  const { coins, transactions, bankAccount, linkBankAccount, fetchWalletInfo } = useWallet();
+  const { coins, transactions, fetchWalletInfo } = useWallet();
   const [activeWalletTab, setActiveWalletTab] = useState('history'); // tabs: 'history', 'topup', or 'bank'
   const [walletMessage, setWalletMessage] = useState(null);
   const [pendingAction, setPendingAction] = useState(null);
@@ -63,13 +63,6 @@ export default function CandidateWallet({
           >
             <i className="fas fa-coins me-1"></i> Recharge Coins
           </button>
-          <button
-            type="button"
-            className={`btn btn-link flex-fill py-3 text-decoration-none fw-semibold border-0 ${activeWalletTab === 'bank' ? 'text-primary border-bottom border-primary border-3' : 'text-muted'}`}
-            onClick={() => handleTabChange('bank')}
-          >
-            <i className="fas fa-university me-1"></i> Link Bank
-          </button>
         </div>
 
         {/* Modal Main Body */}
@@ -122,102 +115,7 @@ export default function CandidateWallet({
              <RechargeCoins />
           )}
 
-          {/* TAB 3: LINK BANK ACCOUNT */}
-          {activeWalletTab === 'bank' && (
-            <div className="bank-link">
-              <h6 className="fw-bold mb-3">Link Bank Account</h6>
-              {bankAccount?.linked ? (
-                <div className="p-4 bg-success bg-opacity-10 border border-success rounded text-center">
-                  <i className="fas fa-university text-success fs-2 mb-3"></i>
-                  <h6 className="fw-bold text-success mb-3">Bank account linked successfully!</h6>
-                  <p className="mb-1 text-dark"><strong>Bank:</strong> {bankAccount.bankName}</p>
-                  <p className="mb-1 text-dark"><strong>Account Number:</strong> {bankAccount.accountNumber}</p>
-                  <p className="mb-3 text-dark"><strong>Account Name:</strong> {bankAccount.accountName}</p>
-                  
-                  {pendingAction?.type === 'unlink' ? (
-                    <div className="alert alert-warning border-0 shadow-sm p-3 mb-3 text-center rounded-3">
-                      <h6 className="fw-bold mb-2 text-warning-emphasis">
-                        <i className="fas fa-exclamation-triangle me-2"></i>Unlink Confirmation
-                      </h6>
-                      <p className="small mb-3 text-dark">Are you sure you want to unlink this bank account?</p>
-                      <div className="d-flex gap-2 justify-content-center">
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-danger px-4 rounded-pill fw-semibold text-white shadow-sm"
-                          onClick={async () => {
-                            try {
-                              const token = localStorage.getItem('token');
-                              await axios.post('http://localhost:5000/api/wallet/link-bank', {
-                                bankName: null, accountNumber: null, accountName: null
-                              }, { headers: { Authorization: `Bearer ${token}` } });
-                              await fetchWalletInfo();
-                              showMessage("Bank account unlinked successfully!", "success");
-                              setPendingAction(null);
-                            } catch (e) {
-                              showMessage("Failed to unlink bank account", "error");
-                            }
-                          }}
-                        >
-                          Yes, Unlink
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-light border px-4 rounded-pill fw-semibold"
-                          onClick={() => setPendingAction(null)}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-outline-danger px-3 rounded-pill"
-                      onClick={() => setPendingAction({ type: 'unlink' })}
-                    >
-                      Unlink
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <form onSubmit={async (e) => {
-                  e.preventDefault();
-                  try {
-                    await linkBankAccount({
-                      bankName: e.target.bankName.value,
-                      accountNumber: e.target.accountNumber.value,
-                      accountName: e.target.accountName.value
-                    });
-                    showMessage('Bank account linked successfully!', 'success');
-                  } catch (err) {
-                    showMessage('Failed to link bank account', 'error');
-                  }
-                }}>
-                  <div className="mb-3 text-start">
-                    <label className="form-label small fw-bold text-secondary">Select bank</label>
-                    <select className="form-select" name="bankName" required>
-                      <option value="">-- Select bank --</option>
-                      <option value="Vietcombank">Vietcombank</option>
-                      <option value="Techcombank">Techcombank</option>
-                      <option value="MB Bank">MB Bank</option>
-                      <option value="ACB">ACB</option>
-                    </select>
-                  </div>
-                  <div className="mb-3 text-start">
-                    <label className="form-label small fw-bold text-secondary">Account Number</label>
-                    <input type="text" className="form-control" name="accountNumber" placeholder="Enter account number" required />
-                  </div>
-                  <div className="mb-3 text-start">
-                    <label className="form-label small fw-bold text-secondary">Account Name</label>
-                    <input type="text" className="form-control" name="accountName" placeholder="e.g. HO HOANG SANG" required />
-                  </div>
-                  <button type="submit" className="btn btn-primary w-100 py-2 rounded-pill fw-semibold">
-                    Link Account
-                  </button>
-                </form>
-              )}
-            </div>
-          )}
+
         </div>
 
         {/* Wallet Footer */}
