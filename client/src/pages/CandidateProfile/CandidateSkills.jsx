@@ -15,7 +15,7 @@ const CandidateSkills = ({
   return (
     <>
       {/* Column 2: Skill Section */}
-      <div className="col-12 col-lg-3 mb-4 d-flex">
+      <div className="w-100">
         <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
           <div className="card-body p-4 d-flex flex-column h-100">
             <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
@@ -23,10 +23,10 @@ const CandidateSkills = ({
                 <span className="fs-5 fw-bold text-dark mb-0">Skill</span>
               </div>
               <div className="d-flex align-items-center gap-2">
-                <button 
-                  onClick={() => onOpenModal(null)} 
-                  className="btn btn-sm btn-outline-primary rounded-circle p-0 d-flex align-items-center justify-content-center" 
-                  style={{ width: '28px', height: '28px' }} 
+                <button
+                  onClick={() => onOpenModal(null)}
+                  className="btn btn-sm btn-outline-primary rounded-circle p-0 d-flex align-items-center justify-content-center"
+                  style={{ width: '28px', height: '28px' }}
                   title="Add Skill"
                 >
                   <i className="fas fa-plus" style={{ fontSize: '0.8rem' }}></i>
@@ -35,7 +35,7 @@ const CandidateSkills = ({
               </div>
             </div>
 
-            <div className="d-flex flex-column justify-content-start flex-grow-1">
+            <div className="row g-3 justify-content-start">
               {skills.length === 0 ? (
                 <div className="text-center py-5 text-muted small">
                   <i className="fas fa-laptop-code fs-3 mb-2 text-muted opacity-50"></i>
@@ -43,7 +43,7 @@ const CandidateSkills = ({
                 </div>
               ) : (
                 skills.map((skill, index) => (
-                  <div key={skill.id || index} className="mb-3">
+                  <div key={skill.id || index} className="col-12 col-md-6 mb-2">
                     <div className="d-flex justify-content-between align-items-center mb-1">
                       <p className="mb-0 text-small fw-semibold text-dark">{skill.name}</p>
                       <div className="d-flex gap-2">
@@ -90,7 +90,7 @@ const CandidateSkills = ({
                 &times;
               </button>
             </div>
-             <form onSubmit={onSave} className="profile-modal-body p-4 d-flex flex-column gap-3">
+            <form onSubmit={onSave} className="profile-modal-body p-4 d-flex flex-column gap-3">
               {modalError && (
                 <div className="alert alert-danger py-2 px-3 mb-2 small border-0 shadow-sm" role="alert">
                   <i className="fas fa-exclamation-triangle me-1.5"></i> {modalError}

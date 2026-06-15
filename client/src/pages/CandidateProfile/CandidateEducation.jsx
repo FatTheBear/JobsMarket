@@ -15,7 +15,7 @@ const CandidateEducation = ({
   return (
     <>
       {/* Column 2: Education Section */}
-      <div className="col-12 col-lg-3 mb-4 d-flex">
+      <div className="w-100">
         <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
           <div className="card-body p-4 d-flex flex-column h-100">
             <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">

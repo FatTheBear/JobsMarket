@@ -1,7 +1,8 @@
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import './NavBar.css';
-import React, { useState, useEffect } from 'react'; // 
+import React, { useState, useEffect } from 'react';
+import axios from 'axios'; 
 
 // 1. Khai báo state để React quản lý (giá trị mặc định là guest)
 
@@ -53,41 +54,43 @@ const [role, setRole] = useState(()=> {
   const [userName, setUserName] = useState('User');
   const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
   //const navigate = useNavigate();
+  const navigate = useNavigate();
   const location = useLocation();
 
-  // Tạm thời comment logic localStorage lại, dùng state cứng
-  // const [isLoggedIn, setIsLoggedIn] = useState(true); // Ép cứng là true để xem nó còn giật không
-  // const [role, setRole] = useState('company');        // Ép cứng role để test menu
-  //2. useEffect để lấy dữ liệu từ localStorage đúng 1 lần khi load trang
   useEffect(() => {
-   
-  
-  //   const token = localStorage.getItem("token");
-  //   setIsLoggedIn(!!token);
-  //   const rawRole = localStorage.getItem("role");
-  //   const roleMap = {
+  const token = localStorage.getItem('token');
+  setIsLoggedIn(!!token);
+  const rawRole = localStorage.getItem('role');
+  const roleMap = {
+    HR: 'company',
+    Candidate: 'candidate',
+    Admin: 'admin',
+  };
+  setRole(token ? (roleMap[rawRole] || 'candidate') : 'guest');
 
-  //     HR: "company",
-
-  //     Candidate: "candidate",
-
-  //     Admin: "admin",
-
-  //   };
-  //   setRole(
-  //   token
-  //     ? (roleMap[rawRole] || "candidate")
-  //     : "guest"
-  // );
-
-  setUserName(
-    localStorage.getItem("userName") || "User"
-  );
-
-  setAvatarUrl(
-    localStorage.getItem("avatarUrl") || "/default-avatar.png"
-  );
-  }, []);
+  if (token) {
+    const fetchProfile = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/candidate/profile', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const profile = response.data;
+        const name = profile.full_name || profile.display_name || 'User';
+        const avatar = profile.avatar_url || '/default-avatar.png';
+        setUserName(name);
+        setAvatarUrl(avatar);
+      } catch (err) {
+        console.error('Failed to fetch profile for NavBar:', err);
+        setUserName('User');
+        setAvatarUrl('/default-avatar.png');
+      }
+    };
+    fetchProfile();
+  } else {
+    setUserName('User');
+    setAvatarUrl('/default-avatar.png');
+  }
+}, []);
   const menuItems = MENU_CONFIG[role] || [];
   const handleLogout = () => {
       localStorage.clear();
@@ -121,17 +124,9 @@ return (
       {isLoggedIn ? (
         // --- HIỂN THỊ KHI ĐÃ ĐĂNG NHẬP ---
         <>
-          <div className="nav-user-info">
-            {/* <img
-              src={avatarUrl}
-              alt="Avatar"
-              className="nav-avatar"
-              onError={
-                (e) => { e.target.src = '/default-avatar.png' }}
-            /> */}
-            <div className="nav-avatar">User</div>
-            <span className="nav-user-name">{userName}</span>
-          </div>
+            <div className="nav-user-info">
+              <span className="nav-user-name" title={`Welcome, ${userName}`} onClick={() => navigate('/candidate-profile')}>{userName}</span>
+            </div>
           <button className="nav-logout-btn" onClick={handleLogout} title="Log out">
             Log out
           </button>

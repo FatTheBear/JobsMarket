@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 // 1. Đảm bảo thư mục lưu trữ tồn tại
-const uploadDir = path.join(__dirname, '../../uploads/');
+const uploadDir = path.join(__dirname, '../../uploads/avatars');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }

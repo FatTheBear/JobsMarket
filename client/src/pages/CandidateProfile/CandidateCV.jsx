@@ -15,7 +15,7 @@ const CandidateCV = ({ cvList, fetchCVs, setModalError }) => {
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ];
     const fileExt = file.name.split('.').pop().toLowerCase();
-    
+
     // Check type
     if (!allowedTypes.includes(file.type) && !['pdf', 'doc', 'docx'].includes(fileExt)) {
       setModalError("Invalid file type! Only PDF, DOC, or DOCX files are allowed.");
@@ -41,11 +41,11 @@ const CandidateCV = ({ cvList, fetchCVs, setModalError }) => {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       alert("🎉 " + response.data.message);
-      
+
       // Load lại danh sách CV ngay lập tức sau khi upload thành công
-      if(fetchCVs) await fetchCVs(); 
+      if (fetchCVs) await fetchCVs();
 
     } catch (error) {
       console.error(error);
@@ -59,7 +59,7 @@ const CandidateCV = ({ cvList, fetchCVs, setModalError }) => {
     const file = e.target.files[0];
     processFile(file);
     // Reset ô input file để có thể chọn lại đúng file đó nếu muốn
-    e.target.value = null; 
+    e.target.value = null;
   };
 
   const handleDragOver = (e) => {
@@ -87,11 +87,11 @@ const CandidateCV = ({ cvList, fetchCVs, setModalError }) => {
       await axios.delete(`http://localhost:5000/api/candidate/cvs/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       alert("🗑️ CV deleted successfully!");
-      
+
       // Load lại danh sách
-      if(fetchCVs) await fetchCVs();
+      if (fetchCVs) await fetchCVs();
 
     } catch (error) {
       console.error(error);
@@ -102,10 +102,10 @@ const CandidateCV = ({ cvList, fetchCVs, setModalError }) => {
   return (
     <div className="d-flex flex-column gap-4">
       <h6 className="fw-bold border-bottom pb-2 text-dark mb-0">
-        <i className="far fa-file-pdf me-1.5 text-primary"></i> 
+        <i className="far fa-file-pdf me-1.5 text-primary"></i>
         Manage Curriculum Vitae (CV)
       </h6>
-      
+
       {/* 1. HIỂN THỊ DANH SÁCH CV */}
       {cvList && cvList.length > 0 && (
         <div className="d-flex flex-column gap-3">
@@ -134,31 +134,31 @@ const CandidateCV = ({ cvList, fetchCVs, setModalError }) => {
       )}
 
       {/* 2. KHU VỰC UPLOAD THÊM CV */}
-      <div 
-        className="p-5 border border-2 rounded-3 text-center transition-all mt-2" 
-        style={{ 
-          borderStyle: 'dashed', 
+      <div
+        className="p-5 border border-2 rounded-3 text-center transition-all mt-2"
+        style={{
+          borderStyle: 'dashed',
           cursor: isUploading ? 'not-allowed' : 'pointer',
           borderColor: isDragging ? '#22c55e' : '#cbd5e1',
           backgroundColor: isDragging ? '#f0fdf4' : '#f8fafc',
           opacity: isUploading ? 0.6 : 1
-        }} 
+        }}
         onClick={() => !isUploading && document.getElementById('cvFileInput').click()}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         <i className={`fas fa-cloud-upload-alt fs-1 mb-3 transition-all ${isDragging ? 'text-success scale-110' : 'text-primary'}`}></i>
-        
+
         {isUploading ? (
           <h6 className="fw-bold text-primary mb-1">Uploading...n...</h6>
         ) : (
           <>
             <h6 className="fw-bold text-dark mb-1">Drag and drop your CV here, or click to upload</h6>
-            <p className="text-secondary small mb-0">Hỗ trợ định dạng PDF, DOC, DOCX. Tối đa 10MB.</p>
+            <p className="text-secondary small mb-0">Only support files type PDF, DOC, DOCX. Max size 10MB.</p>
           </>
         )}
-        
+
         <input
           type="file"
           id="cvFileInput"

@@ -382,6 +382,83 @@ const candidateController = {
             console.error("Lỗi lấy lịch sử ứng tuyển:", error);
             return res.status(500).json({ message: "System error while loading application history!" });
         }
+    },
+
+    getNotifications: async (req, res) => {
+        try {
+            const userId = req.user.id;
+            const connection = await pool.getConnection();
+
+            // Fetch notifications for the user
+            const [rows] = await connection.execute(
+                'SELECT id, title, content, is_read, DATE_FORMAT(created_at, "%b %e, %Y %H:%i") as created_at FROM Notification WHERE user_id = ? ORDER BY created_at DESC',
+                [userId]
+            );
+
+            // If no notifications found, auto-insert a welcome notification and an account security notification
+            if (rows.length === 0) {
+                const welcomeTitle1 = "Welcome to JobsMarket! 🎉";
+                const welcomeContent1 = "Thank you for joining our platform. Complete your profile to start applying for jobs!";
+                const welcomeTitle2 = "Secure Your Account 🔒";
+                const welcomeContent2 = "Make sure to verify your phone number and email to keep your account safe.";
+
+                await connection.execute(
+                    'INSERT INTO Notification (user_id, title, content, is_read) VALUES (?, ?, ?, FALSE), (?, ?, ?, FALSE)',
+                    [userId, welcomeTitle1, welcomeContent1, userId, welcomeTitle2, welcomeContent2]
+                );
+
+                const [newRows] = await connection.execute(
+                    'SELECT id, title, content, is_read, DATE_FORMAT(created_at, "%b %e, %Y %H:%i") as created_at FROM Notification WHERE user_id = ? ORDER BY created_at DESC',
+                    [userId]
+                );
+                connection.release();
+                return res.status(200).json(newRows);
+            }
+
+            connection.release();
+            return res.status(200).json(rows);
+        } catch (error) {
+            console.error("Error fetching notifications:", error);
+            return res.status(500).json({ message: "Server error while fetching notifications!" });
+        }
+    },
+
+    markNotificationAsRead: async (req, res) => {
+        try {
+            const userId = req.user.id;
+            const notiId = req.params.id;
+            const connection = await pool.getConnection();
+
+            await connection.execute(
+                'UPDATE Notification SET is_read = TRUE WHERE id = ? AND user_id = ?',
+                [notiId, userId]
+            );
+
+            connection.release();
+            return res.status(200).json({ message: "Notification marked as read!" });
+        } catch (error) {
+            console.error("Error marking notification as read:", error);
+            return res.status(500).json({ message: "Server error while updating notification!" });
+        }
+    },
+
+    markAllNotificationsAsRead: async (req, res) => {
+        try {
+            const userId = req.user.id;
+            const connection = await pool.getConnection();
+
+            await connection.execute(
+                'UPDATE Notification SET is_read = TRUE WHERE user_id = ?',
+                [userId]
+            );
+
+            connection.release();
+            return res.status(200).json({ message: "All notifications marked as read!" });
+        } catch (error) {
+            console.error("Error marking all notifications as read:", error);
+            return res.status(500).json({ message: "Server error while updating notifications!" });
+        }
     }
 };
+
 module.exports = candidateController;
