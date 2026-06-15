@@ -155,23 +155,23 @@ const chartData = [
 
       <XAxis
         dataKey="name"
-        tick={{ fill: "#94a3b8" }}
+        tick={{ fill: "#000000" }}
         axisLine={false}
         tickLine={false}
       />
 
       <YAxis
-        tick={{ fill: "#94a3b8" }}
+        tick={{ fill: "#000000" }}
         axisLine={false}
         tickLine={false}
       />
 
       <Tooltip
         contentStyle={{
-          background: "#0f172a",
-          border: "1px solid #334155",
+          background: "#eeeeee",
+          border: "1px solid #fdfdfd",
           borderRadius: "8px",
-          color: "#fff"
+          color: "#000000"
         }}
       />
 
@@ -182,7 +182,7 @@ const chartData = [
         <LabelList
           dataKey="value"
           position="top"
-          fill="#e2e8f0"
+          fill="#000000"
         />
 
         {chartData.map((entry, index) => (
