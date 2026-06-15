@@ -6,17 +6,17 @@
   min-height: 100vh;
   background-color: #f8fafc; /* Nền trang sáng */
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #1e293b; /* Chữ tối */
+  color: #01796F; /* Chữ tối */
 }
 
 /* Sidebar bên trái */
 .admin-sidebar {
   width: 260px;
-  background-color: #ffffff;
-  color: #475569;
+  background-color: #01796F;
+  color: #475369;
   padding: 24px 16px;
   box-sizing: border-box;
-  border-right: 1px solid #e2e8f0;
+  border-right: 1px solid #01796F;
 }
 
 .admin-sidebar h2 {
@@ -24,7 +24,7 @@
   font-weight: bold;
   margin: 0 0 32px 0;
   text-align: center;
-  color: #2563eb;
+  color: #ffffff;
 }
 
 .sidebar-menu {
@@ -42,7 +42,7 @@
   border-radius: 8px;
   border: none;
   background-color: transparent;
-  color: #64748b;
+  color: #ffffff;
   cursor: pointer;
   text-align: left;
   font-size: 15px;
@@ -51,12 +51,12 @@
 
 .sidebar-btn:hover {
   background-color: #f1f5f9;
-  color: #1e293b;
+  color: #01796F;
 }
 
 .sidebar-btn.active {
   background-color: #eff6ff;
-  color: #2563eb;
+  color: #01796F;
   font-weight: 600;
 }
 
@@ -70,7 +70,7 @@
 .admin-title {
   font-size: 24px;
   font-weight: bold;
-  color: #0f172a;
+  color: #01796F;
   margin: 0 0 24px 0;
 }
 
@@ -114,14 +114,14 @@
   font-size: 32px;
   font-weight: bold;
   margin: 8px 0 0 0;
- color: #0f172a;
+ color: #01796F;
   font-family: sans-serif;
 }
 
 .stat-detail {
   font-size: 14px;
   margin-top: 12px;
-  color: #cbd5e1;
+  color: #5a5a5a;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -186,7 +186,7 @@
 }
 .action-btn.ban { color: #f87171; }
 .action-btn.unban { color: #34d399; }
-.action-btn.edit { color: #38bdf8; }
+.action-btn.edit { color: #01796f; }
 .action-btn.delete { color: #f87171; }
 
 /* ==========================================================================
@@ -224,7 +224,7 @@
 }
 
 .admin-btn-primary {
-  background-color: #2563eb;
+  background-color: #01796F;
   color: white;
   border: none;
   padding: 10px 16px;
@@ -236,7 +236,7 @@
 }
 
 .admin-btn-primary:hover {
-  background-color: #1d4ed8;
+  background-color: #06c85a;
 }
 
 /* Bài đăng tuyển dụng (Job Cards) */
@@ -251,7 +251,7 @@
   border-radius: 12px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-left: 5px solid #eab308;
+  border-left: 5px solid #01796F;
   justify-content: space-between;
   align-items: flex-start;
 }
@@ -340,9 +340,9 @@
 }
 
 .health-row strong {
-  color: #2563eb;
+  color: #01796F;
 }
-.btn-approve { background-color: #059669; }
-.btn-approve:hover { background-color: #047857; }
+.btn-approve { background-color: #01796F; }
+.btn-approve:hover { background-color: #06c85a; }
 .btn-reject { background-color: #dc2626; }
 .btn-reject:hover { background-color: #b91c1c; }

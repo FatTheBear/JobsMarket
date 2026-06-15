@@ -17,6 +17,7 @@ import Register from './pages/Authentication/Register';
 import UserDashboard from './pages/DashBoard/UserDashboard/UserDashboard';
 import SetupProfilePage from './pages/SetupProfilePage/SetupProfilePage';
 import SearchJobs from './pages/SearchJobs/SearchJobs';
+import PostTemplates from './pages/DashBoard/CompanyDashboard/PostTemplates';
 import JobDetail from './pages/JobDetail/JobDetail';
 import CompanyDashboard from './pages/DashBoard/CompanyDashboard/CompanyDashboard';
 import AppliedCandidates from './pages/AppliedCandidates/AppliedCandidates';
@@ -74,6 +75,19 @@ const router = createBrowserRouter([
 
 
       {
+  path: "/company",
+  element: <CompanyDashboard />,
+  children: [
+    { path: "dashboard", element: <></> },
+
+    { path: "profile", element: <CompanyProfile /> },
+
+    { path: "post-job", element: <JobPosting /> },
+
+    { path: "templates", element: <PostTemplates /> }
+  ]
+},
+
         path: "/company",
         element: <CompanyDashboard />,
         children: [

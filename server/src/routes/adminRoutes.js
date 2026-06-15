@@ -47,4 +47,9 @@ router.post('/coin-fees', adminController.createCoinFee);
 router.put('/coin-fees/:id', adminController.updateCoinFee);
 router.delete('/coin-fees/:id', adminController.deleteCoinFee);
 
+// 7. Notifications
+router.get('/notifications', adminController.getNotifications);
+router.put('/notifications/:id/read', adminController.markNotificationRead);
+router.delete('/notifications/:id', adminController.deleteNotification);
+
 module.exports = router;

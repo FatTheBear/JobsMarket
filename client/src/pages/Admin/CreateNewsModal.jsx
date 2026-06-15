@@ -250,26 +250,26 @@ const styles = {
         alignItems: "center"
     },
     modal: {
-        background: "#0f172a",
+        background: "#01796F",
         padding: 20,
         borderRadius: 10,
         width: 520,
-        color: "#fff"
+        color: "#ffffff"
     },
     form: { display: "flex", flexDirection: "column", gap: 10 },
     input: {
         padding: 10,
         borderRadius: 6,
-        border: "1px solid #334155",
-        background: "#111827",
-        color: "#fff"
+        border: "1px solid #ffffff",
+        background: "#ffffff",
+        color: "#000000"
     },
     textarea: {
         padding: 10,
         borderRadius: 6,
-        border: "1px solid #334155",
-        background: "#111827",
-        color: "#fff",
+        border: "1px solid #f8fbff",
+        background: "#ffffff",
+        color: "#000000",
         minHeight: 80
     },
     actions: {
