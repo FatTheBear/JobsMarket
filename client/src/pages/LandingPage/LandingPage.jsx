@@ -56,12 +56,17 @@ export default function HomePage() {
   ];
 
   useEffect(() => {
+    const currentToken = localStorage.getItem("token");
+    if (currentToken === "undefined" || currentToken === "null") {
+      localStorage.clear();
+    }
+
     bannerTimerRef.current = setInterval(() => {
       setBannerIdx(prev => (prev + 1) % BANNERS.length);
     }, 4000);
+    
     return () => clearInterval(bannerTimerRef.current);
   }, []);
-
   const handleSearch = () => {
     navigate('/auth');
   };

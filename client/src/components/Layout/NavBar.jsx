@@ -56,39 +56,24 @@ export default function NavBar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Tạm thời comment logic localStorage lại, dùng state cứng
-  // const [isLoggedIn, setIsLoggedIn] = useState(true); // Ép cứng là true để xem nó còn giật không
-  // const [role, setRole] = useState('company');        // Ép cứng role để test menu
-  //2. useEffect để lấy dữ liệu từ localStorage đúng 1 lần khi load trang
   useEffect(() => {
-
-
-    //   const token = localStorage.getItem("token");
-    //   setIsLoggedIn(!!token);
-    //   const rawRole = localStorage.getItem("role");
-    //   const roleMap = {
-
-    //     HR: "company",
-
-    //     Candidate: "candidate",
-
-    //     Admin: "admin",
-
-    //   };
-    //   setRole(
-    //   token
-    //     ? (roleMap[rawRole] || "candidate")
-    //     : "guest"
-    // );
-
-    setUserName(
-      localStorage.getItem("userName") || "User"
-    );
-
-    setAvatarUrl(
-      localStorage.getItem("avatarUrl") || "/default-avatar.png"
-    );
-  }, []);
+    const token = localStorage.getItem("token");
+    if (token && token !== "undefined" && token !== "null") {
+      setIsLoggedIn(true);
+      setUserName(localStorage.getItem("userName") || "User");
+      
+      
+      const savedAvatar = localStorage.getItem("avatarUrl");
+      if (savedAvatar && savedAvatar !== "null" && savedAvatar !== "undefined") {
+        setAvatarUrl(savedAvatar);
+      } else {
+        setAvatarUrl('/default-avatar.png');
+      }
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, [location.pathname]);
+  
   const menuItems = MENU_CONFIG[role] || [];
   const handleLogout = () => {
     localStorage.clear();
