@@ -78,29 +78,29 @@ export default function JobPosting() {
     if (e) e.preventDefault();
     
     if (!form.title.trim()) {
-      showToast('Vui lòng nhập tiêu đề công việc', 'error');
+      showToast('Please enter the job title', 'error');
       return;
     }
     if (!form.description.trim()) {
-      showToast('Vui lòng nhập mô tả công việc', 'error');
+      showToast('Please enter the job description', 'error');
       return;
     }
     if (!form.requirements.trim()) {
-      showToast('Vui lòng nhập yêu cầu công việc', 'error');
+      showToast('Please enter the job requirements', 'error');
       return;
     }
     if (form.salary_type === 'specific') {
       if (!form.salary_min || !form.salary_max) {
-        showToast('Vui lòng nhập đầy đủ Lương tối thiểu và Lương tối đa', 'error');
+        showToast('Please enter both Minimum Salary and Maximum Salary', 'error');
         return;
       }
       if (parseInt(form.salary_min) > parseInt(form.salary_max)) {
-        showToast('Lương tối thiểu không được lớn hơn Lương tối đa', 'error');
+        showToast('Minimum salary cannot be greater than Maximum salary', 'error');
         return;
       }
     }
     if (form.deadline && form.deadline < todayStr()) {
-      showToast('Hạn nộp hồ sơ phải từ hôm nay trở đi', 'error');
+      showToast('Application deadline must be from today onwards', 'error');
       return;
     }
 
@@ -196,7 +196,7 @@ export default function JobPosting() {
                     <div className="jp-card-title">Job Information</div>
                     <div className="jp-card-body">
 
-                      {/* BƯỚC 1 */}
+                      {/* STEP 1 */}
                       {currentStep === 1 && (
                         <>
                           <div className="jp-field">
@@ -235,20 +235,20 @@ export default function JobPosting() {
                         </>
                       )}
 
-                      {/* BƯỚC 2 */}
+                      {/* STEP 2 */}
                       {currentStep === 2 && (
                         <>
                           <div className="jp-field">
-                            <label>Loại Lương <span>*</span></label>
+                            <label>Salary Type <span>*</span></label>
                             <div className="jp-salary-type-options" style={{ display: 'flex', gap: '20px', marginBottom: '15px' }}>
                               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                                <input type="radio" name="salary_type" value="specific" checked={form.salary_type === 'specific'} onChange={handleChange} /> Cụ thể
+                                <input type="radio" name="salary_type" value="specific" checked={form.salary_type === 'specific'} onChange={handleChange} /> Specific
                               </label>
                               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                                <input type="radio" name="salary_type" value="negotiable" checked={form.salary_type === 'negotiable'} onChange={handleChange} /> Thoả thuận
+                                <input type="radio" name="salary_type" value="negotiable" checked={form.salary_type === 'negotiable'} onChange={handleChange} /> Negotiable
                               </label>
                               <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
-                                <input type="radio" name="salary_type" value="unpaid" checked={form.salary_type === 'unpaid'} onChange={handleChange} /> Không lương (Thực tập)
+                                <input type="radio" name="salary_type" value="unpaid" checked={form.salary_type === 'unpaid'} onChange={handleChange} /> Unpaid (Internship)
                               </label>
                             </div>
                           </div>
@@ -256,12 +256,12 @@ export default function JobPosting() {
                           {form.salary_type === 'specific' && (
                             <div className="jp-row jp-row-two">
                               <div className="jp-field">
-                                <label>Lương tối thiểu (VNĐ) <span>*</span></label>
-                                <input type="number" name="salary_min" value={form.salary_min} onChange={handleChange} placeholder="VD: 10000000" />
+                                <label>Minimum Salary (VND) <span>*</span></label>
+                                <input type="number" name="salary_min" value={form.salary_min} onChange={handleChange} placeholder="e.g., 10000000" />
                               </div>
                               <div className="jp-field">
-                                <label>Lương tối đa (VNĐ) <span>*</span></label>
-                                <input type="number" name="salary_max" value={form.salary_max} onChange={handleChange} placeholder="VD: 20000000" />
+                                <label>Maximum Salary (VND) <span>*</span></label>
+                                <input type="number" name="salary_max" value={form.salary_max} onChange={handleChange} placeholder="e.g., 20000000" />
                               </div>
                             </div>
                           )}
@@ -286,7 +286,7 @@ export default function JobPosting() {
                         </>
                       )}
 
-                      {/* BƯỚC 3 */}
+                      {/* STEP 3 */}
                       {currentStep === 3 && (
                         <div className="jp-pricing-plans">
                           <h3>Select your posting plan</h3>
