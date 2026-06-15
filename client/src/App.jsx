@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { SocketProvider } from './context/SocketContext';
-import MainLayout from './components/layout/MainLayout'; // <-- Nhớ trỏ đúng đường dẫn thư mục nhé!
-import CompanySidebar from './components/layout/CompanySidebar';
+import MainLayout from './components/layout/MainLayout';
 import LandingPage from './pages/LandingPage/LandingPage';
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
 import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
@@ -18,17 +17,22 @@ import Register from './pages/Authentication/Register';
 import UserDashboard from './pages/DashBoard/UserDashboard/UserDashboard';
 import SetupProfilePage from './pages/SetupProfilePage/SetupProfilePage';
 import SearchJobs from './pages/SearchJobs/SearchJobs';
+import JobDetail from './pages/JobDetail/JobDetail';
+import CompanyDashboard from './pages/DashBoard/CompanyDashboard/CompanyDashboard';
+import AppliedCandidates from './pages/AppliedCandidates/AppliedCandidates';
+import SavedCandidates from './pages/SavedCandidates/SavedCandidates';
 
 import './App.css';
-import CompanyDashboard from './pages/DashBoard/CompanyDashboard/CompanyDashboard';
 
-// Component Home tạm thời điều hướng Tab giữa Candidate và Company Profile
 function Home() {
   const [activeTab, setActiveTab] = useState('candidate');
 
   return (
     <div className="app-wrapper">
+<<<<<<< HEAD
+=======
 
+>>>>>>> main
       <main className="dashboard-main">
         {activeTab === 'candidate' ? <CandidateProfile /> : <CompanyProfile />}
       </main>
@@ -39,7 +43,6 @@ function Home() {
   );
 }
 
-// CẤU HÌNH ĐỊNH TUYẾN
 const router = createBrowserRouter([
   { path: "/auth", element: <AuthPage /> },
   { path: "/register", element: <Register /> },
@@ -47,7 +50,6 @@ const router = createBrowserRouter([
   { path: "/verify-otp", element: <VerifyOTP /> },
   { path: "/setup-profile", element: <SetupProfilePage /> },
 
-  // NHÓM 2: CÁC TRANG BỌC BỞI MAIN LAYOUT
   {
     element: <MainLayout />,
     children: [
@@ -73,17 +75,24 @@ const router = createBrowserRouter([
           </div>
         )
       },
+<<<<<<< HEAD
+=======
 
 
+>>>>>>> main
       {
         path: "/company",
         element: <CompanyDashboard />,
         children: [
           { path: "profile", element: <CompanyProfile /> },
           { path: "post-job", element: <JobPosting /> },
+<<<<<<< HEAD
+          { path: "applicants", element: <AppliedCandidates /> },
+          { path: "saved-candidates", element: <SavedCandidates /> },
+=======
+>>>>>>> main
         ]
       },
-
       {
         path: "/admin",
         element: (
@@ -91,19 +100,27 @@ const router = createBrowserRouter([
             <AdminDashboard />
           </ProtectedRoute>
         ),
-      }
+      },
+      { path: "/search-jobs", element: <SearchJobs /> },
+      { path: "/job/:id", element: <JobDetail /> },
     ]
   },
 
+<<<<<<< HEAD
+=======
   { path: "/search-jobs", element: <SearchJobs /> },
+>>>>>>> main
   { path: "*", element: <div>404 - Trang không tồn tại</div> }
 ]);
 
-// Component App chính chạy RouterProvider
 export default function App() {
   return (
+<<<<<<< HEAD
+    <RouterProvider router={router} />
+=======
     //<SocketProvider>
     <RouterProvider router={router} />
     //</SocketProvider>
+>>>>>>> main
   );
 }

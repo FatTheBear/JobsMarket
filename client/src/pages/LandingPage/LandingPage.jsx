@@ -12,27 +12,27 @@ const HOT_JOBS = [
 ];
 
 const TOP_EMPLOYERS = [
-  { name: 'FPT Software', logo: '🔵', jobs: 120 },
-  { name: 'VNG', logo: '🟣', jobs: 85 },
-  { name: 'Shopee', logo: '🟠', jobs: 200 },
-  { name: 'Tiki', logo: '🔴', jobs: 65 },
-  { name: 'MoMo', logo: '🟣', jobs: 95 },
-  { name: 'VinAI', logo: '🔵', jobs: 45 },
-  { name: 'Grab', logo: '🟢', jobs: 78 },
-  { name: 'VNPT', logo: '🔵', jobs: 110 },
+  { name: 'FPT Software', industry: 'IT - Software', iconFile: 'emp_fpt.png', jobs: 120 },
+  { name: 'VNG', industry: 'Technology / Entertainment', iconFile: 'emp_vng.png', jobs: 85 },
+  { name: 'Shopee', industry: 'E-commerce', iconFile: 'emp_shopee.png', jobs: 200 },
+  { name: 'Tiki', industry: 'E-commerce', iconFile: 'emp_tiki.png', jobs: 65 },
+  { name: 'MoMo', industry: 'Finance / Fintech', iconFile: 'emp_momo.png', jobs: 95 },
+  { name: 'VinAI', industry: 'IT - AI', iconFile: 'emp_vinai.png', jobs: 45 },
+  { name: 'Grab', industry: 'Logistics / Technology', iconFile: 'emp_grab.png', jobs: 78 },
+  { name: 'VNPT', industry: 'Telecommunications / IT', iconFile: 'emp_vnpt.png', jobs: 110 },
 ];
 
 const CATEGORIES = [
-  { icon: '💻', name: 'Information Technology', count: '3,200+' },
-  { icon: '💰', name: 'Finance & Banking', count: '1,800+' },
-  { icon: '🎨', name: 'Marketing & PR', count: '950+' },
-  { icon: '🏭', name: 'Manufacturing & Engineering', count: '2,100+' },
-  { icon: '🏥', name: 'Healthcare & Pharmacy', count: '780+' },
-  { icon: '📚', name: 'Education & Training', count: '640+' },
-  { icon: '🚚', name: 'Logistics & Transportation', count: '1,100+' },
-  { icon: '🛒', name: 'Sales & Business', count: '2,800+' },
-  { icon: '🏢', name: 'Real Estate', count: '920+' },
-  { icon: '⚖️', name: 'Legal & Law', count: '430+' },
+  { iconFile: 'it.png', name: 'Information Technology', count: '3,200+' },
+  { iconFile: 'finance.png', name: 'Finance & Banking', count: '1,800+' },
+  { iconFile: 'marketing.png', name: 'Marketing & PR', count: '950+' },
+  { iconFile: 'engineering.png', name: 'Manufacturing & Engineering', count: '2,100+' },
+  { iconFile: 'healthcare.png', name: 'Healthcare & Pharmacy', count: '780+' },
+  { iconFile: 'education.png', name: 'Education & Training', count: '640+' },
+  { iconFile: 'logistics.png', name: 'Logistics & Transportation', count: '1,100+' },
+  { iconFile: 'sales.png', name: 'Sales & Business', count: '2,800+' },
+  { iconFile: 'realestate.png', name: 'Real Estate', count: '920+' },
+  { iconFile: 'legal.png', name: 'Legal & Law', count: '430+' },
 ];
 
 const LOCATIONS = [
@@ -142,9 +142,18 @@ export default function HomePage() {
           <div className={styles.employersGrid}>
             {TOP_EMPLOYERS.map((emp, i) => (
               <div key={i} className={styles.employerCard} onClick={() => navigate('/auth')}>
-                <div className={styles.employerLogo}>{emp.logo}</div>
-                <div className={styles.employerName}>{emp.name}</div>
-                <div className={styles.employerJobs}>{emp.jobs} jobs</div>
+                <div className={styles.employerCardTop}>
+                  <div className={styles.employerLogo}>
+                    <img src={`/icons/${emp.iconFile}`} alt={emp.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  </div>
+                  <div className={styles.employerInfo}>
+                    <div className={styles.employerName}>{emp.name}</div>
+                    <div className={styles.employerIndustry}>{emp.industry}</div>
+                  </div>
+                </div>
+                <div className={styles.employerJobs}>
+                  <span style={{ fontSize: '14px' }}>💼</span> {emp.jobs} jobs
+                </div>
               </div>
             ))}
           </div>
@@ -198,13 +207,16 @@ export default function HomePage() {
       {/* ───── CATEGORIES ───── */}
       <section className={styles.section}>
         <div className={styles.container}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>POPULAR INDUSTRIES</h2>
+          <div className={styles.sectionHeaderCol}>
+            <h2 className={styles.sectionTitleGreen}>POPULAR INDUSTRIES</h2>
+            <p className={styles.sectionSub}>Looking for a new job? View the job list <span className={styles.linkText} onClick={() => navigate('/auth')}>here</span></p>
           </div>
           <div className={styles.categoriesGrid}>
             {CATEGORIES.map((cat, i) => (
               <div key={i} className={styles.categoryCard} onClick={() => navigate('/auth')}>
-                <div className={styles.categoryIcon}>{cat.icon}</div>
+                <div className={styles.categoryIcon}>
+                  <img src={`/icons/${cat.iconFile}`} alt={cat.name} style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
+                </div>
                 <div className={styles.categoryName}>{cat.name}</div>
                 <div className={styles.categoryCount}>{cat.count} jobs</div>
               </div>

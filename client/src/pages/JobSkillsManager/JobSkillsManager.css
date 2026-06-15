@@ -1,46 +1,46 @@
 .skill-manager-card {
-  background: #ffffff;[cite: 1]
-  border: 1px solid #e5e7eb;[cite: 1]
-  border-radius: 22px;[cite: 1]
-  padding: 24px;[cite: 1]
-  margin-top: 20px;[cite: 1]
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  padding: 24px;
+  margin-top: 20px;
   position: relative; /* Giữ menu dropdown không bị lệch khỏi layout */
 }
 
 .skill-manager-header {
-  display: flex;[cite: 1]
-  align-items: center;[cite: 1]
-  justify-content: space-between;[cite: 1]
-  gap: 16px;[cite: 1]
-  margin-bottom: 18px;[cite: 1]
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
 }
 
 .skill-manager-header h3 {
-  margin: 0;[cite: 1]
-  font-size: 18px;[cite: 1]
-  font-weight: 800;[cite: 1]
-  color: #111827;[cite: 1]
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
 }
 
 .skill-manager-header p {
-  margin: 8px 0 0;[cite: 1]
-  color: #4b5563;[cite: 1]
-  line-height: 1.6;[cite: 1]
+  margin: 8px 0 0;
+  color: #4b5563;
+  line-height: 1.6;
 }
 
 .skill-manager-job-id {
-  font-size: 13px;[cite: 1]
-  color: #475569;[cite: 1]
-  background: #f8fafc;[cite: 1]
-  border: 1px solid #e2e8f0;[cite: 1]
-  padding: 10px 14px;[cite: 1]
-  border-radius: 999px;[cite: 1]
+  font-size: 13px;
+  color: #475569;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 10px 14px;
+  border-radius: 999px;
 }
 
 .skill-manager-body {
-  display: flex;[cite: 1]
-  flex-direction: column;[cite: 1]
-  gap: 18px;[cite: 1]
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 /* ==========================================================================
@@ -177,9 +177,9 @@
    FORM TẠO MỚI KHI KHÔNG TÌM THẤY TỪ KHÓA SẴN CÓ
    ========================================================================== */
 .skill-manager-form {
-  display: grid;[cite: 1]
-  grid-template-columns: 1fr auto;[cite: 1]
-  gap: 12px;[cite: 1]
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
   margin-top: 10px;
   padding: 14px;
   background: #f8fafc;
@@ -188,22 +188,22 @@
 }
 
 .skill-manager-form input {
-  border: 1px solid #cbd5e1;[cite: 1]
+  border: 1px solid #cbd5e1;
   border-radius: 10px;
   padding: 10px 14px;
-  font-size: 14px;[cite: 1]
-  color: #111827;[cite: 1]
-  outline: none;[cite: 1]
+  font-size: 14px;
+  color: #111827;
+  outline: none;
 }
 
 .skill-manager-form button {
-  border: none;[cite: 1]
+  border: none;
   border-radius: 10px;
-  background: #ef4444;[cite: 1]
-  color: white;[cite: 1]
+  background: #ef4444;
+  color: white;
   padding: 10px 18px;
-  font-weight: 700;[cite: 1]
-  cursor: pointer;[cite: 1]
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .skill-manager-form button:disabled {
@@ -212,11 +212,11 @@
 }
 
 .skill-manager-message {
-  color: #047857;[cite: 1]
-  background: #ddf6e4;[cite: 1]
+  color: #047857;
+  background: #ddf6e4;
   padding: 12px 16px;
   border-radius: 12px;
-  border: 1px solid #d1fae5;[cite: 1]
-  font-weight: 600;[cite: 1]
+  border: 1px solid #d1fae5;
+  font-weight: 600;
   font-size: 13px;
 }

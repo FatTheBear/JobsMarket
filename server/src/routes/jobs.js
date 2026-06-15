@@ -69,6 +69,54 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/jobs/search - Search jobs by keyword, location, salary
+router.get('/search', async (req, res) => {
+  try {
+    const { q, location, salary } = req.query;
+
+    let query = `
+      SELECT jp.*, c.name AS company_name, c.logo_url, c.address AS company_address
+      FROM Job_Posting jp
+      LEFT JOIN Company c ON jp.company_id = c.id
+      WHERE 1=1 AND jp.status = 'Approved'
+    `;
+    const queryParams = [];
+
+    if (q) {
+      query += ` AND (jp.title LIKE ? OR jp.description LIKE ? OR c.name LIKE ?)`;
+      queryParams.push(`%${q}%`, `%${q}%`, `%${q}%`);
+    }
+
+    if (location) {
+      query += ` AND c.address LIKE ?`;
+      queryParams.push(`%${location}%`);
+    }
+
+    if (salary) {
+      if (salary === 'Dưới 10 triệu') {
+        query += ` AND jp.salary_max <= 10000000`;
+      } else if (salary === '10 - 20 triệu') {
+        query += ` AND ((jp.salary_min >= 10000000 AND jp.salary_min <= 20000000) OR (jp.salary_max >= 10000000 AND jp.salary_max <= 20000000))`;
+      } else if (salary === 'Trên 20 triệu') {
+        query += ` AND (jp.salary_min > 20000000 OR jp.salary_max > 20000000)`;
+      } else if (salary === 'Thỏa thuận') {
+        query += ` AND (jp.salary_min IS NULL AND jp.salary_max IS NULL)`;
+      }
+    }
+
+    query += ` ORDER BY jp.created_at DESC`;
+
+    const [rows] = await pool.query(query, queryParams);
+    
+    // In a real app we'd fetch skills per job here, or use GROUP_CONCAT. 
+    // For simplicity we will return jobs array directly.
+    res.json(rows);
+  } catch (err) {
+    console.error('Error searching jobs:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 // GET /api/jobs/:id - Get a single job posting
 router.get('/:id', async (req, res) => {
   try {

@@ -10,6 +10,7 @@ import CandidatePosts from './CandidatePosts';
 import CandidateWallet from './CandidateWallet';
 import CandidateCV from './CandidateCV';
 import CandidateExportModal from './CandidateExportModal';
+import CandidateApplications from './CandidateApplications';
 import CandidateAppliedJobs from './CandidateAppliedJobs';
 import { useWallet } from '../../context/WalletContext';
 
@@ -769,6 +770,8 @@ const CandidateProfile = () => {
           <CandidatePosts
             candidatePosts={candidatePosts}
           />
+          
+          <CandidateApplications />
         </div>
       </div>
 
