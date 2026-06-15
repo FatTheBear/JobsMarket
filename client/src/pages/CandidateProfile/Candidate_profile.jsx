@@ -987,9 +987,9 @@ const CandidateProfile = () => {
       />
 
       {/* Modal Applied Jobs */}
-      <CandidateAppliedJobs 
-        show={showAppliedJobsModal} 
-        onClose={() => setShowAppliedJobsModal(false)} 
+      <CandidateAppliedJobs
+        show={showAppliedJobsModal}
+        onClose={() => setShowAppliedJobsModal(false)}
       />
     </section>
   );

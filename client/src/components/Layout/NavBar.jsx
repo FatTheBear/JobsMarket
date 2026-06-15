@@ -52,7 +52,7 @@ const [role, setRole] = useState(()=> {
 
   const [userName, setUserName] = useState('User');
   const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
-  //const navigate = useNavigate();
+  const navigate = useNavigate();
   const location = useLocation();
 
   // Tạm thời comment logic localStorage lại, dùng state cứng
@@ -122,14 +122,16 @@ return (
         // --- HIỂN THỊ KHI ĐÃ ĐĂNG NHẬP ---
         <>
           <div className="nav-user-info">
-            {/* <img
-              src={avatarUrl}
+           
+            <img
+              src={avatarUrl || '/default-avatar.png'}
               alt="Avatar"
               className="nav-avatar"
-              onError={
-                (e) => { e.target.src = '/default-avatar.png' }}
-            /> */}
-            <div className="nav-avatar">User</div>
+              onError={(e) => { 
+                e.target.onerror = null; 
+                e.target.src = '/default-avatar.png'; 
+              }}
+            />
             <span className="nav-user-name">{userName}</span>
           </div>
           <button className="nav-logout-btn" onClick={handleLogout} title="Log out">

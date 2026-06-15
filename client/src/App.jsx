@@ -29,6 +29,10 @@ function Home() {
 
   return (
     <div className="app-wrapper">
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
       <main className="dashboard-main">
         {activeTab === 'candidate' ? <CandidateProfile /> : <CompanyProfile />}
       </main>
@@ -52,7 +56,15 @@ const router = createBrowserRouter([
       { path: "/", element: <LandingPage /> },
       { path: "/dashboard", element: <UserDashboard /> },
       { path: "/profile", element: <Home /> },
-      { path: "/candidate-profile", element: <CandidateProfile /> },
+      {
+        path: "/candidate-profile",
+        element: (
+          <ProtectedRoute requiredRole="Candidate">
+            <CandidateProfile />
+          </ProtectedRoute>
+        )
+      },
+
       { path: "/candidate/:id", element: <CandidatePublicProfile /> },
       {
         path: "/job-skills",
@@ -63,14 +75,22 @@ const router = createBrowserRouter([
           </div>
         )
       },
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> main
       {
         path: "/company",
         element: <CompanyDashboard />,
         children: [
           { path: "profile", element: <CompanyProfile /> },
           { path: "post-job", element: <JobPosting /> },
+<<<<<<< HEAD
           { path: "applicants", element: <AppliedCandidates /> },
           { path: "saved-candidates", element: <SavedCandidates /> },
+=======
+>>>>>>> main
         ]
       },
       {
@@ -86,11 +106,21 @@ const router = createBrowserRouter([
     ]
   },
 
+<<<<<<< HEAD
+=======
+  { path: "/search-jobs", element: <SearchJobs /> },
+>>>>>>> main
   { path: "*", element: <div>404 - Trang không tồn tại</div> }
 ]);
 
 export default function App() {
   return (
+<<<<<<< HEAD
     <RouterProvider router={router} />
+=======
+    //<SocketProvider>
+    <RouterProvider router={router} />
+    //</SocketProvider>
+>>>>>>> main
   );
 }
