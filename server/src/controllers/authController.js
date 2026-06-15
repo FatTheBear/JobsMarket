@@ -198,59 +198,108 @@ const authController = {
     },
 
     login: async (req, res) => {
-        const { email, password } = req.body;
+    const { email, password } = req.body;
 
-        if (!email || !password) {
-            return res.status(400).json({ message: "Email and password are required!" });
+    if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required!" });
+    }
+
+    try {
+        const [users] = await pool.execute(
+            `SELECT 
+                u.id, 
+                u.email, 
+                u.password_hash, 
+                u.role, 
+                u.status,
+
+                cp.display_name AS candidate_name, 
+                cp.avatar_url AS candidate_avatar,
+
+                com.id AS company_id,
+                com.name AS company_name, 
+                com.logo_url AS company_avatar
+
+             FROM User u
+
+             LEFT JOIN Candidate_Profile cp 
+             ON u.id = cp.user_id
+
+             LEFT JOIN Company com 
+             ON u.id = com.user_id
+
+             WHERE u.email = ?`,
+            [email]
+        );
+
+        if (users.length === 0) {
+            return res.status(401).json({ message: "Invalid email or password!" });
         }
 
-        try {
-            const [users] = await pool.execute(
-                'SELECT id, email, password_hash, role, status FROM User WHERE email = ?',
-                [email]
-            );
+        const user = users[0];
 
-            if (users.length === 0) {
-                return res.status(401).json({ message: "Invalid email or password!" });
-            }
+        const isPasswordValid = await bcrypt.compare(password, user.password_hash);
 
-            const user = users[0];
-
-            const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-            if (!isPasswordValid) {
-                return res.status(401).json({ message: "Invalid email or password!" });
-            }
-
-            if (user.status === 'Pending') {
-                return res.status(403).json({ message: "Please verify your email before logging in." });
-            }
-
-            if (user.status === 'Banned') {
-                return res.status(403).json({ message: "This account has been banned." });
-            }
-
-            const token = jwt.sign(
-                { id: user.id, role: user.role },
-                process.env.JWT_SECRET || 'SECRET_KEY',
-                { expiresIn: '1d' }
-            );
-
-            return res.status(200).json({
-                message: "Logged in successfully!",
-                token: token,
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    role: user.role
-                }
-            });
-
-        } catch (error) {
-            console.error("Login Error:", error);
-            return res.status(500).json({ message: "Internal server error!" });
+        if (!isPasswordValid) {
+            return res.status(401).json({ message: "Invalid email or password!" });
         }
-    },
 
+        if (user.status === 'Pending') {
+            return res.status(403).json({ message: "Please verify your email before logging in." });
+        }
+
+        if (user.status === 'Banned') {
+            return res.status(403).json({ message: "This account has been banned." });
+        }
+
+
+        const token = jwt.sign(
+            { id: user.id, role: user.role },
+            process.env.JWT_SECRET || 'SECRET_KEY',
+            { expiresIn: '1d' }
+        );
+
+
+        let userName = 'User';
+        let avatarUrl = '/default-avatar.png';
+
+
+        if (user.role === 'Candidate') {
+
+            userName = user.candidate_name || 'Candidate';
+            avatarUrl = user.candidate_avatar || '/default-avatar.png';
+
+        } else if (user.role === 'HR' || user.role === 'company') {
+
+            userName = user.company_name || 'HR Manager';
+            avatarUrl = user.company_avatar || '/default-avatar.png';
+
+        }
+
+
+        return res.status(200).json({
+            message: "Logged in successfully!",
+            token: token,
+
+            userName: userName,
+            avatarUrl: avatarUrl,
+
+            user: {
+                id: user.id,
+                email: user.email,
+                role: user.role,
+
+                // thêm để frontend dùng khi đăng bài
+                company_id: user.company_id || null
+            }
+        });
+
+
+    } catch (error) {
+        console.error("Login Error:", error);
+        return res.status(500).json({ message: "Internal server error!" });
+    }
+},
        resendOtp: async (req, res) => {
         const { email } = req.body;
 

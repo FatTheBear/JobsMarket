@@ -235,3 +235,42 @@ CREATE TABLE `Transaction` (
     FOREIGN KEY (`user_id`) REFERENCES `User`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
+-- --------------------------------------------------------
+-- Table: Candidate_Education (Added via Fix)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS Candidate_Education (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  candidate_id INT NOT NULL,
+  school_name VARCHAR(255),
+  degree VARCHAR(255),
+  start_date VARCHAR(20),
+  end_date VARCHAR(20),
+  description TEXT,
+  FOREIGN KEY (candidate_id) REFERENCES Candidate_Profile(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table: Candidate_Experience (Added via Fix)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS Candidate_Experience (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  candidate_id INT NOT NULL,
+  company_name VARCHAR(255),
+  role VARCHAR(255),
+  start_date VARCHAR(20),
+  end_date VARCHAR(20),
+  description TEXT,
+  FOREIGN KEY (candidate_id) REFERENCES Candidate_Profile(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+-- Table: Company_Follower (Added via Fix)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS Company_Follower (
+  candidate_id INT NOT NULL,
+  company_id INT NOT NULL,
+  PRIMARY KEY (candidate_id, company_id),
+  FOREIGN KEY (candidate_id) REFERENCES Candidate_Profile(id) ON DELETE CASCADE,
+  FOREIGN KEY (company_id) REFERENCES Company(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

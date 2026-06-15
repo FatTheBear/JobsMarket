@@ -108,3 +108,8 @@
 .minimal-navbar {
     transition: none !important; /* Tắt mọi chuyển động */
 }
+.nav-user-info {
+  display: flex;
+  align-items: center; /* Căn giữa avatar và tên theo trục dọc */
+  gap: 10px;           /* Khoảng cách giữa ảnh và tên */
+}

@@ -1,0 +1,83 @@
+/* Tổng thể Card: Ép Flexbox theo chiều dọc để giãn cách đều */
+.job-card-container {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Quan trọng: Giúp mọi card trong Grid cao bằng nhau */
+}
+
+.job-card-container:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  border-color: #d1d5db;
+  transform: translateY(-4px);
+}
+
+/* Header bọc Logo và Thông tin chính */
+.job-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+/* Logo chống bóp méo */
+.job-card-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #f3f4f6;
+  background-color: #f9fafb;
+  flex-shrink: 0; 
+}
+
+/* Cột chứa Tên Job và Công ty */
+.job-card-main-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* TÊN CÔNG VIỆC: Đậm nhất, nổi bật nhất */
+.job-card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* TÊN CÔNG TY: Nhỏ hơn, màu xám */
+.job-card-company {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* FOOTER chứa Tags: Tự động đẩy xuống đáy Card */
+.job-card-footer {
+  margin-top: auto; 
+  padding-top: 20px;
+}
+
+.job-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.job-tag {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.tag-salary { background-color: #e0e7ff; color: #3730a3; }
+.tag-location { background-color: #f3f4f6; color: #4b5563; } 
+.tag-type { background-color: #fef3c7; color: #92400e; }

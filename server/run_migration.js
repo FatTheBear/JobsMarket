@@ -369,6 +369,19 @@ async function runMigration() {
         `);
         console.log('-> candidate_skill table is ready.');
 
+        console.log('Adding user_id to Company table...');
+
+        await pool.query(`
+            ALTER TABLE \`Company\`
+            ADD COLUMN IF NOT EXISTS \`user_id\` INT(11),
+            ADD CONSTRAINT \`fk_company_user\`
+            FOREIGN KEY (\`user_id\`) REFERENCES \`User\`(\`id\`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE;
+        `);
+
+        console.log('-> user_id column in Company is ready.');
+
     } catch (dbError) {
         console.error('\n[CRITICAL ERROR] Table creation failed:', dbError.message);
         process.exit(1); // Exit process with failure code

@@ -46,7 +46,7 @@ router.get('/job/:job_id', async (req, res) => {
   try {
     const { job_id } = req.params;
     const [rows] = await pool.query(
-      `SELECT js.skill_id, s.name, js.min_level, js.min_years
+      `SELECT js.skill_id AS id, js.skill_id, s.name, js.min_level, js.min_years
        FROM Job_Skill js
        JOIN Skill s ON js.skill_id = s.id
        WHERE js.job_id = ?

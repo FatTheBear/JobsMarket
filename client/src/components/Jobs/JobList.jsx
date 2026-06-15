@@ -17,11 +17,11 @@ export default function JobList() {
       try {
         setLoading(true);
         const response = await fetch(`${API_URL}/api/jobs`);
-        
+
         if (!response.ok) {
           throw new Error('Failed to fetch jobs from server');
         }
-        
+
         const data = await response.json();
         setJobs(data);
       } catch (err) {
@@ -66,12 +66,14 @@ export default function JobList() {
 
       {/* Data Render State */}
       {!loading && !error && jobs.length > 0 && (
-        <div className="job-cards-grid">
+        <div className="job-cards-grid"
+        style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}
+        >
           {jobs.map((jobItem) => (
-            <JobCard 
-              key={jobItem.id} 
-              job={jobItem} 
-              onSelect={(clickedJob) => setSelectedJob(clickedJob)} 
+            <JobCard
+              key={jobItem.id}
+              job={jobItem}
+              onSelect={(clickedJob) => setSelectedJob(clickedJob)}
             />
           ))}
         </div>
@@ -79,9 +81,9 @@ export default function JobList() {
 
       {/* Job Detail Modal Popup */}
       {selectedJob && (
-        <JobDetail 
-          job={selectedJob} 
-          onClose={() => setSelectedJob(null)} 
+        <JobDetail
+          job={selectedJob}
+          onClose={() => setSelectedJob(null)}
         />
       )}
     </div>
