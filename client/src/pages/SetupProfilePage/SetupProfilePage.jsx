@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import './SetupProfilePage.css';
 
 export default function SetupProfilePage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const initialDisplayName = location.state?.full_name || '';
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
@@ -12,7 +14,7 @@ export default function SetupProfilePage() {
   // Form State
   // Only full_name is mandatory. All other fields are optional and can be left empty.
   const [formData, setFormData] = useState({
-    display_name: '',
+    display_name: initialDisplayName,
     phone: '',
     avatar_url: '', // Allowed to be blank/empty
     headline: '',

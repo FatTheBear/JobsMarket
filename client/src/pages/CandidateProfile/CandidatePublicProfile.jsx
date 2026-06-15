@@ -44,7 +44,7 @@ export default function CandidatePublicProfile() {
           email: profile.email || '',
           phone: profile.phone || '',
           hidePhone: localStorage.getItem('hide_phone_' + profile.email) === 'true',
-          avatar: profile.avatar_url || 'https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp',
+          avatar: profile.avatar_url || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cccccc'><circle cx='12' cy='12' r='10' fill='%23e4e6eb'/><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z' fill='%23ffffff'/></svg>",
           cvFile: profile.cv_url ? JSON.parse(profile.cv_url) : null
         });
 
@@ -128,12 +128,43 @@ export default function CandidatePublicProfile() {
           setFollowedBusinesses(profile.interests.map(c => ({
             id: c.id,
             name: c.name,
-            category: c.industry_name || 'Technology',
-            followers: 'Premium Recruiter'
+            category: c.industry_name || 'Professional',
+            avatar: c.avatar_url || ''
           })));
         } else {
-          setFollowedBusinesses([]);
+          setFollowedBusinesses([
+            { id: 991, name: 'Alice Smith', category: 'Senior UX/UI Designer', avatar: 'https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp' },
+            { id: 992, name: 'David Lee', category: 'Lead DevOps Engineer', avatar: 'https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava4.webp' },
+            { id: 993, name: 'Emma Watson', category: 'Product Manager', avatar: 'https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava5.webp' }
+          ]);
         }
+
+        // Load mock candidate posts
+        const authorName = profile.full_name || 'Candidate';
+        const authorAvatar = profile.avatar_url || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cccccc'><circle cx='12' cy='12' r='10' fill='%23e4e6eb'/><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z' fill='%23ffffff'/></svg>";
+
+        setCandidatePosts([
+          {
+            id: 1,
+            author: authorName,
+            avatar: authorAvatar,
+            time: '3 days ago',
+            content: `Chào mọi người, đây là bài viết đầu tiên của tôi trên JobsMarket. Chúc các ứng viên sớm tìm được công việc mơ ước và các doanh nghiệp tuyển được nhân tài thích hợp!`,
+            likes: 18,
+            comments: 3,
+            shares: 1
+          },
+          {
+            id: 2,
+            author: authorName,
+            avatar: authorAvatar,
+            time: '2 weeks ago',
+            content: `Làm sao để thiết kế một CV lập trình viên thu hút nhà tuyển dụng? Đối với tôi, việc tập trung vào các dự án thực tế, mô tả công nghệ sử dụng và kết quả đạt được luôn là chìa khóa quan trọng nhất.`,
+            likes: 35,
+            comments: 8,
+            shares: 4
+          }
+        ]);
 
         setLoading(false);
       } catch (err) {
@@ -213,9 +244,6 @@ export default function CandidatePublicProfile() {
                       <button type="button" className="btn btn-primary">
                         Follow
                       </button>
-                      <button type="button" className="btn btn-outline-primary">
-                        Message
-                      </button>
                       {cvFile && (
                         <a href={cvFile.dataUrl} download={cvFile.name} className="btn btn-outline-success d-inline-flex align-items-center gap-1.5 fw-semibold shadow-sm rounded">
                           <i className={cvFile.name.endsWith('.pdf') ? "far fa-file-pdf text-danger" : "far fa-file-word text-primary"}></i> Download CV
@@ -228,181 +256,133 @@ export default function CandidatePublicProfile() {
             </div>
           </div>
 
-          {/* Education Section */}
-          <div className="col-12 col-lg-3 mb-4 d-flex">
-            <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
-              <div className="card-body p-4 d-flex flex-column h-100">
-                <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
-                  <div className="d-flex align-items-center gap-2">
-                    <span className="fs-5 fw-bold text-dark mb-0">Education</span>
-                  </div>
-                  <i className="fas fa-graduation-cap text-primary fs-4"></i>
-                </div>
+          {/* Left Main Content */}
+          {(workExperiences.length > 0 || educations.length > 0 || skills.length > 0) && (
+            <div className="col-12 d-flex flex-column gap-4 mb-4">
 
-                <div className="d-flex flex-column gap-3">
-                  {educations.length === 0 ? (
-                    <div className="text-center py-5 text-muted small">
-                      <i className="fas fa-graduation-cap fs-3 mb-2 text-muted opacity-50"></i>
-                      <p className="mb-0">No education added yet.</p>
-                    </div>
-                  ) : (
-                    educations.map((edu, index) => (
-                      <div key={edu.id || index} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
-                        <h6 className="fw-bold mb-3 text-dark text-hover-primary" style={{ fontSize: '0.95rem', lineHeight: '1.4' }}>
-                          {edu.degree}
-                        </h6>
-                        <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
-                          <span className="text-muted small fw-semibold" style={{ fontSize: '0.75rem' }}>
-                            <i className="fas fa-university text-primary me-1.5"></i>
-                            {edu.school}
-                          </span>
-                          <span className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-normal d-inline-flex align-items-center" style={{ fontSize: '0.7rem' }}>
-                            <i className="far fa-calendar-alt me-1"></i>
-                            {edu.duration}
-                          </span>
+              {/* Experience Section */}
+              {workExperiences.length > 0 && (
+                <div className="w-100">
+                  <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
+                    <div className="card-body p-4 d-flex flex-column h-100">
+                      <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <div className="d-flex align-items-center gap-2">
+                          <span className="fs-5 fw-bold text-dark mb-0">Experience</span>
                         </div>
+                        <i className="fas fa-briefcase text-primary fs-4"></i>
                       </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
 
-          {/* Experience Section */}
-          <div className="col-12 col-lg-3 mb-4 d-flex">
-            <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
-              <div className="card-body p-4 d-flex flex-column h-100">
-                <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
-                  <div className="d-flex align-items-center gap-2">
-                    <span className="fs-5 fw-bold text-dark mb-0">Experience</span>
-                  </div>
-                  <i className="fas fa-briefcase text-primary fs-4"></i>
-                </div>
-
-                <div className="d-flex flex-column gap-3">
-                  {workExperiences.length === 0 ? (
-                    <div className="text-center py-5 text-muted small">
-                      <i className="fas fa-briefcase fs-3 mb-2 text-muted opacity-50"></i>
-                      <p className="mb-0">No experiences added yet.</p>
-                    </div>
-                  ) : (
-                    workExperiences.map((exp, index) => (
-                      <div key={exp.id || index} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
-                        <h6 className="fw-bold mb-3 text-dark text-hover-primary" style={{ fontSize: '0.95rem', lineHeight: '1.4' }}>
-                          {exp.role}
-                        </h6>
-                        <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
-                          <span className="text-muted small fw-semibold" style={{ fontSize: '0.75rem' }}>
-                            <i className="fas fa-building text-primary me-1.5"></i>
-                            {exp.company}
-                          </span>
-                          <span className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-normal d-inline-flex align-items-center" style={{ fontSize: '0.7rem' }}>
-                            <i className="far fa-calendar-alt me-1"></i>
-                            {exp.duration}
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Skills Section */}
-          <div className="col-12 col-lg-3 mb-4 d-flex">
-            <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
-              <div className="card-body p-4 d-flex flex-column h-100">
-                <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
-                  <div className="d-flex align-items-center gap-2">
-                    <span className="fs-5 fw-bold text-dark mb-0">Skills</span>
-                  </div>
-                  <i className="fas fa-laptop-code text-primary fs-4"></i>
-                </div>
-
-                <div className="d-flex flex-column justify-content-start flex-grow-1">
-                  {skills.length === 0 ? (
-                    <div className="text-center py-5 text-muted small">
-                      <i className="fas fa-laptop-code fs-3 mb-2 text-muted opacity-50"></i>
-                      <p className="mb-0">No skills added yet.</p>
-                    </div>
-                  ) : (
-                    skills.map((skill, index) => (
-                      <div key={skill.id || index} className="mb-3">
-                        <div className="d-flex justify-content-between align-items-center mb-1">
-                          <p className="mb-0 text-small fw-semibold text-dark">{skill.name}</p>
-                          <span className="badge bg-light text-secondary rounded-pill px-2 py-0.5 fw-bold small">{skill.level}%</span>
-                        </div>
-                        <div className="progress rounded progress-custom">
-                          <div
-                            className="progress-bar"
-                            role="progressbar"
-                            style={{ width: `${skill.level}%` }}
-                            aria-valuenow={skill.level}
-                            aria-valuemin="0"
-                            aria-valuemax="100"
-                          ></div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Interests Column */}
-          <div className="col-12 col-lg-3 mb-4 d-flex">
-            <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
-              <div className="card-body p-4 d-flex flex-column h-100">
-                <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
-                  <div className="d-flex align-items-center gap-2">
-                    <span className="fs-5 fw-bold text-dark mb-0">Interests</span>
-                  </div>
-                  <i className="fas fa-heart text-primary fs-4"></i>
-                </div>
-
-                <div className="d-flex flex-column gap-3 flex-grow-1 justify-content-start">
-                  {followedBusinesses.length === 0 ? (
-                    <div className="text-center py-5 text-muted small">
-                      <i className="far fa-heart fs-3 mb-2 text-muted opacity-50"></i>
-                      <p className="mb-0">No followed recruiters yet.</p>
-                    </div>
-                  ) : (
-                    followedBusinesses.map((biz) => (
-                      <div key={biz.id} className="experience-item p-3 rounded border bg-light hover-shadow-sm transition-all d-flex flex-column align-items-start gap-2">
-                        <div className="d-flex align-items-center gap-2 w-100">
-                          <div className="d-flex align-items-center justify-content-center bg-white rounded-circle shadow-sm" style={{ width: '40px', height: '40px', minWidth: '40px' }}>
-                            <i className="fas fa-building text-primary fs-6"></i>
+                      <div className="d-flex flex-column gap-3">
+                        {workExperiences.map((exp, index) => (
+                          <div key={exp.id || index} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
+                            <h6 className="fw-bold mb-3 text-dark text-hover-primary" style={{ fontSize: '0.95rem', lineHeight: '1.4' }}>
+                              {exp.role}
+                            </h6>
+                            <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                              <span className="text-muted small fw-semibold" style={{ fontSize: '0.75rem' }}>
+                                <i className="fas fa-building text-primary me-1.5"></i>
+                                {exp.company}
+                              </span>
+                              <span className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-normal d-inline-flex align-items-center" style={{ fontSize: '0.7rem' }}>
+                                <i className="far fa-calendar-alt me-1"></i>
+                                {exp.duration}
+                              </span>
+                            </div>
                           </div>
-                          <div style={{ minWidth: 0 }}>
-                            <h6 className="fw-bold mb-0 text-dark text-truncate" style={{ fontSize: '0.85rem' }} title={biz.name}>{biz.name}</h6>
-                            <p className="mb-0 text-muted text-truncate" style={{ fontSize: '0.7rem' }}>{biz.category}</p>
-                          </div>
-                        </div>
-                        <button className="btn btn-xs btn-outline-primary rounded-pill px-3 py-1 fw-semibold d-flex align-items-center justify-content-center gap-1 w-100 mt-1" style={{ fontSize: '0.75rem' }}>
-                          <i className="fas fa-check" style={{ fontSize: '0.6rem' }}></i> Followed
-                        </button>
+                        ))}
                       </div>
-                    ))
-                  )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </div>
+              )}
 
-          <CandidatePersonalInfoModal
-            show={showPersonalInfo}
-            onClose={() => setShowPersonalInfo(false)}
-            profileData={profileData}
-          />
+              {/* Education Section */}
+              {educations.length > 0 && (
+                <div className="w-100">
+                  <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
+                    <div className="card-body p-4 d-flex flex-column h-100">
+                      <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <div className="d-flex align-items-center gap-2">
+                          <span className="fs-5 fw-bold text-dark mb-0">Education</span>
+                        </div>
+                        <i className="fas fa-graduation-cap text-primary fs-4"></i>
+                      </div>
+
+                      <div className="d-flex flex-column gap-3">
+                        {educations.map((edu, index) => (
+                          <div key={edu.id || index} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
+                            <h6 className="fw-bold mb-3 text-dark text-hover-primary" style={{ fontSize: '0.95rem', lineHeight: '1.4' }}>
+                              {edu.degree}
+                            </h6>
+                            <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                              <span className="text-muted small fw-semibold" style={{ fontSize: '0.75rem' }}>
+                                <i className="fas fa-university text-primary me-1.5"></i>
+                                {edu.school}
+                              </span>
+                              <span className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-normal d-inline-flex align-items-center" style={{ fontSize: '0.7rem' }}>
+                                <i className="far fa-calendar-alt me-1"></i>
+                                {edu.duration}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Skills Section */}
+              {skills.length > 0 && (
+                <div className="w-100">
+                  <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
+                    <div className="card-body p-4 d-flex flex-column h-100">
+                      <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                        <div className="d-flex align-items-center gap-2">
+                          <span className="fs-5 fw-bold text-dark mb-0">Skill</span>
+                        </div>
+                        <i className="fas fa-laptop-code text-primary fs-4"></i>
+                      </div>
+
+                      <div className="row g-3 justify-content-start">
+                        {skills.map((skill, index) => (
+                          <div key={skill.id || index} className="col-12 col-md-6 mb-2">
+                            <div className="d-flex justify-content-between align-items-center mb-1">
+                              <p className="mb-0 text-small fw-semibold text-dark">{skill.name}</p>
+                              <span className="badge bg-light text-secondary rounded-pill px-2 py-0.5 fw-bold small">{skill.level}%</span>
+                            </div>
+                            <div className="progress rounded progress-custom">
+                              <div
+                                className="progress-bar"
+                                role="progressbar"
+                                style={{ width: `${skill.level}%` }}
+                                aria-valuenow={skill.level}
+                                aria-valuemin="0"
+                                aria-valuemax="100"
+                              ></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          )}
 
           <CandidatePosts
             candidatePosts={candidatePosts}
           />
         </div>
       </div>
+
+      <CandidatePersonalInfoModal
+        show={showPersonalInfo}
+        onClose={() => setShowPersonalInfo(false)}
+        profileData={profileData}
+      />
     </section>
   );
 }

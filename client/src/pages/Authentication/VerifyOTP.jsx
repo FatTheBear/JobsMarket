@@ -8,6 +8,7 @@ export default function VerifyOTP() {
   const location = useLocation();
   const userEmail = location.state?.email;
   const userRole = location.state?.role;
+  const userFullName = location.state?.full_name || '';
   const navigate = useNavigate();
   const [error, setError] = useState("");
   
@@ -51,7 +52,9 @@ export default function VerifyOTP() {
                 if (roleLower === "company" || roleLower === "hr") {
                     navigate("/company-profile");
                 } else {
-                    navigate("/setup-profile");
+                    navigate('/setup-profile', {
+                      state: { full_name: userFullName }
+                    });
                 }
             }
 

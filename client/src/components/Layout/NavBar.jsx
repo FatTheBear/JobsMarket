@@ -1,7 +1,8 @@
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import './NavBar.css';
-import React, { useState, useEffect } from 'react'; // 
+import React, { useState, useEffect } from 'react';
+import axios from 'axios'; 
 
 // 1. Khai báo state để React quản lý (giá trị mặc định là guest)
 
@@ -53,51 +54,82 @@ export default function NavBar() {
 
   const [userName, setUserName] = useState('User');
   const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
+  //const navigate = useNavigate();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token && token !== "undefined" && token !== "null") {
-      setIsLoggedIn(true);
-      setUserName(localStorage.getItem("userName") || "User");
-      
-      
-      const savedAvatar = localStorage.getItem("avatarUrl");
-      if (savedAvatar && savedAvatar !== "null" && savedAvatar !== "undefined") {
-        setAvatarUrl(savedAvatar);
-      } else {
+  const token = localStorage.getItem('token');
+  setIsLoggedIn(!!token);
+  const rawRole = localStorage.getItem('role');
+  const roleMap = {
+    HR: 'company',
+    Candidate: 'candidate',
+    Admin: 'admin',
+  };
+  setRole(token ? (roleMap[rawRole] || 'candidate') : 'guest');
+
+  if (token) {
+    const fetchProfile = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/candidate/profile', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const profile = response.data;
+        const name = profile.full_name || profile.display_name || 'User';
+        const avatar = profile.avatar_url || '/default-avatar.png';
+        setUserName(name);
+        setAvatarUrl(avatar);
+      } catch (err) {
+        console.error('Failed to fetch profile for NavBar:', err);
+        setUserName('User');
         setAvatarUrl('/default-avatar.png');
       }
-    } else {
-      setIsLoggedIn(false);
-    }
-  }, [location.pathname]);
-  
+    };
+    fetchProfile();
+  } else {
+    setUserName('User');
+    setAvatarUrl('/default-avatar.png');
+  }
+}, []);
   const menuItems = MENU_CONFIG[role] || [];
   const handleLogout = () => {
-    localStorage.clear();
-    navigate('/');
-    window.location.reload();
-  };
+      localStorage.clear();
+      navigate('/');
+      window.location.reload();
+    };
 
-  return (
-    <nav className="minimal-navbar">
-      {/* TRÁI: Logo (Bấm vào để về trang chủ) */}
-      <div className="nav-brand" onClick={() => navigate('/')}>
-        <span className="brand-logo">J</span>
-        <span className="brand-text">JobsMarket</span>
-      </div>
+return (
+  <nav className="minimal-navbar">
+    {/* TRÁI: Logo (Bấm vào để về trang chủ) */}
+    <div className="nav-brand" onClick={() => navigate('/')}>
+      <span className="brand-logo">J</span>
+      <span className="brand-text">JobsMarket</span>
+    </div>
 
-      {/* GIỮA: Menu thay đổi linh hoạt theo Role */}
-      <div className="nav-menu">
-        {menuItems.map((item, index) => (
-          <button
-            key={index}
-            className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
-            onClick={() => navigate(item.path)}
-          >
-            {item.label}
+    {/* GIỮA: Menu thay đổi linh hoạt theo Role */}
+    <div className="nav-menu">
+      {menuItems.map((item, index) => (
+        <button
+          key={index}
+          className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+          onClick={() => navigate(item.path)}
+        >
+          {item.label}
+        </button>
+      ))}
+    </div>
+
+    {/* PHẢI: Khối hiển thị User hoặc Nút Login */}
+    <div className="nav-profile-section">
+      {isLoggedIn ? (
+        // --- HIỂN THỊ KHI ĐÃ ĐĂNG NHẬP ---
+        <>
+            <div className="nav-user-info">
+              <span className="nav-user-name" title={`Welcome, ${userName}`} onClick={() => navigate('/candidate-profile')}>{userName}</span>
+            </div>
+          <button className="nav-logout-btn" onClick={handleLogout} title="Log out">
+            Log out
           </button>
         ))}
       </div>

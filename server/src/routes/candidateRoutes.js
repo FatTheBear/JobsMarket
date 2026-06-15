@@ -36,4 +36,13 @@ router.post('/apply', authMiddleware, candidateController.applyJob);
 // Lấy lịch sử ứng tuyển
 router.get('/applications', authMiddleware, candidateController.getApplications);
 
+// Lấy danh sách thông báo
+router.get('/notifications', authMiddleware, candidateController.getNotifications);
+
+// Đánh dấu 1 thông báo đã đọc
+router.put('/notifications/:id/read', authMiddleware, candidateController.markNotificationAsRead);
+
+// Đánh dấu tất cả thông báo đã đọc
+router.put('/notifications/read-all', authMiddleware, candidateController.markAllNotificationsAsRead);
+
 module.exports = router;

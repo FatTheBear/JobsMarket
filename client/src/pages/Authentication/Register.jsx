@@ -47,7 +47,8 @@ export default function Register() {
         navigate('/verify-otp', {
           state: {
             email: userData.email,
-            role: selectedRole
+            role: selectedRole,
+            full_name: fullName
           }
         });
       }
