@@ -30,7 +30,7 @@ const AdminCategories = ({
       {/* HEADER: Tiêu đề và nút làm mới dữ liệu */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <h1 className="admin-title">System Categories</h1>
-        <button className="admin-btn-primary" onClick={onRefresh}>Refresh Data</button>
+        <button className="admin-btn-primary" style={{ background: '#5a5a5a' }} onClick={onRefresh}>Refresh Data</button>
       </div>
 
       {/* BỐ CỤC CHIA ĐÔI: Skills bên trái, Industries bên phải */}
@@ -38,7 +38,7 @@ const AdminCategories = ({
         
         {/* KHỐI QUẢN LÝ SKILLS */}
         <div>
-          <h3 style={{ marginBottom: '12px', color: '#38bdf8' }}>Skills List</h3>
+          <h3 style={{ marginBottom: '12px', color: '#01796F' }}>Skills List</h3>
           
           {/* Ô nhập và nút thêm Skill */}
           <div className="admin-input-group">
@@ -94,7 +94,7 @@ const AdminCategories = ({
 
         {/* KHỐI QUẢN LÝ INDUSTRIES */}
         <div>
-          <h3 style={{ marginBottom: '12px', color: '#38bdf8' }}>Industries List</h3>
+          <h3 style={{ marginBottom: '12px', color: '#01796F' }}>Industries List</h3>
           
           {/* Ô nhập và nút thêm Industry */}
           <div className="admin-input-group">

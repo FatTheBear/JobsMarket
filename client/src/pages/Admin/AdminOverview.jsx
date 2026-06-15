@@ -31,18 +31,18 @@ const chartData = [
         <div className="stat-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <p>Total Users</p>
-            <Users size={20} color="#2563eb" />
+            <Users size={20} color="#01796F" />
           </div>
-          <div className="stat-number" style={{ color: '#0f172a' }}>{stats.totalUsers || 0}</div>
+          <div className="stat-number" style={{ color: '#01796F' }}>{stats.totalUsers || 0}</div>
           
           <div className="stat-detail">
             <span style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>Candidates:</span> 
-              <strong style={{ color: '#1e293b' }}>{stats.candidatesCount || 0}</strong>
+              <strong style={{ color: '#01796F' }}>{stats.candidatesCount || 0}</strong>
             </span>
             <span style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>Recruiters (HR):</span> 
-              <strong style={{ color: '#1e293b' }}>{stats.hrCount || 0}</strong>
+              <strong style={{ color: '#01796F' }}>{stats.hrCount || 0}</strong>
             </span>
           </div>
         </div>
@@ -54,7 +54,7 @@ const chartData = [
             <p>Pending Jobs</p>
             <Briefcase size={20} color="#d97706" />
           </div>
-          <div className="stat-number" style={{ color: stats.pendingJobs > 0 ? '#d97706' : '#2563eb' }}>
+          <div className="stat-number" style={{ color: stats.pendingJobs > 0 ? '#d97706' : '#01796F' }}>
             {stats.pendingJobs || 0}
           </div>
           <div className="stat-detail">
@@ -69,9 +69,9 @@ const chartData = [
         <div className="stat-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <p>Total Applications</p>
-            <FileText size={20} color="#059669" />
+            <FileText size={20} color="#01796F" />
           </div>
-          <div className="stat-number" style={{ color: '#059669' }}>{stats.totalApplications || 0}</div>
+          <div className="stat-number" style={{ color: '#01796F' }}>{stats.totalApplications || 0}</div>
           <div className="stat-detail">
             <span style={{ color: '#64748b' }}>Successful connections via system</span>
           </div>
@@ -130,7 +130,7 @@ const chartData = [
 >
   <h3
     style={{
-      color: "#2563eb",
+      color: "#01796F",
       marginBottom: "20px"
     }}
   >
@@ -190,10 +190,10 @@ const chartData = [
             key={index}
             fill={
               entry.name === "Approved"
-                ? "#22c55e"
+                ? "#01796F"
                 : entry.name === "Pending"
-                ? "#f59e0b"
-                : "#ef4444"
+                ? "#b0c4de"
+                : "#5a5a5a"
             }
           />
         ))}
@@ -210,7 +210,7 @@ const chartData = [
         <div className="table-container" style={{ padding: '20px' }}>
   <h3
     style={{
-      color: '#2563eb',
+      color: '#01796F',
       marginBottom: '16px',
       fontSize: '16px'
     }}
@@ -276,7 +276,7 @@ const chartData = [
 </div>
         {/* Khối bên phải: Mẹo cho Admin */}
         <div className="table-container" style={{ padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <h3 style={{ color: '#2563eb', marginBottom: '8px', fontSize: '16px' }}>Quick Actions Panel</h3>
+          <h3 style={{ color: '#01796F', marginBottom: '8px', fontSize: '16px' }}>Quick Actions Panel</h3>
           <p style={{ color: '#64748b', fontSize: '14px', margin: '0 0 16px 0' }}>
             Use the sidebar navigation to manage company requests, review candidate reports, or update platform skills.
           </p>

@@ -25,10 +25,6 @@ app.use('/uploads', express.static('uploads'));
 require('./config/db');
 
 // Routes
-const authRoutes = require("./routes/authRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-const candidateRoutes = require("./routes/candidateRoutes");
-const walletRoutes = require("./routes/walletRoutes");
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const candidateRoutes = require('./routes/candidateRoutes');

@@ -4,19 +4,20 @@
 .admin-container {
   display: flex;
   min-height: 100vh;
-  background-color: #0f172a; /* Đổi sang nền tối sâu */
+  background-color: #5A5A5A;
+  /* Nền tối mới */
   font-family: sans-serif;
-  color: #f1f5f9; /* Chữ sáng */
+  color: #ffffff;
 }
 
-/* Sidebar bên trái */
 .admin-sidebar {
   width: 260px;
-  background-color: #1e293b;
+  background-color: #5A5A5A;
+  /* Đồng bộ nền */
   color: white;
   padding: 24px 16px;
   box-sizing: border-box;
-  border-right: 1px solid #334155;
+  border-right: 1px solid #6D8196;
 }
 
 .admin-sidebar h2 {
@@ -24,7 +25,7 @@
   font-weight: bold;
   margin: 0 0 32px 0;
   text-align: center;
-  color: #38bdf8;
+  color: #01796F;
 }
 
 .sidebar-menu {
@@ -42,7 +43,7 @@
   border-radius: 8px;
   border: none;
   background-color: transparent;
-  color: #94a3b8;
+  color: #B0C4DE;
   cursor: pointer;
   text-align: left;
   font-size: 15px;
@@ -50,12 +51,12 @@
 }
 
 .sidebar-btn:hover {
-  background-color: #334155;
+  background-color: #6D8196;
   color: white;
 }
 
 .sidebar-btn.active {
-  background-color: #2563eb;
+  background-color: #01796F;
   color: white;
 }
 
@@ -70,7 +71,7 @@
 .admin-title {
   font-size: 24px;
   font-weight: bold;
-  color: #f8fafc;
+  color: #ffffff;
   margin: 0 0 24px 0;
 }
 
@@ -84,11 +85,11 @@
 }
 
 .stat-card {
-  background: #1e293b;
+  background: #5A5A5A;
+  border: 1px solid #6D8196;
   padding: 24px;
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-  border: 1px solid #334155;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
@@ -98,7 +99,7 @@
 }
 
 .stat-card p {
-  color: #94a3b8;
+ color: #B0C4DE;
   margin: 0;
   font-size: 14px;
 }
@@ -107,14 +108,14 @@
   font-size: 32px;
   font-weight: bold;
   margin: 8px 0 0 0;
-  color: #38bdf8;
+  color: #01796F;
   font-family: sans-serif;
 }
 
 .stat-detail {
   font-size: 14px;
   margin-top: 12px;
-  color: #cbd5e1;
+ color: #B0C4DE;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -122,11 +123,10 @@
 
 /* Bảng Quản Lý Chung (Users / News / Categories) */
 .table-container {
-  background: #1e293b;
-  border-radius: 12px;
+ background: #5A5A5A;
+  border: 1px solid #6D8196;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
   overflow: hidden;
-  border: 1px solid #334155;
   margin-top: 16px;
 }
 
@@ -137,8 +137,8 @@
 }
 
 .admin-table th {
-  background-color: #0f172a;
-  color: #94a3b8;
+ background-color: #5A5A5A;
+  color: #B0C4DE;
   padding: 16px;
   font-size: 14px;
   text-transform: uppercase;
@@ -147,9 +147,9 @@
 
 .admin-table td {
   padding: 16px;
-  border-bottom: 1px solid #334155;
+ border-bottom: 1px solid #6D8196;
+  color: #ffffff;
   font-size: 15px;
-  color: #e2e8f0;
 }
 
 .admin-table tr:last-child td {
@@ -164,9 +164,12 @@
   font-weight: 600;
   display: inline-block;
 }
-.status-badge.banned, .status-badge.rejected { background-color: #551a1a; color: #f87171; }
-.status-badge.active, .status-badge.approved, .status-badge.published { background-color: #064e3b; color: #34d399; }
-.status-badge.pending, .status-badge.draft { background-color: #451a03; color: #fbbf24; }
+
+.status-badge.banned, .status-badge.rejected { background-color: #3d1414; color: #ff8a8a; }
+
+.status-badge.active, .status-badge.approved, .status-badge.published { background-color: #01796F; color: #ffffff; }
+
+.status-badge.pending, .status-badge.draft { background-color: #453503; color: #fcc419; }
 
 /* Nút bấm hành động chung */
 .action-btn {
@@ -179,10 +182,22 @@
   font-size: 14px;
   font-weight: 500;
 }
-.action-btn.ban { color: #f87171; }
-.action-btn.unban { color: #34d399; }
-.action-btn.edit { color: #38bdf8; }
-.action-btn.delete { color: #f87171; }
+
+.action-btn.ban {
+  color: #f87171;
+}
+
+.action-btn.unban {
+  color: #34d399;
+}
+
+.action-btn.edit {
+  color: #38bdf8;
+}
+
+.action-btn.delete {
+  color: #f87171;
+}
 
 /* ==========================================================================
    CSS Mới: Dành cho Tab Categories & News Management
@@ -207,20 +222,19 @@
   flex: 1;
   padding: 10px 14px;
   border-radius: 6px;
-  border: 1px solid #334155;
-  background-color: #0f172a;
+  border: 1px solid #6D8196;
+  background-color: #5A5A5A;
   color: white;
   font-size: 14px;
 }
 
 .admin-input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: #01796F;
 }
 
 .admin-btn-primary {
-  background-color: #2563eb;
-  color: white;
+background-color: #01796F;  color: white;
   border: none;
   padding: 10px 16px;
   border-radius: 6px;
@@ -231,7 +245,7 @@
 }
 
 .admin-btn-primary:hover {
-  background-color: #1d4ed8;
+  background-color: #015c55;
 }
 
 /* Bài đăng tuyển dụng (Job Cards) */
@@ -242,29 +256,38 @@
 }
 
 .job-card {
-  background: #1e293b;
+ background: #5A5A5A;
+  border: 1px solid #6D8196;
+  border-left: 5px solid #01796F;
   padding: 24px;
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-  border: 1px solid #334155;
-  border-left: 5px solid #eab308;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
 }
 
-.job-info h3 { margin: 0 0 8px 0; color: #f8fafc; font-size: 18px; }
-.job-info p { margin: 4px 0; font-size: 14px; color: #94a3b8; }
+.job-info h3 {
+  margin: 0 0 8px 0;
+  color: #f8fafc;
+  font-size: 18px;
+}
+
+.job-info p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: #94a3b8;
+}
 
 .job-desc {
   margin-top: 12px;
-  background-color: #0f172a;
+  background-color: #5A5A5A;
+  border: 1px solid #6D8196;
   padding: 12px;
   border-radius: 8px;
   font-size: 14px;
   color: #cbd5e1;
   white-space: pre-line;
-  border: 1px solid #334155;
 }
 
 .btn-group {
@@ -273,7 +296,8 @@
   flex-shrink: 0;
 }
 
-.btn-approve, .btn-reject {
+.btn-approve,
+.btn-reject {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -285,7 +309,14 @@
   font-weight: 500;
 }
 
-.btn-approve { background-color: #059669; }
-.btn-approve:hover { background-color: #047857; }
-.btn-reject { background-color: #dc2626; }
-.btn-reject:hover { background-color: #b91c1c; }
+.btn-approve { background-color: #01796F; }
+
+.btn-approve:hover { background-color: #015c55; }
+
+.btn-reject {
+  background-color: #dc2626;
+}
+
+.btn-reject:hover {
+  background-color: #b91c1c;
+}

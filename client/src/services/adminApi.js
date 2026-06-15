@@ -126,8 +126,27 @@ export const adminApi = {
     return res.data;
   },
 
-  deleteCoinFee: async (id) => {
+   deleteCoinFee: async (id) => {
     const res = await API.delete(`/admin/coin-fees/${id}`);
+    return res.data;
+  },
+
+  // ==========================================================================
+  // NOTIFICATIONS
+  // ==========================================================================
+
+  getNotifications: async () => {
+    const res = await API.get('/admin/notifications');
+    return res.data;
+  },
+
+  markNotificationRead: async (id) => {
+    const res = await API.put(`/admin/notifications/${id}/read`);
+    return res.data;
+  },
+
+  deleteNotification: async (id) => {
+    const res = await API.delete(`/admin/notifications/${id}`);
     return res.data;
   }
 };
