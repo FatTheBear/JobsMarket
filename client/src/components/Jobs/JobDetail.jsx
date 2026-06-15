@@ -1,5 +1,5 @@
 import React from 'react';
-import './JobDetail.css';
+import './JobDetail.module.css';
 
 export default function JobDetail({ job, onClose }) {
   if (!job) return null;

@@ -85,12 +85,17 @@
 
 
 /* Layout Thống kê Dashboard Overview */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  margin-bottom: 32px;
-  max-width: 1200px;
+
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 
@@ -282,7 +287,61 @@
   cursor: pointer;
   font-weight: 500;
 }
+.health-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
 
+.health-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding-bottom: 12px;
+
+  border-bottom: 1px solid #e2e8f0;
+
+  color: #475569;
+  font-size: 14px;
+}
+
+.health-row:last-child {
+  border-bottom: none;
+}
+
+.health-row strong {
+  color: #0f172a;
+  font-size: 15px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(250px,1fr));
+  gap: 20px;
+}
+
+.health-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.health-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.health-row:last-child {
+  border-bottom: none;
+}
+
+.health-row strong {
+  color: #2563eb;
+}
 .btn-approve { background-color: #059669; }
 .btn-approve:hover { background-color: #047857; }
 .btn-reject { background-color: #dc2626; }

@@ -9,6 +9,7 @@ import AdminNews from './AdminNews';
 import AdminTransaction from './AdminTransaction';
 import AdminCoinFees from './AdminCoinFees';
 import './Admin.css';
+import CreateNewsModal from './CreateNewsModal';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -18,6 +19,9 @@ const AdminDashboard = () => {
   const [categories, setCategories] = useState({ skills: [], industries: [] });
   const [newsList, setNewsList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newsCategories, setNewsCategories] = useState([]);
+  const [editingNews, setEditingNews] = useState(null);
 
   // Đóng gói hàm fetch danh mục ra ngoài để dùng tái sử dụng khi Add/Delete
   const fetchCategoriesData = async () => {
@@ -27,8 +31,8 @@ const AdminDashboard = () => {
         adminApi.getIndustries()
       ]);
       setCategories({
-        skills: Array.isArray(skillsData) ? skillsData : (skillsData?.data || []),
-        industries: Array.isArray(industriesData) ? industriesData : (industriesData?.data || [])
+        skills: Array.isArray(skillsData) ? skillsData : [],
+        industries: Array.isArray(industriesData) ? industriesData : []
       });
     } catch (catErr) {
       console.error("Error fetching categories:", catErr);
@@ -58,6 +62,7 @@ const AdminDashboard = () => {
         } else if (activeTab === 'news') {
           const res = await adminApi.getNews();
           setNewsList(res.data || res);
+          await fetchNewsCategories();
         }
       } catch (error) {
         console.error("Error loading tab data:", error);
@@ -142,44 +147,26 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleCreateNews = async () => {
-    const title = prompt("Enter article title");
-    if (!title) return;
+  const handleCreateNews = async (data) => {
     try {
-      await adminApi.createNews({
-        title,
-        slug: title.toLowerCase().replace(/\s+/g, '-'),
-        category_id: 1,
-        thumbnail_url: '',
-        short_description: '',
-        content: '',
-        status: 'Draft'
-      });
+      await adminApi.createNews(data);
       await fetchNewsData();
-      alert("Article created successfully!");
     } catch (err) {
-      console.error(err);
       alert("Error creating article");
     }
   };
+  //edit news
+  const handleEditNews = (news) => {
+    setEditingNews(news);
+  };
 
-  const handleEditNews = async (news) => {
-    const newTitle = prompt("Edit article title", news.title);
-    if (!newTitle) return;
+  const handleUpdateNews = async (id, data) => {
     try {
-      await adminApi.updateNews(news.id, {
-        title: newTitle,
-        slug: newTitle.toLowerCase().replace(/\s+/g, '-'),
-        category_id: news.category_id || 1,
-        thumbnail_url: news.thumbnail_url || '',
-        short_description: news.short_description || '',
-        content: news.content || '',
-        status: news.status || 'Draft'
-      });
+      console.log("UPDATE DATA FRONTEND:", data);
+      await adminApi.updateNews(id, data);
       await fetchNewsData();
-      alert("Article updated successfully!");
+      setEditingNews(null);
     } catch (err) {
-      console.error(err);
       alert("Error updating article");
     }
   };
@@ -194,6 +181,14 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error(err);
       alert("Error deleting article");
+    }
+  };
+  const fetchNewsCategories = async () => {
+    try {
+      const res = await adminApi.getNewsCategories();
+      setNewsCategories(res.data || res);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -217,9 +212,9 @@ const AdminDashboard = () => {
         {!loading && activeTab === 'users' && <AdminUser users={users} onToggleStatus={handleToggleUserStatus} />}
         {!loading && activeTab === 'jobs' && <AdminJob pendingJobs={pendingJobs} onReviewJob={handleReviewJob} />}
         {!loading && activeTab === 'categories' && (
-          <AdminCategories 
-            categories={categories} 
-            onRefresh={fetchCategoriesData} 
+          <AdminCategories
+            categories={categories}
+            onRefresh={fetchCategoriesData}
             onAddSkill={handleAddSkill}
             onAddIndustry={handleAddIndustry}
             onDeleteSkill={handleDeleteSkill}
@@ -230,15 +225,36 @@ const AdminDashboard = () => {
           <AdminNews
             newsList={newsList}
             onRefresh={fetchNewsData}
-            onCreate={handleCreateNews}
+            onCreate={() => setShowCreateModal(true)}
             onEdit={handleEditNews}
             onDelete={handleDeleteNews}
           />
         )}
+
+        {showCreateModal && (
+          <CreateNewsModal
+            onClose={() => setShowCreateModal(false)}
+            onCreate={handleCreateNews}
+            categories={newsCategories}
+          />
+        )}
+
+        {editingNews && (
+          <CreateNewsModal
+            onClose={() => setEditingNews(null)}
+            onCreate={(data) => handleUpdateNews(editingNews.id, data)}
+            categories={newsCategories}
+            initialData={editingNews}
+          />
+        )}
+
+        {/* ĐÃ THÊM: Khớp nối render nội dung component AdminTransaction khi bấm nút */}
         {!loading && activeTab === 'transactions' && <AdminTransaction />}
         {!loading && activeTab === 'coin-fees' && <AdminCoinFees />}
       </div>
     </div>
+
+
   );
 };
 

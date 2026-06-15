@@ -10,12 +10,6 @@ export function WalletProvider({ children }) {
   const [transactions, setTransactions] = useState([]);
   const [coinFees, setCoinFees] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [bankAccount, setBankAccount] = useState({
-    linked: false,
-    bankName: '',
-    accountNumber: '',
-    accountName: ''
-  });
 
   const getAuthHeader = () => {
     const token = localStorage.getItem('token');
@@ -27,16 +21,6 @@ export function WalletProvider({ children }) {
       setLoading(true);
       const res = await axios.get(`${API_URL}/info`, getAuthHeader());
       setCoins(res.data.coins);
-      if (res.data.bank_account_number) {
-        setBankAccount({
-          linked: true,
-          bankName: res.data.bank_name,
-          accountNumber: res.data.bank_account_number,
-          accountName: res.data.bank_account_name
-        });
-      } else {
-        setBankAccount({ linked: false, bankName: '', accountNumber: '', accountName: '' });
-      }
     } catch (error) {
       console.error("Failed to load wallet data:", error);
     } finally {
@@ -84,15 +68,7 @@ export function WalletProvider({ children }) {
     }
   };
 
-  const linkBankAccount = async (bankDetails) => {
-    try {
-      const res = await axios.post(`${API_URL}/link-bank`, bankDetails, getAuthHeader());
-      await fetchWalletInfo();
-      alert(res.data.message);
-    } catch (error) {
-      alert("Bank account linking failed: " + (error.response?.data?.message || error.message));
-    }
-  };
+
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -110,14 +86,12 @@ export function WalletProvider({ children }) {
       setShowWallet,
       transactions,
       coinFees,
-      bankAccount,
       loading,
       fetchWalletInfo,
       fetchTransactions,
       fetchCoinFees,
       createPayPalOrder,
-      capturePayPalOrder,
-      linkBankAccount
+      capturePayPalOrder
     }}>
       {children}
     </WalletContext.Provider>

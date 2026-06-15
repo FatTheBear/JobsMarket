@@ -4,13 +4,7 @@ const WalletModel = {
   // Lấy thông tin số dư xu và liên kết ngân hàng của User
   getWalletInfo: async (userId) => {
     const [rows] = await pool.execute(
-      `SELECT 
-        0 AS coins, 
-        NULL AS bank_name, 
-        NULL AS bank_account_number, 
-        NULL AS bank_account_name 
-      FROM User 
-      WHERE id = ?`,
+      `SELECT coins FROM User WHERE id = ?`,
       [userId]
     );
     return rows[0];
@@ -23,15 +17,6 @@ const WalletModel = {
       [userId]
     );
     return rows;
-  },
-
-  // Cập nhật thông tin ngân hàng
-  linkBank: async (userId, { bankName, accountNumber, accountName }) => {
-    await pool.execute(
-      'UPDATE User SET bank_name = ?, bank_account_number = ?, bank_account_name = ? WHERE id = ?',
-      [bankName, accountNumber, accountName, userId]
-    );
-    return true;
   },
 
   createPendingTransaction: async (userId, { coins, amountFiat, refCode, paypalOrderId, feeId }) => {

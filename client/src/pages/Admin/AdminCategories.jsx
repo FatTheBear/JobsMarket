@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-// Import file CSS để đồng bộ giao diện tối (Dark Mode)
 import './Admin.css'; 
 
 const AdminCategories = ({ 
@@ -8,8 +7,8 @@ const AdminCategories = ({
   onRefresh, 
   onAddSkill, 
   onAddIndustry, 
-  onDeleteSkill, // Thêm prop xóa skill
-  onDeleteIndustry // Thêm prop xóa industry
+  onDeleteSkill, 
+  onDeleteIndustry 
 }) => {
   const [newSkill, setNewSkill] = useState('');
   const [newIndustry, setNewIndustry] = useState('');

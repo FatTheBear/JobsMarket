@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/adminController.js");
+const upload = require("../middleware/upload");
+
 const { authMiddleware, adminMiddleware } = require('../middleware/authMiddleware');
 
 // Áp dụng middleware kiểm tra quyền Admin cho toàn bộ route admin
@@ -19,6 +21,7 @@ router.put('/jobs/:id/status', adminController.updateJobStatus);
 router.get('/skills', adminController.getSkills);
 router.get('/industries', adminController.getIndustries);
 router.get('/news', adminController.getNews);
+router.get('/news-categories', adminController.getNewsCategories);
 
 // 4. Thêm mới danh mục dữ liệu nhanh
 router.post('/skills', adminController.createSkill);
@@ -27,9 +30,12 @@ router.delete('/skills/:id', adminController.deleteSkill);
 router.post('/industries', adminController.createIndustry);
 router.delete('/industries/:id', adminController.deleteIndustry);
 
-router.post('/news', adminController.createNews);
-router.put('/news/:id', adminController.updateNews);
+
+router.post("/news", upload.single("thumbnail"),adminController.createNews); 
+
+router.put('/news/:id', upload.single("thumbnail"), adminController.updateNews);
 router.delete('/news/:id', adminController.deleteNews);
+
 
 // 5. Quản lý giao dịch ví xu (Nạp tiền)
 router.get('/transactions', adminController.getTransactions);
