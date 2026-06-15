@@ -103,7 +103,7 @@ const AdminCoinFees = () => {
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 className="admin-title" style={{ color: '#38bdf8', margin: 0 }}>Coin Packages Management</h2>
+                <h2 className="admin-title" style={{ color: '#01796f', margin: 0 }}>Coin Packages Management</h2>
                 <button 
                     onClick={() => handleOpenModal()} 
                     style={{ padding: '8px 16px', background: '#34d399', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
