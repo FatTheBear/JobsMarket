@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const { authMiddleware } = require('../middleware/authMiddleware');
 
 // POST /api/jobs - Create a new job posting
-router.post('/', async (req, res) => {
-  console.log("Data get from Frontend:", req.body);
+router.post('/',authMiddleware, async (req, res) => {
+   console.log("USER FROM TOKEN:", req.user);
 
   try {
     const {
@@ -73,9 +74,6 @@ router.post('/', async (req, res) => {
       }
     }
 
-
-
-    // Tìm company thuộc user đang đăng nhập
     const [companies] = await pool.query(
       'SELECT id FROM Company WHERE user_id = ?',
       [user_id]
@@ -99,6 +97,7 @@ router.post('/', async (req, res) => {
       INSERT INTO Job_Posting
       (
         company_id,
+        hr_id,
         title,
         description,
         requirements,
@@ -112,6 +111,7 @@ router.post('/', async (req, res) => {
       `,
       [
         company_id,
+        hr_id,
         title,
         description || null,
         requirements || null,

@@ -119,6 +119,7 @@ export default function JobPosting() {
       };
       
       const token = localStorage.getItem('token');
+     
       const res = await axios.post('http://localhost:5000/api/jobs', payload, {
         headers: {
           'Authorization': `Bearer ${token}`

@@ -1,101 +1,83 @@
-/* Container chính của thẻ */
+/* Tổng thể Card: Ép Flexbox theo chiều dọc để giãn cách đều */
 .job-card-container {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%; /* Quan trọng: Giúp mọi card trong Grid cao bằng nhau */
+}
+
+.job-card-container:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  border-color: #d1d5db;
+  transform: translateY(-4px);
+}
+
+/* Header bọc Logo và Thông tin chính */
+.job-card-header {
   display: flex;
   align-items: flex-start;
-  padding: 16px;
-  background-color: #ffffff;
-  border: 1px solid #e4e6e8;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  margin-bottom: 16px;
+  gap: 16px;
 }
 
-/* Hiệu ứng nổi lên khi hover chuột */
-.job-card-container:hover {
-  border-color: #0a66c2; /* Màu xanh biển đậm chuẩn doanh nghiệp */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
-}
-
-/* Khung chứa Logo */
+/* Logo chống bóp méo */
 .job-card-logo {
-  width: 64px;
-  height: 64px;
-  flex-shrink: 0;
-  margin-right: 16px;
-  border: 1px solid #f0f2f5;
-  border-radius: 6px;
-  overflow: hidden;
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #f3f4f6;
+  background-color: #f9fafb;
+  flex-shrink: 0; 
+}
+
+/* Cột chứa Tên Job và Công ty */
+.job-card-main-info {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #fff;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.job-card-logo img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain; /* Giữ nguyên tỷ lệ logo, không bị méo */
-  padding: 4px;
-}
-
-/* Phần chữ bên phải */
-.job-card-body {
-  flex: 1;
-  min-width: 0; /* Rất quan trọng để text-overflow hoạt động */
-}
-
-/* Tiêu đề công việc */
+/* TÊN CÔNG VIỆC: Đậm nhất, nổi bật nhất */
 .job-card-title {
-  margin: 0 0 4px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #1a1a1a;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis; /* Cắt chữ thành ... nếu quá dài */
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  line-height: 1.4;
 }
 
-/* Tên công ty */
+/* TÊN CÔNG TY: Nhỏ hơn, màu xám */
 .job-card-company {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  color: #595959;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin: 0;
 }
 
-/* Khu vực chứa các thẻ Tag */
+/* FOOTER chứa Tags: Tự động đẩy xuống đáy Card */
+.job-card-footer {
+  margin-top: auto; 
+  padding-top: 20px;
+}
+
 .job-card-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px; /* Khoảng cách giữa các tag */
+  gap: 8px;
 }
 
-/* Style chung cho tag */
 .job-tag {
-  padding: 4px 10px;
-  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
   font-weight: 500;
-  border-radius: 4px;
-  background-color: #f3f4f6;
-  color: #4b5563;
 }
 
-/* Tùy chỉnh màu sắc riêng cho từng loại tag (giúp UI bắt mắt hơn) */
-.tag-salary {
-  background-color: #e6f7ff;
-  color: #0050b3; /* Xanh nước biển */
-}
-
-.tag-location {
-  background-color: #f6ffed;
-  color: #389e0d; /* Xanh lá */
-}
-
-.tag-type {
-  background-color: #fff0f6;
-  color: #c41d7f; /* Đỏ tía */
-}
+.tag-salary { background-color: #e0e7ff; color: #3730a3; }
+.tag-location { background-color: #f3f4f6; color: #4b5563; } 
+.tag-type { background-color: #fef3c7; color: #92400e; }
