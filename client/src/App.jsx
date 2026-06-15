@@ -18,6 +18,7 @@ import Register from './pages/Authentication/Register';
 import UserDashboard from './pages/DashBoard/UserDashboard/UserDashboard';
 import SetupProfilePage from './pages/SetupProfilePage/SetupProfilePage';
 import SearchJobs from './pages/SearchJobs/SearchJobs';
+import PostTemplates from './pages/DashBoard/CompanyDashboard/PostTemplates';
 
 import './App.css';
 import CompanyDashboard from './pages/DashBoard/CompanyDashboard/CompanyDashboard';
@@ -68,13 +69,18 @@ const router = createBrowserRouter([
       
    
       {
-        path: "/company",
-        element: <CompanyDashboard />,
-        children: [
-          { path: "profile", element: <CompanyProfile /> }, 
-          { path: "post-job", element: <JobPosting /> },    
-        ]
-      },
+  path: "/company",
+  element: <CompanyDashboard />,
+  children: [
+    { path: "dashboard", element: <></> },
+
+    { path: "profile", element: <CompanyProfile /> },
+
+    { path: "post-job", element: <JobPosting /> },
+
+    { path: "templates", element: <PostTemplates /> }
+  ]
+},
 
       {
         path: "/admin",
