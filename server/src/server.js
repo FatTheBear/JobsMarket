@@ -32,6 +32,7 @@ const walletRoutes = require("./routes/walletRoutes");
 const companyRoutes = require('./routes/company');
 const jobs = require('./routes/jobs');
 const skillsRoutes = require('./routes/skills');
+const applicationRoutes = require('./routes/applicationRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -39,6 +40,7 @@ app.use('/api/candidate', candidateRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/company', companyRoutes);
 app.use('/api/skills', skillsRoutes);
+app.use('/api/applications', applicationRoutes);
 app.use('/api/jobs', jobs);
 
 io.on('connection', (socket) => {
