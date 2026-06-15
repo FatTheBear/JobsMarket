@@ -55,7 +55,7 @@ const AdminTransaction = () => {
     return (
         <div>
             
-            <h2 className="admin-title" style={{ color: '#38bdf8' }}>Manage Coin Transactions</h2>
+            <h2 className="admin-title" style={{ color: '#01796F' }}>Manage Coin Transactions</h2>
             
         
             <div className="table-container">

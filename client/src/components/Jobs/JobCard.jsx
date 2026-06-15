@@ -1,7 +1,9 @@
-import React from 'react';
-import './JobCard.module.css';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import './JobCard.css';
 
-export default function JobCard({ job, onSelect }) {
+export default function JobCard({ company_logo, job, onSelect }) {
+  const [imgError, setImgError] = useState(false);
   // 1. Destructure data from the job object
   const {
     title,
@@ -10,32 +12,47 @@ export default function JobCard({ job, onSelect }) {
     salary_min,
     salary_max,
     loc,
-    job_type
+    job_type,
   } = job;
 
   // 2. Logic to format salary nicely
   const formatSalary = () => {
-    if (!salary_min && !salary_max) return 'Negotiable';
+    // 1. Suy luận Internship từ cột job_type
+    if (job_type && job_type.toLowerCase().includes('intern')) {
+        return 'Internship';
+    }
+
+    // 2. Suy luận Negotiable (Thỏa thuận) nếu không có min max
+    if (!salary_min && !salary_max) {
+        return 'Negotiable';
+    }
+
+    // 3. Xử lý Specific (Cụ thể)
     if (salary_min && salary_max) return `$${salary_min} - $${salary_max}`;
     if (salary_min) return `From $${salary_min}`;
     return `Up to $${salary_max}`;
   };
+  const navigate = useNavigate();
 
   // 3. Render the UI
   return (
-    <div className="job-card-container" onClick={() => onSelect(job)}>
-      <div className="job-card-logo">
+    <div className="job-card-container" onClick={() => onSelect?.(job)}>
+      {/* Khối trên: Logo + Tên Job + Tên Công ty */}
+      <div className="job-card-header">
         <img
-          src={logo_url || '/default-company-logo.png'}
+          src={imgError ? '/default-company-logo.png' : (logo_url || '/default-company-logo.png')}
           alt={`${company_name || 'Company'} logo`}
-          onError={(e) => { e.target.src = '/default-company-logo.png' }} // Fallback if image fails to load
+          onError={() => setImgError(true)}
+          className="job-card-logo"
         />
+        <div className="job-card-main-info">
+          <h3 className="job-card-title">{title || 'Untitled Job'}</h3>
+          <p className="job-card-company">{company_name || 'Company name not provided'}</p>
+        </div>
       </div>
 
-      <div className="job-card-body">
-        <h3 className="job-card-title">{title || 'Untitled Job'}</h3>
-        <p className="job-card-company">{company_name || 'Company name not provided'}</p>
-
+      {/* Khối dưới: Lương, Địa điểm, Loại công việc */}
+      <div className="job-card-footer">
         <div className="job-card-tags">
           <span className="job-tag tag-salary">{formatSalary()}</span>
           <span className="job-tag tag-location">{loc || 'Location updating'}</span>

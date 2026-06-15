@@ -87,4 +87,46 @@ router.put('/:hr_id', async (req, res) => {
   }
 });
 
+// POST /api/company/:hr_id/saved-candidates/:candidate_id — Lưu hoặc Bỏ lưu ứng viên
+router.post('/:hr_id/saved-candidates/:candidate_id', async (req, res) => {
+  try {
+    const { hr_id, candidate_id } = req.params;
+    
+    // Check if already saved
+    const [existing] = await pool.query('SELECT * FROM Saved_Candidate WHERE hr_id = ? AND candidate_id = ?', [hr_id, candidate_id]);
+    
+    if (existing.length > 0) {
+      // Unsave
+      await pool.query('DELETE FROM Saved_Candidate WHERE hr_id = ? AND candidate_id = ?', [hr_id, candidate_id]);
+      return res.json({ message: 'Unsaved candidate', is_saved: false });
+    } else {
+      // Save
+      await pool.query('INSERT INTO Saved_Candidate (hr_id, candidate_id) VALUES (?, ?)', [hr_id, candidate_id]);
+      return res.status(201).json({ message: 'Saved candidate', is_saved: true });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// GET /api/company/:hr_id/saved-candidates — Lấy danh sách ứng viên đã lưu
+router.get('/:hr_id/saved-candidates', async (req, res) => {
+  try {
+    const { hr_id } = req.params;
+    const query = `
+      SELECT sc.*, cp.full_name, cp.phone, cp.avatar_url, cp.skills, cp.years_of_experience, cp.headline, cp.user_id
+      FROM Saved_Candidate sc
+      JOIN Candidate_Profile cp ON sc.candidate_id = cp.id
+      WHERE sc.hr_id = ?
+      ORDER BY sc.saved_at DESC
+    `;
+    const [rows] = await pool.query(query, [hr_id]);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 module.exports = router;

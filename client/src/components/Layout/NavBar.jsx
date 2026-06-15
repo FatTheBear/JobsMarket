@@ -32,11 +32,12 @@ const MENU_CONFIG = {
 };
 
 export default function NavBar() {
-console.log("navRENDER");
-   const [isLoggedIn, setIsLoggedIn] = useState(
-  !!localStorage.getItem("token")
-);
-const [role, setRole] = useState(()=> {
+  console.log("navRENDER");
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    const token = localStorage.getItem("token");
+    return !!token && token !== "undefined" && token !== "null";
+  });
+    const [role, setRole] = useState(() => {
     const rawRole = localStorage.getItem("role");
     const roleMap = {
 
@@ -130,22 +131,47 @@ return (
           <button className="nav-logout-btn" onClick={handleLogout} title="Log out">
             Log out
           </button>
-        </>
-      ) : (
-        // --- HIỂN THỊ KHI CHƯA ĐĂNG NHẬP (TRANG LANDING PAGE) ---
-        <>
-          <button className="nav-link" onClick={() => navigate('/auth')}>
-            For Employers
-          </button>
-          
-          <button className="nav-signin-btn" onClick={() => navigate('/auth')}>
-            Sign In
-          </button>
-        </>
-      )}
-    </div>
-  </nav>
-);
+        ))}
+      </div>
+
+      {/* PHẢI: Khối hiển thị User hoặc Nút Login */}
+      <div className="nav-profile-section">
+        {isLoggedIn ? (
+          // --- HIỂN THỊ KHI ĐÃ ĐĂNG NHẬP ---
+          <>
+            <div className="nav-user-info">
+
+              <img
+                src={avatarUrl}
+                alt="Avatar"
+                className="nav-avatar"
+                onError={() => {
+                  if (avatarUrl !== '/default-avatar.png') {
+                    setAvatarUrl('/default-avatar.png');
+                  }
+                }}
+              />
+              <span className="nav-user-name">{userName}</span>
+            </div>
+            <button className="nav-logout-btn" onClick={handleLogout} title="Log out">
+              Log out
+            </button>
+          </>
+        ) : (
+          // --- HIỂN THỊ KHI CHƯA ĐĂNG NHẬP (TRANG LANDING PAGE) ---
+          <>
+            <button className="nav-link" onClick={() => navigate('/auth')}>
+              Get Started
+            </button>
+
+            <button className="nav-signin-btn" onClick={() => navigate('/login')}>
+              Sign In
+            </button>
+          </>
+        )}
+      </div>
+    </nav>
+  );
 }
 
 

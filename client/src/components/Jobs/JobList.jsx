@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import JobCard from './JobCard';
 import JobDetail from './JobDetail';
-import './JobList.module.css';
+import './JobList.css';
 
 const API_URL = 'http://localhost:5000';
 
@@ -66,7 +66,9 @@ export default function JobList() {
 
       {/* Data Render State */}
       {!loading && !error && jobs.length > 0 && (
-        <div className="job-cards-grid">
+        <div className="job-cards-grid"
+        style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px' }}
+        >
           {jobs.map((jobItem) => (
             <JobCard
               key={jobItem.id}
