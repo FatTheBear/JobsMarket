@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Briefcase, BarChart2, FolderTree, Newspaper, CreditCard, Coins } from 'lucide-react';
+import { Users, Briefcase, BarChart2, FolderTree, Newspaper, CreditCard, Coins, Bell } from 'lucide-react';
 import { adminApi } from '../../services/adminApi';
 import AdminOverview from './AdminOverview';
 import AdminUser from './AdminUser';
@@ -10,6 +10,7 @@ import AdminTransaction from './AdminTransaction';
 import AdminCoinFees from './AdminCoinFees';
 import './Admin.css';
 import CreateNewsModal from './CreateNewsModal';
+import AdminNotifications from "./AdminNotifications";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -42,7 +43,11 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       // These tabs manage their own data loading internally
-      if (activeTab === 'coin-fees' || activeTab === 'transactions') {
+      if (
+        activeTab === 'coin-fees' ||
+        activeTab === 'transactions' ||
+        activeTab === 'notifications'
+      ) {
         setLoading(false);
         return;
       }
@@ -204,6 +209,7 @@ const AdminDashboard = () => {
           <button onClick={() => setActiveTab('news')} className={`sidebar-btn ${activeTab === 'news' ? 'active' : ''}`}><Newspaper size={20} /> News Management</button>
           <button onClick={() => setActiveTab('transactions')} className={`sidebar-btn ${activeTab === 'transactions' ? 'active' : ''}`}><CreditCard size={20} /> Transactions</button>
           <button onClick={() => setActiveTab('coin-fees')} className={`sidebar-btn ${activeTab === 'coin-fees' ? 'active' : ''}`}><Coins size={20} /> Coin Fees</button>
+          <button onClick={() => setActiveTab("notifications")} className={`sidebar-btn ${activeTab === "notifications" ? "active" : ""}`}><Bell size={20} />Notifications</button>
         </div>
       </div>
       <div className="admin-content">
@@ -211,6 +217,7 @@ const AdminDashboard = () => {
         {!loading && activeTab === 'overview' && <AdminOverview stats={stats} />}
         {!loading && activeTab === 'users' && <AdminUser users={users} onToggleStatus={handleToggleUserStatus} />}
         {!loading && activeTab === 'jobs' && <AdminJob pendingJobs={pendingJobs} onReviewJob={handleReviewJob} />}
+        {!loading && activeTab === "notifications" && (<AdminNotifications />)}
         {!loading && activeTab === 'categories' && (
           <AdminCategories
             categories={categories}

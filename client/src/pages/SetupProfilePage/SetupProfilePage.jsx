@@ -357,8 +357,6 @@ export default function SetupProfilePage() {
     setCurrentStep((prev) => prev - 1);
   };
 
-  // Finish and submit to server
-  // Finish and submit to server
   const handleFinishSetup = async () => {
     if (!formData.display_name.trim()) {
       setApiError('Display Name is mandatory!');
@@ -386,9 +384,15 @@ export default function SetupProfilePage() {
 
     setLoading(true);
     setApiError('');
+    
     try {
-      await axios.post('http://localhost:5000/api/candidate/onboarding', formData, getHeaders());
+      const response = await axios.post('http://localhost:5000/api/candidate/onboarding', formData, getHeaders());
+      
+      localStorage.setItem('userName', formData.display_name.trim());
+      localStorage.setItem('avatarUrl', response.data?.avatar_url || '/default-avatar.png');
+      
       navigate('/dashboard');
+      window.location.reload();
     } catch (error) {
       console.error(error);
       setApiError(error.response?.data?.message || 'Error occurred while saving profile. Please try again.');

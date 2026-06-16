@@ -15,10 +15,10 @@ export default function SearchJobs() {
   const [location, setLocation] = useState('');
   const [salary, setSalary] = useState('');
 
-  // Tự động tải toàn bộ danh sách công việc khi vừa vào trang lần đầu
+  // Tự động tải danh sách công việc khi vừa vào trang lần đầu hoặc khi đổi filter
   useEffect(() => {
     handleSearch();
-  }, []);
+  }, [location, salary]);
 
   // Hàm xử lý gọi API tìm kiếm đến Backend
   const handleSearch = async (e) => {
@@ -95,30 +95,45 @@ export default function SearchJobs() {
               <div 
                 key={job.id} 
                 className="job-card-item"
-                onClick={() => navigate(`/job/${job.id}`)} // Điều hướng đến trang chi tiết công việc bạn sắp làm
+                onClick={() => navigate(`/job/${job.id}`)} // Điều hướng đến trang chi tiết
               >
                 <div className="job-card-left">
-                  <h3 className="job-card-title">{job.title}</h3>
-                  <div className="job-card-company">{job.company_name || 'Công ty thành viên JobsMarket'}</div>
-                  
-                  <div className="job-card-info-tags">
-                    <span>📍 {job.location || 'Hồ Chí Minh'}</span>
-                    <span>💰 {job.salary || 'Thỏa thuận'}</span>
+                  <div className="job-card-logo">
+                    {job.logo_url ? (
+                      <img src={job.logo_url} alt="Company Logo" />
+                    ) : (
+                      <div className="job-card-logo-placeholder">🏢</div>
+                    )}
                   </div>
+                  <div className="job-card-content">
+                    <h3 className="job-card-title">{job.title}</h3>
+                    <div className="job-card-company">{job.company_name || 'Công ty thành viên JobsMarket'}</div>
+                    
+                    <div className="job-card-info-tags">
+                      <span>📍 {job.company_address || 'Chưa cập nhật địa điểm'}</span>
+                      <span className="salary-tag">💰 {
+                        (job.salary_min && job.salary_max) 
+                          ? `${(job.salary_min / 1000000).toLocaleString('vi-VN')} - ${(job.salary_max / 1000000).toLocaleString('vi-VN')} triệu`
+                          : (job.salary_min ? `Từ ${(job.salary_min / 1000000).toLocaleString('vi-VN')} triệu` : 
+                            (job.salary_max ? `Đến ${(job.salary_max / 1000000).toLocaleString('vi-VN')} triệu` : 'Thỏa thuận'))
+                      }</span>
+                    </div>
 
-                  {/* Hiển thị danh sách kỹ năng đi kèm bài đăng dạng tag nhỏ */}
-                  <div className="job-card-skills-list">
-                    {job.skills && job.skills.map((skill) => (
-                      <span key={skill.id} className="job-card-skill-tag">
-                        {skill.name}
-                      </span>
-                    ))}
+                    <div className="job-card-skills-list">
+                      {job.skills && job.skills.length > 0 ? job.skills.map((skill) => (
+                        <span key={skill.id} className="job-card-skill-tag">
+                          {skill.name}
+                        </span>
+                      )) : (
+                        <span className="job-card-skill-tag">{job.job_type}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 <div className="job-card-right">
                   <button className="view-detail-btn" type="button">
-                    Xem chi tiết
+                    Ứng tuyển ngay
                   </button>
                 </div>
               </div>

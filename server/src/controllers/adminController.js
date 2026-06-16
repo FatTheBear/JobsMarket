@@ -577,3 +577,84 @@ exports.deleteCoinFee = async (req, res) => {
         res.status(500).json({ message: "Error deleting coin package", error: error.message });
     }
 };
+
+// =========================================================
+// NOTIFICATIONS
+// =========================================================
+
+// Lấy danh sách thông báo
+exports.getNotifications = async (req, res) => {
+    try {
+        const [notifications] = await db.query(`
+            SELECT
+                n.id,
+                n.user_id,
+                u.email,
+                n.title,
+                n.content,
+                n.is_read,
+                n.created_at
+            FROM Notification n
+            LEFT JOIN User u
+                ON n.user_id = u.id
+            ORDER BY n.created_at DESC
+        `);
+
+        res.json(notifications);
+
+    } catch (error) {
+        console.error("GET NOTIFICATIONS ERROR:", error);
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
+// Đánh dấu đã đọc
+exports.markNotificationRead = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        await db.query(
+            `UPDATE Notification
+             SET is_read = 1
+             WHERE id = ?`,
+            [id]
+        );
+
+        res.json({
+            success: true,
+            message: "Notification marked as read"
+        });
+
+    } catch (error) {
+        console.error("MARK NOTIFICATION ERROR:", error);
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};
+
+// Xóa thông báo
+exports.deleteNotification = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        await db.query(
+            `DELETE FROM Notification
+             WHERE id = ?`,
+            [id]
+        );
+
+        res.json({
+            success: true,
+            message: "Notification deleted"
+        });
+
+    } catch (error) {
+        console.error("DELETE NOTIFICATION ERROR:", error);
+        res.status(500).json({
+            message: error.message
+        });
+    }
+};

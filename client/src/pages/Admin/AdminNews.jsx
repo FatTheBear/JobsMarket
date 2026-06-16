@@ -46,9 +46,9 @@ const AdminNews = ({
               width: '320px',
               padding: '10px 14px',
               borderRadius: '8px',
-              border: '1px solid #334155',
-              background: '#0f172a',
-              color: '#fff'
+              border: '1px solid #aeb1b4',
+              background: '#ffffff',
+              color: '#01796F'
             }}
           />
         </div>
@@ -56,7 +56,7 @@ const AdminNews = ({
         <div style={{ display: 'flex', gap: '12px' }}>
           <button
             className="admin-btn-primary"
-            style={{ background: '#059669' }}
+            style={{ background: '#5a5a5a' }}
             onClick={onRefresh}
           >
             Refresh
@@ -153,7 +153,7 @@ const AdminNews = ({
                   </td>
 
                   <td>
-                    <span style={{ color: '#38bdf8' }}>
+                    <span style={{ color: '#01796F' }}>
                       {news.category_name || 'General'}
                     </span>
                   </td>
