@@ -56,19 +56,18 @@
   padding: 35px 40px 20px 40px;
   text-align: center;
   border-bottom: 1px solid rgba(176, 196, 222, 0.3);
+  background-color: #01796F;
 }
 
 .setup-wizard-header h1 {
   font-size: 2.2rem;
   font-weight: 800;
-  background: var(--primary-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #ffffff;
   margin-bottom: 8px;
 }
 
 .setup-wizard-header p {
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.85);
   font-size: 1.05rem;
 }
 
