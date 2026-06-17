@@ -2,10 +2,10 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 export default function CompanySidebar() {
-  // Lấy URL hiện tại để biết tab nào đang được chọn (active)
+  // Use the current URL to determine the active tab.
   const location = useLocation();
 
-  // Biến tạm để giả lập số lượng (bạn có thể thay bằng props sau)
+  // Temporary count placeholder, can be replaced with props later.
   const APPLICANTS_DATA = [];
 
   return (

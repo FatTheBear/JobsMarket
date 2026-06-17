@@ -2,35 +2,33 @@ const CandidateProfileModel = require('../models/CandidatesPrf');
 const pool = require('../config/db');
 
 const candidateController = {
-    // Lấy thông tin chi tiết Candidate Profile
+    // Get candidate profile details.
     getProfile: async (req, res) => {
         try {
-            const userId = req.user.id; // Lấy từ authMiddleware sau khi giải mã Token
+            const userId = req.user.id;
             const profile = await CandidateProfileModel.findByUserId(userId);
 
             if (!profile) {
                 return res.status(404).json({ message: "Candidate profile not found!" });
             }
 
-            // Nếu trường skills được lưu dưới dạng JSON trong DB, parse nó về Object/Array khi gửi về Client
+            // Parse JSON fields before returning them to the client.
             if (profile.skills && typeof profile.skills === 'string') {
                 profile.skills = JSON.parse(profile.skills);
             }
 
-            // Nếu trường education được lưu dưới dạng JSON trong DB, parse nó về Object/Array khi gửi về Client
+            // Parse education if stored as JSON.
             if (profile.education && typeof profile.education === 'string') {
                 profile.education = JSON.parse(profile.education);
             }
-            //Tính số năm kinh nghiệm
+            // Calculate years of experience.
             if (profile.experience && Array.isArray(profile.experience)) {
                 let totalMonths = 0;
                 profile.experience.forEach(exp => {
-                    if (exp.startDate) { // Kiểm tra xem có ngày bắt đầu không
+                    if (exp.startDate) {
                         const start = new Date(exp.startDate);
-                        // Nếu không có ngày kết thúc (nghĩa là đang làm), lấy ngày hôm nay
                         const end = exp.endDate ? new Date(exp.endDate) : new Date();
 
-                        // Tính tổng số tháng (Số năm chênh lệch * 12 + Số tháng chênh lệch)
                         const diffMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
 
                         if (diffMonths > 0) {
@@ -39,7 +37,7 @@ const candidateController = {
                     }
                 });
 
-                // Quy đổi ra năm, làm tròn 1 chữ số thập phân (Ví dụ: 32 tháng -> 2.7 năm)
+                // Convert months to years and keep one decimal place.
                 profile.years_of_experience = Math.round((totalMonths / 12) * 10) / 10;
             } else {
                 profile.years_of_experience = 0;
@@ -52,16 +50,16 @@ const candidateController = {
         }
     },
 
-    // Cập nhật thông tin Candidate Profile
+    // Update candidate profile information.
     updateProfile: async (req, res) => {
         try {
-            const userId = req.user.id; // Lấy từ authMiddleware
+            const userId = req.user.id;
             const updateFields = req.body;
             if (req.file) {
                 const avatarUrl = `http://localhost:5000/uploads/avatars/${req.file.filename}`;
                 updateFields.avatar_url = avatarUrl;
             }
-            // Parse chuỗi JSON thành mảng cho Education và Experience
+            // Parse JSON arrays for education and experience.
             if (updateFields.education && typeof updateFields.education === 'string') {
                 updateFields.education = JSON.parse(updateFields.education);
             }
@@ -84,7 +82,7 @@ const candidateController = {
         }
     },
 
-    // Lấy danh sách công ty đề xuất cho onboarding
+    // Get recommended companies for onboarding.
     getRecommendedCompanies: async (req, res) => {
         try {
             const userId = req.user.id;
@@ -96,7 +94,7 @@ const candidateController = {
         }
     },
 
-    // Lưu thông tin Onboarding ban đầu
+    // Save initial onboarding information.
     saveOnboarding: async (req, res) => {
         try {
             const userId = req.user.id;
@@ -110,7 +108,7 @@ const candidateController = {
         }
     },
 
-    // Lấy thông tin public của candidate bằng profile ID
+    // Get a candidate public profile by profile ID.
     getPublicProfile: async (req, res) => {
         try {
             const profileId = req.params.id;
@@ -120,7 +118,7 @@ const candidateController = {
                 return res.status(404).json({ message: "Candidate profile not found!" });
             }
 
-            // Parse các trường JSON
+            // Parse JSON fields.
             if (profile.skills && typeof profile.skills === 'string') {
                 profile.skills = JSON.parse(profile.skills);
             }
@@ -128,14 +126,14 @@ const candidateController = {
                 profile.education = JSON.parse(profile.education);
             }
 
-            // Kiểm tra tính riêng tư của Profile
+            // Check profile privacy.
             const isOwner = req.user && req.user.id === profile.user_id;
             const isAdmin = req.user && req.user.role === 'Admin';
 
             if (!profile.is_public && !isOwner && !isAdmin) {
                 return res.status(403).json({ message: "This profile is private." });
             }
-            //Tính số năm kinh nghiệm
+            // Calculate years of experience.
             if (profile.experience && Array.isArray(profile.experience)) {
                 let totalMonths = 0;
                 profile.experience.forEach(exp => {
@@ -161,8 +159,8 @@ const candidateController = {
     },
     uploadCV: async (req, res) => {
         const userId = req.user.id;
-        const file = req.file; // File CV do multer bắt được
-        const cv_name = req.body.cv_name || "CV Ứng viên";
+        const file = req.file;
+        const cv_name = req.body.cv_name || "Candidate CV";
 
         if (!file) {
             return res.status(400).json({ message: "Please select a CV file to upload!" });
@@ -171,7 +169,7 @@ const candidateController = {
         try {
             const connection = await pool.getConnection();
 
-            // 1. Tìm ID hồ sơ ứng viên (candidate_id) từ user_id
+            // 1. Find the candidate profile ID from user_id.
             const [candidateRows] = await connection.execute(
                 'SELECT id FROM candidate_profile WHERE user_id = ?',
                 [userId]
@@ -184,7 +182,7 @@ const candidateController = {
 
             const candidateId = candidateRows[0].id;
 
-            // 2. Trích xuất thông tin file
+            // 2. Extract file information.
             const file_name = file.filename;
             const file_url = `/uploads/cvs/${file.filename}`;
             const file_size = file.size;
@@ -194,7 +192,7 @@ const candidateController = {
                 file_type = 'PDF';
             }
 
-            // 3. Lưu toàn bộ dữ liệu vào bảng candidate_cv
+            // 3. Save the CV record.
             const [result] = await connection.execute(
                 'INSERT INTO candidate_cv (candidate_id, cv_name, file_name, file_url, file_type, file_size) VALUES (?, ?, ?, ?, ?, ?)',
                 [candidateId, cv_name, file_name, file_url, file_type, file_size]
@@ -204,32 +202,32 @@ const candidateController = {
             return res.status(201).json({ message: "CV saved successfully!", cv_url: file_url });
 
         } catch (error) {
-            console.error("Lỗi khi lưu CV:", error);
-            return res.status(500).json({ message: "Server error khi lưu CV!" });
+            console.error("Error saving CV:", error);
+            return res.status(500).json({ message: "Server error while saving CV!" });
         }
     },
-    // 1. API Lấy danh sách toàn bộ CV
+    // 1. API: get all CVs.
     getAllCVs: async (req, res) => {
         try {
             const userId = req.user.id;
             const connection = await pool.getConnection();
-            // Lấy ID của ứng viên (candidate_id)
+            // Get the candidate ID.
             const [candidateRows] = await connection.execute(
                 'SELECT id FROM candidate_profile WHERE user_id = ?',
                 [userId]
             );
             if (candidateRows.length === 0) {
                 connection.release();
-                return res.status(200).json([]); // Trả về mảng rỗng nếu chưa có profile
+                return res.status(200).json([]);
             }
             const candidateId = candidateRows[0].id;
-            // Lấy toàn bộ CV của ứng viên này sắp xếp mới nhất lên đầu
+            // Get all CVs for this candidate, newest first.
             const [cvRows] = await connection.execute(
                 'SELECT id, cv_name as name, file_type as type, file_size as size, file_url as dataUrl, DATE_FORMAT(created_at, "%b %e, %Y") as uploadedAt FROM candidate_cv WHERE candidate_id = ? ORDER BY created_at DESC',
                 [candidateId]
             );
             connection.release();
-            // Chuẩn hóa dữ liệu một chút để Frontend dễ dùng
+            // Normalize the response for frontend use.
             const formattedCVs = cvRows.map(cv => ({
                 id: cv.id,
                 name: cv.name,
@@ -240,19 +238,19 @@ const candidateController = {
             }));
             return res.status(200).json(formattedCVs);
         } catch (error) {
-            console.error("Lỗi lấy danh sách CV:", error);
-            return res.status(500).json({ message: "Server error khi tải danh sách CV!" });
+            console.error("Error loading CV list:", error);
+            return res.status(500).json({ message: "Server error while loading CV list!" });
         }
     },
-    // 2. API Xóa 1 CV
+    // 2. API: delete one CV.
     deleteCV: async (req, res) => {
         try {
-            const cvId = req.params.id; // Lấy ID của CV cần xóa từ đường dẫn
+            const cvId = req.params.id;
             const userId = req.user.id;
 
             const connection = await pool.getConnection();
 
-            // Xóa cứng khỏi Database (có kiểm tra chéo user_id để ứng viên không xóa trộm CV của người khác)
+            // Delete only when the CV belongs to the current user.
             await connection.execute(
                 'DELETE cv FROM candidate_cv cv JOIN candidate_profile cp ON cv.candidate_id = cp.id WHERE cv.id = ? AND cp.user_id = ?',
                 [cvId, userId]
@@ -260,11 +258,11 @@ const candidateController = {
             connection.release();
             return res.status(200).json({ message: "CV deleted successfully!" });
         } catch (error) {
-            console.error("Lỗi xóa CV:", error);
-            return res.status(500).json({ message: "Server error khi xóa CV!" });
+            console.error("Error deleting CV:", error);
+            return res.status(500).json({ message: "Server error while deleting CV!" });
         }
     },
-    // 3. API Nộp Đơn Ứng Tuyển
+    // 3. API: submit a job application.
     applyJob: async (req, res) => {
         try {
             const { job_id, cv_id } = req.body;
@@ -276,7 +274,7 @@ const candidateController = {
 
             const connection = await pool.getConnection();
 
-            // 1. Lấy candidate_id
+            // 1. Get candidate_id.
             const [candidateRows] = await connection.execute(
                 'SELECT id FROM candidate_profile WHERE user_id = ?',
                 [userId]
@@ -289,7 +287,7 @@ const candidateController = {
 
             const candidateId = candidateRows[0].id;
 
-            // 2. Kiểm tra xem ứng viên có gửi đúng CV của mình không
+            // 2. Ensure the candidate owns the submitted CV.
             const [cvRows] = await connection.execute(
                 'SELECT id FROM candidate_cv WHERE id = ? AND candidate_id = ?',
                 [cv_id, candidateId]
@@ -300,7 +298,7 @@ const candidateController = {
                 return res.status(403).json({ message: "Invalid CV or you do not own it!" });
             }
 
-            // 3. Kiểm tra xem ứng viên đã apply vào job này chưa
+            // 3. Check whether the candidate already applied to this job.
             const [existingApp] = await connection.execute(
                 'SELECT id FROM application WHERE job_id = ? AND candidate_id = ?',
                 [job_id, candidateId]
@@ -311,7 +309,7 @@ const candidateController = {
                 return res.status(400).json({ message: "You have already applied for this job!" });
             }
 
-            // 4. Lưu dữ liệu ứng tuyển
+            // 4. Save the application.
             await connection.execute(
                 'INSERT INTO application (job_id, candidate_id, cv_id, status) VALUES (?, ?, ?, "Applied")',
                 [job_id, candidateId, cv_id]
@@ -320,17 +318,17 @@ const candidateController = {
             connection.release();
             return res.status(201).json({ message: "Applied successfully!" });
         } catch (error) {
-            console.error("Lỗi khi ứng tuyển:", error);
+            console.error("Error applying for job:", error);
             return res.status(500).json({ message: "System error while applying: " + error.message });
         }
     },
-    // 4. API Lấy lịch sử ứng tuyển
+    // 4. API: get application history.
     getApplications: async (req, res) => {
         try {
             const userId = req.user.id;
             const connection = await pool.getConnection();
 
-            // 1. Lấy candidate_id
+            // 1. Get candidate_id.
             const [candidateRows] = await connection.execute(
                 'SELECT id FROM candidate_profile WHERE user_id = ?',
                 [userId]
@@ -365,11 +363,11 @@ const candidateController = {
             const [rows] = await connection.execute(query, [candidateId]);
             connection.release();
 
-            // Format data trả về
+            // Format response data.
             const formattedApps = rows.map(app => ({
                 id: app.application_id,
                 status: app.status,
-                appliedAt: app.applied_at, // Frontend sẽ format
+                appliedAt: app.applied_at,
                 jobTitle: app.job_title,
                 companyName: app.company_name,
                 companyLogo: app.company_logo ? (app.company_logo.startsWith('http') ? app.company_logo : `http://localhost:5000${app.company_logo}`) : null,
@@ -379,7 +377,7 @@ const candidateController = {
 
             return res.status(200).json(formattedApps);
         } catch (error) {
-            console.error("Lỗi lấy lịch sử ứng tuyển:", error);
+            console.error("Error loading application history:", error);
             return res.status(500).json({ message: "System error while loading application history!" });
         }
     },

@@ -50,7 +50,7 @@ export default function JobDetail() {
       const res = await axios.get(`${API_URL}/api/jobs/${id}`);
       setJob(res.data);
     } catch (err) {
-      showToast('Không thể tải thông tin công việc', 'error');
+      showToast('Cannot load job information', 'error');
     } finally {
       setLoading(false);
     }
@@ -77,22 +77,22 @@ export default function JobDetail() {
         saveAppliedJobId(id);
       }
     } catch {
-      // Bỏ qua — user chưa đăng nhập hoặc chưa có profile
+      // Ignore when the user is not logged in or has no profile yet.
     }
   };
 
   const handleApplyClick = () => {
     const userStr = localStorage.getItem('user');
     if (!userStr) {
-      showToast('Vui lòng đăng nhập để ứng tuyển', 'error');
+      showToast('Please log in to apply', 'error');
       setTimeout(() => navigate('/login'), 2000);
       return;
     }
     setShowApplyModal(true);
   };
 
-  if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Đang tải...</div>;
-  if (!job) return <div style={{ padding: '50px', textAlign: 'center' }}>Không tìm thấy công việc</div>;
+  if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Loading...</div>;
+  if (!job) return <div style={{ padding: '50px', textAlign: 'center' }}>Job not found</div>;
 
   return (
     <div className="job-detail-container">
@@ -109,29 +109,29 @@ export default function JobDetail() {
               <div className="job-meta-item">
                 <span>💰</span>
                 {(job.salary_min && job.salary_max)
-                  ? `${(job.salary_min / 1000000).toLocaleString('vi-VN')} - ${(job.salary_max / 1000000).toLocaleString('vi-VN')} triệu VNĐ`
+                  ? `${(job.salary_min / 1000000).toLocaleString('en-US')} - ${(job.salary_max / 1000000).toLocaleString('en-US')} million VND`
                   : (job.salary_min
-                    ? `Từ ${(job.salary_min / 1000000).toLocaleString('vi-VN')} triệu VNĐ`
+                    ? `From ${(job.salary_min / 1000000).toLocaleString('en-US')} million VND`
                     : (job.salary_max
-                      ? `Đến ${(job.salary_max / 1000000).toLocaleString('vi-VN')} triệu VNĐ`
-                      : 'Thỏa thuận'))
+                      ? `Up to ${(job.salary_max / 1000000).toLocaleString('en-US')} million VND`
+                      : 'Negotiable'))
                 }
               </div>
               <div className="job-meta-item">
-                <span>📍</span> {job.company_address || 'Hồ Chí Minh'}
+                <span>📍</span> {job.company_address || 'Ho Chi Minh City'}
               </div>
               <div className="job-meta-item">
-                <span>⏳</span> Hạn nộp: {new Date(job.deadline).toLocaleDateString('vi-VN')}
+                <span>⏳</span> Deadline: {new Date(job.deadline).toLocaleDateString('en-US')}
               </div>
             </div>
           </div>
           {hasApplied ? (
             <button className="apply-btn applied" disabled>
-              ✓ Đã ứng tuyển
+              ✓ Applied
             </button>
           ) : (
             <button className="apply-btn" onClick={handleApplyClick}>
-              Ứng tuyển ngay
+              Apply Now
             </button>
           )}
         </div>
@@ -140,11 +140,11 @@ export default function JobDetail() {
       <div className="job-content-grid">
         <div className="job-main-col">
           <div className="job-section">
-            <h2>Mô tả công việc</h2>
+            <h2>Job Description</h2>
             <p>{job.description}</p>
           </div>
           <div className="job-section">
-            <h2>Yêu cầu ứng viên</h2>
+            <h2>Candidate Requirements</h2>
             <p>{job.requirements}</p>
           </div>
         </div>
@@ -159,7 +159,7 @@ export default function JobDetail() {
             <h3>{job.company_name}</h3>
             {job.company_website && (
               <a href={job.company_website} target="_blank" rel="noreferrer" className="company-website-btn">
-                Website công ty
+                Company Website
               </a>
             )}
           </div>
@@ -178,7 +178,7 @@ export default function JobDetail() {
             showToast(msg, 'success');
           }}
           onError={(msg) => {
-            if (msg.includes('đã ứng tuyển')) {
+            if (msg.includes('already applied')) {
               setHasApplied(true);
               saveAppliedJobId(id);
             }

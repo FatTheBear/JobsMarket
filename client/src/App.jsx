@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { SocketProvider } from './context/SocketContext';
 import MainLayout from './components/layout/MainLayout';
 import LandingPage from './pages/LandingPage/LandingPage';
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
@@ -72,27 +71,14 @@ const router = createBrowserRouter([
           </div>
         )
       },
-
-
       {
-  path: "/company",
-  element: <CompanyDashboard />,
-  children: [
-    { path: "dashboard", element: <></> },
-
-    { path: "profile", element: <CompanyProfile /> },
-
-    { path: "post-job", element: <JobPosting /> },
-
-    { path: "templates", element: <PostTemplates /> }
-  ]
-},
-
         path: "/company",
         element: <CompanyDashboard />,
         children: [
+          { path: "dashboard", element: <></> },
           { path: "profile", element: <CompanyProfile /> },
           { path: "post-job", element: <JobPosting /> },
+          { path: "templates", element: <PostTemplates /> },
           { path: "applicants", element: <AppliedCandidates /> },
           { path: "saved-candidates", element: <SavedCandidates /> },
         ]
@@ -111,13 +97,11 @@ const router = createBrowserRouter([
   },
 
   { path: "/search-jobs", element: <SearchJobs /> },
-  { path: "*", element: <div>404 - Trang không tồn tại</div> }
+  { path: "*", element: <div>404 - Page not found</div> }
 ]);
 
 export default function App() {
   return (
-    //<SocketProvider>
     <RouterProvider router={router} />
-    //</SocketProvider>
   );
 }

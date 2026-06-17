@@ -205,13 +205,13 @@ router.get('/search', async (req, res) => {
     }
 
     if (salary) {
-      if (salary === 'Dưới 10 triệu') {
+      if (salary === 'Under 10 million') {
         query += ` AND jp.salary_max <= 10000000`;
-      } else if (salary === '10 - 20 triệu') {
+      } else if (salary === '10 - 20 million') {
         query += ` AND ((jp.salary_min >= 10000000 AND jp.salary_min <= 20000000) OR (jp.salary_max >= 10000000 AND jp.salary_max <= 20000000))`;
-      } else if (salary === 'Trên 20 triệu') {
+      } else if (salary === 'Over 20 million') {
         query += ` AND (jp.salary_min > 20000000 OR jp.salary_max > 20000000)`;
-      } else if (salary === 'Thỏa thuận') {
+      } else if (salary === 'Negotiable') {
         query += ` AND (jp.salary_min IS NULL AND jp.salary_max IS NULL)`;
       }
     }

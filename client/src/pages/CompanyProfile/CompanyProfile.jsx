@@ -26,7 +26,7 @@ const getHrId = () => {
 const EMPLOYEE_OPTIONS = ['Under 10', '10 - 50', '50 - 100', '100 - 300', '300 - 500', '500 - 1000', 'Over 1000'];
 const BRANCH_OPTIONS = ['1', '2 - 5', '5 - 10', '10 - 20', 'Over 20'];
 const AGE_OPTIONS = ['Under 22', '22 - 25', '25 - 30', '30 - 35', 'Over 35'];
-const TABS = ['Tổng quan', 'Cơ cấu', 'Hình ảnh', 'Khác'];
+const TABS = ['Overview', 'Structure', 'Images', 'Other'];
 
 export default function CompanyProfile() {
   console.log("CompanyProfile render");
@@ -211,14 +211,14 @@ export default function CompanyProfile() {
       {/* Top bar */}
       <div className={styles.topBar}>
         <div>
-          <div className={styles.breadcrumb}>Bảng thông tin</div>
-          <h1 className={styles.pageTitle}>Hồ sơ công ty</h1>
+          <div className={styles.breadcrumb}>Dashboard</div>
+          <h1 className={styles.pageTitle}>Company Profile</h1>
         </div>
         <button
           className={styles.btnPostJob}
           onClick={() => navigate('/company/jobs/create')}
         >
-          Đăng tin tuyển dụng mới
+          Post a New Job
         </button>
       </div>
 
@@ -228,15 +228,15 @@ export default function CompanyProfile() {
         <main className={styles.main}>
           <div className={styles.pageHeader}>
             <div>
-              <div className={styles.pageSubTitle}>Thông tin công ty</div>
-              <h1 className={styles.pageTitle}>Hồ sơ công ty</h1>
+              <div className={styles.pageSubTitle}>Company Information</div>
+              <h1 className={styles.pageTitle}>Company Profile</h1>
             </div>
             <div className={styles.headerActions}>
               <button
                 className={styles.btnOutline}
                 onClick={() => navigate('/company-profile/job-posting')}
               >
-                Xem danh sách việc làm
+                View Job List
               </button>
             </div>
           </div>
@@ -255,16 +255,16 @@ export default function CompanyProfile() {
 
           <div className={styles.summaryGrid}>
             <div className={styles.summaryCard}>
-              <div className={styles.summaryTitle}>Thông tin công ty</div>
-              <div className={styles.summaryRow}><strong>Tên công ty:</strong> {form.name || 'Chưa cập nhật'}</div>
-              <div className={styles.summaryRow}><strong>Ngành nghề:</strong> {industries.find(i => String(i.id) === String(form.industry_id))?.name || 'Chưa chọn'}</div>
-              <div className={styles.summaryRow}><strong>Website:</strong> {form.website || 'Chưa cập nhật'}</div>
+              <div className={styles.summaryTitle}>Company Information</div>
+              <div className={styles.summaryRow}><strong>Company Name:</strong> {form.name || 'Not updated yet'}</div>
+              <div className={styles.summaryRow}><strong>Industry:</strong> {industries.find(i => String(i.id) === String(form.industry_id))?.name || 'Not selected'}</div>
+              <div className={styles.summaryRow}><strong>Website:</strong> {form.website || 'Not updated yet'}</div>
             </div>
             <div className={styles.summaryCard}>
-              <div className={styles.summaryTitle}>Số liệu nhanh</div>
-              <div className={styles.summaryRow}><strong>Việc làm:</strong> 0</div>
-              <div className={styles.summaryRow}><strong>Ứng viên ứng tuyển:</strong> 0</div>
-              <div className={styles.summaryRow}><strong>Hồ sơ đã lưu:</strong> 0</div>
+              <div className={styles.summaryTitle}>Quick Stats</div>
+              <div className={styles.summaryRow}><strong>Jobs:</strong> 0</div>
+              <div className={styles.summaryRow}><strong>Applicants:</strong> 0</div>
+              <div className={styles.summaryRow}><strong>Saved Profiles:</strong> 0</div>
             </div>
           </div>
 
