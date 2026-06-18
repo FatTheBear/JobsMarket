@@ -213,7 +213,7 @@ const authController = {
                 u.role, 
                 u.status,
 
-                cp.display_name AS candidate_name, 
+                cp.full_name AS candidate_name, 
                 cp.avatar_url AS candidate_avatar,
 
                 com.id AS company_id,
@@ -226,7 +226,7 @@ const authController = {
              ON u.id = cp.user_id
 
              LEFT JOIN Company com 
-             ON u.id = com.user_id
+             ON u.id = com.hr_id
 
              WHERE u.email = ?`,
             [email]
