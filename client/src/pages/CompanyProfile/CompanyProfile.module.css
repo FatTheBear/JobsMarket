@@ -141,7 +141,7 @@
   min-width: 0;
 }
 
-/* SỬA UX/UI: Container điều phối hàng ngang của thanh Tabs và nút phụ */
+/* UX/UI: Horizontal container for the tab bar and secondary actions */
 .tabsContainer {
   display: flex;
   justify-content: space-between;
