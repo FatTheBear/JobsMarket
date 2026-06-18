@@ -2,7 +2,7 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import './NavBar.css';
 import React, { useState, useEffect } from 'react';
-import axios from 'axios'; 
+import axios from 'axios';
 
 // 1. Khai báo state để React quản lý (giá trị mặc định là guest)
 
@@ -37,7 +37,7 @@ export default function NavBar() {
     const token = localStorage.getItem("token");
     return !!token && token !== "undefined" && token !== "null";
   });
-    const [role, setRole] = useState(() => {
+  const [role, setRole] = useState(() => {
     const rawRole = localStorage.getItem("role");
     const roleMap = {
 
@@ -59,79 +59,73 @@ export default function NavBar() {
   const location = useLocation();
 
   useEffect(() => {
-  const token = localStorage.getItem('token');
-  setIsLoggedIn(!!token);
-  const rawRole = localStorage.getItem('role');
-  const roleMap = {
-    HR: 'company',
-    Candidate: 'candidate',
-    Admin: 'admin',
-  };
-  setRole(token ? (roleMap[rawRole] || 'candidate') : 'guest');
-
-  if (token) {
-    const fetchProfile = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/candidate/profile', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const profile = response.data;
-        const name = profile.full_name || profile.display_name || 'User';
-        const avatar = profile.avatar_url || '/default-avatar.png';
-        setUserName(name);
-        setAvatarUrl(avatar);
-      } catch (err) {
-        console.error('Failed to fetch profile for NavBar:', err);
-        setUserName('User');
-        setAvatarUrl('/default-avatar.png');
-      }
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+    const rawRole = localStorage.getItem('role');
+    const roleMap = {
+      HR: 'company',
+      Candidate: 'candidate',
+      Admin: 'admin',
     };
-    fetchProfile();
-  } else {
-    setUserName('User');
-    setAvatarUrl('/default-avatar.png');
-  }
-}, []);
+    setRole(token ? (roleMap[rawRole] || 'candidate') : 'guest');
+
+    if (token) {
+      const fetchProfile = async () => {
+        try {
+          const response = await axios.get('http://localhost:5000/api/candidate/profile', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const profile = response.data;
+          const name = profile.full_name || profile.display_name || 'User';
+          const avatar = profile.avatar_url || '/default-avatar.png';
+          setUserName(name);
+          setAvatarUrl(avatar);
+        } catch (err) {
+          console.error('Failed to fetch profile for NavBar:', err);
+          setUserName('User');
+          setAvatarUrl('/default-avatar.png');
+        }
+      };
+      fetchProfile();
+    } else {
+      setUserName('User');
+      setAvatarUrl('/default-avatar.png');
+    }
+  }, []);
   const menuItems = MENU_CONFIG[role] || [];
   const handleLogout = () => {
-      localStorage.clear();
-      navigate('/');
-      window.location.reload();
-    };
+    localStorage.clear();
+    navigate('/');
+    window.location.reload();
+  };
 
-return (
-  <nav className="minimal-navbar">
-    {/* TRÁI: Logo (Bấm vào để về trang chủ) */}
-    <div className="nav-brand" onClick={() => navigate('/')}>
-      <span className="brand-logo">J</span>
-      <span className="brand-text">JobsMarket</span>
-    </div>
+  return (
+    <nav className="minimal-navbar">
+      {/* TRÁI: Logo (Bấm vào để về trang chủ) */}
+      <div className="nav-brand" onClick={() => navigate('/')}>
+        <span className="brand-logo">J</span>
+        <span className="brand-text">JobsMarket</span>
+      </div>
 
-    {/* GIỮA: Menu thay đổi linh hoạt theo Role */}
-    <div className="nav-menu">
-      {menuItems.map((item, index) => (
-        <button
-          key={index}
-          className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
-          onClick={() => navigate(item.path)}
-        >
-          {item.label}
-        </button>
-      ))}
-    </div>
+      {/* GIỮA: Menu thay đổi linh hoạt theo Role */}
+      <div className="nav-menu">
+        {menuItems.map((item, index) => (
+          <button
+            key={index}
+            className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+            onClick={() => navigate(item.path)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
 
       {/* PHẢI: Khối hiển thị User hoặc Nút Login */}
       <div className="nav-profile-section">
         {isLoggedIn ? (
           // --- HIỂN THỊ KHI ĐÃ ĐĂNG NHẬP ---
           <>
-            <div
-              className="nav-user-info"
-              onClick={() => navigate(role === 'company' ? '/company/profile' : '/candidate-profile')}
-              style={{ cursor: 'pointer' }}
-              title="View profile"
-            >
-
+            <div className="nav-user-info">
               <img
                 src={avatarUrl}
                 alt="Avatar"
@@ -142,7 +136,15 @@ return (
                   }
                 }}
               />
-              <span className="nav-user-name">{userName}</span>
+
+              <span
+                className="nav-user-name"
+                title={`Welcome, ${userName}`}
+                onClick={() => navigate('/candidate-profile')}
+                style={{ cursor: 'pointer' }}
+              >
+                {userName}
+              </span>
             </div>
             <button className="nav-logout-btn" onClick={handleLogout} title="Log out">
               Log out

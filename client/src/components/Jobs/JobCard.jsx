@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import './JobCard.css';
 
-export default function JobCard({ company_logo, job, onSelect }) {
+export default function JobCard({ company_logo, job, onClick }) {
   const [imgError, setImgError] = useState(false);
   // 1. Destructure data from the job object
   const {

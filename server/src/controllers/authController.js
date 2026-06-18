@@ -5,14 +5,13 @@ const User = require('../models/User');
 
 const authController = {
     register: async (req, res) => {
-        const { email, password, role, full_name, company_name, industry_id } = req.body;
+        const { email, password, role, company_name, industry_id } = req.body;
 
         try {
             const existingUser = await User.findByEmail(email);
             if (existingUser) {
                 return res.status(400).json({ message: "Email already exists!" });
             }
-
 
             const saltRounds = 10;
             const password_hash = await bcrypt.hash(password, saltRounds);
@@ -32,9 +31,7 @@ const authController = {
                     throw new Error("company_name is required");
                 }
 
-                if (role === 'candidate' && !full_name) {
-                    throw new Error("full_name is required");
-                }
+                // ĐÃ XÓA KHỐI LỆNH KIỂM TRA FULL_NAME Ở ĐÂY
 
                 const [userResult] = await connection.execute(
                     'INSERT INTO User (email, password_hash, role) VALUES (?, ?, ?)',
@@ -96,8 +93,9 @@ const authController = {
 
                 if (role === 'candidate') {
                     await connection.execute(
-                        'INSERT INTO Candidate_Profile (user_id, full_name) VALUES (?, ?)',
-                        [newUserId, full_name]
+                        
+                        'INSERT INTO Candidate_Profile (user_id) VALUES (?)',
+                        [newUserId]
                     );
                 }
                 else if (role === 'company') {

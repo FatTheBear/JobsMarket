@@ -19,8 +19,8 @@ export default function Register() {
     e.preventDefault();
     setErrorMessage("");
 
-    // 1. Frontend Validation: Check for empty fields
-    if (!fullName || !email || !password || !repeatPassword) {
+    // 1. Frontend Validation: Check for empty fields (Đã xóa check fullName)
+    if (!email || !password || !repeatPassword) {
       return setErrorMessage("Please fill in all required fields!");
     }
 
@@ -29,15 +29,15 @@ export default function Register() {
       return setErrorMessage("Passwords do not match!");
     }
 
+    // Đóng gói dữ liệu gửi xuống Backend
     const userData = {
       email,
       password,
       repeat_password: repeatPassword,
       role: selectedRole,
       accept_terms: true,
-      ...(selectedRole === 'candidate' 
-        ? { full_name: fullName } 
-        : { company_name: fullName ? `${fullName}'s Company` : 'My Company', industry_id: 1 })
+      // Nếu là role company thì gửi kèm data mặc định (vì không còn fullName để nối chuỗi)
+      ...(selectedRole === 'company' && { company_name: 'My Company', industry_id: 1 })
     };
 
     try {
@@ -47,8 +47,8 @@ export default function Register() {
         navigate('/verify-otp', {
           state: {
             email: userData.email,
-            role: selectedRole,
-            full_name: fullName
+            role: selectedRole
+            // Đã xóa việc truyền full_name sang trang OTP
           }
         });
       }
@@ -85,22 +85,6 @@ export default function Register() {
                   </h2>
 
                   <form onSubmit={handleRegisterSubmit} noValidate>
-                    <div className="form-floating mb-4">
-                      <input
-                        type="text"
-                        id="fullNameInput"
-                        className={`form-control ${styles.formControl}`}
-                        placeholder="Your Name"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                      />
-                      <label
-                        className="form-label"
-                        htmlFor="fullNameInput"
-                      >
-                        Your Name
-                      </label>
-                    </div>
 
                     <div className="form-floating mb-4">
                       <input

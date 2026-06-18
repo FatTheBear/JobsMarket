@@ -2,10 +2,10 @@ const pool = require('../config/db');
 
 const CandidateProfileModel = {
     // 1. Tạo profile mới (khi đăng ký tài khoản)
-    create: async (user_id, full_name) => {
+    create: async (user_id) => {
         const [result] = await pool.execute(
-            'INSERT INTO Candidate_Profile (user_id, full_name) VALUES (?, ?)',
-            [user_id, full_name]
+            'INSERT INTO Candidate_Profile (user_id) VALUES (?)',
+            [user_id]
         );
         return result.insertId;
     },
