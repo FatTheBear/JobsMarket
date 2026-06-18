@@ -224,7 +224,7 @@ const authController = {
              ON u.id = cp.user_id
 
              LEFT JOIN Company com 
-             ON u.id = com.user_id
+             ON u.id = com.hr_id
 
              WHERE u.email = ?`,
             [email]

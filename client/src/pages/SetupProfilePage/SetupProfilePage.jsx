@@ -31,12 +31,26 @@ export default function SetupProfilePage() {
   // Recommended Companies list
   const [companies, setCompanies] = useState([]);
 
+  // Suggested Users list
+  const [suggestedUsers, setSuggestedUsers] = useState([]);
+  const [followedUserIds, setFollowedUserIds] = useState([]);
+
   // Default fallback companies if backend is empty
   const defaultCompanies = [
     { id: 1, name: 'VNG Corporation', industry_name: 'Tech & Gaming', logo_url: '🎮', website: 'vng.com.vn', address: 'Ho Chi Minh City' },
     { id: 2, name: 'FPT Software', industry_name: 'IT Services', logo_url: '💻', website: 'fpt-software.com', address: 'Hanoi' },
     { id: 3, name: 'Google Vietnam', industry_name: 'Internet & Search', logo_url: '🔍', website: 'google.com', address: 'Hanoi Office' },
     { id: 4, name: 'Microsoft Vietnam', industry_name: 'Cloud & Software', logo_url: '☁️', website: 'microsoft.com', address: 'Ho Chi Minh City' }
+  ];
+
+  // Default fallback suggested users (mock data)
+  const defaultSuggestedUsers = [
+    { id: 101, full_name: 'Nguyen Minh Khoa', display_name: 'Minh Khoa', headline: 'Senior Full Stack Developer', avatar_url: '', skill_count: 12, years_of_experience: 5, followers_count: 1240 },
+    { id: 102, full_name: 'Tran Thi Lan Anh', display_name: 'Lan Anh', headline: 'UI/UX Designer · Figma Expert', avatar_url: '', skill_count: 9, years_of_experience: 3, followers_count: 870 },
+    { id: 103, full_name: 'Le Van Duc', display_name: 'Van Duc', headline: 'DevOps Engineer · AWS Certified', avatar_url: '', skill_count: 14, years_of_experience: 7, followers_count: 2100 },
+    { id: 104, full_name: 'Pham Bao Chau', display_name: 'Bao Chau', headline: 'Data Scientist · Python & ML', avatar_url: '', skill_count: 11, years_of_experience: 4, followers_count: 980 },
+    { id: 105, full_name: 'Hoang Thi Mai', display_name: 'Thi Mai', headline: 'Product Manager · Agile/Scrum', avatar_url: '', skill_count: 8, years_of_experience: 6, followers_count: 1560 },
+    { id: 106, full_name: 'Vo Thanh Tung', display_name: 'Thanh Tung', headline: 'Mobile Developer · React Native', avatar_url: '', skill_count: 10, years_of_experience: 4, followers_count: 730 },
   ];
 
   // Retrieve JWT Token
@@ -69,6 +83,22 @@ export default function SetupProfilePage() {
     };
 
     fetchCompanies();
+
+    // Fetch suggested users
+    const fetchSuggestedUsers = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/candidate/suggested-users', getHeaders());
+        if (res.data && res.data.length > 0) {
+          setSuggestedUsers(res.data);
+        } else {
+          setSuggestedUsers(defaultSuggestedUsers);
+        }
+      } catch (err) {
+        console.error('Failed to load suggested users, using mock data.', err);
+        setSuggestedUsers(defaultSuggestedUsers);
+      }
+    };
+    fetchSuggestedUsers();
   }, [token]);
 
   // Handle simple input changes
@@ -229,6 +259,21 @@ export default function SetupProfilePage() {
         : [...prev.followedCompanyIds, companyId];
       return { ...prev, followedCompanyIds: updatedFollowed };
     });
+  };
+
+  // User following logic
+  const toggleFollowUser = (userId) => {
+    setFollowedUserIds((prev) => {
+      return prev.includes(userId)
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId];
+    });
+  };
+
+  // Format follower count display
+  const formatFollowers = (count) => {
+    if (count >= 1000) return (count / 1000).toFixed(1) + 'k';
+    return count.toString();
   };
 
   const lettersOnlyRegex = /^[\p{L}\s]*$/u;
@@ -718,42 +763,69 @@ export default function SetupProfilePage() {
             </div>
           )}
 
-          {/* Step 3: Recommended Companies */}
+          {/* Step 3: Suggested Users */}
           {currentStep === 3 && (
             <div className="step-view">
-              <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '5px' }}>Step 3: Keep Track of Premium Recruiters (Optional)</h2>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: '700', marginBottom: '5px' }}>Step 3: People You May Know (Optional)</h2>
               <p style={{ color: 'var(--neutral-color)', fontSize: '0.95rem', marginTop: '-15px', marginBottom: '15px' }}>
-                Follow hiring companies to stay updated. This step is entirely optional.
+                Follow popular candidates to grow your network. This step is entirely optional.
               </p>
 
-              <div className="company-recommendation-grid">
-                {companies.map((company) => {
-                  const isFollowed = formData.followedCompanyIds.includes(company.id);
-                  return (
-                    <div key={company.id} className="company-card-premium">
-                      <div className="company-card-logo-box">
-                        {company.logo_url && company.logo_url.length > 2 ? (
-                          <img src={company.logo_url} alt={company.name} onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = '🏢'; }} />
-                        ) : (
-                          company.logo_url || '🏢'
+              {suggestedUsers.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--neutral-color)' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '12px' }}>👥</div>
+                  <p style={{ fontSize: '0.95rem' }}>No other users found yet. You're one of the first!</p>
+                </div>
+              ) : (
+                <div className="company-recommendation-grid">
+                  {suggestedUsers.map((user) => {
+                    const isFollowed = followedUserIds.includes(user.id);
+                    const displayName = user.display_name || user.full_name || 'Anonymous';
+                    const avatarLetter = displayName.charAt(0).toUpperCase();
+                    return (
+                      <div key={user.id} className="company-card-premium" style={{ position: 'relative' }}>
+                        {/* Follower count badge */}
+                        <div style={{
+                          position: 'absolute', top: '12px', right: '12px',
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          color: '#fff', borderRadius: '20px', padding: '3px 10px',
+                          fontSize: '0.72rem', fontWeight: '700', letterSpacing: '0.3px'
+                        }}>
+                          🔥 {formatFollowers(user.followers_count || 0)}
+                        </div>
+
+                        {/* Avatar */}
+                        <div className="company-card-logo-box" style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)', color: '#fff', fontSize: '1.6rem', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {user.avatar_url ? (
+                            <img src={user.avatar_url} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} onError={(e) => { e.target.style.display = 'none'; e.target.parentNode.innerHTML = avatarLetter; }} />
+                          ) : avatarLetter}
+                        </div>
+
+                        <h3 className="company-card-name">{displayName}</h3>
+
+                        {user.headline && (
+                          <span className="company-card-industry" style={{ marginBottom: '8px', display: 'block' }}>
+                            {user.headline}
+                          </span>
                         )}
+
+                        <p style={{ fontSize: '0.8rem', color: 'var(--neutral-color)', margin: '0 0 15px 0' }}>
+                          🎯 {user.skill_count || 0} skills &nbsp;·&nbsp;
+                          💼 {user.years_of_experience || 0} yrs exp
+                        </p>
+
+                        <button
+                          type="button"
+                          onClick={() => toggleFollowUser(user.id)}
+                          className={`company-follow-btn ${isFollowed ? 'followed' : ''}`}
+                        >
+                          {isFollowed ? '✓ Following' : '+ Follow'}
+                        </button>
                       </div>
-                      <h3 className="company-card-name">{company.name}</h3>
-                      <span className="company-card-industry">{company.industry_name || 'Technology'}</span>
-                      <p style={{ fontSize: '0.8rem', color: 'var(--neutral-color)', margin: '-5px 0 15px 0' }}>
-                        📍 {company.address || 'Vietnam'}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => toggleFollowCompany(company.id)}
-                        className={`company-follow-btn ${isFollowed ? 'followed' : ''}`}
-                      >
-                        {isFollowed ? '✓ Followed' : '+ Follow'}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
