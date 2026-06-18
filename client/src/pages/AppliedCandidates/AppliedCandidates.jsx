@@ -15,6 +15,11 @@ const STATUS_LABELS = {
 const normalizeText = (text) =>
   text ? text.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() : '';
 
+const getFileUrl = (fileUrl) => {
+  if (!fileUrl) return '';
+  return fileUrl.startsWith('http') ? fileUrl : `${API_URL}${fileUrl}`;
+};
+
 export default function AppliedCandidates() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -199,7 +204,7 @@ export default function AppliedCandidates() {
               <div className="ac-modal-section">
                 <h3>CV Document</h3>
                 {selectedApplicant.file_url ? (
-                  <a href={selectedApplicant.file_url} target="_blank" rel="noreferrer" className="ac-btn-outline">
+                  <a href={getFileUrl(selectedApplicant.file_url)} target="_blank" rel="noreferrer" className="ac-btn-outline">
                     📄 View/Download CV
                   </a>
                 ) : (
