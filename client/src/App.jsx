@@ -53,6 +53,7 @@ const router = createBrowserRouter([
       { path: "/", element: <LandingPage /> },
       { path: "/dashboard", element: <UserDashboard /> },
       { path: "/profile", element: <Home /> },
+
       {
         path: "/candidate-profile",
         element: (
@@ -63,54 +64,50 @@ const router = createBrowserRouter([
       },
 
       { path: "/candidate/:id", element: <CandidatePublicProfile /> },
+
       {
         path: "/job-skills",
         element: (
           <div style={{ maxWidth: 820, margin: '40px auto', padding: '0 20px' }}>
-            <h1 style={{ fontFamily: 'Inter,sans-serif', marginBottom: 24 }}>🎯 Job Skills Manager</h1>
+            <h1 style={{ fontFamily: 'Inter,sans-serif', marginBottom: 24 }}>
+              🎯 Job Skills Manager
+            </h1>
             <JobSkillsManager jobId={null} />
           </div>
         )
       },
 
-
       {
-  path: "/company",
-  element: <CompanyDashboard />,
-  children: [
-    { path: "dashboard", element: <></> },
-
-    { path: "profile", element: <CompanyProfile /> },
-
-    { path: "post-job", element: <JobPosting /> },
-
-    { path: "templates", element: <PostTemplates /> }
-  ]
-},
-
         path: "/company",
         element: <CompanyDashboard />,
+        // ĐÃ SỬA: Gom tất cả children của company vào chung 1 khối duy nhất
         children: [
+          { path: "dashboard", element: <></> },
           { path: "profile", element: <CompanyProfile /> },
           { path: "post-job", element: <JobPosting /> },
+          { path: "templates", element: <PostTemplates /> },
           { path: "applicants", element: <AppliedCandidates /> },
-          { path: "saved-candidates", element: <SavedCandidates /> },
+          { path: "saved-candidates", element: <SavedCandidates /> }
         ]
       },
+
       {
         path: "/admin",
         element: (
           <ProtectedRoute requiredRole="Admin">
             <AdminDashboard />
           </ProtectedRoute>
-        ),
+        )
       },
+
       { path: "/search-jobs", element: <SearchJobs /> },
-      { path: "/job/:id", element: <JobDetail /> },
+      
+      // ĐÃ SỬA: Thêm chữ 's' vào đường dẫn để khớp với lệnh navigate('/jobs/...')
+      { path: "/jobs/:id", element: <JobDetail /> } 
     ]
   },
 
-  { path: "/search-jobs", element: <SearchJobs /> },
+  // Mọi đường dẫn sai sẽ rơi vào trang 404 này
   { path: "*", element: <div>404 - Trang không tồn tại</div> }
 ]);
 

@@ -20,8 +20,8 @@ router.post('/',authMiddleware, async (req, res) => {
 
 
     // Lấy user id từ JWT
-    const user_id = req.user?.id;
-
+    const user_id = req.user.id;
+    const hr_id = req.user.id;
 
     if (!user_id) {
       return res.status(401).json({
@@ -107,7 +107,7 @@ router.post('/',authMiddleware, async (req, res) => {
         status
       )
 
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?,'Pending')
       `,
       [
         company_id,

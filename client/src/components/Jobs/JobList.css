@@ -70,10 +70,3 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-.job-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* Ép cứng chia làm 3 cột bằng nhau */
-  gap: 24px; /* Khoảng cách giữa các card */
-  width: 100%;
-  align-items: stretch; /* Đảm bảo các card trên cùng 1 hàng có chiều cao bằng nhau */
-}

@@ -176,3 +176,117 @@
 .jd-btn-primary:hover {
   background-color: #004182;
 }
+.job-detail-page-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 4px auto;
+  padding: 20px;
+}
+
+.job-detail-top-card {
+  background-color: #ffffff;
+  border: 1px solid #B0C4DE;
+  border-radius: 12px;
+  padding: 30px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(176, 196, 222, 0.2);
+}
+
+.job-detail-card-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #01796F;
+  margin: 0;
+}
+
+.job-detail-card-company {
+  font-size: 1.1rem;
+  color: #4a5568;
+  margin: 6px 0;
+}
+
+.job-detail-card-badges {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.jd-badge {
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.badge-salary {
+  background-color: #e6f2f0;
+  color: #01796F;
+}
+
+.badge-location {
+  background-color: #f0f4f8;
+  color: #4a6984;
+}
+
+.job-detail-card-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #f0f4f8;
+  padding-top: 20px;
+  margin-top: 20px;
+}
+
+.job-detail-card-deadline {
+  font-size: 0.95rem;
+  color: #dc2626;
+  font-weight: 600;
+  margin: 0;
+}
+
+.job-detail-card-btn {
+  background-color: #01796F;
+  color: #ffffff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.job-detail-card-btn:hover {
+  background-color: #015c54;
+}
+
+.job-detail-bottom-content {
+  background-color: #ffffff;
+  border: 1px solid #B0C4DE;
+  border-radius: 12px;
+  padding: 30px;
+}
+
+.job-detail-main-section {
+  margin-bottom: 24px;
+}
+
+.job-detail-main-section:last-child {
+  margin-bottom: 0;
+}
+
+.job-detail-section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #01796F;
+  margin: 0 0 12px 0;
+  border-left: 4px solid #B0C4DE;
+  padding-left: 10px;
+}
+
+.job-detail-text-block {
+  font-size: 1rem;
+  color: #374151;
+  line-height: 1.7;
+  white-space: pre-line;
+}

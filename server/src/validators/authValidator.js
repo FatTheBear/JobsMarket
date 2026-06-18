@@ -16,7 +16,9 @@ const registerSchema = Joi.object({
         'any.required': 'Please repeat your password'
     }),
     role: Joi.string().valid('candidate', 'company').required(),
-    full_name: Joi.string().when('role', { is: 'candidate', then: Joi.required().messages({'string.empty': 'Full name cannot be blank'}) }),
+    
+    
+    
     company_name: Joi.string().when('role', { is: 'company', then: Joi.required().messages({'string.empty': 'Company name cannot be blank'}) }),
     industry_id: Joi.number().when('role', { is: 'company', then: Joi.required() }),
     accept_terms: Joi.boolean().valid(true).required().messages({
@@ -24,14 +26,31 @@ const registerSchema = Joi.object({
     })
 });
 
+// const validateRegister = (req, res, next) => {
+    
+//     const { error } = registerSchema.validate(req.body, { abortEarly: false });
+//     if (error) {
+//         return res.status(400).json({ 
+//             errors: error.details.map(err => err.message) 
+//         });
+//     }
+//     next();
+// };
 const validateRegister = (req, res, next) => {
+    console.log("------ VALIDATION CHECK ------");
+    console.log("1. Middleware is triggered");
+    
     const { error } = registerSchema.validate(req.body, { abortEarly: false });
+    
     if (error) {
-        return res.status(400).json({ 
-            errors: error.details.map(err => err.message) 
-        });
+        console.log("2. Joi Validation Failed!");
+        console.log("3. Error Details:", error.details.map(err => err.message));
+        
+        const errorMessages = error.details.map(err => err.message);
+        return res.status(400).json({ errors: errorMessages });
     }
+    
+    console.log("2. Validation Passed!");
     next();
 };
-
 module.exports = { validateRegister };
