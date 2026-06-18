@@ -96,6 +96,19 @@ const candidateController = {
         }
     },
 
+    // Lấy danh sách user đề xuất cho onboarding (sắp xếp theo độ phổ biến)
+    getSuggestedUsers: async (req, res) => {
+        try {
+            const userId = req.user.id;
+            const users = await CandidateProfileModel.getSuggestedUsers(userId);
+            return res.status(200).json(users);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Internal server error!" });
+        }
+    },
+
+
     // Lưu thông tin Onboarding ban đầu
     saveOnboarding: async (req, res) => {
         try {

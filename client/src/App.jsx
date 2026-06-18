@@ -75,24 +75,13 @@ const router = createBrowserRouter([
 
 
       {
-  path: "/company",
-  element: <CompanyDashboard />,
-  children: [
-    { path: "dashboard", element: <></> },
-
-    { path: "profile", element: <CompanyProfile /> },
-
-    { path: "post-job", element: <JobPosting /> },
-
-    { path: "templates", element: <PostTemplates /> }
-  ]
-},
-
         path: "/company",
         element: <CompanyDashboard />,
         children: [
+          { path: "dashboard", element: <></> },
           { path: "profile", element: <CompanyProfile /> },
           { path: "post-job", element: <JobPosting /> },
+          { path: "templates", element: <PostTemplates /> },
           { path: "applicants", element: <AppliedCandidates /> },
           { path: "saved-candidates", element: <SavedCandidates /> },
         ]

@@ -120,26 +120,17 @@ return (
       ))}
     </div>
 
-    {/* PHẢI: Khối hiển thị User hoặc Nút Login */}
-    <div className="nav-profile-section">
-      {isLoggedIn ? (
-        // --- HIỂN THỊ KHI ĐÃ ĐĂNG NHẬP ---
-        <>
-            <div className="nav-user-info">
-              <span className="nav-user-name" title={`Welcome, ${userName}`} onClick={() => navigate('/candidate-profile')}>{userName}</span>
-            </div>
-          <button className="nav-logout-btn" onClick={handleLogout} title="Log out">
-            Log out
-          </button>
-        ))}
-      </div>
-
       {/* PHẢI: Khối hiển thị User hoặc Nút Login */}
       <div className="nav-profile-section">
         {isLoggedIn ? (
           // --- HIỂN THỊ KHI ĐÃ ĐĂNG NHẬP ---
           <>
-            <div className="nav-user-info">
+            <div
+              className="nav-user-info"
+              onClick={() => navigate(role === 'company' ? '/company/profile' : '/candidate-profile')}
+              style={{ cursor: 'pointer' }}
+              title="View profile"
+            >
 
               <img
                 src={avatarUrl}
