@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import './CompanySidebar.css';
 
 export default function CompanySidebar() {
   // Use the current URL to determine the active tab.

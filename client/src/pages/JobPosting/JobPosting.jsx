@@ -9,10 +9,21 @@ const LOCATION_API = 'https://provinces.open-api.vn/api';
 const JOB_LEVELS = ["Intern", "Fresher", "Junior", "Middle", "Senior", "Manager", "Director"];
 const LANGUAGES = ["Any", "English", "Vietnamese", "Japanese", "Chinese", "Korean", "French"];
 const EDUCATION_LEVELS = ["High School", "Associate Degree", "Bachelor", "Master", "PhD", "Other"];
-const INDUSTRIES = ["Information Technology", "Marketing", "Finance", "Sales", "Design", "Human Resources", "Engineering", "Education"];
-const SKILLS_DB = ["React", "Node.js", "Python", "Java", "AWS", "SQL", "Figma", "SEO", "Communication", "Project Management"];
 
 const todayStr = () => new Date().toISOString().split('T')[0];
+
+const translateLocation = (name) => {
+  if (!name) return '';
+  if (name.startsWith('Thành phố ')) return name.replace('Thành phố ', '') + ' City';
+  if (name.startsWith('Tỉnh ')) return name.replace('Tỉnh ', '') + ' Province';
+  if (name.startsWith('Quận ')) return name.replace('Quận ', 'District ');
+  if (name.startsWith('Huyện ')) return name.replace('Huyện ', 'District ');
+  if (name.startsWith('Thị xã ')) return name.replace('Thị xã ', 'Town ');
+  if (name.startsWith('Phường ')) return name.replace('Phường ', 'Ward ');
+  if (name.startsWith('Xã ')) return name.replace('Xã ', 'Commune ');
+  if (name.startsWith('Thị trấn ')) return name.replace('Thị trấn ', 'Town ');
+  return name;
+};
 
 export default function JobPosting() {
   const navigate = useNavigate();
@@ -23,6 +34,10 @@ export default function JobPosting() {
   const [provinces, setProvinces] = useState([]);
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
+
+  // API Data
+  const [dbSkills, setDbSkills] = useState([]);
+  const [dbIndustries, setDbIndustries] = useState([]);
 
   const [form, setForm] = useState({
     title: '',
@@ -45,7 +60,7 @@ export default function JobPosting() {
     end_time: '17:00',
     working_time_note: '',
     
-    industry: '',
+    selected_industries: [],
     selected_skills: [],
     
     job_type: 'Full-time',
@@ -65,14 +80,21 @@ export default function JobPosting() {
 
   // Fetch Provinces on Mount
   useEffect(() => {
-    axios.get(`${LOCATION_API}/p/`).then(res => setProvinces(res.data)).catch(err => console.error(err));
+    axios.get(`${LOCATION_API}/p/`).then(res => {
+      const translated = res.data.map(p => ({ ...p, name: translateLocation(p.name) }));
+      setProvinces(translated);
+    }).catch(err => console.error(err));
+
+    axios.get(`${API_URL}/api/skills`).then(res => setDbSkills(res.data)).catch(err => console.error(err));
+    axios.get(`${API_URL}/api/industries`).then(res => setDbIndustries(res.data)).catch(err => console.error(err));
   }, []);
 
   // Fetch Districts when Province changes
   useEffect(() => {
     if (form.province_code) {
       axios.get(`${LOCATION_API}/p/${form.province_code}?depth=2`).then(res => {
-        setDistricts(res.data.districts || []);
+        const translated = (res.data.districts || []).map(d => ({ ...d, name: translateLocation(d.name) }));
+        setDistricts(translated);
         setWards([]); // reset wards
         setForm(f => ({ ...f, district: '', district_code: '', ward: '' }));
       }).catch(err => console.error(err));
@@ -83,7 +105,8 @@ export default function JobPosting() {
   useEffect(() => {
     if (form.district_code) {
       axios.get(`${LOCATION_API}/d/${form.district_code}?depth=2`).then(res => {
-        setWards(res.data.wards || []);
+        const translated = (res.data.wards || []).map(w => ({ ...w, name: translateLocation(w.name) }));
+        setWards(translated);
         setForm(f => ({ ...f, ward: '' }));
       }).catch(err => console.error(err));
     }
@@ -118,12 +141,21 @@ export default function JobPosting() {
     setForm(prev => ({ ...prev, ward: name }));
   };
 
-  const toggleSkill = (skill) => {
+  const toggleSkill = (skillId) => {
     setForm(prev => {
-      const skills = prev.selected_skills.includes(skill) 
-        ? prev.selected_skills.filter(s => s !== skill)
-        : [...prev.selected_skills, skill];
+      const skills = prev.selected_skills.includes(skillId) 
+        ? prev.selected_skills.filter(id => id !== skillId)
+        : [...prev.selected_skills, skillId];
       return { ...prev, selected_skills: skills };
+    });
+  };
+
+  const toggleIndustry = (indId) => {
+    setForm(prev => {
+      const inds = prev.selected_industries.includes(indId) 
+        ? prev.selected_industries.filter(id => id !== indId)
+        : [...prev.selected_industries, indId];
+      return { ...prev, selected_industries: inds };
     });
   };
 
@@ -142,6 +174,12 @@ export default function JobPosting() {
       if (!form.salary_min || !form.salary_max) {
         showToast('Please enter both Minimum and Maximum Salary in USD', 'error'); return;
       }
+      if (Number(form.salary_min) < 0 || Number(form.salary_max) < 0) {
+        showToast('Salary cannot be negative', 'error'); return;
+      }
+      if (Number(form.salary_min) > Number(form.salary_max)) {
+        showToast('Minimum salary cannot exceed maximum salary', 'error'); return;
+      }
     }
     if (!form.province) {
       showToast('Please select a Province', 'error'); return;
@@ -159,7 +197,9 @@ export default function JobPosting() {
       const payload = {
         title: form.title,
         description: form.description || form.title, 
-        requirements: form.requirements || form.selected_skills.join(", "),
+        requirements: form.requirements || form.selected_skills.map(id => dbSkills.find(s => s.id === id)?.name).filter(Boolean).join(", "),
+        selected_skills: form.selected_skills,
+        selected_industries: form.selected_industries,
         salary_min: form.salary_type === 'specific' ? parseInt(form.salary_min) : null,
         salary_max: form.salary_type === 'specific' ? parseInt(form.salary_max) : null,
         job_type: form.job_type,
@@ -230,10 +270,10 @@ export default function JobPosting() {
               <input type="text" name="title" value={form.title} onChange={handleChange} placeholder="e.g. Data Engineer" />
             </div>
 
-            <div className="jp-row jp-row-two align-bottom">
+            <div className="jp-row jp-row-two">
               <div className="jp-field">
                 <label>Years of Experience <span>*</span></label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '44px' }}>
                   <select name="experience_req" value={form.experience_req} onChange={handleChange} disabled={form.experience_req === 'Not Required'}>
                     <option value="Not Required">Not Required</option>
                     <option value="Under 1 year">Under 1 year</option>
@@ -250,16 +290,16 @@ export default function JobPosting() {
 
               <div className="jp-field">
                 <label>Salary (USD $) <span>*</span></label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '44px' }}>
                   <label className="jp-toggle-label">
                     <input type="checkbox" checked={form.salary_type === 'negotiable'} onChange={(e) => setForm(f => ({ ...f, salary_type: e.target.checked ? 'negotiable' : 'specific' }))} />
                     Negotiable
                   </label>
                   {form.salary_type === 'specific' && (
                     <div className="jp-salary-inputs">
-                      <input type="number" name="salary_min" value={form.salary_min} onChange={handleChange} placeholder="From ($)" />
+                      <input type="number" name="salary_min" value={form.salary_min} onChange={handleChange} placeholder="From ($)" min="0" />
                       <span>-</span>
-                      <input type="number" name="salary_max" value={form.salary_max} onChange={handleChange} placeholder="To ($)" />
+                      <input type="number" name="salary_max" value={form.salary_max} onChange={handleChange} placeholder="To ($)" min="0" />
                     </div>
                   )}
                 </div>
@@ -298,7 +338,7 @@ export default function JobPosting() {
                     <label className="jp-sub-label">Ward <span>*</span></label>
                     <select onChange={handleWardChange} value={form.ward}>
                       <option value="">Select Ward</option>
-                      {wards.map(w => <option key={w.code} value={w.code}>{w.name}</option>)}
+                      {wards.map(w => <option key={w.code} value={w.name}>{w.name}</option>)}
                     </select>
                   </div>
                 )}
@@ -345,26 +385,43 @@ export default function JobPosting() {
             
             <div className="jp-field">
               <label>Industry <span>*</span></label>
-              <select name="industry" value={form.industry} onChange={handleChange} style={{ width: '300px' }}>
-                <option value="">Select Industry</option>
-                {INDUSTRIES.map(ind => <option key={ind} value={ind}>{ind}</option>)}
-              </select>
+              <div className="jp-skills-container">
+                {form.selected_industries.map(id => {
+                  const ind = dbIndustries.find(i => i.id === id);
+                  return ind ? (
+                    <span key={id} className="jp-skill-tag selected" onClick={() => toggleIndustry(id)}>
+                      {ind.name} ✕
+                    </span>
+                  ) : null;
+                })}
+              </div>
+              <label className="jp-sub-label">Suggested industries (Click to select)</label>
+              <div className="jp-skills-container">
+                {dbIndustries.filter(i => !form.selected_industries.includes(i.id)).map(ind => (
+                  <span key={ind.id} className="jp-skill-tag" onClick={() => toggleIndustry(ind.id)}>
+                    {ind.name} +
+                  </span>
+                ))}
+              </div>
             </div>
 
             <div className="jp-field">
               <label>Professional Skills</label>
               <div className="jp-skills-container">
-                {form.selected_skills.map(s => (
-                  <span key={s} className="jp-skill-tag selected" onClick={() => toggleSkill(s)}>
-                    {s} ✕
-                  </span>
-                ))}
+                {form.selected_skills.map(id => {
+                  const s = dbSkills.find(i => i.id === id);
+                  return s ? (
+                    <span key={id} className="jp-skill-tag selected" onClick={() => toggleSkill(id)}>
+                      {s.name} ✕
+                    </span>
+                  ) : null;
+                })}
               </div>
               <label className="jp-sub-label">Suggested skills (Click to select)</label>
               <div className="jp-skills-container">
-                {SKILLS_DB.filter(s => !form.selected_skills.includes(s)).map(s => (
-                  <span key={s} className="jp-skill-tag" onClick={() => toggleSkill(s)}>
-                    {s} +
+                {dbSkills.filter(s => !form.selected_skills.includes(s.id)).map(s => (
+                  <span key={s.id} className="jp-skill-tag" onClick={() => toggleSkill(s.id)}>
+                    {s.name} +
                   </span>
                 ))}
               </div>

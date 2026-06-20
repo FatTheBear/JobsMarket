@@ -26,7 +26,9 @@ router.post('/',authMiddleware, async (req, res) => {
       province,
       district,
       ward,
-      exact_address
+      exact_address,
+      selected_skills,
+      selected_industries
     } = req.body;
 
 
@@ -86,8 +88,8 @@ router.post('/',authMiddleware, async (req, res) => {
     }
 
     const [companies] = await pool.query(
-      'SELECT id, hr_id FROM Company WHERE user_id = ? OR hr_id = ?',
-      [user_id, user_id]
+      'SELECT id, hr_id FROM Company WHERE hr_id = ?',
+      [user_id]
     );
 
 
@@ -99,7 +101,8 @@ router.post('/',authMiddleware, async (req, res) => {
 
 
     const company_id = companies[0].id;
-    const hr_id = companies[0].hr_id;
+    // The user posting this job is the HR
+    const hr_id = user_id;
 
 
     // Tạo job
@@ -155,9 +158,27 @@ router.post('/',authMiddleware, async (req, res) => {
 
 
 
+    const jobId = result.insertId;
+
+    if (selected_skills && Array.isArray(selected_skills) && selected_skills.length > 0) {
+      const skillValues = selected_skills.map(id => [jobId, id, 'Beginner', 0]);
+      await pool.query(
+        'INSERT INTO Job_Skill (job_id, skill_id, min_level, min_years) VALUES ?',
+        [skillValues]
+      );
+    }
+
+    if (selected_industries && Array.isArray(selected_industries) && selected_industries.length > 0) {
+      const indValues = selected_industries.map(id => [jobId, id]);
+      await pool.query(
+        'INSERT INTO Job_Industry (job_id, industry_id) VALUES ?',
+        [indValues]
+      );
+    }
+
     res.status(201).json({
       message: 'Job posted successfully! Your job is waiting for Admin approval.',
-      jobId: result.insertId
+      jobId: jobId
     });
 
 
