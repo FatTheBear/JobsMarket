@@ -14,6 +14,10 @@ router.put('/profile', authMiddleware, upload.single('avatar'), candidateControl
 
 // Lấy danh sách doanh nghiệp đề xuất cho setup wizard
 router.get('/companies', authMiddleware, candidateController.getRecommendedCompanies);
+
+// Lấy danh sách user đề xuất cho setup wizard (sắp xếp theo followers)
+router.get('/suggested-users', authMiddleware, candidateController.getSuggestedUsers);
+
 //em đã xóa onboarding để vượt rào vô dashboard làm cho kịp func, khi vận hành nhớ thêm bên dưới này 
 // Gửi payload onboarding của candidate wizard
 router.post('/onboarding', authMiddleware, candidateController.saveOnboarding);

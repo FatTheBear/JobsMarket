@@ -350,6 +350,28 @@ const CandidateProfileModel = {
         } finally {
             connection.release();
         }
+    },
+    // 6. Lấy danh sách user đề xuất (sắp xếp theo điểm phổ biến)
+    getSuggestedUsers: async (currentUserId) => {
+        const [rows] = await pool.execute(
+            `SELECT 
+                cp.id,
+                cp.full_name,
+                cp.display_name,
+                cp.headline,
+                cp.avatar_url,
+                cp.years_of_experience,
+                COUNT(DISTINCT cs.skill_id) AS skill_count,
+                (COALESCE(cp.years_of_experience, 0) * 50 + COUNT(DISTINCT cs.skill_id) * 20) AS followers_count
+             FROM Candidate_Profile cp
+             LEFT JOIN candidate_skill cs ON cp.id = cs.candidate_id
+             WHERE cp.user_id != ? AND (cp.is_public = 1 OR cp.is_public IS NULL)
+             GROUP BY cp.id, cp.full_name, cp.display_name, cp.headline, cp.avatar_url, cp.years_of_experience
+             ORDER BY followers_count DESC
+             LIMIT 6`,
+            [currentUserId]
+        );
+        return rows;
     }
 };
 

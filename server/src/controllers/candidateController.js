@@ -94,6 +94,18 @@ const candidateController = {
         }
     },
 
+    // Get suggested users for onboarding (sorted by popularity)
+    getSuggestedUsers: async (req, res) => {
+        try {
+            const userId = req.user.id;
+            const users = await CandidateProfileModel.getSuggestedUsers(userId);
+            return res.status(200).json(users);
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: "Internal server error!" });
+        }
+    },
+
     // Save initial onboarding information.
     saveOnboarding: async (req, res) => {
         try {
