@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './UserDashboard.module.css';
 import axios from 'axios';
@@ -7,14 +7,6 @@ import JobCard from '../../../components/Jobs/JobCard';
 
 const LOCATIONS = [
   'Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Binh Duong', 'Dong Nai', 'Can Tho'
-];
-
-const FALLBACK_TOP_COMPANIES = [
-  { id: 'fpt', name: 'FPT Software', logo_url: '/icons/emp_fpt.png', openJobs: 1 },
-  { id: 'vng', name: 'VNG Corporation', logo_url: '/icons/emp_vng.png', openJobs: 1 },
-  { id: 'momo', name: 'MoMo', logo_url: '/icons/emp_momo.png', openJobs: 1 },
-  { id: 'shopee', name: 'Shopee Vietnam', logo_url: '/icons/emp_shopee.png', openJobs: 1 },
-  { id: 'grab', name: 'Grab Vietnam', logo_url: '/icons/emp_grab.png', openJobs: 1 },
 ];
 
 export default function CandidateDashboard() {
@@ -28,7 +20,7 @@ export default function CandidateDashboard() {
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [selectedJob, setSelectedJob] = useState(null);
 
-  // Industry banner slider
+  // Đổi Banner thành Danh mục các ngành nghề
   const INDUSTRY_BANNERS = [
     { bg: 'linear-gradient(135deg, #1e3a6e 0%, #2563ab 60%, #1e5c8b 100%)', title: 'Information Technology', sub: 'Explore top tech roles: Software Engineering, Data Science, AI, and more.' },
     { bg: 'linear-gradient(135deg, #0f2d5e 0%, #c0392b 100%)', title: 'Finance & Banking', sub: 'Accelerate your career in Investment, Accounting, and Financial Analysis.' },
@@ -44,9 +36,11 @@ export default function CandidateDashboard() {
 
   const handleSearch = () => {
     console.log("Searching for:", searchQuery, "in", selectedLocation);
+    // Logic search API sau này
   };
 
   const handleLogout = () => {
+    // Thêm logic xóa token/localStorage ở đây
     navigate('/');
   };
 
@@ -54,34 +48,13 @@ export default function CandidateDashboard() {
     const fetchJobs = async () => {
       try {
         const response = await axios.get('http://localhost:5000/api/jobs');
-        setJobs(response.data);
+        setJobs(response.data); // Nhét dữ liệu tải về vào biến jobs
       } catch (error) {
         console.error("Error loading job list:", error);
       }
     };
     fetchJobs();
   }, [])
-
-  const topCompanies = useMemo(() => {
-    const companyMap = new Map();
-
-    jobs.forEach((job) => {
-      if (!job.company_name) return;
-      const key = job.company_id || job.company_name;
-      const current = companyMap.get(key) || {
-        id: key,
-        name: job.company_name,
-        logo_url: job.logo_url,
-        openJobs: 0,
-      };
-      current.openJobs += 1;
-      if (!current.logo_url && job.logo_url) current.logo_url = job.logo_url;
-      companyMap.set(key, current);
-    });
-
-    const companies = Array.from(companyMap.values()).slice(0, 5);
-    return companies.length > 0 ? companies : FALLBACK_TOP_COMPANIES;
-  }, [jobs]);
 
   return (
     <div className={styles.page}>
@@ -144,57 +117,34 @@ export default function CandidateDashboard() {
         </div>
       </section>
 
-      {/* ───── TOP COMPANIES ───── */}
-      <section className={styles.section}>
-        <div className={styles.container}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>Top Employers</h2>
-          </div>
+          <section className={`${styles.section} ${styles.sectionGray}`} style={{ padding: '60px 0' }}>
+            <div className={styles.container}>
+              <div className={styles.sectionHeader} style={{ marginBottom: '40px' }}>
+                <h2 className={styles.sectionTitle}>RECOMMENDED FOR YOU</h2>
+              </div>
 
-          <div className={styles.topCompaniesGrid}>
-            {topCompanies.map((company) => (
-              <button
-                key={company.id}
-                type="button"
-                className={styles.topCompanyCard}
-                onClick={() => {
-                  setSearchQuery(company.name);
-                  navigate('/search-jobs');
-                }}
-              >
-                <span className={styles.topBadge}>💎 TOP</span>
-                <img
-                  className={styles.topCompanyLogo}
-                  src={company.logo_url || '/default-company-logo.png'}
-                  alt={`${company.name} logo`}
-                />
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ───── AVAILABLE JOB POSTINGS ───── */}
-      <section className={`${styles.section} ${styles.sectionGray}`}>
-        <div className={styles.container}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>RECOMMENDED FOR YOU</h2>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
-            {jobs.map(job => (
-              <JobCard
-                key={job.id}
-                job={job}
-                onApply={() => {
-                  setSelectedJob(job);
-                  setShowApplyModal(true);
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
+              {/* Job Postings Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '25px',
+            alignItems: 'stretch'
+          }}>
+                {jobs.map(job => (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    onApply={() => {
+                      setSelectedJob(job);
+                      setShowApplyModal(true);
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+ 
+     
 
       <ApplyJobModal
         show={showApplyModal}

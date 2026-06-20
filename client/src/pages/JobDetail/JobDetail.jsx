@@ -26,7 +26,6 @@ export default function JobDetail() {
   const [loading, setLoading] = useState(true);
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
-
   const [toast, setToast] = useState({ show: false, msg: '', type: '' });
 
   const showToast = (msg, type) => {
@@ -50,7 +49,7 @@ export default function JobDetail() {
       const res = await axios.get(`${API_URL}/api/jobs/${id}`);
       setJob(res.data);
     } catch (err) {
-      showToast('Cannot load job information', 'error');
+      showToast('Failed to load job information', 'error');
     } finally {
       setLoading(false);
     }
@@ -77,93 +76,89 @@ export default function JobDetail() {
         saveAppliedJobId(id);
       }
     } catch {
-      // Ignore when the user is not logged in or has no profile yet.
     }
   };
 
   const handleApplyClick = () => {
     const userStr = localStorage.getItem('user');
     if (!userStr) {
-      showToast('Please log in to apply', 'error');
+      showToast('Please login to apply', 'error');
       setTimeout(() => navigate('/login'), 2000);
       return;
     }
     setShowApplyModal(true);
   };
 
+  const formatSalary = () => {
+    if (job.job_type && job.job_type.toLowerCase().includes('intern')) {
+      return 'Internship';
+    }
+    if (!job.salary_min && !job.salary_max) {
+      return 'Negotiable';
+    }
+    if (job.salary_min && job.salary_max) {
+      return `$${Number(job.salary_min).toLocaleString('en-US')} - $${Number(job.salary_max).toLocaleString('en-US')}`;
+    }
+    if (job.salary_min) {
+      return `From $${Number(job.salary_min).toLocaleString('en-US')}`;
+    }
+    return `Up to $${Number(job.salary_max).toLocaleString('en-US')}`;
+  };
+
   if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Loading...</div>;
   if (!job) return <div style={{ padding: '50px', textAlign: 'center' }}>Job not found</div>;
 
   return (
-    <div className="job-detail-container">
+    <div className="job-detail-page-container">
       <div className={`jd-toast ${toast.show ? 'show' : ''} ${toast.type}`}>
         {toast.msg}
       </div>
 
-      <div className="job-header-card">
-        <div className="job-header-inner">
-          <div className="job-header-info">
-            <h1>{job.title}</h1>
-            <div className="company-name">{job.company_name}</div>
-            <div className="job-meta">
-              <div className="job-meta-item">
-                <span>💰</span>
-                {(job.salary_min && job.salary_max)
-                  ? `${(job.salary_min / 1000000).toLocaleString('en-US')} - ${(job.salary_max / 1000000).toLocaleString('en-US')} million VND`
-                  : (job.salary_min
-                    ? `From ${(job.salary_min / 1000000).toLocaleString('en-US')} million VND`
-                    : (job.salary_max
-                      ? `Up to ${(job.salary_max / 1000000).toLocaleString('en-US')} million VND`
-                      : 'Negotiable'))
-                }
-              </div>
-              <div className="job-meta-item">
-                <span>📍</span> {job.company_address || 'Ho Chi Minh City'}
-              </div>
-              <div className="job-meta-item">
-                <span>⏳</span> Deadline: {new Date(job.deadline).toLocaleDateString('en-US')}
-              </div>
+      <div className="job-detail-top-card">
+        <div className="job-detail-card-header">
+          <img 
+            src={job.logo_url || '/default-company-logo.png'} 
+            alt="Company Logo" 
+            className="job-detail-card-logo"
+          />
+          <div className="job-detail-card-meta">
+            <h1 className="job-detail-card-title">{job.title}</h1>
+            <p className="job-detail-card-company">{job.company_name}</p>
+            <div className="job-detail-card-badges">
+              <span className="jd-badge badge-salary">💰 {formatSalary()}</span>
+              <span className="jd-badge badge-location">📍 {job.loc || 'Location updating'}</span>
             </div>
           </div>
+        </div>
+
+        <div className="job-detail-card-action">
+          <p className="job-detail-card-deadline">
+            Deadline: {new Date(job.deadline).toLocaleDateString('en-GB')}
+          </p>
           {hasApplied ? (
-            <button className="apply-btn applied" disabled>
+            <button className="job-detail-card-btn applied" disabled>
               ✓ Applied
             </button>
           ) : (
-            <button className="apply-btn" onClick={handleApplyClick}>
+            <button className="job-detail-card-btn" onClick={handleApplyClick}>
               Apply Now
             </button>
           )}
         </div>
       </div>
 
-      <div className="job-content-grid">
-        <div className="job-main-col">
-          <div className="job-section">
-            <h2>Job Description</h2>
-            <p>{job.description}</p>
-          </div>
-          <div className="job-section">
-            <h2>Candidate Requirements</h2>
-            <p>{job.requirements}</p>
-          </div>
+      <div className="job-detail-bottom-content">
+        <div className="job-detail-main-section">
+          <h2 className="job-detail-section-title">Job Description</h2>
+          <div className="job-detail-text-block">{job.description}</div>
         </div>
-
-        <div className="job-side-col">
-          <div className="company-card">
-            {job.logo_url ? (
-              <img src={job.logo_url} alt="Company Logo" className="company-logo" />
-            ) : (
-              <div className="company-logo-placeholder">🏢</div>
-            )}
-            <h3>{job.company_name}</h3>
-            {job.company_website && (
-              <a href={job.company_website} target="_blank" rel="noreferrer" className="company-website-btn">
-                Company Website
-              </a>
-            )}
+        
+        {job.requirements && (
+          <div className="job-detail-main-section">
+            <h2 className="job-detail-section-title">Requirements</h2>
+            <div className="job-detail-text-block">{job.requirements}</div>
           </div>
-        </div>
+        )}
       </div>
 
       {showApplyModal && (
@@ -178,7 +173,7 @@ export default function JobDetail() {
             showToast(msg, 'success');
           }}
           onError={(msg) => {
-            if (msg.includes('already applied')) {
+            if (msg.includes('already applied') || msg.includes('đã ứng tuyển')) {
               setHasApplied(true);
               saveAppliedJobId(id);
             }
