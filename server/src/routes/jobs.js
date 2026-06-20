@@ -15,7 +15,18 @@ router.post('/',authMiddleware, async (req, res) => {
       salary_min,
       salary_max,
       job_type,
-      deadline
+      deadline,
+      experience_req,
+      working_hours,
+      job_level,
+      vacancies,
+      gender_req,
+      age_req,
+      language_req,
+      province,
+      district,
+      ward,
+      exact_address
     } = req.body;
 
 
@@ -75,8 +86,8 @@ router.post('/',authMiddleware, async (req, res) => {
     }
 
     const [companies] = await pool.query(
-      'SELECT id FROM Company WHERE user_id = ?',
-      [user_id]
+      'SELECT id, hr_id FROM Company WHERE user_id = ? OR hr_id = ?',
+      [user_id, user_id]
     );
 
 
@@ -88,7 +99,7 @@ router.post('/',authMiddleware, async (req, res) => {
 
 
     const company_id = companies[0].id;
-
+    const hr_id = companies[0].hr_id;
 
 
     // Tạo job
@@ -104,10 +115,20 @@ router.post('/',authMiddleware, async (req, res) => {
         salary_min,
         salary_max,
         job_type,
-        status
+        status,
+        experience_req,
+        working_hours,
+        job_level,
+        vacancies,
+        gender_req,
+        age_req,
+        language_req,
+        province,
+        district,
+        ward,
+        exact_address
       )
-
-      VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         company_id,
@@ -117,7 +138,18 @@ router.post('/',authMiddleware, async (req, res) => {
         requirements || null,
         salary_min || null,
         salary_max || null,
-        job_type || 'Full-time'
+        job_type || 'Full-time',
+        experience_req || null,
+        working_hours ? JSON.stringify(working_hours) : null,
+        job_level || null,
+        vacancies || null,
+        gender_req || null,
+        age_req || null,
+        language_req || null,
+        province || null,
+        district || null,
+        ward || null,
+        exact_address || null
       ]
     );
 
