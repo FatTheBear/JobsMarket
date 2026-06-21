@@ -22,6 +22,8 @@ import JobDetail from './pages/JobDetail/JobDetail';
 import CompanyDashboard from './pages/DashBoard/CompanyDashboard/CompanyDashboard';
 import AppliedCandidates from './pages/AppliedCandidates/AppliedCandidates';
 import SavedCandidates from './pages/SavedCandidates/SavedCandidates';
+import TermsOfService from './pages/Authentication/TermsOfService';
+import NewsDetail from './pages/Dashboard/CompanyDashboard/NewsDetail';
 
 import './App.css';
 
@@ -46,9 +48,10 @@ const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/verify-otp", element: <VerifyOTP /> },
   { path: "/setup-profile", element: <SetupProfilePage /> },
+  { path: "/terms-of-service", element: <TermsOfService /> },
 
-  {
-    element: <MainLayout />,
+{
+  element: <MainLayout />,
     children: [
       { path: "/", element: <LandingPage /> },
       { path: "/dashboard", element: <UserDashboard /> },
@@ -88,6 +91,7 @@ const router = createBrowserRouter([
           { path: "templates", element: <PostTemplates /> },
           { path: "applicants", element: <AppliedCandidates /> },
           { path: "saved-candidates", element: <SavedCandidates /> }
+
         ]
       },
 
@@ -101,14 +105,15 @@ const router = createBrowserRouter([
       },
 
       { path: "/search-jobs", element: <SearchJobs /> },
-      
-      // ĐÃ SỬA: Thêm chữ 's' vào đường dẫn để khớp với lệnh navigate('/jobs/...')
-      { path: "/jobs/:id", element: <JobDetail /> } 
-    ]
-  },
 
-  // Mọi đường dẫn sai sẽ rơi vào trang 404 này
-  { path: "*", element: <div>404 - Trang không tồn tại</div> }
+      // ĐÃ SỬA: Thêm chữ 's' vào đường dẫn để khớp với lệnh navigate('/jobs/...')
+      { path: "/jobs/:id", element: <JobDetail /> },
+      { path: "/news-detail/:id", element: <NewsDetail /> }
+    ]
+},
+
+// Mọi đường dẫn sai sẽ rơi vào trang 404 này
+{ path: "*", element: <div>404 - Trang không tồn tại</div> }
 ]);
 
 export default function App() {

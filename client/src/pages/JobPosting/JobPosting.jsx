@@ -45,7 +45,7 @@ export default function JobPosting() {
     salary_type: 'negotiable',
     salary_min: '',
     salary_max: '',
-    
+
     floor_room: '',
     exact_address: '',
     province: '',
@@ -53,16 +53,16 @@ export default function JobPosting() {
     district: '',
     district_code: '',
     ward: '',
-    
+
     working_hour_type: 'Office hours (Off Sat, Sun)',
     working_days: { mon: true, tue: true, wed: true, thu: true, fri: true, sat: false, sun: false },
     start_time: '08:00',
     end_time: '17:00',
     working_time_note: '',
-    
+
     selected_industries: [],
     selected_skills: [],
-    
+
     job_type: 'Full-time',
     education_level: 'Bachelor',
     job_level: 'Junior',
@@ -70,7 +70,7 @@ export default function JobPosting() {
     gender_req: 'Any',
     age_req: '',
     language_req: 'Any',
-    
+
     description: '',
     requirements: '',
     benefits: '',
@@ -143,7 +143,7 @@ export default function JobPosting() {
 
   const toggleSkill = (skillId) => {
     setForm(prev => {
-      const skills = prev.selected_skills.includes(skillId) 
+      const skills = prev.selected_skills.includes(skillId)
         ? prev.selected_skills.filter(id => id !== skillId)
         : [...prev.selected_skills, skillId];
       return { ...prev, selected_skills: skills };
@@ -152,7 +152,7 @@ export default function JobPosting() {
 
   const toggleIndustry = (indId) => {
     setForm(prev => {
-      const inds = prev.selected_industries.includes(indId) 
+      const inds = prev.selected_industries.includes(indId)
         ? prev.selected_industries.filter(id => id !== indId)
         : [...prev.selected_industries, indId];
       return { ...prev, selected_industries: inds };
@@ -166,7 +166,7 @@ export default function JobPosting() {
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
-    
+
     if (!form.title.trim()) {
       showToast('Please enter the job title', 'error'); return;
     }
@@ -196,7 +196,7 @@ export default function JobPosting() {
 
       const payload = {
         title: form.title,
-        description: form.description || form.title, 
+        description: form.description || form.title,
         requirements: form.requirements || form.selected_skills.map(id => dbSkills.find(s => s.id === id)?.name).filter(Boolean).join(", "),
         selected_skills: form.selected_skills,
         selected_industries: form.selected_industries,
@@ -204,7 +204,7 @@ export default function JobPosting() {
         salary_max: form.salary_type === 'specific' ? parseInt(form.salary_max) : null,
         job_type: form.job_type,
         deadline: form.deadline || null,
-        
+
         experience_req: form.experience_req,
         working_hours: working_hours,
         job_level: form.job_level,
@@ -212,21 +212,24 @@ export default function JobPosting() {
         gender_req: form.gender_req,
         age_req: form.age_req,
         language_req: form.language_req,
-        
+
         province: form.province,
         district: form.district,
         ward: form.ward,
         exact_address: form.floor_room ? `${form.floor_room}, ${form.exact_address}` : form.exact_address
       };
-      
+
       const token = localStorage.getItem('token');
       const res = await axios.post(`${API_URL}/api/jobs`, payload, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      
+
       if (res.status === 201 || res.status === 200) {
-        showToast('Job successfully posted', 'success');
-        setTimeout(() => navigate('/company/profile'), 1500);
+        showToast(
+          res.data.message,
+          'success'
+        );
+        setTimeout(() => navigate('/company/profile'), 3000);
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Failed to post job';
@@ -361,14 +364,14 @@ export default function JobPosting() {
                     {day.charAt(0).toUpperCase() + day.slice(1)}
                   </label>
                 ))}
-                
+
                 <div className="jp-time-inputs">
                   <span>From:</span>
                   <input type="time" name="start_time" value={form.start_time} onChange={handleChange} />
                   <span>To:</span>
                   <input type="time" name="end_time" value={form.end_time} onChange={handleChange} />
                 </div>
-                
+
                 <button type="button" className="jp-btn-outline jp-add-slot">+ Add time slot</button>
               </div>
 
@@ -382,7 +385,7 @@ export default function JobPosting() {
         <section className="jp-card mt-20">
           <div className="jp-card-title">Additional Information</div>
           <div className="jp-card-body">
-            
+
             <div className="jp-field">
               <label>Industry <span>*</span></label>
               <div className="jp-skills-container">
@@ -477,8 +480,8 @@ export default function JobPosting() {
             </div>
 
             <div className="jp-field">
-                <label>Application Deadline</label>
-                <input type="date" name="deadline" value={form.deadline} onChange={handleChange} min={todayStr()} style={{width: '200px'}} />
+              <label>Application Deadline</label>
+              <input type="date" name="deadline" value={form.deadline} onChange={handleChange} min={todayStr()} style={{ width: '200px' }} />
             </div>
 
           </div>
@@ -493,10 +496,14 @@ export default function JobPosting() {
       </div>
 
       {toast.show && (
-        <div className={`toast-message ${toast.type}`}>
-          {toast.message}
+        <div className="toast-overlay">
+          <div className={`toast-modal ${toast.type}`}>
+            <h3>{toast.type === 'success' ? 'Success' : 'Error'}</h3>
+            <p>{toast.message}</p>
+          </div>
         </div>
       )}
+
     </main>
   );
 }

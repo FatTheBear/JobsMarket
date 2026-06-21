@@ -13,6 +13,24 @@ router.get('/meta/industries', async (req, res) => {
   }
 });
 
+router.get("/dashboard/applications", async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT
+        DATE(applied_at) AS day,
+        COUNT(*) AS total
+      FROM Application
+      GROUP BY DATE(applied_at)
+      ORDER BY day
+    `);
+
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+
 // GET /api/company/:hr_id — Lấy thông tin công ty theo hr_id
 router.get('/:hr_id', async (req, res) => {
   try {
@@ -128,5 +146,6 @@ router.get('/:hr_id/saved-candidates', async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+
 
 module.exports = router;
