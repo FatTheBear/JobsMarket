@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './JobPosting.css';
+import IndustrySelector from './IndustrySelector';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 
@@ -486,28 +487,12 @@ export default function JobPosting() {
           <div className="jp-card-title">Additional Information</div>
           <div className="jp-card-body">
             
-            <div className={`jp-field ${errors.industries ? 'has-error' : ''}`}>
-              <label>Industry <span>*</span></label>
-              <div className="jp-skills-container">
-                {form.selected_industries.map(id => {
-                  const ind = dbIndustries.find(i => i.id === id);
-                  return ind ? (
-                    <span key={id} className="jp-skill-tag selected" onClick={() => toggleIndustry(id)}>
-                      {ind.name} ✕
-                    </span>
-                  ) : null;
-                })}
-              </div>
-              <label className="jp-sub-label">Suggested industries (Click to select)</label>
-              <div className="jp-skills-container">
-                {dbIndustries.filter(i => !form.selected_industries.includes(i.id)).map(ind => (
-                  <span key={ind.id} className="jp-skill-tag" onClick={() => toggleIndustry(ind.id)}>
-                    {ind.name} +
-                  </span>
-                ))}
-              </div>
-              {errors.industries && <span className="jp-error-text">{errors.industries}</span>}
-            </div>
+            <IndustrySelector 
+              industries={dbIndustries}
+              selectedIds={form.selected_industries}
+              onToggle={toggleIndustry}
+            />
+            {errors.industries && <span className="jp-error-text">{errors.industries}</span>}
 
             <div className="jp-field">
               <label>Professional Skills</label>
