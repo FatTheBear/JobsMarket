@@ -15,6 +15,11 @@ const STATUS_LABELS = {
 const normalizeText = (text) =>
   text ? text.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() : '';
 
+const getFileUrl = (fileUrl) => {
+  if (!fileUrl) return '';
+  return fileUrl.startsWith('http') ? fileUrl : `${API_URL}${fileUrl}`;
+};
+
 export default function AppliedCandidates() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -149,14 +154,14 @@ export default function AppliedCandidates() {
                         {STATUS_LABELS[app.status] || app.status}
                       </span>
                     </td>
-                    <td>{new Date(app.applied_at).toLocaleDateString('vi-VN')}</td>
+                    <td>{new Date(app.applied_at).toLocaleDateString('en-US')}</td>
                     <td>
                       <button 
                         className={`ac-save-btn ${app.is_saved > 0 ? 'saved' : ''}`}
                         onClick={(e) => handleToggleSave(app, e)}
-                        title={app.is_saved > 0 ? "Bỏ lưu ứng viên" : "Lưu ứng viên"}
+                        title={app.is_saved > 0 ? "Unsave candidate" : "Save candidate"}
                       >
-                        {app.is_saved > 0 ? '🔖 Đã Lưu' : '🔖 Lưu'}
+                        {app.is_saved > 0 ? '🔖 Saved' : '🔖 Save'}
                       </button>
                     </td>
                   </tr>
@@ -193,13 +198,13 @@ export default function AppliedCandidates() {
                 <h3>Application Details</h3>
                 <p>Job: {selectedApplicant.job_title}</p>
                 <p>Status: {selectedApplicant.status}</p>
-                <p>Applied At: {new Date(selectedApplicant.applied_at).toLocaleString('vi-VN')}</p>
+                <p>Applied At: {new Date(selectedApplicant.applied_at).toLocaleString('en-US')}</p>
                 <p>Skills: {selectedApplicant.candidate_skills || 'N/A'}</p>
               </div>
               <div className="ac-modal-section">
                 <h3>CV Document</h3>
                 {selectedApplicant.file_url ? (
-                  <a href={selectedApplicant.file_url} target="_blank" rel="noreferrer" className="ac-btn-outline">
+                  <a href={getFileUrl(selectedApplicant.file_url)} target="_blank" rel="noreferrer" className="ac-btn-outline">
                     📄 View/Download CV
                   </a>
                 ) : (

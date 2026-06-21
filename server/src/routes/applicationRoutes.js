@@ -25,7 +25,7 @@ router.post('/', async (req, res) => {
     );
 
     if (existing.length > 0) {
-      return res.status(400).json({ message: 'Bạn đã ứng tuyển vào công việc này rồi.' });
+      return res.status(400).json({ message: 'You have already applied for this job.' });
     }
 
     // Check if CV exists (to prevent Foreign Key constraint error with mock data)
@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
     if (cvs.length === 0) {
       // Mock data scenario: return success without inserting to database
       return res.status(201).json({ 
-        message: 'Nộp đơn thành công! (Lưu ý: Đây là chế độ test giao diện với CV giả)', 
+        message: 'Application submitted successfully! (Note: UI test mode using a mock CV)', 
         applicationId: 999 
       });
     }
@@ -45,7 +45,7 @@ router.post('/', async (req, res) => {
       [job_id, candidate_id, cv_id]
     );
 
-    res.status(201).json({ message: 'Nộp đơn thành công!', applicationId: result.insertId });
+    res.status(201).json({ message: 'Application submitted successfully!', applicationId: result.insertId });
   } catch (err) {
     console.error('Error applying for job:', err);
     res.status(500).json({ message: 'Server error', error: err.message });

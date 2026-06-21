@@ -33,6 +33,7 @@ const companyRoutes = require('./routes/company');
 const jobs = require('./routes/jobs');
 const skillsRoutes = require('./routes/skills');
 const applicationRoutes = require('./routes/applicationRoutes');
+const industryRoutes = require('./routes/industryRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -42,6 +43,7 @@ app.use('/api/company', companyRoutes);
 app.use('/api/skills', skillsRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/jobs', jobs);
+app.use('/api/industries', industryRoutes);
 
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
