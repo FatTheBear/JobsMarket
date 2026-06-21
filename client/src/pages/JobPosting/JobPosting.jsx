@@ -43,6 +43,7 @@ export default function JobPosting() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const [submittedJobId, setSubmittedJobId] = useState(null); // Track successful post
 
   // Location Data
   const [provinces, setProvinces] = useState([]);
@@ -268,8 +269,7 @@ export default function JobPosting() {
       });
       
       if (res.status === 201 || res.status === 200) {
-        showToast('Job successfully posted', 'success');
-        setTimeout(() => navigate('/company/profile'), 1500);
+        setSubmittedJobId(res.data.jobId);
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Failed to post job';
@@ -281,6 +281,61 @@ export default function JobPosting() {
 
   return (
     <main className="main-form">
+
+      {/* ── PENDING APPROVAL SCREEN ── */}
+      {submittedJobId && (
+        <div className="jp-pending-screen">
+          <div className="jp-pending-card">
+            <div className="jp-pending-icon">🎉</div>
+            <h2 className="jp-pending-title">Job Post Submitted!</h2>
+            <p className="jp-pending-desc">
+              Your job posting has been submitted and is currently <strong>waiting for Admin approval</strong>.
+              You will be notified once it is reviewed.
+            </p>
+
+            {/* Status Timeline */}
+            <div className="jp-status-track">
+              <div className="jp-track-step done">
+                <div className="jp-track-dot"><span>✓</span></div>
+                <div className="jp-track-label">Submitted</div>
+              </div>
+              <div className="jp-track-line active"></div>
+              <div className="jp-track-step active">
+                <div className="jp-track-dot"><span>⏳</span></div>
+                <div className="jp-track-label">Pending Review</div>
+              </div>
+              <div className="jp-track-line"></div>
+              <div className="jp-track-step">
+                <div className="jp-track-dot"><span>✓</span></div>
+                <div className="jp-track-label">Approved</div>
+              </div>
+              <div className="jp-track-line"></div>
+              <div className="jp-track-step">
+                <div className="jp-track-dot"><span>🌐</span></div>
+                <div className="jp-track-label">Published</div>
+              </div>
+            </div>
+
+            <div className="jp-pending-info">
+              <span>📋 Job ID: <strong>#{submittedJobId}</strong></span>
+              <span>⏱ Estimated review time: <strong>1–2 business days</strong></span>
+            </div>
+
+            <div className="jp-pending-actions">
+              <button className="jp-btn jp-btn-cancel" onClick={() => navigate('/company')}>
+                Back to Dashboard
+              </button>
+              <button className="jp-btn jp-btn-primary" onClick={() => { setSubmittedJobId(null); }}>
+                Post Another Job
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MAIN FORM (hidden after submit) ── */}
+      {!submittedJobId && (
+        <div>
       <div className="jp-header-row">
         <div>
           <div className="jp-breadcrumb">Dashboard / Post a New Job</div>
@@ -540,6 +595,8 @@ export default function JobPosting() {
           </button>
         </div>
       </div>
+      </div>
+      )}
 
       {toast.show && (
         <div className={`toast-message ${toast.type}`}>
