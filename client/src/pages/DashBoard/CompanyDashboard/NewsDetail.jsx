@@ -41,10 +41,11 @@ export default function NewsDetail() {
                 src={imageSrc}
                 alt="thumb"
                 style={{
-                    width: "200px",
-                    height: "130px",
+                    width: "100%",
+                    maxHeight: "400px",
                     objectFit: "cover",
-                    borderRadius: "6px"
+                    borderRadius: "8px",
+                    marginBottom: "20px"
                 }}
                 onError={(e) => {
                     e.target.src = "/default-news-image.jpg";
