@@ -106,7 +106,7 @@ export default function JobDetail() {
   if (!job) return <div style={{ padding: '50px', textAlign: 'center' }}>Job not found</div>;
 
   return (
-    <div className="job-detail-page-container">
+    <div className="job-detail-container">
       <div className={`jd-toast ${toast.show ? 'show' : ''} ${toast.type}`}>
         {toast.msg}
       </div>
@@ -127,8 +127,27 @@ export default function JobDetail() {
               <span className="jd-badge badge-experience">💼 {job.experience || 'Not specified'}</span>
             </div>
           </div>
+          <div className="job-header-action">
+            {hasApplied ? (
+              <button className="apply-btn applied" disabled>✓ Applied</button>
+            ) : (
+              <button className="apply-btn" onClick={handleApplyClick}>Apply Now</button>
+            )}
+          </div>
         </div>
+      </div>
 
+      <div className="job-content-grid">
+        <div className="job-main-col">
+          <div className="job-section">
+            <h2>Job Description</h2>
+            <p>{job.description}</p>
+          </div>
+          {job.requirements && (
+            <div className="job-section">
+              <h2>Requirements</h2>
+              <p>{job.requirements}</p>
+            </div>
         <div className="job-detail-card-action">
           <p className="job-detail-card-deadline">
             Deadline: {new Date(job.deadline).toLocaleDateString('en-GB')}
@@ -143,20 +162,22 @@ export default function JobDetail() {
             </button>
           )}
         </div>
-      </div>
 
-      <div className="job-detail-bottom-content">
-        <div className="job-detail-main-section">
-          <h2 className="job-detail-section-title">Job Description</h2>
-          <div className="job-detail-text-block">{job.description}</div>
-        </div>
-        
-        {job.requirements && (
-          <div className="job-detail-main-section">
-            <h2 className="job-detail-section-title">Requirements</h2>
-            <div className="job-detail-text-block">{job.requirements}</div>
+        <div className="job-side-col">
+          <div className="company-card">
+            {job.logo_url ? (
+              <img src={job.logo_url} alt="Company Logo" className="company-logo" />
+            ) : (
+              <div className="company-logo-placeholder">🏢</div>
+            )}
+            <h3>{job.company_name}</h3>
+            {job.company_website && (
+              <a href={job.company_website} target="_blank" rel="noreferrer" className="company-website-btn">
+                Visit Website
+              </a>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {showApplyModal && (

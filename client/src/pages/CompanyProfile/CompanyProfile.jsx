@@ -160,9 +160,23 @@ export default function CompanyProfile() {
     reader.readAsDataURL(file);
   };
 
+  const [errors, setErrors] = useState({});
+
   const handleSubmit = async () => {
-    if (!form.name.trim()) { showToast('Please enter company name', 'error'); return; }
-    if (!form.industry_id) { showToast('Please select an industry', 'error'); return; }
+    let newErrors = {};
+
+    if (!form.name.trim()) {
+      newErrors.name = "Company name cannot be empty.";
+    }
+    if (!form.industry_id) {
+      newErrors.industry_id = "Please select an industry.";
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      return;
+    }
 
     setLoading(true);
     const hrId = getHrId();
@@ -281,14 +295,16 @@ export default function CompanyProfile() {
                   <div className={styles.formRow}>
                     <div className={styles.formGroup}>
                       <label className={styles.label}>Company Name <span className={styles.req}>*</span></label>
-                      <input className={styles.input} name="name" value={form.name} onChange={handleFormChange} placeholder="e.g. ABC Company Ltd." />
+                      <input className={`${styles.input} ${errors.name ? styles.hasError : ''}`} name="name" value={form.name} onChange={handleFormChange} placeholder="e.g. ABC Company Ltd." />
+                      {errors.name && <span className={styles.errorText}>{errors.name}</span>}
                     </div>
                     <div className={styles.formGroup}>
                       <label className={styles.label}>Industry <span className={styles.req}>*</span></label>
-                      <select className={styles.input} name="industry_id" value={form.industry_id} onChange={handleFormChange}>
+                      <select className={`${styles.input} ${errors.industry_id ? styles.hasError : ''}`} name="industry_id" value={form.industry_id} onChange={handleFormChange}>
                         <option value="">-- Select Industry --</option>
                         {industries.map(ind => <option key={ind.id} value={ind.id}>{ind.name}</option>)}
                       </select>
+                      {errors.industry_id && <span className={styles.errorText}>{errors.industry_id}</span>}
                     </div>
                   </div>
                   <div className={styles.formRow}>

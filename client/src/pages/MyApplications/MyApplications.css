@@ -1,0 +1,238 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+.ma-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 24px 60px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Header */
+.ma-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.ma-breadcrumb {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.ma-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 6px;
+}
+
+.ma-subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.ma-find-btn {
+  padding: 10px 20px;
+  background: #01796f;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.ma-find-btn:hover { background: #016259; }
+
+/* Stats Row */
+.ma-stats-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.ma-stat-card {
+  flex: 1;
+  min-width: 110px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.ma-stat-num {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.ma-stat-label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Filter Tabs */
+.ma-filter-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.ma-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ma-tab:hover { border-color: #01796f; color: #01796f; }
+
+.ma-tab.active {
+  background: #01796f;
+  color: #fff;
+  border-color: #01796f;
+}
+
+.ma-tab-count {
+  background: rgba(255,255,255,0.25);
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ma-tab:not(.active) .ma-tab-count {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+/* Application Cards */
+.ma-list { display: flex; flex-direction: column; gap: 14px; }
+
+.ma-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+  border: 1px solid #f1f5f9;
+  transition: box-shadow 0.2s, transform 0.15s;
+}
+
+.ma-card:hover {
+  box-shadow: 0 6px 24px rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+}
+
+.ma-card-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ma-card-logo img { width: 100%; height: 100%; object-fit: cover; }
+.ma-logo-placeholder { font-size: 24px; }
+
+.ma-card-info { flex: 1; min-width: 0; }
+
+.ma-job-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 4px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.ma-job-title:hover { color: #01796f; }
+
+.ma-company {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.ma-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ma-meta span {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Right section */
+.ma-card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.ma-status-badge {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.ma-view-btn {
+  padding: 6px 14px;
+  border-radius: 7px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ma-view-btn:hover {
+  border-color: #01796f;
+  color: #01796f;
+}
+
+/* Empty state */
+.ma-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #64748b;
+}
+
+.ma-empty-icon { font-size: 48px; margin-bottom: 16px; }
+.ma-empty h3 { font-size: 18px; color: #1e293b; margin: 0 0 8px; }
+.ma-empty p { font-size: 14px; margin: 0 0 20px; }
