@@ -138,6 +138,16 @@ const CandidateExperience = ({
                   />
                 </div>
               </div>
+              <div>
+                <label className="form-label fw-semibold text-secondary small">Job Description</label>
+                <textarea
+                  className="form-control"
+                  rows="3"
+                  value={experienceForm.description || ''}
+                  onChange={(e) => setExperienceForm({ ...experienceForm, description: e.target.value })}
+                  placeholder="e.g. Responsible for developing and maintaining web applications, collaborating with design teams..."
+                ></textarea>
+              </div>
               <div className="profile-modal-footer mt-3 pt-3 border-top d-flex gap-2 justify-content-end bg-white">
                 <button type="button" className="btn btn-light border" onClick={onCloseModal}>Cancel</button>
                 <button type="submit" className="btn btn-primary">Save</button>

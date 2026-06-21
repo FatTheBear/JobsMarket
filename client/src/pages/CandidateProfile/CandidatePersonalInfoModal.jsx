@@ -26,6 +26,12 @@ const CandidatePersonalInfoModal = ({ show, onClose, profileData }) => {
                 <th scope="row" style={{ width: '35%' }} className="text-secondary fw-semibold">Full Name</th>
                 <td className="text-dark fw-medium">{profileData.fullName}</td>
               </tr>
+              {profileData.age && (
+                <tr>
+                  <th scope="row" className="text-secondary fw-semibold">Age</th>
+                  <td className="text-dark fw-medium">{profileData.age}</td>
+                </tr>
+              )}
               {profileData.phone && !profileData.hidePhone && (
                 <tr>
                   <th scope="row" className="text-secondary fw-semibold">Phone</th>
@@ -46,10 +52,20 @@ const CandidatePersonalInfoModal = ({ show, onClose, profileData }) => {
               )}
               {profileData.portfolio && (
                 <tr>
-                  <th scope="row" className="text-secondary fw-semibold">Portfolio</th>
+                  <th scope="row" className="text-secondary fw-semibold">Website</th>
                   <td className="text-dark fw-medium">
                     <a href={profileData.portfolio} target="_blank" rel="noopener noreferrer">
                       {profileData.portfolio}
+                    </a>
+                  </td>
+                </tr>
+              )}
+              {profileData.blog && (
+                <tr>
+                  <th scope="row" className="text-secondary fw-semibold">Blog</th>
+                  <td className="text-dark fw-medium">
+                    <a href={profileData.blog} target="_blank" rel="noopener noreferrer">
+                      {profileData.blog}
                     </a>
                   </td>
                 </tr>
@@ -70,6 +86,26 @@ const CandidatePersonalInfoModal = ({ show, onClose, profileData }) => {
                   <td className="text-dark fw-medium">
                     <a href={profileData.facebook} target="_blank" rel="noopener noreferrer">
                       {profileData.facebook}
+                    </a>
+                  </td>
+                </tr>
+              )}
+              {profileData.x && (
+                <tr>
+                  <th scope="row" className="text-secondary fw-semibold">X (Twitter)</th>
+                  <td className="text-dark fw-medium">
+                    <a href={profileData.x} target="_blank" rel="noopener noreferrer">
+                      {profileData.x}
+                    </a>
+                  </td>
+                </tr>
+              )}
+              {profileData.linkedin && (
+                <tr>
+                  <th scope="row" className="text-secondary fw-semibold">LinkedIn</th>
+                  <td className="text-dark fw-medium">
+                    <a href={profileData.linkedin} target="_blank" rel="noopener noreferrer">
+                      {profileData.linkedin}
                     </a>
                   </td>
                 </tr>
