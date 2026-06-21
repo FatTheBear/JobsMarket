@@ -60,10 +60,8 @@ export default function JobDetail() {
       setHasApplied(true);
       return;
     }
-
     const token = localStorage.getItem('token');
     if (!token) return;
-
     try {
       const res = await axios.get(`${API_URL}/api/candidate/applications`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -75,8 +73,7 @@ export default function JobDetail() {
         setHasApplied(true);
         saveAppliedJobId(id);
       }
-    } catch {
-    }
+    } catch {}
   };
 
   const handleApplyClick = () => {
@@ -127,6 +124,7 @@ export default function JobDetail() {
             <div className="job-detail-card-badges">
               <span className="jd-badge badge-salary">💰 {formatSalary()}</span>
               <span className="jd-badge badge-location">📍 {job.loc || 'Location updating'}</span>
+              <span className="jd-badge badge-experience">💼 {job.experience || 'Not specified'}</span>
             </div>
           </div>
         </div>
@@ -137,7 +135,7 @@ export default function JobDetail() {
           </p>
           {hasApplied ? (
             <button className="job-detail-card-btn applied" disabled>
-              ✓ Applied
+              Applied
             </button>
           ) : (
             <button className="job-detail-card-btn" onClick={handleApplyClick}>

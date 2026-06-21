@@ -3,9 +3,6 @@ const cors = require("cors");
 const { Server } = require('socket.io');
 const http = require('http');
 const dotenv = require("dotenv");
-
-
-
 const app = express();
 const server = http.createServer(app);
 const path = require('path');
@@ -21,7 +18,6 @@ const io = new Server(server, {
   }
 })
 // Database connection
-app.use('/uploads', express.static('uploads'));
 require('./config/db');
 
 // Routes
@@ -45,6 +41,7 @@ app.use('/api/applications', applicationRoutes);
 app.use('/api/jobs', jobs);
 app.use('/api/industries', industryRoutes);
 
+
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
 
@@ -52,9 +49,6 @@ io.on('connection', (socket) => {
     console.log("User disconnected");
   });
 });
-
-
-
 
 app.get("/", (req, res) => {
   res.send("JobsMarket API running...");
