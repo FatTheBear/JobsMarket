@@ -418,13 +418,13 @@
 }
 
 .jp-btn-primary {
-  background: #2563eb;
+  background: #01796f;
   color: #fff;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 4px 14px rgba(1, 121, 111, 0.3);
 }
 
 .jp-btn-primary:hover {
-  background: #1d4ed8;
+  background: #016259;
   transform: translateY(-1px);
 }
 
@@ -432,6 +432,25 @@
   opacity: 0.65;
   cursor: not-allowed;
   transform: none;
+}
+
+.jp-error-text {
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.jp-field input.has-error,
+.jp-field select.has-error,
+.jp-field textarea.has-error {
+  border-color: #dc2626;
+}
+
+.jp-field input.has-error:focus,
+.jp-field select.has-error:focus,
+.jp-field textarea.has-error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 .jp-btn-outline {
@@ -443,7 +462,7 @@
 /* Toast */
 .toast-message {
   position: fixed;
-  top: 28px;
+  top: 80px;
   right: 28px;
   padding: 14px 24px;
   color: white;

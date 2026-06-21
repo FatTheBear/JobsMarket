@@ -12,18 +12,32 @@ const EDUCATION_LEVELS = ["High School", "Associate Degree", "Bachelor", "Master
 
 const todayStr = () => new Date().toISOString().split('T')[0];
 
+const removeAccents = (str) => {
+  if (!str) return '';
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D');
+};
+
 const translateLocation = (name) => {
   if (!name) return '';
-  if (name.startsWith('Thành phố ')) return name.replace('Thành phố ', '') + ' City';
-  if (name.startsWith('Tỉnh ')) return name.replace('Tỉnh ', '') + ' Province';
-  if (name.startsWith('Quận ')) return name.replace('Quận ', 'District ');
-  if (name.startsWith('Huyện ')) return name.replace('Huyện ', 'District ');
-  if (name.startsWith('Thị xã ')) return name.replace('Thị xã ', 'Town ');
-  if (name.startsWith('Phường ')) return name.replace('Phường ', 'Ward ');
-  if (name.startsWith('Xã ')) return name.replace('Xã ', 'Commune ');
-  if (name.startsWith('Thị trấn ')) return name.replace('Thị trấn ', 'Town ');
-  return name;
+  // Strip prefix words (province/city/district level)
+  const prefixes = [
+    'Thành phố ', 'Tỉnh ', 'Quận ', 'Huyện ',
+    'Thị xã ', 'Phường ', 'Xã ', 'Thị trấn '
+  ];
+  let result = name;
+  for (const prefix of prefixes) {
+    if (result.startsWith(prefix)) {
+      result = result.slice(prefix.length);
+      break;
+    }
+  }
+  return removeAccents(result);
 };
+
 
 export default function JobPosting() {
   const navigate = useNavigate();
@@ -159,6 +173,8 @@ export default function JobPosting() {
     });
   };
 
+  const [errors, setErrors] = useState({});
+
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
@@ -167,22 +183,49 @@ export default function JobPosting() {
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     
-    if (!form.title.trim()) {
-      showToast('Please enter the job title', 'error'); return;
+    let newErrors = {};
+
+    // Validate Job Title
+    const trimmedTitle = form.title.trim();
+    if (!trimmedTitle) {
+      newErrors.title = "Job Title cannot be empty.";
+    } else if (trimmedTitle.length < 10) {
+      newErrors.title = "Job Title must be at least 10 characters long.";
+    } else if (/^\d+$/.test(trimmedTitle)) {
+      newErrors.title = "Job Title cannot contain only numbers.";
     }
+
+    // Validate Salary
     if (form.salary_type === 'specific') {
       if (!form.salary_min || !form.salary_max) {
-        showToast('Please enter both Minimum and Maximum Salary in USD', 'error'); return;
-      }
-      if (Number(form.salary_min) < 0 || Number(form.salary_max) < 0) {
-        showToast('Salary cannot be negative', 'error'); return;
-      }
-      if (Number(form.salary_min) > Number(form.salary_max)) {
-        showToast('Minimum salary cannot exceed maximum salary', 'error'); return;
+        newErrors.salary = "Please enter both Minimum and Maximum Salary.";
+      } else if (Number(form.salary_min) < 0 || Number(form.salary_max) < 0) {
+        newErrors.salary = "Salary cannot be negative.";
+      } else if (Number(form.salary_min) > Number(form.salary_max)) {
+        newErrors.salary = "Minimum salary cannot exceed maximum salary.";
       }
     }
+
+    // Validate Location
     if (!form.province) {
-      showToast('Please select a Province', 'error'); return;
+      newErrors.province = "Please select a Province / City.";
+    }
+    if (!form.district_code && provinces.length > 0) {
+      newErrors.district = "Please select a District.";
+    }
+    if (!form.exact_address.trim()) {
+      newErrors.exact_address = "Please enter a specific location.";
+    }
+
+    // Validate Industries
+    if (form.selected_industries.length === 0) {
+      newErrors.industries = "Please select at least one industry.";
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      return;
     }
 
     setLoading(true);
@@ -267,7 +310,8 @@ export default function JobPosting() {
           <div className="jp-card-body">
             <div className="jp-field">
               <label>Job Title <span>*</span></label>
-              <input type="text" name="title" value={form.title} onChange={handleChange} placeholder="e.g. Data Engineer" />
+              <input type="text" name="title" value={form.title} onChange={handleChange} placeholder="e.g. Data Engineer" className={errors.title ? 'has-error' : ''} />
+              {errors.title && <span className="jp-error-text">{errors.title}</span>}
             </div>
 
             <div className="jp-row jp-row-two">
@@ -297,12 +341,13 @@ export default function JobPosting() {
                   </label>
                   {form.salary_type === 'specific' && (
                     <div className="jp-salary-inputs">
-                      <input type="number" name="salary_min" value={form.salary_min} onChange={handleChange} placeholder="From ($)" min="0" />
+                      <input type="number" name="salary_min" value={form.salary_min} onChange={handleChange} placeholder="From ($)" min="0" className={errors.salary ? 'has-error' : ''} />
                       <span>-</span>
-                      <input type="number" name="salary_max" value={form.salary_max} onChange={handleChange} placeholder="To ($)" min="0" />
+                      <input type="number" name="salary_max" value={form.salary_max} onChange={handleChange} placeholder="To ($)" min="0" className={errors.salary ? 'has-error' : ''} />
                     </div>
                   )}
                 </div>
+                {errors.salary && <span className="jp-error-text">{errors.salary}</span>}
               </div>
             </div>
 
@@ -315,22 +360,25 @@ export default function JobPosting() {
                 </div>
                 <div>
                   <label className="jp-sub-label">Specific Location <span>*</span></label>
-                  <input type="text" name="exact_address" value={form.exact_address} onChange={handleChange} placeholder="e.g. 123 Main St" />
+                  <input type="text" name="exact_address" value={form.exact_address} onChange={handleChange} placeholder="e.g. 123 Main St" className={errors.exact_address ? 'has-error' : ''} />
+                  {errors.exact_address && <span className="jp-error-text">{errors.exact_address}</span>}
                 </div>
                 <div>
                   <label className="jp-sub-label">Province / City <span>*</span></label>
-                  <select onChange={handleProvinceChange} value={form.province_code}>
-                    <option value="">Select Province</option>
+                  <select onChange={handleProvinceChange} value={form.province_code} className={errors.province ? 'has-error' : ''}>
+                    <option value="">Select</option>
                     {provinces.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
                   </select>
+                  {errors.province && <span className="jp-error-text">{errors.province}</span>}
                 </div>
                 {form.province_code && (
                   <div>
                     <label className="jp-sub-label">District <span>*</span></label>
-                    <select onChange={handleDistrictChange} value={form.district_code}>
-                      <option value="">Select District</option>
+                    <select onChange={handleDistrictChange} value={form.district_code} className={errors.district ? 'has-error' : ''}>
+                      <option value="">Select</option>
                       {districts.map(d => <option key={d.code} value={d.code}>{d.name}</option>)}
                     </select>
+                    {errors.district && <span className="jp-error-text">{errors.district}</span>}
                   </div>
                 )}
                 {form.district_code && (
@@ -383,7 +431,7 @@ export default function JobPosting() {
           <div className="jp-card-title">Additional Information</div>
           <div className="jp-card-body">
             
-            <div className="jp-field">
+            <div className={`jp-field ${errors.industries ? 'has-error' : ''}`}>
               <label>Industry <span>*</span></label>
               <div className="jp-skills-container">
                 {form.selected_industries.map(id => {
@@ -403,6 +451,7 @@ export default function JobPosting() {
                   </span>
                 ))}
               </div>
+              {errors.industries && <span className="jp-error-text">{errors.industries}</span>}
             </div>
 
             <div className="jp-field">
