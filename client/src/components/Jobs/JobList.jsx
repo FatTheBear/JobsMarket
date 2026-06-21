@@ -139,7 +139,7 @@ export default function JobList() {
             <JobCard
               key={jobItem.id}
               job={jobItem}
-              onSelect={(clickedJob) => setSelectedJob(clickedJob)}
+              onClick={() => navigate(`/jobs/${jobItem.id}`)}
             />
           ))}
         </div>

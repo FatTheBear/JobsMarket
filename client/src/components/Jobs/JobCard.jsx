@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import './JobCard.css';
 
 export default function JobCard({ company_logo, job, onClick }) {
@@ -32,11 +31,10 @@ export default function JobCard({ company_logo, job, onClick }) {
     if (salary_min) return `From $${salary_min}`;
     return `Up to $${salary_max}`;
   };
-  const navigate = useNavigate();
 
   // 3. Render the UI
   return (
-    <div className="job-card-container" onClick={() => onSelect?.(job)}>
+    <div className="job-card-container" onClick={onClick}>
       {/* Khối trên: Logo + Tên Job + Tên Công ty */}
       <div className="job-card-header">
         <img
