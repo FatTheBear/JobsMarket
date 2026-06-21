@@ -60,10 +60,8 @@ export default function JobDetail() {
       setHasApplied(true);
       return;
     }
-
     const token = localStorage.getItem('token');
     if (!token) return;
-
     try {
       const res = await axios.get(`${API_URL}/api/candidate/applications`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -75,8 +73,7 @@ export default function JobDetail() {
         setHasApplied(true);
         saveAppliedJobId(id);
       }
-    } catch {
-    }
+    } catch {}
   };
 
   const handleApplyClick = () => {
@@ -114,15 +111,20 @@ export default function JobDetail() {
         {toast.msg}
       </div>
 
-      <div className="job-header-card">
-        <div className="job-header-inner">
-          <div className="job-header-info">
-            <h1>{job.title}</h1>
-            <div className="company-name">{job.company_name}</div>
-            <div className="job-meta">
-              <span className="job-meta-item">💰 {formatSalary()}</span>
-              <span className="job-meta-item">📍 {job.loc || 'Location updating'}</span>
-              <span className="job-meta-item">⏳ Deadline: {new Date(job.deadline).toLocaleDateString('en-GB')}</span>
+      <div className="job-detail-top-card">
+        <div className="job-detail-card-header">
+          <img 
+            src={job.logo_url || '/default-company-logo.png'} 
+            alt="Company Logo" 
+            className="job-detail-card-logo"
+          />
+          <div className="job-detail-card-meta">
+            <h1 className="job-detail-card-title">{job.title}</h1>
+            <p className="job-detail-card-company">{job.company_name}</p>
+            <div className="job-detail-card-badges">
+              <span className="jd-badge badge-salary">💰 {formatSalary()}</span>
+              <span className="jd-badge badge-location">📍 {job.loc || 'Location updating'}</span>
+              <span className="jd-badge badge-experience">💼 {job.experience || 'Not specified'}</span>
             </div>
           </div>
           <div className="job-header-action">
@@ -146,6 +148,18 @@ export default function JobDetail() {
               <h2>Requirements</h2>
               <p>{job.requirements}</p>
             </div>
+        <div className="job-detail-card-action">
+          <p className="job-detail-card-deadline">
+            Deadline: {new Date(job.deadline).toLocaleDateString('en-GB')}
+          </p>
+          {hasApplied ? (
+            <button className="job-detail-card-btn applied" disabled>
+              Applied
+            </button>
+          ) : (
+            <button className="job-detail-card-btn" onClick={handleApplyClick}>
+              Apply Now
+            </button>
           )}
         </div>
 

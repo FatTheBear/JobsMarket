@@ -134,10 +134,7 @@ export default function CandidateDashboard() {
                   <JobCard
                     key={job.id}
                     job={job}
-                    onApply={() => {
-                      setSelectedJob(job);
-                      setShowApplyModal(true);
-                    }}
+                    onClick={() => navigate(`/jobs/${job.id}`)}
                   />
                 ))}
               </div>
