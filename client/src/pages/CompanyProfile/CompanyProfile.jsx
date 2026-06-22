@@ -2,7 +2,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './CompanyProfile.module.css';
-import HRPostJob from "../../components/HR/HRPostJob";
 const API_URL = 'http://localhost:5000';
 
 const getHrId = () => {
@@ -26,7 +25,7 @@ const getHrId = () => {
 const EMPLOYEE_OPTIONS = ['Under 10', '10 - 50', '50 - 100', '100 - 300', '300 - 500', '500 - 1000', 'Over 1000'];
 const BRANCH_OPTIONS = ['1', '2 - 5', '5 - 10', '10 - 20', 'Over 20'];
 const AGE_OPTIONS = ['Under 22', '22 - 25', '25 - 30', '30 - 35', 'Over 35'];
-const TABS = ['Tổng quan', 'Cơ cấu', 'Hình ảnh', 'Khác'];
+const TABS = ['Overview', 'Structure', 'Images', 'Other'];
 
 export default function CompanyProfile() {
   console.log("CompanyProfile render");
@@ -34,7 +33,6 @@ export default function CompanyProfile() {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
-  const [isPostJobModalOpen, setIsPostJobModalOpen] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [logoPreview, setLogoPreview] = useState(null);
   const fileInputRef = useRef();
@@ -162,9 +160,23 @@ export default function CompanyProfile() {
     reader.readAsDataURL(file);
   };
 
+  const [errors, setErrors] = useState({});
+
   const handleSubmit = async () => {
-    if (!form.name.trim()) { showToast('Please enter company name', 'error'); return; }
-    if (!form.industry_id) { showToast('Please select an industry', 'error'); return; }
+    let newErrors = {};
+
+    if (!form.name.trim()) {
+      newErrors.name = "Company name cannot be empty.";
+    }
+    if (!form.industry_id) {
+      newErrors.industry_id = "Please select an industry.";
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      return;
+    }
 
     setLoading(true);
     const hrId = getHrId();
@@ -199,44 +211,21 @@ export default function CompanyProfile() {
 
       </div>
 
-    {isPostJobModalOpen && (
-    <div className={styles.modalOverlay}>
-        <div className={styles.modalContent}>
-            <button className={styles.closeBtn} onClick={() => setIsPostJobModalOpen(false)}>✕</button>
-            <HRPostJob />
-        </div>
-    </div>
-)}
-
-      {/* Top bar */}
-      <div className={styles.topBar}>
-        <div>
-          <div className={styles.breadcrumb}>Bảng thông tin</div>
-          <h1 className={styles.pageTitle}>Hồ sơ công ty</h1>
-        </div>
-        <button
-          className={styles.btnPostJob}
-          onClick={() => navigate('/company/jobs/create')}
-        >
-          Đăng tin tuyển dụng mới
-        </button>
-      </div>
-
       <div className={styles.layout}>
         
         {/* Main Content */}
         <main className={styles.main}>
           <div className={styles.pageHeader}>
             <div>
-              <div className={styles.pageSubTitle}>Thông tin công ty</div>
-              <h1 className={styles.pageTitle}>Hồ sơ công ty</h1>
+              <div className={styles.pageSubTitle}>Company Information</div>
+              <h1 className={styles.pageTitle}>Company Profile</h1>
             </div>
             <div className={styles.headerActions}>
               <button
                 className={styles.btnOutline}
                 onClick={() => navigate('/company-profile/job-posting')}
               >
-                Xem danh sách việc làm
+                View Job List
               </button>
             </div>
           </div>
@@ -255,16 +244,16 @@ export default function CompanyProfile() {
 
           <div className={styles.summaryGrid}>
             <div className={styles.summaryCard}>
-              <div className={styles.summaryTitle}>Thông tin công ty</div>
-              <div className={styles.summaryRow}><strong>Tên công ty:</strong> {form.name || 'Chưa cập nhật'}</div>
-              <div className={styles.summaryRow}><strong>Ngành nghề:</strong> {industries.find(i => String(i.id) === String(form.industry_id))?.name || 'Chưa chọn'}</div>
-              <div className={styles.summaryRow}><strong>Website:</strong> {form.website || 'Chưa cập nhật'}</div>
+              <div className={styles.summaryTitle}>Company Information</div>
+              <div className={styles.summaryRow}><strong>Company Name:</strong> {form.name || 'Not updated yet'}</div>
+              <div className={styles.summaryRow}><strong>Industry:</strong> {industries.find(i => String(i.id) === String(form.industry_id))?.name || 'Not selected'}</div>
+              <div className={styles.summaryRow}><strong>Website:</strong> {form.website || 'Not updated yet'}</div>
             </div>
             <div className={styles.summaryCard}>
-              <div className={styles.summaryTitle}>Số liệu nhanh</div>
-              <div className={styles.summaryRow}><strong>Việc làm:</strong> 0</div>
-              <div className={styles.summaryRow}><strong>Ứng viên ứng tuyển:</strong> 0</div>
-              <div className={styles.summaryRow}><strong>Hồ sơ đã lưu:</strong> 0</div>
+              <div className={styles.summaryTitle}>Quick Stats</div>
+              <div className={styles.summaryRow}><strong>Jobs:</strong> 0</div>
+              <div className={styles.summaryRow}><strong>Applicants:</strong> 0</div>
+              <div className={styles.summaryRow}><strong>Saved Profiles:</strong> 0</div>
             </div>
           </div>
 
@@ -306,14 +295,16 @@ export default function CompanyProfile() {
                   <div className={styles.formRow}>
                     <div className={styles.formGroup}>
                       <label className={styles.label}>Company Name <span className={styles.req}>*</span></label>
-                      <input className={styles.input} name="name" value={form.name} onChange={handleFormChange} placeholder="e.g. ABC Company Ltd." />
+                      <input className={`${styles.input} ${errors.name ? styles.hasError : ''}`} name="name" value={form.name} onChange={handleFormChange} placeholder="e.g. ABC Company Ltd." />
+                      {errors.name && <span className={styles.errorText}>{errors.name}</span>}
                     </div>
                     <div className={styles.formGroup}>
                       <label className={styles.label}>Industry <span className={styles.req}>*</span></label>
-                      <select className={styles.input} name="industry_id" value={form.industry_id} onChange={handleFormChange}>
+                      <select className={`${styles.input} ${errors.industry_id ? styles.hasError : ''}`} name="industry_id" value={form.industry_id} onChange={handleFormChange}>
                         <option value="">-- Select Industry --</option>
                         {industries.map(ind => <option key={ind.id} value={ind.id}>{ind.name}</option>)}
                       </select>
+                      {errors.industry_id && <span className={styles.errorText}>{errors.industry_id}</span>}
                     </div>
                   </div>
                   <div className={styles.formRow}>

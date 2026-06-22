@@ -147,7 +147,12 @@ export default function Register() {
                         htmlFor="form2Example3cg"
                       >
                         I agree all statements in{" "}
-                        <a href="#!" className="text-body">
+                        <a
+                          href="/terms-of-service"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-body"
+                        >
                           <u>Terms of service</u>
                         </a>
                       </label>

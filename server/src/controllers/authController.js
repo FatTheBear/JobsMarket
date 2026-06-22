@@ -44,7 +44,7 @@ const authController = {
                 const nodemailer = require('nodemailer');
 
                 const otp = crypto.randomInt(100000, 999999).toString();
-                const expiresAt = new Date(Date.now() + 5 * 60000); // Hết hạn sau 5 phút
+                const expiresAt = new Date(Date.now() + 5 * 60000);
 
                 await connection.execute(
                     'UPDATE User SET verification_code = ?, code_expires_at = ? WHERE id = ?',
@@ -105,8 +105,8 @@ const authController = {
                     );
                 }
                 else if (role === 'Admin') {
-                    // Cấp quyền Admin: Lưu ở bảng User chính là đủ, không cần điền bảng phụ
-                    console.log(`--- Đã tạo tài khoản Admin ID: ${newUserId} thành công ---`);
+                    // Admin permission is stored directly on the User table.
+                    console.log(`--- Admin account ID ${newUserId} created successfully ---`);
                 }
                 else {
                     throw new Error("Invalid role specified!");
@@ -211,7 +211,7 @@ const authController = {
                 u.role, 
                 u.status,
 
-                cp.display_name AS candidate_name, 
+                cp.full_name AS candidate_name, 
                 cp.avatar_url AS candidate_avatar,
 
                 com.id AS company_id,

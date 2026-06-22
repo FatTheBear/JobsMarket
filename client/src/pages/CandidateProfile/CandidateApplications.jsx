@@ -22,7 +22,7 @@ const CandidateApplications = ({ candidatePosts }) => {
       const res = await axios.get(`http://localhost:5000/api/applications/candidate/${user.id}`);
       setApplications(res.data || []);
     } catch (err) {
-      console.error('Lỗi lấy danh sách đơn nộp:', err);
+      console.error('Error loading applications:', err);
     } finally {
       setLoading(false);
     }
@@ -45,9 +45,9 @@ const CandidateApplications = ({ candidatePosts }) => {
         <div className="card-body p-4">
           <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
             <div className="d-flex align-items-center gap-2">
-              <span className="fs-5 fw-bold text-dark mb-0">Việc làm đã ứng tuyển</span>
+              <span className="fs-5 fw-bold text-dark mb-0">Applied Jobs</span>
               <span className="badge bg-light text-muted border rounded-pill d-inline-flex align-items-center py-1.5 px-2.5 fw-normal small">
-                {applications.length} công việc
+                {applications.length} jobs
               </span>
             </div>
             <i className="fas fa-briefcase text-primary fs-4"></i>
@@ -55,16 +55,16 @@ const CandidateApplications = ({ candidatePosts }) => {
 
           <div className="application-list d-flex flex-column gap-3 mt-3">
             {loading ? (
-              <div className="text-center py-4 text-muted">Đang tải dữ liệu...</div>
+              <div className="text-center py-4 text-muted">Loading data...</div>
             ) : applications.length === 0 ? (
               <div className="text-center py-5 text-muted small">
                 <i className="fas fa-box-open fs-3 mb-2 text-muted opacity-50"></i>
-                <p className="mb-0">Bạn chưa ứng tuyển công việc nào.</p>
+                <p className="mb-0">You have not applied to any jobs yet.</p>
                 <button 
                   className="btn btn-outline-primary btn-sm mt-3" 
                   onClick={() => navigate('/search-jobs')}
                 >
-                  Tìm việc ngay
+                  Find Jobs Now
                 </button>
               </div>
             ) : (
@@ -86,7 +86,7 @@ const CandidateApplications = ({ candidatePosts }) => {
                       </h6>
                       <p className="mb-1 text-muted small">{app.company_name}</p>
                       <p className="mb-0 text-muted" style={{ fontSize: '12px' }}>
-                        Nộp ngày: {new Date(app.applied_at).toLocaleDateString('vi-VN')}
+                        Applied on: {new Date(app.applied_at).toLocaleDateString('en-US')}
                       </p>
                     </div>
                   </div>

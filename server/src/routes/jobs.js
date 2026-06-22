@@ -15,13 +15,26 @@ router.post('/',authMiddleware, async (req, res) => {
       salary_min,
       salary_max,
       job_type,
-      deadline
+      deadline,
+      experience_req,
+      working_hours,
+      job_level,
+      vacancies,
+      gender_req,
+      age_req,
+      language_req,
+      province,
+      district,
+      ward,
+      exact_address,
+      selected_skills,
+      selected_industries
     } = req.body;
 
 
     // Lấy user id từ JWT
-    const user_id = req.user.id;
-    const hr_id = req.user.id;
+    const user_id = req.user?.id;
+
 
     if (!user_id) {
       return res.status(401).json({
@@ -75,7 +88,7 @@ router.post('/',authMiddleware, async (req, res) => {
     }
 
     const [companies] = await pool.query(
-      'SELECT id FROM Company WHERE user_id = ?',
+      'SELECT id, hr_id FROM Company WHERE hr_id = ?',
       [user_id]
     );
 
@@ -88,7 +101,8 @@ router.post('/',authMiddleware, async (req, res) => {
 
 
     const company_id = companies[0].id;
-
+    // The user posting this job is the HR
+    const hr_id = user_id;
 
 
     // Tạo job
@@ -104,10 +118,20 @@ router.post('/',authMiddleware, async (req, res) => {
         salary_min,
         salary_max,
         job_type,
-        status
+        status,
+        experience_req,
+        working_hours,
+        job_level,
+        vacancies,
+        gender_req,
+        age_req,
+        language_req,
+        province,
+        district,
+        ward,
+        exact_address
       )
-
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?,'Pending')
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         company_id,
@@ -117,15 +141,44 @@ router.post('/',authMiddleware, async (req, res) => {
         requirements || null,
         salary_min || null,
         salary_max || null,
-        job_type || 'Full-time'
+        job_type || 'Full-time',
+        experience_req || null,
+        working_hours ? JSON.stringify(working_hours) : null,
+        job_level || null,
+        vacancies || null,
+        gender_req || null,
+        age_req || null,
+        language_req || null,
+        province || null,
+        district || null,
+        ward || null,
+        exact_address || null
       ]
     );
 
 
 
+    const jobId = result.insertId;
+
+    if (selected_skills && Array.isArray(selected_skills) && selected_skills.length > 0) {
+      const skillValues = selected_skills.map(id => [jobId, id, 'Beginner', 0]);
+      await pool.query(
+        'INSERT INTO Job_Skill (job_id, skill_id, min_level, min_years) VALUES ?',
+        [skillValues]
+      );
+    }
+
+    if (selected_industries && Array.isArray(selected_industries) && selected_industries.length > 0) {
+      const indValues = selected_industries.map(id => [jobId, id]);
+      await pool.query(
+        'INSERT INTO Job_Industry (job_id, industry_id) VALUES ?',
+        [indValues]
+      );
+    }
+
     res.status(201).json({
       message: 'Job posted successfully! Your job is waiting for Admin approval.',
-      jobId: result.insertId
+      jobId: jobId
     });
 
 
@@ -205,13 +258,13 @@ router.get('/search', async (req, res) => {
     }
 
     if (salary) {
-      if (salary === 'Dưới 10 triệu') {
+      if (salary === 'Under 10 million') {
         query += ` AND jp.salary_max <= 10000000`;
-      } else if (salary === '10 - 20 triệu') {
+      } else if (salary === '10 - 20 million') {
         query += ` AND ((jp.salary_min >= 10000000 AND jp.salary_min <= 20000000) OR (jp.salary_max >= 10000000 AND jp.salary_max <= 20000000))`;
-      } else if (salary === 'Trên 20 triệu') {
+      } else if (salary === 'Over 20 million') {
         query += ` AND (jp.salary_min > 20000000 OR jp.salary_max > 20000000)`;
-      } else if (salary === 'Thỏa thuận') {
+      } else if (salary === 'Negotiable') {
         query += ` AND (jp.salary_min IS NULL AND jp.salary_max IS NULL)`;
       }
     }

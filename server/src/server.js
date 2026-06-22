@@ -3,9 +3,6 @@ const cors = require("cors");
 const { Server } = require('socket.io');
 const http = require('http');
 const dotenv = require("dotenv");
-
-
-
 const app = express();
 const server = http.createServer(app);
 const path = require('path');
@@ -21,7 +18,6 @@ const io = new Server(server, {
   }
 })
 // Database connection
-app.use('/uploads', express.static('uploads'));
 require('./config/db');
 
 // Routes
@@ -33,6 +29,8 @@ const companyRoutes = require('./routes/company');
 const jobs = require('./routes/jobs');
 const skillsRoutes = require('./routes/skills');
 const applicationRoutes = require('./routes/applicationRoutes');
+const industryRoutes = require('./routes/industryRoutes');
+const newsController = require('./controllers/adminController');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -42,6 +40,8 @@ app.use('/api/company', companyRoutes);
 app.use('/api/skills', skillsRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/jobs', jobs);
+app.use('/api/industries', industryRoutes);
+
 
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
@@ -51,13 +51,16 @@ io.on('connection', (socket) => {
   });
 });
 
-
-
-
 app.get("/", (req, res) => {
   res.send("JobsMarket API running...");
 });
 
+
+// Thêm route lấy danh sách tin tức công khai
+app.get('/api/public/news', newsController.getPublicNews); 
+
+// Giữ nguyên route lấy chi tiết
+app.get('/api/public/news/:id', newsController.getPublicNewsById);
 
 const PORT = process.env.PORT || 5000;
 

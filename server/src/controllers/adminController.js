@@ -658,3 +658,36 @@ exports.deleteNotification = async (req, res) => {
         });
     }
 };
+
+// Hàm lấy danh sách tất cả tin tức đã xuất bản
+exports.getPublicNews = async (req, res) => {
+    try {
+        const [newsList] = await db.query(`
+            SELECT n.*, nc.name AS category_name 
+            FROM news n 
+            LEFT JOIN news_category nc ON n.category_id = nc.id 
+            WHERE n.status = 'Published'
+            ORDER BY n.created_at DESC
+        `);
+        res.json(newsList);
+    } catch (error) {
+        console.error("GET PUBLIC NEWS ERROR:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getPublicNewsById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const [rows] = await db.query(`
+            SELECT n.*, nc.name AS category_name 
+            FROM news n 
+            LEFT JOIN news_category nc ON n.category_id = nc.id 
+            WHERE n.id = ? AND n.status = 'Published'`, [id]);
+        
+        if (rows.length === 0) return res.status(404).json({ message: "Bài viết không tồn tại hoặc chưa được xuất bản" });
+        res.json(rows[0]);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
