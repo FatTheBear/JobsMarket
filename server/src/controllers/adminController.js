@@ -197,7 +197,7 @@ exports.updateJobStatus = async (req, res) => {
 // 6. Lấy danh sách kỹ năng
 exports.getSkills = async (req, res) => {
     try {
-        const [skills] = await db.query("SELECT id, name FROM `skill` ORDER BY id DESC");
+        const [skills] = await db.query("SELECT id, skill_name AS name FROM `skill` ORDER BY id DESC");
         res.json(skills);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -242,7 +242,7 @@ exports.createSkill = async (req, res) => {
     const { name } = req.body;
     try {
         if (!name) return res.status(400).json({ message: "Skill name is required" });
-        await db.query("INSERT INTO `skill` (name) VALUES (?)", [name]);
+        await db.query("INSERT INTO `skill` (skill_name) VALUES (?)", [name]);
         res.json({ message: "Skill added successfully" });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -656,5 +656,38 @@ exports.deleteNotification = async (req, res) => {
         res.status(500).json({
             message: error.message
         });
+    }
+};
+
+// Hàm lấy danh sách tất cả tin tức đã xuất bản
+exports.getPublicNews = async (req, res) => {
+    try {
+        const [newsList] = await db.query(`
+            SELECT n.*, nc.name AS category_name 
+            FROM news n 
+            LEFT JOIN news_category nc ON n.category_id = nc.id 
+            WHERE n.status = 'Published'
+            ORDER BY n.created_at DESC
+        `);
+        res.json(newsList);
+    } catch (error) {
+        console.error("GET PUBLIC NEWS ERROR:", error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getPublicNewsById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const [rows] = await db.query(`
+            SELECT n.*, nc.name AS category_name 
+            FROM news n 
+            LEFT JOIN news_category nc ON n.category_id = nc.id 
+            WHERE n.id = ? AND n.status = 'Published'`, [id]);
+        
+        if (rows.length === 0) return res.status(404).json({ message: "Bài viết không tồn tại hoặc chưa được xuất bản" });
+        res.json(rows[0]);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 };

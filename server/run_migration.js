@@ -389,6 +389,77 @@ async function runMigration() {
 
         console.log('-> metadata column in Job_Posting is ready.');
 
+        // 3. INTEGRATED MIGRATIONS FROM OLD FILES & NEW NATIONALITY COLUMN
+        
+        // 3a. Add birthday column to Candidate_Profile (from add_birthday_column.js)
+        try {
+            console.log('Adding birthday column to Candidate_Profile...');
+            await pool.query("ALTER TABLE `Candidate_Profile` ADD COLUMN `birthday` DATE DEFAULT NULL");
+            console.log('Successfully added birthday column to Candidate_Profile.');
+        } catch (err) {
+            if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+                console.log('Birthday column already exists in Candidate_Profile.');
+            } else {
+                throw err;
+            }
+        }
+
+        // 3b. Add more profile columns: languages, certifications, awards (from add_more_profile_columns.js)
+        const moreProfileCols = [
+            { name: 'languages', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `languages` TEXT DEFAULT NULL' },
+            { name: 'certifications', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `certifications` TEXT DEFAULT NULL' },
+            { name: 'awards', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `awards` TEXT DEFAULT NULL' }
+        ];
+        for (const col of moreProfileCols) {
+            try {
+                console.log(`Adding ${col.name} column to Candidate_Profile...`);
+                await pool.query(col.sql);
+                console.log(`Successfully added ${col.name} column to Candidate_Profile.`);
+            } catch (err) {
+                if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+                    console.log(`${col.name} column already exists in Candidate_Profile.`);
+                } else {
+                    throw err;
+                }
+            }
+        }
+
+        // 3c. Add social links columns (from add_social_links_columns.js)
+        const socialCols = [
+            { name: 'portfolio', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `portfolio` VARCHAR(255) DEFAULT NULL' },
+            { name: 'github', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `github` VARCHAR(255) DEFAULT NULL' },
+            { name: 'facebook', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `facebook` VARCHAR(255) DEFAULT NULL' },
+            { name: 'blog', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `blog` VARCHAR(255) DEFAULT NULL' },
+            { name: 'x', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `x` VARCHAR(255) DEFAULT NULL' },
+            { name: 'linkedin', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `linkedin` VARCHAR(255) DEFAULT NULL' }
+        ];
+        for (const col of socialCols) {
+            try {
+                console.log(`Adding ${col.name} column to Candidate_Profile...`);
+                await pool.query(col.sql);
+                console.log(`Successfully added ${col.name} column to Candidate_Profile.`);
+            } catch (err) {
+                if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+                    console.log(`${col.name} column already exists in Candidate_Profile.`);
+                } else {
+                    throw err;
+                }
+            }
+        }
+
+        // 3d. Add nationality column to Candidate_Profile (new requested column)
+        try {
+            console.log('Adding nationality column to Candidate_Profile...');
+            await pool.query("ALTER TABLE `Candidate_Profile` ADD COLUMN `nationality` VARCHAR(100) DEFAULT NULL");
+            console.log('Successfully added nationality column to Candidate_Profile.');
+        } catch (err) {
+            if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+                console.log('Nationality column already exists in Candidate_Profile.');
+            } else {
+                throw err;
+            }
+        }
+
     } catch (dbError) {
         console.error('\n[CRITICAL ERROR] Table creation failed:', dbError.message);
         process.exit(1); // Exit process with failure code

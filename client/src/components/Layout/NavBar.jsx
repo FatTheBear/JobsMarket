@@ -60,38 +60,36 @@ export default function NavBar() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    const rawRole = localStorage.getItem('role'); // "HR", "Candidate", "Admin"
+
     setIsLoggedIn(!!token);
-    const rawRole = localStorage.getItem('role');
-    const roleMap = {
-      HR: 'company',
-      Candidate: 'candidate',
-      Admin: 'admin',
-    };
-    setRole(token ? (roleMap[rawRole] || 'candidate') : 'guest');
+    const roleMap = { HR: 'company', Candidate: 'candidate', Admin: 'admin' };
+    const currentRole = token ? (roleMap[rawRole] || 'candidate') : 'guest';
+    setRole(currentRole);
 
     if (token) {
-      const fetchProfile = async () => {
-        try {
-          const response = await axios.get('http://localhost:5000/api/candidate/profile', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const profile = response.data;
-          const name = profile.full_name || profile.display_name || 'User';
-          const avatar = profile.avatar_url || '/default-avatar.png';
-          setUserName(name);
-          setAvatarUrl(avatar);
-        } catch (err) {
-          console.error('Failed to fetch profile for NavBar:', err);
-          setUserName('User');
-          setAvatarUrl('/default-avatar.png');
-        }
-      };
-      fetchProfile();
-    } else {
-      setUserName('User');
-      setAvatarUrl('/default-avatar.png');
+      // CHỈ GỌI API PROFILE NẾU LÀ CANDIDATE
+      if (currentRole === 'candidate') {
+        const fetchProfile = async () => {
+          try {
+            const response = await axios.get('http://localhost:5000/api/candidate/profile', {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            const profile = response.data;
+            setUserName(profile.full_name || 'User');
+            setAvatarUrl(profile.avatar_url || '/default-avatar.png');
+          } catch (err) {
+            console.error('Failed to fetch candidate profile:', err);
+          }
+        };
+        fetchProfile();
+      } else {
+        // Nếu là HR hoặc Admin, bạn có thể gọi API khác hoặc set tên mặc định
+        setUserName(rawRole === 'HR' ? 'Company User' : 'Admin');
+      }
     }
   }, []);
+  
   const menuItems = MENU_CONFIG[role] || [];
   const handleLogout = () => {
     localStorage.clear();
@@ -140,7 +138,7 @@ export default function NavBar() {
               <span
                 className="nav-user-name"
                 title={`Welcome, ${userName}`}
-                onClick={() => navigate('/candidate-profile')}
+                onClick={() => navigate('/candidate/my-profile')}
                 style={{ cursor: 'pointer' }}
               >
                 {userName}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { SocketProvider } from './context/SocketContext';
 import MainLayout from './components/layout/MainLayout';
 import LandingPage from './pages/LandingPage/LandingPage';
@@ -22,6 +22,17 @@ import JobDetail from './pages/JobDetail/JobDetail';
 import CompanyDashboard from './pages/DashBoard/CompanyDashboard/CompanyDashboard';
 import AppliedCandidates from './pages/AppliedCandidates/AppliedCandidates';
 import SavedCandidates from './pages/SavedCandidates/SavedCandidates';
+import TermsOfService from './pages/Authentication/TermsOfService';
+import NewsDetail from './pages/Dashboard/CompanyDashboard/NewsDetail';
+import MyApplications from './pages/MyApplications/MyApplications';
+
+// Child components for Candidate Profile
+import CandidateMyProfile from './pages/CandidateProfile/CandidateMyProfile';
+import CandidateAccountSettings from './pages/CandidateProfile/CandidateAccountSettings';
+import CandidateNotifications from './pages/CandidateProfile/CandidateNotifications';
+import CandidateActivityHistory from './pages/CandidateProfile/CandidateActivityHistory';
+import CandidateAppliedJobsPage from './pages/CandidateProfile/CandidateAppliedJobsPage';
+import CandidateManageCVs from './pages/CandidateProfile/CandidateManageCVs';
 
 import './App.css';
 
@@ -46,9 +57,10 @@ const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   { path: "/verify-otp", element: <VerifyOTP /> },
   { path: "/setup-profile", element: <SetupProfilePage /> },
+  { path: "/terms-of-service", element: <TermsOfService /> },
 
-  {
-    element: <MainLayout />,
+{
+  element: <MainLayout />,
     children: [
       { path: "/", element: <LandingPage /> },
       { path: "/dashboard", element: <UserDashboard /> },
@@ -56,11 +68,24 @@ const router = createBrowserRouter([
 
       {
         path: "/candidate-profile",
+        element: <Navigate to="/candidate/my-profile" replace />
+      },
+
+      {
+        path: "/candidate/my-profile",
         element: (
           <ProtectedRoute requiredRole="Candidate">
             <CandidateProfile />
           </ProtectedRoute>
-        )
+        ),
+        children: [
+          { path: "", element: <CandidateMyProfile /> },
+          { path: "account-settings", element: <CandidateAccountSettings /> },
+          { path: "notifications", element: <CandidateNotifications /> },
+          { path: "activity-history", element: <CandidateActivityHistory /> },
+          { path: "applied-jobs", element: <CandidateAppliedJobsPage /> },
+          { path: "manage-cvs", element: <CandidateManageCVs /> }
+        ]
       },
 
       { path: "/candidate/:id", element: <CandidatePublicProfile /> },
@@ -88,6 +113,7 @@ const router = createBrowserRouter([
           { path: "templates", element: <PostTemplates /> },
           { path: "applicants", element: <AppliedCandidates /> },
           { path: "saved-candidates", element: <SavedCandidates /> }
+
         ]
       },
 
@@ -101,14 +127,27 @@ const router = createBrowserRouter([
       },
 
       { path: "/search-jobs", element: <SearchJobs /> },
+
+      { path: "/jobs", element: <SearchJobs /> },
+      { path: "/applications", element: <MyApplications /> },
       
       // ĐÃ SỬA: Thêm chữ 's' vào đường dẫn để khớp với lệnh navigate('/jobs/...')
-      { path: "/jobs/:id", element: <JobDetail /> } 
+      { path: "/jobs/:id", element: <JobDetail /> },
+      { path: "/news-detail/:id", element: <NewsDetail /> }
     ]
-  },
+},
 
-  // Mọi đường dẫn sai sẽ rơi vào trang 404 này
-  { path: "*", element: <div>404 - Trang không tồn tại</div> }
+  // Fallback for unknown routes
+  { 
+    path: "*", 
+    element: (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'Inter, sans-serif' }}>
+        <h1 style={{ fontSize: '72px', margin: '0', color: '#1e293b' }}>404</h1>
+        <p style={{ fontSize: '24px', color: '#64748b', marginTop: '16px' }}>Oops! Page not found.</p>
+        <a href="/" style={{ marginTop: '24px', padding: '12px 24px', background: '#2563eb', color: '#fff', textDecoration: 'none', borderRadius: '8px', fontWeight: '600' }}>Go back Home</a>
+      </div>
+    )
+  }
 ]);
 
 export default function App() {

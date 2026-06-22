@@ -12,7 +12,16 @@ const candidateController = {
                 return res.status(404).json({ message: "Candidate profile not found!" });
             }
 
-            // Parse JSON fields before returning them to the client.
+            // Định dạng ngày sinh YYYY-MM-DD tránh lệch múi giờ
+            if (profile.birthday) {
+                const bDate = new Date(profile.birthday);
+                const year = bDate.getFullYear();
+                const month = String(bDate.getMonth() + 1).padStart(2, '0');
+                const day = String(bDate.getDate()).padStart(2, '0');
+                profile.birthday = `${year}-${month}-${day}`;
+            }
+
+            // Nếu trường skills được lưu dưới dạng JSON trong DB, parse nó về Object/Array khi gửi về Client
             if (profile.skills && typeof profile.skills === 'string') {
                 profile.skills = JSON.parse(profile.skills);
             }
@@ -21,7 +30,16 @@ const candidateController = {
             if (profile.education && typeof profile.education === 'string') {
                 profile.education = JSON.parse(profile.education);
             }
-            // Calculate years of experience.
+            if (profile.languages && typeof profile.languages === 'string') {
+                profile.languages = JSON.parse(profile.languages);
+            }
+            if (profile.certifications && typeof profile.certifications === 'string') {
+                profile.certifications = JSON.parse(profile.certifications);
+            }
+            if (profile.awards && typeof profile.awards === 'string') {
+                profile.awards = JSON.parse(profile.awards);
+            }
+            //Tính số năm kinh nghiệm
             if (profile.experience && Array.isArray(profile.experience)) {
                 let totalMonths = 0;
                 profile.experience.forEach(exp => {
@@ -130,12 +148,30 @@ const candidateController = {
                 return res.status(404).json({ message: "Candidate profile not found!" });
             }
 
-            // Parse JSON fields.
+            // Định dạng ngày sinh YYYY-MM-DD tránh lệch múi giờ
+            if (profile.birthday) {
+                const bDate = new Date(profile.birthday);
+                const year = bDate.getFullYear();
+                const month = String(bDate.getMonth() + 1).padStart(2, '0');
+                const day = String(bDate.getDate()).padStart(2, '0');
+                profile.birthday = `${year}-${month}-${day}`;
+            }
+
+            // Parse các trường JSON
             if (profile.skills && typeof profile.skills === 'string') {
                 profile.skills = JSON.parse(profile.skills);
             }
             if (profile.education && typeof profile.education === 'string') {
                 profile.education = JSON.parse(profile.education);
+            }
+            if (profile.languages && typeof profile.languages === 'string') {
+                profile.languages = JSON.parse(profile.languages);
+            }
+            if (profile.certifications && typeof profile.certifications === 'string') {
+                profile.certifications = JSON.parse(profile.certifications);
+            }
+            if (profile.awards && typeof profile.awards === 'string') {
+                profile.awards = JSON.parse(profile.awards);
             }
 
             // Check profile privacy.
@@ -468,7 +504,105 @@ const candidateController = {
             console.error("Error marking all notifications as read:", error);
             return res.status(500).json({ message: "Server error while updating notifications!" });
         }
+    },
+
+    suggestIndustries: async (req, res) => {
+        try {
+            const { search } = req.query;
+            if (!search || !search.trim()) {
+                return res.status(200).json([]);
+            }
+
+            const [rows] = await pool.execute(
+                "SELECT name FROM `Industry` WHERE name LIKE ? LIMIT 10",
+                [`%${search.trim()}%`]
+            );
+
+            const names = rows.map(row => row.name);
+            return res.status(200).json(names);
+        } catch (error) {
+            console.error("Error suggesting industries:", error);
+            return res.status(500).json({ message: "Server error during suggestion!" });
+        }
+    },
+
+    suggestSkills: async (req, res) => {
+        try {
+            const { search } = req.query;
+            if (!search || !search.trim()) {
+                return res.status(200).json([]);
+            }
+
+            const [rows] = await pool.execute(
+                "SELECT skill_name FROM `skill` WHERE skill_name LIKE ? LIMIT 10",
+                [`%${search.trim()}%`]
+            );
+
+            const names = rows.map(row => row.skill_name);
+            return res.status(200).json(names);
+        } catch (error) {
+            console.error("Error suggesting skills:", error);
+            return res.status(500).json({ message: "Server error during suggestion!" });
+        }
+    },
+
+    getCountries: async (req, res) => {
+        try {
+            const apiKey = process.env.REST_COUNTRIES_API_KEY;
+            if (!apiKey) {
+                return res.status(503).json({
+                    message: 'REST_COUNTRIES_API_KEY is not configured on the server.'
+                });
+            }
+
+            const now = Date.now();
+            if (countriesCache && now - countriesCacheTime < COUNTRIES_CACHE_TTL) {
+                return res.status(200).json(countriesCache);
+            }
+
+            const limit = 100;
+            let offset = 0;
+            let more = true;
+            const names = [];
+
+            while (more) {
+                const url = new URL('https://api.restcountries.com/countries/v5');
+                url.searchParams.set('response_fields', 'names.common');
+                url.searchParams.set('limit', String(limit));
+                url.searchParams.set('offset', String(offset));
+
+                const response = await fetch(url, {
+                    headers: { Authorization: `Bearer ${apiKey}` }
+                });
+                const payload = await response.json();
+
+                if (!response.ok) {
+                    const message = payload?.errors?.[0]?.message || 'Failed to fetch countries from RestCountries.';
+                    return res.status(response.status).json({ message });
+                }
+
+                const objects = payload?.data?.objects || [];
+                objects.forEach((country) => {
+                    const name = country['names.common'] ?? country.names?.common;
+                    if (name) names.push(name);
+                });
+
+                more = payload?.data?.meta?.more === true;
+                offset += limit;
+            }
+
+            countriesCache = names.sort((a, b) => a.localeCompare(b));
+            countriesCacheTime = now;
+            return res.status(200).json(countriesCache);
+        } catch (error) {
+            console.error('Error fetching countries:', error);
+            return res.status(500).json({ message: 'Server error while fetching countries!' });
+        }
     }
 };
+
+let countriesCache = null;
+let countriesCacheTime = 0;
+const COUNTRIES_CACHE_TTL = 24 * 60 * 60 * 1000;
 
 module.exports = candidateController;

@@ -116,27 +116,25 @@ const CandidateEducation = ({
                   placeholder="e.g. FPT Aptech"
                 />
               </div>
-              <div className="row g-3">
-                <div className="col-6">
-                  <label className="form-label fw-semibold text-secondary small">Start Date</label>
-                  <input
-                    type="month"
-                    className="form-control"
-                    value={educationForm.startDate || ''}
-                    onChange={(e) => setEducationForm({ ...educationForm, startDate: e.target.value })}
-                    required
-                  />
-                </div>
-                <div className="col-6">
-                  <label className="form-label fw-semibold text-secondary small">Graduation Date</label>
-                  <input
-                    type="month"
-                    className="form-control"
-                    value={educationForm.gradDate || ''}
-                    onChange={(e) => setEducationForm({ ...educationForm, gradDate: e.target.value })}
-                    placeholder="Present"
-                  />
-                </div>
+              <div>
+                <label className="form-label fw-semibold text-secondary small">Graduation Date</label>
+                <input
+                  type="month"
+                  className="form-control"
+                  value={educationForm.gradDate || ''}
+                  onChange={(e) => setEducationForm({ ...educationForm, gradDate: e.target.value })}
+                  placeholder="Present"
+                />
+              </div>
+              <div>
+                <label className="form-label fw-semibold text-secondary small">Description</label>
+                <textarea
+                  className="form-control"
+                  rows="3"
+                  value={educationForm.description || ''}
+                  onChange={(e) => setEducationForm({ ...educationForm, description: e.target.value })}
+                  placeholder="Write details about your studies, key achievements, subjects..."
+                ></textarea>
               </div>
               <div className="profile-modal-footer mt-3 pt-3 border-top d-flex gap-2 justify-content-end bg-white">
                 <button type="button" className="btn btn-light border" onClick={onCloseModal}>Cancel</button>

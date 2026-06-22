@@ -418,13 +418,13 @@
 }
 
 .jp-btn-primary {
-  background: #2563eb;
+  background: #01796f;
   color: #fff;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 4px 14px rgba(1, 121, 111, 0.3);
 }
 
 .jp-btn-primary:hover {
-  background: #1d4ed8;
+  background: #016259;
   transform: translateY(-1px);
 }
 
@@ -432,6 +432,25 @@
   opacity: 0.65;
   cursor: not-allowed;
   transform: none;
+}
+
+.jp-error-text {
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.jp-field input.has-error,
+.jp-field select.has-error,
+.jp-field textarea.has-error {
+  border-color: #dc2626;
+}
+
+.jp-field input.has-error:focus,
+.jp-field select.has-error:focus,
+.jp-field textarea.has-error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 .jp-btn-outline {
@@ -443,7 +462,7 @@
 /* Toast */
 .toast-message {
   position: fixed;
-  top: 28px;
+  top: 80px;
   right: 28px;
   padding: 14px 24px;
   color: white;
@@ -482,4 +501,141 @@
   .jp-days-toggles {
     flex-wrap: wrap;
   }
+}
+
+/* ── Pending Approval Screen ── */
+.jp-pending-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  padding: 40px 20px;
+}
+
+.jp-pending-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 48px 40px;
+  max-width: 560px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.10);
+  border: 1px solid #f1f5f9;
+}
+
+.jp-pending-icon {
+  font-size: 56px;
+  margin-bottom: 16px;
+  animation: popIn 0.4s ease;
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.5); opacity: 0; }
+  70% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.jp-pending-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 12px;
+}
+
+.jp-pending-desc {
+  font-size: 15px;
+  color: #64748b;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+/* Status Timeline */
+.jp-status-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 28px;
+}
+
+.jp-track-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.jp-track-dot {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  transition: all 0.3s;
+}
+
+.jp-track-step.done .jp-track-dot {
+  background: #01796f;
+  color: #fff;
+}
+
+.jp-track-step.active .jp-track-dot {
+  background: #fef3c7;
+  color: #d97706;
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.2);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.2); }
+  50% { box-shadow: 0 0 0 8px rgba(251, 191, 36, 0.1); }
+}
+
+.jp-track-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.jp-track-step.done .jp-track-label,
+.jp-track-step.active .jp-track-label {
+  color: #334155;
+}
+
+.jp-track-line {
+  flex: 1;
+  height: 3px;
+  background: #e2e8f0;
+  margin-bottom: 18px;
+  min-width: 30px;
+}
+
+.jp-track-line.active {
+  background: linear-gradient(90deg, #01796f, #fef3c7);
+}
+
+/* Info row */
+.jp-pending-info {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 14px 20px;
+  margin-bottom: 28px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.jp-pending-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
 }

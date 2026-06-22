@@ -34,18 +34,38 @@ export default function CandidatePublicProfile() {
         });
         const profile = res.data;
 
+        // Tính tuổi dựa vào birthday
+        let calculatedAge = '';
+        if (profile.birthday) {
+          const birthDate = new Date(profile.birthday);
+          const today = new Date();
+          let age = today.getFullYear() - birthDate.getFullYear();
+          const m = today.getMonth() - birthDate.getMonth();
+          if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+          }
+          calculatedAge = age.toString();
+        }
+
         setProfileData({
           id: profile.id,
           user_id: profile.user_id,
           displayName: profile.display_name || profile.full_name || 'Candidate',
-          fullName: profile.full_name || 'Candidate',
+          fullName: profile.full_name || profile.display_name || 'Candidate',
           jobTitle: profile.headline || '',
           address: profile.address || '',
           email: profile.email || '',
           phone: profile.phone || '',
+          age: calculatedAge || '',
           hidePhone: localStorage.getItem('hide_phone_' + profile.email) === 'true',
           avatar: profile.avatar_url || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cccccc'><circle cx='12' cy='12' r='10' fill='%23e4e6eb'/><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z' fill='%23ffffff'/></svg>",
-          cvFile: profile.cv_url ? JSON.parse(profile.cv_url) : null
+          cvFile: profile.cv_url ? JSON.parse(profile.cv_url) : null,
+          portfolio: profile.portfolio || '',
+          github: profile.github || '',
+          facebook: profile.facebook || '',
+          blog: profile.blog || '',
+          x: profile.x || '',
+          linkedin: profile.linkedin || ''
         });
 
         if (profile.skills) {
