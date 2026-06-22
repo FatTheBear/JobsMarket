@@ -32,8 +32,6 @@ export default function CompanyDashboard() {
   const isDashboard =
     location.pathname === "/company" ||
     location.pathname === "/company/dashboard";
-
-  const [stats, setStats] = useState([]);
   const [newsList, setNewsList] = useState([]);//begin
   useEffect(() => {
     fetch("http://localhost:5000/api/company/dashboard/applications")
