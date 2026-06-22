@@ -371,16 +371,23 @@ async function runMigration() {
 
         console.log('Adding user_id to Company table...');
 
+        // await pool.query(`
+        //     ALTER TABLE \`Company\`
+        //     ADD COLUMN IF NOT EXISTS \`user_id\` INT(11),
+        //     ADD CONSTRAINT \`fk_company_user\`
+        //     FOREIGN KEY (\`user_id\`) REFERENCES \`User\`(\`id\`)
+        //     ON DELETE CASCADE
+        //     ON UPDATE CASCADE;
+        // `);
+
+        // console.log('-> user_id column in Company is ready.');
+
         await pool.query(`
-            ALTER TABLE \`Company\`
-            ADD COLUMN IF NOT EXISTS \`user_id\` INT(11),
-            ADD CONSTRAINT \`fk_company_user\`
-            FOREIGN KEY (\`user_id\`) REFERENCES \`User\`(\`id\`)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE;
+            ALTER TABLE \`Job_Posting\`
+            ADD COLUMN IF NOT EXISTS \`metadata\` JSON;
         `);
 
-        console.log('-> user_id column in Company is ready.');
+        console.log('-> metadata column in Job_Posting is ready.');
 
     } catch (dbError) {
         console.error('\n[CRITICAL ERROR] Table creation failed:', dbError.message);
