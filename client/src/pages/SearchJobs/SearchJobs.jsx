@@ -9,39 +9,39 @@ export default function SearchJobs() {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
-  
+
   // Search filter state
   const [keyword, setKeyword] = useState('');
   const [location, setLocation] = useState('');
   const [salary, setSalary] = useState('');
 
-  // Load jobs on first visit and whenever filters change.
+  // Load jobs on first visit and whenever filters change
   useEffect(() => {
-    handleSearch();
+    fetchJobs();
   }, [location, salary]);
 
-  // Call the backend search API.
-  const handleSearch = async (e) => {
-    if (e) e.preventDefault();
-    
+  const fetchJobs = async () => {
     try {
       setLoading(true);
-      
-      // Send search parameters through the query string.
       const response = await axios.get(`${API_URL}/api/jobs/search`, {
         params: {
           q: keyword.trim(),
           location: location,
-          salary: salary
-        }
+          salary: salary,
+        },
       });
-      
       setJobs(response.data || []);
     } catch (error) {
       console.error('Error searching jobs:', error);
+      setJobs([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = (e) => {
+    if (e) e.preventDefault();
+    fetchJobs();
   };
 
   return (
@@ -49,7 +49,6 @@ export default function SearchJobs() {
       {/* SEARCH BAR & FILTERS */}
       <div className="search-header-box">
         <form onSubmit={handleSearch} className="search-form-grid">
-          
           <div className="search-input-group">
             <span>🔍</span>
             <input
@@ -88,14 +87,14 @@ export default function SearchJobs() {
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '20px' }}>Loading data...</div>
+          <div style={{ textAlign: 'center', padding: '40px' }}>Loading...</div>
         ) : jobs.length > 0 ? (
           <div className="jobs-grid-layout">
             {jobs.map((job) => (
-              <div 
-                key={job.id} 
+              <div
+                key={job.id}
                 className="job-card-item"
-                onClick={() => navigate(`/job/${job.id}`)}
+                onClick={() => navigate(`/jobs/${job.id}`)}
               >
                 <div className="job-card-left">
                   <div className="job-card-logo">
@@ -107,24 +106,32 @@ export default function SearchJobs() {
                   </div>
                   <div className="job-card-content">
                     <h3 className="job-card-title">{job.title}</h3>
-                    <div className="job-card-company">{job.company_name || 'JobsMarket Member Company'}</div>
-                    
+                    <div className="job-card-company">
+                      {job.company_name || 'JobsMarket Member Company'}
+                    </div>
+
                     <div className="job-card-info-tags">
                       <span>📍 {job.company_address || 'Location not updated yet'}</span>
-                      <span className="salary-tag">💰 {
-                        (job.salary_min && job.salary_max) 
-                          ? `${(job.salary_min / 1000000).toLocaleString('en-US')} - ${(job.salary_max / 1000000).toLocaleString('en-US')} million VND`
-                          : (job.salary_min ? `From ${(job.salary_min / 1000000).toLocaleString('en-US')} million VND` : 
-                            (job.salary_max ? `Up to ${(job.salary_max / 1000000).toLocaleString('en-US')} million VND` : 'Negotiable'))
-                      }</span>
+                      <span className="salary-tag">
+                        💰{' '}
+                        {job.salary_min && job.salary_max
+                          ? `$${Number(job.salary_min).toLocaleString()} - $${Number(job.salary_max).toLocaleString()}`
+                          : job.salary_min
+                          ? `From $${Number(job.salary_min).toLocaleString()}`
+                          : job.salary_max
+                          ? `Up to $${Number(job.salary_max).toLocaleString()}`
+                          : 'Negotiable'}
+                      </span>
                     </div>
 
                     <div className="job-card-skills-list">
-                      {job.skills && job.skills.length > 0 ? job.skills.map((skill) => (
-                        <span key={skill.id} className="job-card-skill-tag">
-                          {skill.name}
-                        </span>
-                      )) : (
+                      {job.skills && job.skills.length > 0 ? (
+                        job.skills.map((skill) => (
+                          <span key={skill.id} className="job-card-skill-tag">
+                            {skill.name}
+                          </span>
+                        ))
+                      ) : (
                         <span className="job-card-skill-tag">{job.job_type}</span>
                       )}
                     </div>
@@ -132,8 +139,15 @@ export default function SearchJobs() {
                 </div>
 
                 <div className="job-card-right">
-                  <button className="view-detail-btn" type="button">
-                    Apply Now
+                  <button
+                    className="view-detail-btn"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/jobs/${job.id}`);
+                    }}
+                  >
+                    View Details
                   </button>
                 </div>
               </div>
@@ -142,7 +156,7 @@ export default function SearchJobs() {
         ) : (
           <div className="no-results-box">
             <h3>No matching results found</h3>
-            <p>Try another keyword or adjust the location/salary filters.</p>
+            <p>Try another keyword or adjust the location / salary filters.</p>
           </div>
         )}
       </div>
