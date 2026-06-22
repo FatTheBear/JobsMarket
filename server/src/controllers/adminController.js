@@ -197,7 +197,7 @@ exports.updateJobStatus = async (req, res) => {
 // 6. Lấy danh sách kỹ năng
 exports.getSkills = async (req, res) => {
     try {
-        const [skills] = await db.query("SELECT id, name FROM `skill` ORDER BY id DESC");
+        const [skills] = await db.query("SELECT id, skill_name AS name FROM `skill` ORDER BY id DESC");
         res.json(skills);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -242,7 +242,7 @@ exports.createSkill = async (req, res) => {
     const { name } = req.body;
     try {
         if (!name) return res.status(400).json({ message: "Skill name is required" });
-        await db.query("INSERT INTO `skill` (name) VALUES (?)", [name]);
+        await db.query("INSERT INTO `skill` (skill_name) VALUES (?)", [name]);
         res.json({ message: "Skill added successfully" });
     } catch (error) {
         res.status(500).json({ message: error.message });

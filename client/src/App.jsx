@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { SocketProvider } from './context/SocketContext';
 import MainLayout from './components/layout/MainLayout';
 import LandingPage from './pages/LandingPage/LandingPage';
@@ -25,6 +25,14 @@ import SavedCandidates from './pages/SavedCandidates/SavedCandidates';
 import TermsOfService from './pages/Authentication/TermsOfService';
 import NewsDetail from './pages/Dashboard/CompanyDashboard/NewsDetail';
 import MyApplications from './pages/MyApplications/MyApplications';
+
+// Child components for Candidate Profile
+import CandidateMyProfile from './pages/CandidateProfile/CandidateMyProfile';
+import CandidateAccountSettings from './pages/CandidateProfile/CandidateAccountSettings';
+import CandidateNotifications from './pages/CandidateProfile/CandidateNotifications';
+import CandidateActivityHistory from './pages/CandidateProfile/CandidateActivityHistory';
+import CandidateAppliedJobsPage from './pages/CandidateProfile/CandidateAppliedJobsPage';
+import CandidateManageCVs from './pages/CandidateProfile/CandidateManageCVs';
 
 import './App.css';
 
@@ -60,11 +68,24 @@ const router = createBrowserRouter([
 
       {
         path: "/candidate-profile",
+        element: <Navigate to="/candidate/my-profile" replace />
+      },
+
+      {
+        path: "/candidate/my-profile",
         element: (
           <ProtectedRoute requiredRole="Candidate">
             <CandidateProfile />
           </ProtectedRoute>
-        )
+        ),
+        children: [
+          { path: "", element: <CandidateMyProfile /> },
+          { path: "account-settings", element: <CandidateAccountSettings /> },
+          { path: "notifications", element: <CandidateNotifications /> },
+          { path: "activity-history", element: <CandidateActivityHistory /> },
+          { path: "applied-jobs", element: <CandidateAppliedJobsPage /> },
+          { path: "manage-cvs", element: <CandidateManageCVs /> }
+        ]
       },
 
       { path: "/candidate/:id", element: <CandidatePublicProfile /> },

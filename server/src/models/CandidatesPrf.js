@@ -98,7 +98,7 @@ const CandidateProfileModel = {
     },
     // 3. Cập nhật thông tin profile
     updateByUserId: async (user_id, updateData) => {
-        const { full_name, display_name, phone, avatar_url, headline, about, years_of_experience, is_public, address, cv_url, education, experience, skills } = updateData;
+        const { full_name, display_name, phone, avatar_url, headline, about, years_of_experience, is_public, address, cv_url, education, experience, skills, birthday, portfolio, github, facebook, blog, x, linkedin, languages, certifications, awards } = updateData;
         const connection = await pool.getConnection();
         try {
             await connection.beginTransaction();
@@ -131,7 +131,9 @@ const CandidateProfileModel = {
             await connection.execute(
                 `UPDATE Candidate_Profile 
                  SET full_name = ?, display_name = ?, phone = ?, avatar_url = ?, headline = ?, 
-                     about = ?, years_of_experience = ?, is_public = ?, address = ?, cv_url = ?
+                     about = ?, years_of_experience = ?, is_public = ?, address = ?, cv_url = ?, birthday = ?,
+                     portfolio = ?, github = ?, facebook = ?, blog = ?, x = ?, linkedin = ?,
+                     languages = ?, certifications = ?, awards = ?
                  WHERE id = ?`,
                 [
                     full_name,
@@ -144,6 +146,16 @@ const CandidateProfileModel = {
                     is_public !== undefined ? is_public : true,
                     address || null,
                     cv_url || null,
+                    birthday || null,
+                    portfolio || null,
+                    github || null,
+                    facebook || null,
+                    blog || null,
+                    x || null,
+                    linkedin || null,
+                    languages || null,
+                    certifications || null,
+                    awards || null,
                     profileId
                 ]
             );
@@ -153,7 +165,7 @@ const CandidateProfileModel = {
                 for (const item of education) {
                     await connection.execute(
                         'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
-                        [profileId, item.school || '', item.degree || '', item.startDate || null, item.gradDate || null]
+                        [profileId, item.school || '', item.degree || '', item.startDate || item.gradDate || '1970-01', item.gradDate || null]
                     );
                 }
             }
@@ -236,7 +248,7 @@ const CandidateProfileModel = {
         try {
             await connection.beginTransaction();
 
-            const { display_name, phone, avatar_url, headline, address, education, experience, skills, followedCompanyIds } = onboardingData;
+            const { display_name, phone, avatar_url, headline, address, education, experience, skills, followedCompanyIds, birthday } = onboardingData;
 
             // Lấy profile id
             const [profiles] = await connection.execute(
@@ -258,14 +270,16 @@ const CandidateProfileModel = {
             // 1. Cập nhật bảng Candidate_Profile (LOẠI BỎ CỘT SKILLS JSON)
             await connection.execute(
                 `UPDATE Candidate_Profile 
-                 SET display_name = ?, phone = ?, avatar_url = ?, headline = ?, address = ?
+                 SET full_name = ?, display_name = ?, phone = ?, avatar_url = ?, headline = ?, address = ?, birthday = ?
                  WHERE id = ?`,
                 [
+                    display_name || null,
                     display_name || null,
                     phone || null,
                     avatar_url || null,
                     headline || null,
                     address || null,
+                    birthday || null,
                     profileId
                 ]
             );

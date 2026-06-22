@@ -15,12 +15,20 @@ router.put('/profile', authMiddleware, upload.single('avatar'), candidateControl
 // Lấy danh sách doanh nghiệp đề xuất cho setup wizard
 router.get('/companies', authMiddleware, candidateController.getRecommendedCompanies);
 
-// Lấy danh sách user đề xuất cho setup wizard (sắp xếp theo followers)
+// Lấy danh sách user đề xuất cho onboarding (sắp xếp theo followers)
 router.get('/suggested-users', authMiddleware, candidateController.getSuggestedUsers);
 
-//em đã xóa onboarding để vượt rào vô dashboard làm cho kịp func, khi vận hành nhớ thêm bên dưới này 
+// Gợi ý danh sách ngành nghề cho Job Title Autocomplete
+router.get('/suggest-industries', authMiddleware, candidateController.suggestIndustries);
+
+// Gợi ý danh sách kỹ năng cho Skill Name Autocomplete
+router.get('/suggest-skills', authMiddleware, candidateController.suggestSkills);
+
+// Danh sách quốc gia (RestCountries v5) cho Nationality autocomplete
+router.get('/countries', authMiddleware, candidateController.getCountries);
+
 // Gửi payload onboarding của candidate wizard
-router.post('/onboarding', authMiddleware, candidateController.saveOnboarding);
+router.post('/onboarding', authMiddleware, validateOnboarding, candidateController.saveOnboarding);
 
 // Lấy thông tin public của một candidate khác bằng profile ID
 router.get('/public/:id', authMiddleware, candidateController.getPublicProfile);

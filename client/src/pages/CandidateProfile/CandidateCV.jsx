@@ -101,10 +101,6 @@ const CandidateCV = ({ cvList, fetchCVs, setModalError }) => {
 
   return (
     <div className="d-flex flex-column gap-4">
-      <h6 className="fw-bold border-bottom pb-2 text-dark mb-0">
-        <i className="far fa-file-pdf me-1.5 text-primary"></i>
-        Manage Curriculum Vitae (CV)
-      </h6>
 
       {/* 1. HIỂN THỊ DANH SÁCH CV */}
       {cvList && cvList.length > 0 && (

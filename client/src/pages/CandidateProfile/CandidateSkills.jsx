@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
+import axios from 'axios';
 
 const CandidateSkills = ({
   skills,
@@ -12,6 +13,45 @@ const CandidateSkills = ({
   onSave,
   modalError
 }) => {
+  const [skillSuggestions, setSkillSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const debounceTimerRef = useRef(null);
+
+  const handleSkillChange = (e) => {
+    const val = e.target.value;
+    setSkillForm({ ...skillForm, name: val });
+
+    if (!val.trim()) {
+      setSkillSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(
+          `http://localhost:5000/api/candidate/suggest-skills?search=${encodeURIComponent(val.trim())}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        setSkillSuggestions(res.data || []);
+        setShowSuggestions(true);
+      } catch (err) {
+        console.warn('Failed to fetch skill suggestions:', err);
+      }
+    }, 300);
+  };
+
+  const selectSuggestion = (name) => {
+    setSkillForm({ ...skillForm, name });
+    setSkillSuggestions([]);
+    setShowSuggestions(false);
+  };
   return (
     <>
       {/* Column 2: Skill Section */}
@@ -96,15 +136,31 @@ const CandidateSkills = ({
                   <i className="fas fa-exclamation-triangle me-1.5"></i> {modalError}
                 </div>
               )}
-              <div>
+              <div style={{ position: 'relative' }}>
                 <label className="form-label fw-semibold text-secondary small">Skill Name</label>
                 <input
                   type="text"
                   className="form-control"
                   value={skillForm.name}
-                  onChange={(e) => setSkillForm({ ...skillForm, name: e.target.value })}
+                  onChange={handleSkillChange}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  onFocus={() => { if (skillSuggestions.length > 0) setShowSuggestions(true); }}
                   placeholder="e.g. React.js, Tailwind CSS"
+                  autoComplete="off"
                 />
+                {showSuggestions && skillSuggestions.length > 0 && (
+                  <div className="address-suggestions-dropdown" style={{ zIndex: 1200 }}>
+                    {skillSuggestions.map((skill, idx) => (
+                      <div
+                        key={idx}
+                        className="address-suggestion-item"
+                        onClick={() => selectSuggestion(skill)}
+                      >
+                        {skill}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div>
                 <div className="d-flex justify-content-between align-items-center mb-1">

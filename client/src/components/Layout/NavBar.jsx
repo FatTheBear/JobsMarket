@@ -138,7 +138,7 @@ export default function NavBar() {
               <span
                 className="nav-user-name"
                 title={`Welcome, ${userName}`}
-                onClick={() => navigate('/candidate-profile')}
+                onClick={() => navigate('/candidate/my-profile')}
                 style={{ cursor: 'pointer' }}
               >
                 {userName}
