@@ -19,7 +19,10 @@ export default function CompanySidebar() {
       </div>
       <Link
         to="/company/dashboard"
-        className={`jp-menu-item ${location.pathname === "/company/dashboard" ? "active" : ""
+        className={`jp-menu-item ${location.pathname === "/company" ||
+            location.pathname === "/company/dashboard"
+            ? "active"
+            : ""
           }`}
       >
         Dashboard
