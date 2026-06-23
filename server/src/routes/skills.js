@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 
+// GET /api/skills — Get all available skills
 router.get('/', async (req, res) => {
   try {
     const [rows] = await pool.query('SELECT id, skill_name AS name FROM skill ORDER BY skill_name ASC');
@@ -12,6 +13,7 @@ router.get('/', async (req, res) => {
   }
 });
 
+// POST /api/skills — Add a new skill (if not exists)
 router.post('/', async (req, res) => {
   try {
     const { name } = req.body;
@@ -41,6 +43,7 @@ router.post('/', async (req, res) => {
   }
 });
 
+// GET /api/skills/job/:job_id — Get all skills required for a specific job
 router.get('/job/:job_id', async (req, res) => {
   try {
     const { job_id } = req.params;

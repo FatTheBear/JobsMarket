@@ -60,19 +60,19 @@ export default function CompanyDashboard() {
 
 
   const chartData = {
-  labels: Array.isArray(stats)
-    ? stats.map((item) => new Date(item.day).toLocaleDateString())
-    : [],
-  datasets: [
-    {
-      label: "# Applications",
-      data: Array.isArray(stats) ? stats.map((item) => item.total) : [],
-      borderColor: "#1976d2",
-      backgroundColor: "#1976d2",
-      tension: 0.3,
-    },
-  ],
-};
+    labels: Array.isArray(appStats)
+      ? appStats.map((item) => new Date(item.day).toLocaleDateString())
+      : [],
+    datasets: [
+      {
+        label: "# Applications",
+        data: Array.isArray(appStats) ? appStats.map((item) => item.total) : [],
+        borderColor: "#1976d2",
+        backgroundColor: "#1976d2",
+        tension: 0.3,
+      },
+    ],
+  };
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,

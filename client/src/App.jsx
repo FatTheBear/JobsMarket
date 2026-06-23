@@ -136,7 +136,6 @@ const router = createBrowserRouter([
       { path: "/jobs", element: <SearchJobs /> },
       { path: "/applications", element: <MyApplications /> },
       { path: "/community", element: <CommunityFeed /> },
-
       
       { path: "/jobs/:id", element: <JobDetail /> },
       { path: "/news-detail/:id", element: <NewsDetail /> },
