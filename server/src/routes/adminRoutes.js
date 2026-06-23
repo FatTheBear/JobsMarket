@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/adminController.js");
-const upload = require("../middleware/upload");
+const { upload } = require('../middleware/upload');
 
 const { authMiddleware, adminMiddleware } = require('../middleware/authMiddleware');
 
@@ -52,4 +52,6 @@ router.get('/notifications', adminController.getNotifications);
 router.put('/notifications/:id/read', adminController.markNotificationRead);
 router.delete('/notifications/:id', adminController.deleteNotification);
 
+router.patch('/company/:id/approve', adminController.approveCompany);
+router.patch('/users/:id/ban', adminController.banAccount);
 module.exports = router;

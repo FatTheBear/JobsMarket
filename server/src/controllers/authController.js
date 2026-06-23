@@ -5,7 +5,7 @@ const User = require('../models/User');
 
 const authController = {
     register: async (req, res) => {
-        const { email, password, role, company_name, industry_id } = req.body;
+        const { email, password, role } = req.body;
 
         try {
             const existingUser = await User.findByEmail(email);
@@ -20,18 +20,7 @@ const authController = {
             await connection.beginTransaction();
 
             try {
-                let dbRole = 'Candidate';
-                if (role === 'company') {
-                    dbRole = 'HR';
-                } else if (role === 'candidate') {
-                    dbRole = 'Candidate';
-                }
-
-                if (role === 'company' && !company_name) {
-                    throw new Error("company_name is required");
-                }
-
-                // ĐÃ XÓA KHỐI LỆNH KIỂM TRA FULL_NAME Ở ĐÂY
+                const dbRole = 'Candidate';
 
                 const [userResult] = await connection.execute(
                     'INSERT INTO User (email, password_hash, role) VALUES (?, ?, ?)',
@@ -39,9 +28,6 @@ const authController = {
                 );
 
                 const newUserId = userResult.insertId;
-
-                const crypto = require('crypto');
-                const nodemailer = require('nodemailer');
 
                 const otp = crypto.randomInt(100000, 999999).toString();
                 const expiresAt = new Date(Date.now() + 5 * 60000);
@@ -51,70 +37,77 @@ const authController = {
                     [otp, expiresAt, newUserId]
                 );
 
-                if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-                    const transporter = nodemailer.createTransport({
-                        service: 'gmail',
-                        auth: {
-                            user: process.env.EMAIL_USER,
-                            pass: process.env.EMAIL_PASS
-                        }
-                    });
+                await emailService.sendCandidateOTP(email, otp);
 
-                    await transporter.sendMail({
-                        from: process.env.EMAIL_USER,
-                        to: email,
-                        subject: 'Verify your JobsMarket account',
-                        html: `
-<div style="font-family: Arial, sans-serif; background-color: #f6f8fa; padding: 30px; color: #333333; line-height: 1.6;">
-    <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px; border: 1px solid #e1e4e8; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-        <h2 style="color: #1a73e8; margin-top: 0; font-size: 24px; border-bottom: 1px solid #e1e4e8; padding-bottom: 15px;">JobsMarket Verification</h2>
-        <p style="font-size: 16px;">Hello,</p>
-        <p style="font-size: 16px;">Thank you for signing up for JobsMarket. Please use the following One-Time Password (OTP) to verify your account:</p>
-        
-        <div style="text-align: center; margin: 30px 0; padding: 15px; background-color: #f1f3f4; border-radius: 6px; font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #1a73e8;">
-            ${otp}
-        </div>
-        
-        <p style="font-size: 14px; color: #586069;">This code is valid for <strong>5 minutes</strong>. If you did not request this verification, you can safely ignore this email.</p>
-        <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 30px 0 20px 0;" />
-        <p style="font-size: 14px; color: #586069; margin: 0;">Best regards,</p>
-        <p style="font-size: 14px; font-weight: bold; color: #333333; margin: 5px 0 0 0;">The JobsMarket Team</p>
-    </div>
-</div>
-`
-                    });
-                } else {
-                    console.log(`\n======================================================`);
-                    console.log(`[LOCAL DEV] Gmail SMTP credentials missing in .env.`);
-                    console.log(`Registered Email: ${email}`);
-                    console.log(`Generated OTP Code: ${otp}`);
-                    console.log(`======================================================\n`);
-                }
-
-                if (role === 'candidate') {
-                    await connection.execute(
-                        
-                        'INSERT INTO Candidate_Profile (user_id) VALUES (?)',
-                        [newUserId]
-                    );
-                }
-                else if (role === 'company') {
-                    await connection.execute(
-                        'INSERT INTO Company (hr_id, industry_id, name) VALUES (?, ?, ?)',
-                        [newUserId, industry_id || null, company_name]
-                    );
-                }
-                else if (role === 'Admin') {
-                    // Admin permission is stored directly on the User table.
-                    console.log(`--- Admin account ID ${newUserId} created successfully ---`);
-                }
-                else {
-                    throw new Error("Invalid role specified!");
-                }
+                await connection.execute(
+                    'INSERT INTO Candidate_Profile (user_id) VALUES (?)',
+                    [newUserId]
+                );
 
                 await connection.commit();
                 connection.release();
-                return res.status(201).json({ message: "Account registered successfully!" });
+                return res.status(201).json({ message: "Candidate account registered successfully!" });
+
+            } catch (transactionError) {
+                await connection.rollback();
+                connection.release();
+                return res.status(400).json({ message: transactionError.message });
+            }
+        } catch (error) {
+            return res.status(500).json({ message: "Internal server error!" });
+        }
+    },
+
+    registerCompany: async (req, res) => {
+        const { 
+            email, password, hrName, hrPhone, 
+            companyName, companyPhone, location, 
+            taxId, industryId, size, description 
+        } = req.body;
+
+        try {
+            const existingUser = await User.findByEmail(email);
+            if (existingUser) {
+                return res.status(400).json({ message: "Email already exists!" });
+            }
+
+            if (!req.files || !req.files['logo'] || !req.files['businessLicense']) {
+                return res.status(400).json({ message: "Company logo and business license are required." });
+            }
+
+            const logoUrl = req.files['logo'][0].path.replace(/\\/g, '/');
+            const businessLicenseUrl = req.files['businessLicense'][0].path.replace(/\\/g, '/');
+
+            const saltRounds = 10;
+            const passwordHash = await bcrypt.hash(password, saltRounds);
+
+            const connection = await pool.getConnection();
+            await connection.beginTransaction();
+
+            try {
+                const [userResult] = await connection.execute(
+                    'INSERT INTO User (email, password_hash, role, status) VALUES (?, ?, ?, ?)',
+                    [email, passwordHash, 'HR', 'pending']
+                );
+
+                const newUserId = userResult.insertId;
+
+                await connection.execute(
+                    `INSERT INTO Company (
+                        hr_id, industry_id, name, hr_name, hr_phone, company_phone, 
+                        address, tax_id, business_license_url, logo_url, size, description
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [
+                        newUserId, industryId, companyName, hrName, hrPhone, companyPhone, 
+                        location, taxId, businessLicenseUrl, logoUrl, size, description
+                    ]
+                );
+
+                await emailService.sendCompanyPending(email, hrName, companyName);
+
+                await connection.commit();
+                connection.release();
+                return res.status(201).json({ message: "Company registration submitted and pending approval." });
 
             } catch (transactionError) {
                 await connection.rollback();
@@ -224,7 +217,7 @@ const authController = {
              ON u.id = cp.user_id
 
              LEFT JOIN Company com 
-             ON u.id = com.hr_id
+             ON u.id = com.user_id
 
              WHERE u.email = ?`,
             [email]

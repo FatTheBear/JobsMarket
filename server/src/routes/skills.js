@@ -17,6 +17,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name } = req.body;
+    
     if (!name || !name.trim()) {
       return res.status(400).json({ message: 'Skill name is required' });
     }
@@ -34,7 +35,8 @@ router.post('/', async (req, res) => {
       'INSERT INTO skill (skill_name) VALUES (?)',
       [name.trim()]
     );
-    res.status(201).json({ message: 'Skill created', skill: { id: result.insertId, name: name.trim() } });
+
+    res.status(201).json({ id: result.insertId, name: name.trim() });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -60,7 +62,6 @@ router.get('/job/:job_id', async (req, res) => {
   }
 });
 
-// POST /api/skills/job/:job_id — Add a skill requirement to a job
 router.post('/job/:job_id', async (req, res) => {
   try {
     const { job_id } = req.params;
@@ -70,7 +71,6 @@ router.post('/job/:job_id', async (req, res) => {
       return res.status(400).json({ message: 'skill_id is required' });
     }
 
-    // Upsert: replace if already exists
     await pool.query(
       `INSERT INTO Job_Skill (job_id, skill_id, min_level, min_years)
        VALUES (?, ?, ?, ?)

@@ -1,7 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 
 export default function AuthPage() {
+  const navigate = useNavigate();
   return (
     <section
       className="vh-100 d-flex align-items-center"
@@ -44,7 +46,6 @@ export default function AuthPage() {
                 </p>
               </div>
 
-              {/* Candidate Card */}
               <Link
                 to="/register"
                 className="text-decoration-none"
@@ -57,13 +58,10 @@ export default function AuthPage() {
                   }}
                 >
                   <div className="d-flex align-items-center">
-                    
-
                     <div>
                       <h4 className="fw-semibold text-dark mb-1">
                         Candidate
                       </h4>
-
                       <p className="text-muted mb-0">
                         Apply for jobs and build your professional profile.
                       </p>
@@ -72,9 +70,8 @@ export default function AuthPage() {
                 </div>
               </Link>
 
-              {/* Company Card */}
               <Link
-                to="/register"
+                to="/register-company"
                 className="text-decoration-none"
               >
                 <div
@@ -85,13 +82,10 @@ export default function AuthPage() {
                   }}
                 >
                   <div className="d-flex align-items-center">
-                    
-
-                    <div>
+                    <div className="role-card company-card">
                       <h4 className="fw-semibold text-dark mb-1">
                         Company
                       </h4>
-
                       <p className="text-muted mb-0">
                         Post jobs and find suitable candidates faster.
                       </p>
@@ -99,7 +93,6 @@ export default function AuthPage() {
                   </div>
                 </div>
               </Link>
-
               {/* LOGIN */}
               <div className="text-center mt-5">
                 <p className="text-muted mb-0">

@@ -6,11 +6,22 @@ const dotenv = require("dotenv");
 const app = express();
 const server = http.createServer(app);
 const path = require('path');
+const authController = require('./controllers/authController');
+
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+
+const { uploadCompany } = require('./middleware/upload');
+app.post('/register-company', uploadCompany.fields([
+    { name: 'logo', maxCount: 1 },
+    { name: 'businessLicense', maxCount: 1 }
+]), authController.registerCompany);
+
+
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -32,6 +43,7 @@ const applicationRoutes = require('./routes/applicationRoutes');
 const industryRoutes = require('./routes/industryRoutes');
 const newsController = require('./controllers/adminController');
 const postRoutes = require('./routes/postRoutes');
+
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);

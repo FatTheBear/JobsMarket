@@ -13,6 +13,7 @@ import {
 } from "chart.js";
 
 import { Line } from "react-chartjs-2";
+import styles from './CompanyDashBoard.module.css';
 
 ChartJS.register(
   CategoryScale,
@@ -48,7 +49,7 @@ export default function CompanyDashboard() {
         return res.json();
       })
       .then((data) => {
-        console.log("Dữ liệu nhận được từ server:", data);
+        console.log("data from server:", data);
         if (Array.isArray(data)) {
           setNewsList(data.slice(0, 4));
         }
@@ -59,13 +60,13 @@ export default function CompanyDashboard() {
 
 
   const chartData = {
-    labels: appStats.map((item) =>
-      new Date(item.day).toLocaleDateString()
-    ),
+    labels: Array.isArray(appStats)
+      ? appStats.map((item) => new Date(item.day).toLocaleDateString())
+      : [],
     datasets: [
       {
         label: "# Applications",
-        data: appStats.map((item) => item.total),
+        data: Array.isArray(appStats) ? appStats.map((item) => item.total) : [],
         borderColor: "#1976d2",
         backgroundColor: "#1976d2",
         tension: 0.3,
