@@ -142,10 +142,6 @@ export default function CompanyProfile() {
     } catch { /* empty form */ }
   };
 
-  const showToast = (message, type = 'success') => {
-    setToast({ show: true, message, type });
-    setTimeout(() => setToast(t => ({ ...t, show: false })), 3000);
-  };
 
   const handleFormChange = e => setForm({ ...form, [e.target.name]: e.target.value });
   const handleScaleChange = e => setScale({ ...scale, [e.target.name]: e.target.value });
@@ -173,6 +169,14 @@ export default function CompanyProfile() {
   };
 
   const [errors, setErrors] = useState({});
+
+const showToast = (message, type) => {
+  setToast({ show: true, message, type });
+  
+  setTimeout(() => {
+    setToast(prev => ({ ...prev, show: false }));
+  }, 3000);
+};
 
   const handleSubmit = async () => {
     let newErrors = {};
@@ -208,9 +212,11 @@ export default function CompanyProfile() {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
+      
       if (res.ok) {
         showToast(isEdit ? 'Profile updated successfully!' : 'Company profile created!', 'success');
         setIsEdit(true);
+        window.dispatchEvent(new Event('profileUpdated'));
       } else {
         showToast(data.message || 'An error occurred', 'error');
       }
@@ -220,13 +226,12 @@ export default function CompanyProfile() {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className={styles.page}>
-      {/* <div className={`${styles.toast} ${toast.show ? styles.toastShow : ''} ${toast.type === 'error' ? styles.toastError : styles.toastSuccess}`}>
+      <div className={`${styles.toast} ${toast.show ? styles.toastShow : ''} ${toast.type === 'error' ? styles.toastError : styles.toastSuccess}`}>
         {toast.message}
-      </div> */}
-
+      </div>
       <div className={styles.layout}>
         <main className={styles.main}>
           

@@ -75,13 +75,13 @@ export const adminApi = {
   },
 
   createNews: async (data) => {
-  const res = await API.post('/admin/news', data, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
-  return res.data;
-},
+    const res = await API.post('/admin/news', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return res.data;
+  },
 
   getNewsCategories: async () => {
     const res = await API.get('/admin/news-categories');
@@ -126,7 +126,7 @@ export const adminApi = {
     return res.data;
   },
 
-   deleteCoinFee: async (id) => {
+  deleteCoinFee: async (id) => {
     const res = await API.delete(`/admin/coin-fees/${id}`);
     return res.data;
   },
@@ -148,5 +148,16 @@ export const adminApi = {
   deleteNotification: async (id) => {
     const res = await API.delete(`/admin/notifications/${id}`);
     return res.data;
-  }
+
+    
+  },
+  getPendingCompanies: async () => {
+    const res = await API.get('/admin/pending-companies');
+    return res.data;
+  },
+
+  approveCompany: async (id) => {
+    const res = await API.patch(`/admin/company/${id}/approve`);
+    return res.data;
+  },
 };

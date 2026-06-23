@@ -94,44 +94,6 @@ async function runMigration() {
         `);
         console.log('Successfully created Company_Follower table.');
 
-        // 4. Drop legacy skill tables
-        // try {
-        //     console.log('Dropping legacy skill tables (Job_Skill, Candidate_Skill, Skill)...');
-        //     await pool.query('SET FOREIGN_KEY_CHECKS = 0;');
-        //     await pool.query('DROP TABLE IF EXISTS `Job_Skill`;');
-        //     await pool.query('DROP TABLE IF EXISTS `Candidate_Skill`;');
-        //     await pool.query('DROP TABLE IF EXISTS `Skill`;');
-        //     await pool.query('SET FOREIGN_KEY_CHECKS = 1;');
-        //     console.log('Successfully dropped legacy skill tables.');
-        // } catch (err) {
-        //     throw err;
-        // }
-
-        // 5. Add abbreviated columns to Job_Posting
-        // try {
-        //     console.log('Adding new fields to Job_Posting...');
-        //     await pool.query(`
-        //         ALTER TABLE \`Job_Posting\`
-        //         ADD COLUMN \`req_skills\` JSON DEFAULT NULL,
-        //         ADD COLUMN \`benf\` TEXT DEFAULT NULL,
-        //         ADD COLUMN \`loc\` VARCHAR(255) DEFAULT NULL,
-        //         ADD COLUMN \`work_hrs\` VARCHAR(100) DEFAULT NULL,
-        //         ADD COLUMN \`deg_req\` VARCHAR(255) DEFAULT NULL,
-        //         ADD COLUMN \`exp_yrs\` VARCHAR(50) DEFAULT NULL,
-        //         ADD COLUMN \`age_req\` VARCHAR(50) DEFAULT NULL,
-        //         ADD COLUMN \`lang_req\` VARCHAR(100) DEFAULT NULL,
-        //         ADD COLUMN \`emp_phone\` VARCHAR(20) DEFAULT NULL,
-        //         ADD COLUMN \`emp_email\` VARCHAR(100) DEFAULT NULL
-        //     `);
-        //     console.log('Successfully added new fields to Job_Posting.');
-        // } catch (err) {
-        //     if (err.code === 'ER_DUP_FIELDNAME') {
-        //         console.log('New fields already exist in Job_Posting.');
-        //     } else {
-        //         throw err;
-        //     }
-        // }
-
         // 6. Add cand_skills to Candidate_Profile
         try {
             console.log('Adding cand_skills column to Candidate_Profile...');
@@ -201,7 +163,6 @@ async function runMigration() {
                     const parsed = typeof profile.education === 'string' ? JSON.parse(profile.education) : profile.education;
                     if (Array.isArray(parsed)) {
                         for (const item of parsed) {
-                            // Check if it looks like an education or experience item
                             const isEdu = item.school || item.degree;
                             const isExp = item.company || item.role;
 
@@ -216,7 +177,6 @@ async function runMigration() {
                                     [profile.id, item.company || 'Company', item.role || 'Role', item.startDate || '2026-01', item.endDate || null]
                                 );
                             } else {
-                                // Fallback default to Education
                                 await pool.query(
                                     'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
                                     [profile.id, item.school || 'School', item.degree || 'Degree', item.startDate || '2026-01', item.gradDate || null]
@@ -249,7 +209,6 @@ async function runMigration() {
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
             `);
 
-            // Insert default package if not exists
             const [existingFees] = await pool.query('SELECT * FROM \`Coin_Exchange_Fee\` WHERE \`is_default\` = TRUE');
             if (existingFees.length === 0) {
                 await pool.query(`
@@ -258,24 +217,6 @@ async function runMigration() {
                 `);
                 console.log('Successfully inserted default Coin_Exchange_Fee package.');
             }
-
-            // Add columns to Transaction table
-            // try {
-            //     await pool.query(`
-            //         ALTER TABLE \`Transaction\`
-            //         ADD COLUMN \`paypal_order_id\` VARCHAR(255) DEFAULT NULL AFTER \`reference_code\`,
-            //         ADD COLUMN \`fee_id\` INT DEFAULT NULL AFTER \`paypal_order_id\`,
-            //         ADD CONSTRAINT \`fk_tx_fee\` FOREIGN KEY (\`fee_id\`) REFERENCES \`Coin_Exchange_Fee\`(\`id\`) ON DELETE SET NULL;
-            //     `);
-            //     console.log('Successfully added paypal_order_id and fee_id to Transaction table.');
-            // } catch (err) {
-            //     if (err.code === 'ER_DUP_FIELDNAME') {
-            //         console.log('paypal_order_id and fee_id columns already exist in Transaction table.');
-            //     } else {
-            //         throw err;
-            //     }
-            // }
-
         } catch (error) {
             console.error('Error creating Coin_Exchange_Fee or updating Transaction table:', error);
         }
@@ -285,18 +226,14 @@ async function runMigration() {
         console.error('Migration failed:', error);
     }
 
-
-
     console.log('--- Starting DB Structure Update Migration ---');
 
-    // 1. DROP REDUNDANT COLUMNS IN JOB_POSTING TABLE
-    // Wrapped in isolated try-catch blocks so the script won't crash if the column is already dropped.
     try {
         console.log('Dropping req_skills column from job_posting...');
         await pool.query('ALTER TABLE `job_posting` DROP COLUMN `req_skills`');
         console.log('-> Successfully dropped req_skills column.');
     } catch (err) {
-        if (err.errno === 1091) { // MySQL Error Code for: Column doesn't exist
+        if (err.errno === 1091) {
             console.log('-> Column req_skills was already dropped.');
         } else {
             console.error('Error dropping req_skills column:', err.message);
@@ -327,10 +264,8 @@ async function runMigration() {
         }
     }
 
-
     // 2. CREATE SKILL ECOSYSTEM TABLES
     try {
-        // Create Skill table (Dictionary)
         console.log('Creating skill table...');
         await pool.query(`
             CREATE TABLE IF NOT EXISTS \`skill\` (
@@ -342,7 +277,6 @@ async function runMigration() {
         `);
         console.log('-> skill table is ready.');
 
-        // Create job_skill junction table
         console.log('Creating job_skill table...');
         await pool.query(`
             CREATE TABLE IF NOT EXISTS \`job_skill\` (
@@ -355,7 +289,6 @@ async function runMigration() {
         `);
         console.log('-> job_skill table is ready.');
 
-        // Tạo bảng candidate_skill
         console.log('Creating candidate_skill table...');
         await pool.query(`
             CREATE TABLE IF NOT EXISTS \`candidate_skill\` (
@@ -369,29 +302,14 @@ async function runMigration() {
         `);
         console.log('-> candidate_skill table is ready.');
 
-        console.log('Adding user_id to Company table...');
-
-        // await pool.query(`
-        //     ALTER TABLE \`Company\`
-        //     ADD COLUMN IF NOT EXISTS \`user_id\` INT(11),
-        //     ADD CONSTRAINT \`fk_company_user\`
-        //     FOREIGN KEY (\`user_id\`) REFERENCES \`User\`(\`id\`)
-        //     ON DELETE CASCADE
-        //     ON UPDATE CASCADE;
-        // `);
-
-        // console.log('-> user_id column in Company is ready.');
-
         await pool.query(`
             ALTER TABLE \`Job_Posting\`
             ADD COLUMN IF NOT EXISTS \`metadata\` JSON;
         `);
-
         console.log('-> metadata column in Job_Posting is ready.');
 
         // 3. INTEGRATED MIGRATIONS FROM OLD FILES & NEW NATIONALITY COLUMN
 
-        // 3a. Add birthday column to Candidate_Profile (from add_birthday_column.js)
         try {
             console.log('Adding birthday column to Candidate_Profile...');
             await pool.query("ALTER TABLE `Candidate_Profile` ADD COLUMN `birthday` DATE DEFAULT NULL");
@@ -404,7 +322,6 @@ async function runMigration() {
             }
         }
 
-        // 3b. Add more profile columns: languages, certifications, awards (from add_more_profile_columns.js)
         const moreProfileCols = [
             { name: 'languages', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `languages` TEXT DEFAULT NULL' },
             { name: 'certifications', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `certifications` TEXT DEFAULT NULL' },
@@ -424,7 +341,6 @@ async function runMigration() {
             }
         }
 
-        // 3c. Add social links columns (from add_social_links_columns.js)
         const socialCols = [
             { name: 'portfolio', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `portfolio` VARCHAR(255) DEFAULT NULL' },
             { name: 'github', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `github` VARCHAR(255) DEFAULT NULL' },
@@ -447,7 +363,6 @@ async function runMigration() {
             }
         }
 
-        // 3d. Add nationality column to Candidate_Profile (new requested column)
         try {
             console.log('Adding nationality column to Candidate_Profile...');
             await pool.query("ALTER TABLE `Candidate_Profile` ADD COLUMN `nationality` VARCHAR(100) DEFAULT NULL");
@@ -550,7 +465,6 @@ async function runMigration() {
             `);
             console.log('Successfully created Comment_Like table.');
 
-            // Add parent_comment_id to Post_Comment if not present
             try {
                 console.log('Adding parent_comment_id to Post_Comment...');
                 await pool.query(`
@@ -562,8 +476,6 @@ async function runMigration() {
             } catch (err) {
                 if (err.code === 'ER_DUP_FIELDNAME' || err.code === 'ER_FK_DUP_NAME' || err.code === 'ER_DUP_KEY') {
                     console.log('parent_comment_id column or key already exists in Post_Comment.');
-                } else {
-                    throw err;
                 }
             }
         } catch (err) {
@@ -591,7 +503,6 @@ async function runMigration() {
         // Updating Job_Skill schema
         try {
             console.log('Updating Job_Skill schema...');
-            // Thêm cột min_level
             try {
                 await pool.query("ALTER TABLE `Job_Skill` ADD COLUMN `min_level` VARCHAR(50) DEFAULT 'Beginner'");
                 console.log('Added column min_level.');
@@ -603,7 +514,6 @@ async function runMigration() {
                 }
             }
 
-            // Thêm cột min_years
             try {
                 await pool.query("ALTER TABLE `Job_Skill` ADD COLUMN `min_years` INT DEFAULT 0");
                 console.log('Added column min_years.');
@@ -623,11 +533,9 @@ async function runMigration() {
         // Upgrade Company table structure
         try {
             console.log('Modifying Company table columns...');
-            // 1. Modify logo_url to LONGTEXT
             await pool.query("ALTER TABLE `Company` MODIFY COLUMN `logo_url` LONGTEXT DEFAULT NULL");
             console.log('Successfully modified logo_url column to LONGTEXT.');
             
-            // 2. Add columns: email, phone, facebook, linkedin, twitter, scale, culture, benefits
             const companyCols = [
                 { name: 'email', sql: "ALTER TABLE `Company` ADD COLUMN `email` VARCHAR(255) DEFAULT NULL" },
                 { name: 'phone', sql: "ALTER TABLE `Company` ADD COLUMN `phone` VARCHAR(20) DEFAULT NULL" },
@@ -689,7 +597,7 @@ async function runMigration() {
 
     } catch (dbError) {
         console.error('\n[CRITICAL ERROR] Table creation failed:', dbError.message);
-        process.exit(1); // Exit process with failure code
+        process.exit(1);
     }
     await pool.end();
     console.log('Database connection closed.');
