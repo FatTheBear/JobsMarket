@@ -411,6 +411,7 @@ const CandidateProfile = () => {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
       console.log('Auto-saved successfully!');
+      window.dispatchEvent(new Event('profileUpdated'));
     } catch (err) {
       console.error('Auto-save failed:', err);
     }

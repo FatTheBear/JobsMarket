@@ -54,7 +54,7 @@ export default function NavBar() {
   });
 
   const [userName, setUserName] = useState('User');
-  const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
+  const [avatarUrl, setAvatarUrl] = useState('/img/default-avatar.png');
   //const navigate = useNavigate();
   const navigate = useNavigate();
   const location = useLocation();
@@ -64,12 +64,13 @@ export default function NavBar() {
       const token = localStorage.getItem('token');
       const rawRole = localStorage.getItem('role');
 
-      setIsLoggedIn(!!token);
+      const hasToken = !!token && token !== 'undefined' && token !== 'null';
+      setIsLoggedIn(hasToken);
       const roleMap = { HR: 'company', Candidate: 'candidate', Admin: 'admin' };
-      const currentRole = token ? (roleMap[rawRole] || 'candidate') : 'guest';
+      const currentRole = hasToken ? (roleMap[rawRole] || 'candidate') : 'guest';
       setRole(currentRole);
 
-      if (token) {
+      if (hasToken) {
         try {
           let url = '';
           if (currentRole === 'candidate') {
@@ -84,18 +85,25 @@ export default function NavBar() {
             });
             const profile = response.data;
             
-            setUserName(profile.full_name || profile.name || profile.companyName || 'User');
+            setUserName(profile.display_name || profile.full_name || profile.name || profile.companyName || 'User');
             
             let avatar = profile.avatar_url || profile.logo_url;
             if (avatar && !avatar.startsWith('http')) {
               avatar = `${API_URL}${avatar}`;
             }
-            setAvatarUrl(avatar || '/default-avatar.png');
+            setAvatarUrl(avatar || '/img/default-avatar.png');
           } else {
             setUserName(rawRole === 'HR' ? 'Company User' : 'Admin');
           }
         } catch (err) {
-          console.error(err);
+          console.error("Profile fetch failed:", err);
+          if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+            localStorage.clear();
+            setIsLoggedIn(false);
+            setRole('guest');
+            setUserName('User');
+            setAvatarUrl('/img/default-avatar.png');
+          }
         }
       }
     };
@@ -145,8 +153,8 @@ export default function NavBar() {
                 alt="Avatar"
                 className="nav-avatar"
                 onError={() => {
-                  if (avatarUrl !== '/default-avatar.png') {
-                    setAvatarUrl('/default-avatar.png');
+                  if (avatarUrl !== '/img/default-avatar.png') {
+                    setAvatarUrl('/img/default-avatar.png');
                   }
                 }}
               />
