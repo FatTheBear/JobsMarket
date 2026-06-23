@@ -374,10 +374,10 @@ const CandidateProfile = () => {
 
       formData.append('about', profileData.about || '');
       formData.append('education', JSON.stringify(currentEdu.map(edu => ({
-        school: edu.school, degree: edu.degree, startDate: edu.startDate, gradDate: edu.gradDate
+        school: edu.school, degree: edu.degree, startDate: edu.startDate, gradDate: edu.gradDate, description: edu.description
       }))));
       formData.append('experience', JSON.stringify(currentExp.map(exp => ({
-        company: exp.company, role: exp.role, startDate: exp.startDate, endDate: exp.endDate
+        company: exp.company, role: exp.role, startDate: exp.startDate, endDate: exp.endDate, description: exp.description
       }))));
       formData.append('skills', JSON.stringify(currentSkills.map(s => ({ name: s.name, level: s.level }))));
 
@@ -403,7 +403,7 @@ const CandidateProfile = () => {
     const path = location.pathname;
     if (path.endsWith('/account-settings')) return 'Account Settings';
     if (path.endsWith('/notifications')) return 'Notifications';
-    if (path.endsWith('/activity-history')) return 'Activity History & Wallet';
+    if (path.endsWith('/activity-history')) return 'Activity History';
     if (path.endsWith('/applied-jobs')) return 'Applied Jobs';
     if (path.endsWith('/manage-cvs')) return 'Manage CVs';
     return 'My Profile';
@@ -455,7 +455,7 @@ const CandidateProfile = () => {
                   className={({ isActive }) => `dropdown-item dropdown-item-custom w-100 text-start ${isActive ? 'active' : ''}`}
                   onClick={() => setShowDropdown(false)}
                 >
-                  <i className="fas fa-history me-2"></i> Activity &amp; Wallet
+                  <i className="fas fa-history me-2"></i> Activity History
                 </NavLink>
                 <NavLink
                   to="/candidate/my-profile/notifications"
