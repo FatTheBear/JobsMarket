@@ -10,12 +10,12 @@ import axios from 'axios';
 // 1. Cấu hình Menu cho tất cả các trạng thái (Kể cả Khách chưa đăng nhập)
 const MENU_CONFIG = {
   guest: [
-    { label: 'Find Jobs', path: '/jobs' },
+    { label: 'Find Jobs', path: '/community' },
     { label: 'Companies', path: '/companies' },
     { label: 'Career Guide', path: '/guide' }
   ],
   candidate: [
-    { label: 'Find Jobs', path: '/jobs' },
+    { label: 'Find Jobs', path: '/community' },
     { label: 'My Applications', path: '/applications' },
     { label: 'Saved', path: '/saved' }
   ],

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useOutletContext, Link } from 'react-router-dom';
 import CandidatePersonalInfoModal from './CandidatePersonalInfoModal';
 import CandidatePosts from './CandidatePosts';
+import PostCreator from '../../components/Community/PostCreator';
 
 const formatAwardDate = (dateStr) => {
   if (!dateStr) return '';
@@ -126,8 +127,26 @@ const CandidateMyProfile = () => {
     languages,
     certifications,
     awards,
-    candidatePosts
+    candidatePosts,
+    setCandidatePosts
   } = useOutletContext();
+
+  const handlePostCreated = (newPost) => {
+    const formattedPost = {
+      id: newPost.id,
+      author: newPost.author_name || profileData.displayName || 'Candidate',
+      avatar: newPost.author_avatar || profileData.avatar,
+      time: 'Just now',
+      content: newPost.content,
+      mediaList: newPost.mediaList || [],
+      likes: 0,
+      comments: 0,
+      shares: 0
+    };
+    if (setCandidatePosts) {
+      setCandidatePosts(prev => [formattedPost, ...prev]);
+    }
+  };
 
   const [showPersonalInfo, setShowPersonalInfo] = useState(false);
   const [selectedAward, setSelectedAward] = useState(null);
@@ -161,6 +180,10 @@ const CandidateMyProfile = () => {
               <li>
                 <span className="detail-label">Age:</span>
                 <span className="detail-value">{profileData.age || '32'}</span>
+              </li>
+              <li>
+                <span className="detail-label">Nationality:</span>
+                <span className="detail-value">{profileData.nationality || 'Not specified'}</span>
               </li>
               <li>
                 <span className="detail-label">Location:</span>
@@ -264,6 +287,12 @@ const CandidateMyProfile = () => {
           </div>
         </div>
       </div>
+
+      {/* Community Post Creator */}
+      <PostCreator
+        onPostCreated={handlePostCreated}
+        placeholder="What's on your mind? Post an update directly to your profile and community feed..."
+      />
 
       {/* ── Main Profile Details (About, Experience, Education, Skills, Languages, Certifications, Awards) ── */}
       <div className="column-card border-0 shadow-sm rounded-3">

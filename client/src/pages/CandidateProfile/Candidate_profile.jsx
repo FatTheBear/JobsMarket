@@ -166,7 +166,8 @@ const CandidateProfile = () => {
           blog: profile.blog || '',
           x: profile.x || '',
           linkedin: profile.linkedin || '',
-          about: profile.about || ''
+          about: profile.about || '',
+          nationality: profile.nationality || ''
         }));
 
         if (profile.skills && Array.isArray(profile.skills)) {
@@ -269,28 +270,27 @@ const CandidateProfile = () => {
           ]);
         }
 
-        setCandidatePosts([
-          {
-            id: 1,
-            author: profile.full_name || 'Candidate',
-            avatar: profile.avatar_url || defaultFacebookAvatar,
-            time: '2 days ago',
-            content: 'Tôi rất vui mừng được chia sẻ rằng tôi vừa hoàn thành dự án phát triển hệ thống JobsMarket phiên bản mới! Cảm ơn mọi người đã luôn hỗ trợ và đồng hành cùng tôi.',
-            likes: 24,
-            comments: 5,
-            shares: 2
-          },
-          {
-            id: 2,
-            author: profile.full_name || 'Candidate',
-            avatar: profile.avatar_url || defaultFacebookAvatar,
-            time: '1 week ago',
-            content: 'Chia sẻ một vài kinh nghiệm nhỏ khi làm việc với React JS và thiết kế CSS Responsive cho giao diện trang cá nhân ứng viên. Hi vọng sẽ có ích cho các bạn đang tìm hiểu.',
-            likes: 58,
-            comments: 14,
-            shares: 7
+        try {
+          const postsRes = await axiosInstance.get(`http://localhost:5000/api/posts/user/${profile.user_id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (postsRes.data && Array.isArray(postsRes.data)) {
+            setCandidatePosts(postsRes.data.map(p => ({
+              id: p.id,
+              author: p.author_name || profile.full_name || 'Candidate',
+              avatar: p.author_avatar || profile.avatar_url || defaultFacebookAvatar,
+              time: p.created_at ? new Date(p.created_at).toLocaleDateString() : 'Just now',
+              content: p.content,
+              mediaList: p.mediaList || [],
+              likes: p.likes_count || 0,
+              comments: p.comments_count || 0,
+              shares: p.reposts_count || 0
+            })));
           }
-        ]);
+        } catch (postsErr) {
+          console.error("Failed to load user posts from DB, using empty fallback:", postsErr);
+          setCandidatePosts([]);
+        }
 
         if (profile.languages) {
           const parsed = typeof profile.languages === 'string' ? JSON.parse(profile.languages) : profile.languages;

@@ -148,19 +148,21 @@ export default function JobDetail() {
               <h2>Requirements</h2>
               <p>{job.requirements}</p>
             </div>
-        <div className="job-detail-card-action">
-          <p className="job-detail-card-deadline">
-            Deadline: {new Date(job.deadline).toLocaleDateString('en-GB')}
-          </p>
-          {hasApplied ? (
-            <button className="job-detail-card-btn applied" disabled>
-              Applied
-            </button>
-          ) : (
-            <button className="job-detail-card-btn" onClick={handleApplyClick}>
-              Apply Now
-            </button>
           )}
+          <div className="job-detail-card-action">
+            <p className="job-detail-card-deadline">
+              Deadline: {new Date(job.deadline).toLocaleDateString('en-GB')}
+            </p>
+            {hasApplied ? (
+              <button className="job-detail-card-btn applied" disabled>
+                Applied
+              </button>
+            ) : (
+              <button className="job-detail-card-btn" onClick={handleApplyClick}>
+                Apply Now
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="job-side-col">

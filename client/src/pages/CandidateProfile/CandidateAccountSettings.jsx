@@ -41,7 +41,7 @@ const CandidateLanguages = ({
       return;
     }
 
-    const filtered = allLanguages.filter(lang => 
+    const filtered = allLanguages.filter(lang =>
       lang.toLowerCase().includes(val.toLowerCase())
     );
     setLanguageSuggestions(filtered.slice(0, 10));
@@ -81,16 +81,25 @@ const CandidateLanguages = ({
                 <p className="mb-0">No languages added yet.</p>
               </div>
             ) : (
-              <div className="d-flex flex-column gap-2">
+              <div className="d-flex flex-column gap-3">
                 {languages.map((lang, idx) => (
-                  <div key={lang.id || idx} className="d-flex justify-content-between align-items-center p-2 rounded border bg-light">
-                    <div>
-                      <p className="mb-0 fw-semibold text-dark small">{lang.name}</p>
-                      <span className="text-muted" style={{ fontSize: '0.75rem' }}>{lang.level}</span>
+                  <div key={lang.id || idx} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
+                    <div className="position-absolute top-0 end-0 mt-3 me-3 d-flex gap-2">
+                      <button onClick={() => onOpenModal(lang)} className="btn btn-link text-primary p-0" title="Edit language" style={{ textDecoration: 'none' }}>
+                        <i className="fas fa-pencil-alt text-muted hover-primary" style={{ fontSize: '0.85rem' }}></i>
+                      </button>
+                      <button onClick={() => onDelete(lang.id)} className="btn btn-link text-danger p-0" title="Delete language" style={{ textDecoration: 'none' }}>
+                        <i className="fas fa-trash-alt text-muted hover-danger" style={{ fontSize: '0.85rem' }}></i>
+                      </button>
                     </div>
-                    <div className="d-flex gap-2">
-                      <button onClick={() => onOpenModal(lang)} className="btn btn-link text-primary p-0" title="Edit"><i className="fas fa-pencil-alt text-muted" style={{ fontSize: '0.8rem' }}></i></button>
-                      <button onClick={() => onDelete(lang.id)} className="btn btn-link text-danger p-0" title="Delete"><i className="fas fa-trash-alt text-muted" style={{ fontSize: '0.8rem' }}></i></button>
+                    <h6 className="fw-bold mb-3 text-dark text-hover-primary" style={{ fontSize: '0.95rem', paddingRight: '45px', lineHeight: '1.4' }}>
+                      {lang.name}
+                    </h6>
+                    <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                      <span className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-normal d-inline-flex align-items-center" style={{ fontSize: '0.7rem' }}>
+                        <i className="fas fa-language me-1"></i>
+                        {lang.level}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -100,7 +109,7 @@ const CandidateLanguages = ({
         </div>
       </div>
       {showModal && (
-        <div className="profile-modal-overlay" style={{ zIndex: 1100 }} onClick={onCloseModal}>
+        <div className="profile-modal-overlay" style={{ zIndex: 100000 }} onClick={onCloseModal}>
           <div className="profile-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="profile-modal-header">
               <h5 className="profile-modal-title"><i className="fas fa-language me-2 text-primary"></i>{currentLanguage ? 'Edit Language' : 'Add Language'}</h5>
@@ -110,14 +119,14 @@ const CandidateLanguages = ({
               {modalError && <div className="alert alert-danger py-2 px-3 small border-0" role="alert"><i className="fas fa-exclamation-triangle me-1"></i> {modalError}</div>}
               <div style={{ position: 'relative' }}>
                 <label className="form-label fw-semibold text-secondary small">Language Name <span className="text-danger">*</span></label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  value={languageForm.name} 
-                  onChange={handleLanguageChange} 
+                <input
+                  type="text"
+                  className="form-control"
+                  value={languageForm.name}
+                  onChange={handleLanguageChange}
                   onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                   onFocus={() => { if (languageSuggestions.length > 0) setShowSuggestions(true); }}
-                  placeholder="e.g., English, Vietnamese, Japanese" 
+                  placeholder="e.g., English, Vietnamese, Japanese"
                   autoComplete="off"
                   required
                 />
@@ -180,17 +189,21 @@ const CandidateCertifications = ({
               <p className="mb-0">No certifications added yet.</p>
             </div>
           ) : (
-            <div className="d-flex flex-column gap-2">
+            <div className="d-flex flex-column gap-3">
               {certifications.map((cert, idx) => (
-                <div key={cert.id || idx} className="d-flex justify-content-between align-items-center p-2 rounded border bg-light">
-                  <p className="mb-0 fw-semibold text-dark small text-truncate flex-grow-1" style={{ minWidth: 0 }}>
-                    <i className="fas fa-certificate text-primary me-2" style={{ fontSize: '0.75rem' }}></i>
-                    {cert.name}
-                  </p>
-                  <div className="d-flex gap-1 ms-2">
-                    <button onClick={() => onOpenModal(cert)} className="btn btn-link text-primary p-0" title="Edit"><i className="fas fa-pencil-alt text-muted" style={{ fontSize: '0.8rem' }}></i></button>
-                    <button onClick={() => onDelete(cert.id)} className="btn btn-link text-danger p-0" title="Delete"><i className="fas fa-trash-alt text-muted" style={{ fontSize: '0.8rem' }}></i></button>
+                <div key={cert.id || idx} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
+                  <div className="position-absolute top-0 end-0 mt-3 me-3 d-flex gap-2">
+                    <button onClick={() => onOpenModal(cert)} className="btn btn-link text-primary p-0" title="Edit certification" style={{ textDecoration: 'none' }}>
+                      <i className="fas fa-pencil-alt text-muted hover-primary" style={{ fontSize: '0.85rem' }}></i>
+                    </button>
+                    <button onClick={() => onDelete(cert.id)} className="btn btn-link text-danger p-0" title="Delete certification" style={{ textDecoration: 'none' }}>
+                      <i className="fas fa-trash-alt text-muted hover-danger" style={{ fontSize: '0.85rem' }}></i>
+                    </button>
                   </div>
+                  <h6 className="fw-bold mb-0 text-dark text-hover-primary text-truncate flex-grow-1" style={{ fontSize: '0.95rem', paddingRight: '45px', lineHeight: '1.4', minWidth: 0 }}>
+                    <i className="fas fa-certificate text-primary me-2" style={{ fontSize: '0.85rem' }}></i>
+                    {cert.name}
+                  </h6>
                 </div>
               ))}
             </div>
@@ -199,7 +212,7 @@ const CandidateCertifications = ({
       </div>
     </div>
     {showModal && (
-      <div className="profile-modal-overlay" style={{ zIndex: 1100 }} onClick={onCloseModal}>
+      <div className="profile-modal-overlay" style={{ zIndex: 100000 }} onClick={onCloseModal}>
         <div className="profile-modal-card" onClick={(e) => e.stopPropagation()}>
           <div className="profile-modal-header">
             <h5 className="profile-modal-title"><i className="fas fa-certificate me-2 text-primary"></i>{currentCertification ? 'Edit Certification' : 'Add Certification'}</h5>
@@ -232,7 +245,7 @@ const CandidateAwards = ({
       <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
         <div className="card-body p-4 d-flex flex-column h-100">
           <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
-            <span className="fs-5 fw-bold text-dark">Awards & Achievements</span>
+            <span className="fs-5 fw-bold text-dark">Awards</span>
             <div className="d-flex align-items-center gap-2">
               <button onClick={() => onOpenModal(null)} className="btn btn-sm btn-outline-primary rounded-circle p-0 d-flex align-items-center justify-content-center" style={{ width: '28px', height: '28px' }} title="Add Award">
                 <i className="fas fa-plus" style={{ fontSize: '0.8rem' }}></i>
@@ -246,21 +259,30 @@ const CandidateAwards = ({
               <p className="mb-0">No awards added yet.</p>
             </div>
           ) : (
-            <div className="d-flex flex-column gap-2">
+            <div className="d-flex flex-column gap-3">
               {awards.map((award, idx) => (
-                <div key={award.id || idx} className="d-flex justify-content-between align-items-start p-2.5 rounded border bg-light">
-                  <div className="flex-grow-1 text-truncate" style={{ minWidth: 0 }}>
-                    <p className="mb-0.5 fw-semibold text-dark small text-truncate">
-                      <i className="fas fa-award text-primary me-2" style={{ fontSize: '0.75rem' }}></i>
-                      {award.title}
-                    </p>
-                    <p className="mb-0 text-muted text-truncate" style={{ fontSize: '0.75rem' }}>
-                      {award.issuer} • {award.date}
-                    </p>
+                <div key={award.id || idx} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
+                  <div className="position-absolute top-0 end-0 mt-3 me-3 d-flex gap-2">
+                    <button onClick={() => onOpenModal(award)} className="btn btn-link text-primary p-0" title="Edit award" style={{ textDecoration: 'none' }}>
+                      <i className="fas fa-pencil-alt text-muted hover-primary" style={{ fontSize: '0.85rem' }}></i>
+                    </button>
+                    <button onClick={() => onDelete(award.id)} className="btn btn-link text-danger p-0" title="Delete award" style={{ textDecoration: 'none' }}>
+                      <i className="fas fa-trash-alt text-muted hover-danger" style={{ fontSize: '0.85rem' }}></i>
+                    </button>
                   </div>
-                  <div className="d-flex gap-1 ms-2">
-                    <button onClick={() => onOpenModal(award)} className="btn btn-link text-primary p-0" title="Edit"><i className="fas fa-pencil-alt text-muted" style={{ fontSize: '0.8rem' }}></i></button>
-                    <button onClick={() => onDelete(award.id)} className="btn btn-link text-danger p-0" title="Delete"><i className="fas fa-trash-alt text-muted" style={{ fontSize: '0.8rem' }}></i></button>
+                  <h6 className="fw-bold mb-3 text-dark text-hover-primary text-truncate" style={{ fontSize: '0.95rem', paddingRight: '45px', lineHeight: '1.4' }}>
+                    <i className="fas fa-award text-primary me-2" style={{ fontSize: '0.85rem' }}></i>
+                    {award.title}
+                  </h6>
+                  <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <span className="text-muted small fw-semibold" style={{ fontSize: '0.75rem' }}>
+                      <i className="fas fa-building text-primary me-1.5"></i>
+                      {award.issuer}
+                    </span>
+                    <span className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-normal d-inline-flex align-items-center" style={{ fontSize: '0.7rem' }}>
+                      <i className="far fa-calendar-alt me-1"></i>
+                      {award.date}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -270,7 +292,7 @@ const CandidateAwards = ({
       </div>
     </div>
     {showModal && (
-      <div className="profile-modal-overlay" style={{ zIndex: 1100 }} onClick={onCloseModal}>
+      <div className="profile-modal-overlay" style={{ zIndex: 100000 }} onClick={onCloseModal}>
         <div className="profile-modal-card" onClick={(e) => e.stopPropagation()}>
           <div className="profile-modal-header">
             <h5 className="profile-modal-title"><i className="fas fa-trophy me-2 text-primary"></i>{currentAward ? 'Edit Award' : 'Add Award'}</h5>
@@ -304,6 +326,8 @@ const CandidateAwards = ({
     )}
   </>
 );
+const lettersOnlyRegex = /^[\p{L}\s]*$/u;
+const roleCompanyRegex = /^[\p{L}\s0-9\+#\.\/\-&]*$/u;
 
 const CandidateAccountSettings = () => {
   const {
@@ -321,6 +345,7 @@ const CandidateAccountSettings = () => {
   const navigate = useNavigate();
 
   const [editProfileForm, setEditProfileForm] = useState(null);
+  const [settingsError, setSettingsError] = useState('');
   const [modalError, setModalError] = useState('');
 
   // Experience state
@@ -365,7 +390,6 @@ const CandidateAccountSettings = () => {
   const [showCountryDrop, setShowCountryDrop] = useState(false);
   const settingsDateInputRef = useRef(null);
 
-  const lettersOnlyRegex = /^[\p{L}\s]*$/u;
   let settingsJobDebounce = null;
 
   useEffect(() => {
@@ -493,14 +517,15 @@ const CandidateAccountSettings = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setModalError("Invalid file type! Only image files (png, jpg, jpeg, gif, webp) are allowed.");
+      setSettingsError("Invalid file type! Only image files (png, jpg, jpeg, gif, webp) are allowed.");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setModalError("Avatar file size must be under 5MB!");
+      setSettingsError("Avatar file size must be under 5MB!");
       return;
     }
+    setSettingsError('');
 
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -574,12 +599,20 @@ const CandidateAccountSettings = () => {
 
   const handleSaveExperience = (e) => {
     e.preventDefault();
-    if (experienceForm.role && !lettersOnlyRegex.test(experienceForm.role)) {
-      setModalError("Job Title / Role cannot contain numbers or special characters!");
+    if (!experienceForm.role || !experienceForm.role.trim()) {
+      setModalError("Job Title / Role is required!");
       return;
     }
-    if (experienceForm.company && !lettersOnlyRegex.test(experienceForm.company)) {
-      setModalError("Company Name cannot contain numbers or special characters!");
+    if (experienceForm.role && !roleCompanyRegex.test(experienceForm.role)) {
+      setModalError("Job Title / Role contains invalid special characters!");
+      return;
+    }
+    if (!experienceForm.company || !experienceForm.company.trim()) {
+      setModalError("Company Name is required!");
+      return;
+    }
+    if (experienceForm.company && !roleCompanyRegex.test(experienceForm.company)) {
+      setModalError("Company Name contains invalid special characters!");
       return;
     }
     if (!experienceForm.startDate) {
@@ -661,8 +694,16 @@ const CandidateAccountSettings = () => {
 
   const handleSaveEducation = (e) => {
     e.preventDefault();
-    if (educationForm.degree && !lettersOnlyRegex.test(educationForm.degree)) {
-      setModalError("Degree / Field of Study cannot contain numbers or special characters!");
+    if (!educationForm.degree || !educationForm.degree.trim()) {
+      setModalError("Degree / Field of Study is required!");
+      return;
+    }
+    if (educationForm.degree && !roleCompanyRegex.test(educationForm.degree)) {
+      setModalError("Degree / Field of Study contains invalid special characters!");
+      return;
+    }
+    if (!educationForm.school || !educationForm.school.trim()) {
+      setModalError("School / Institute is required!");
       return;
     }
     if (educationForm.school && !lettersOnlyRegex.test(educationForm.school)) {
@@ -729,6 +770,10 @@ const CandidateAccountSettings = () => {
 
   const handleSaveSkill = (e) => {
     e.preventDefault();
+    if (!skillForm.name || !skillForm.name.trim()) {
+      setModalError("Core Skill is required!");
+      return;
+    }
     const skillNameRegex = /^[\p{L}\s0-9\+#\.\/\-&]*$/u;
     if (skillForm.name && !skillNameRegex.test(skillForm.name)) {
       setModalError("Core Skill contains invalid special characters!");
@@ -814,8 +859,8 @@ const CandidateAccountSettings = () => {
 
   const handleSaveCertification = (e) => {
     e.preventDefault();
-    if (!certificationForm.name.trim()) {
-      setModalError("Please fill out all required fields!");
+    if (!certificationForm.name || !certificationForm.name.trim()) {
+      setModalError("Certification Name is required!");
       return;
     }
     const certNameRegex = /^[\p{L}\s0-9\(\)\-\/&,\.:'\+]*$/u;
@@ -862,8 +907,16 @@ const CandidateAccountSettings = () => {
 
   const handleSaveAward = (e) => {
     e.preventDefault();
-    if (!awardForm.title.trim() || !awardForm.issuer.trim() || !awardForm.date) {
-      setModalError("Please fill out all required fields!");
+    if (!awardForm.title || !awardForm.title.trim()) {
+      setModalError("Award Title is required!");
+      return;
+    }
+    if (!awardForm.issuer || !awardForm.issuer.trim()) {
+      setModalError("Issuer is required!");
+      return;
+    }
+    if (!awardForm.date) {
+      setModalError("Date Received is required!");
       return;
     }
     const finalAward = {
@@ -1000,6 +1053,7 @@ const CandidateAccountSettings = () => {
       formData.append('blog', editProfileForm.blog || '');
       formData.append('x', editProfileForm.x || '');
       formData.append('linkedin', editProfileForm.linkedin || '');
+      formData.append('nationality', editProfileForm.nationality || '');
       const birthdayParts = (editProfileForm.birthday || '').trim().split('/');
       const apiBirthday = birthdayParts.length === 3 ? `${birthdayParts[2]}-${birthdayParts[1]}-${birthdayParts[0]}` : '';
       formData.append('birthday', apiBirthday);
@@ -1078,9 +1132,9 @@ const CandidateAccountSettings = () => {
         </h5>
       </div>
       <div className="card-body p-4">
-        {modalError && (
+        {settingsError && (
           <div className="alert alert-danger py-2 px-3 small border-0 mb-4" role="alert">
-            <i className="fas fa-exclamation-triangle me-1"></i> {modalError}
+            <i className="fas fa-exclamation-triangle me-1"></i> {settingsError}
           </div>
         )}
 
@@ -1239,7 +1293,7 @@ const CandidateAccountSettings = () => {
                   viewBox="0 0 16 16"
                   onClick={handleSettingsCalendarIconClick}
                 >
-                  <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                  <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
                 </svg>
               </div>
             </div>
@@ -1303,7 +1357,10 @@ const CandidateAccountSettings = () => {
 
           {/* Manage Resume sections */}
           <div className="mt-5 pt-4 border-top">
-            <h4 className="fw-bold mb-4 text-dark"><i className="fas fa-tools me-2 text-primary"></i>Manage Resume sections</h4>
+            <h5 className="fw-bold border-bottom pb-2 text-dark">
+              <i className="fas fa-tools me-2 text-primary"></i>Manage Resume
+            </h5>
+
             <div className="row g-4">
               <div className="col-12 col-lg-4 d-flex">
                 <CandidateExperience

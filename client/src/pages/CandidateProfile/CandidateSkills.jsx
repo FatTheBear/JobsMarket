@@ -75,7 +75,7 @@ const CandidateSkills = ({
               </div>
             </div>
 
-            <div className="row g-3 justify-content-start">
+            <div className="d-flex flex-column gap-3">
               {skills.length === 0 ? (
                 <div className="text-center py-5 text-muted small">
                   <i className="fas fa-laptop-code fs-3 mb-2 text-muted opacity-50"></i>
@@ -83,27 +83,32 @@ const CandidateSkills = ({
                 </div>
               ) : (
                 skills.map((skill, index) => (
-                  <div key={skill.id || index} className="col-12 col-md-6 mb-2">
-                    <div className="d-flex justify-content-between align-items-center mb-1">
-                      <p className="mb-0 text-small fw-semibold text-dark">{skill.name}</p>
-                      <div className="d-flex gap-2">
-                        <button onClick={() => onOpenModal(skill)} className="btn btn-link text-primary p-0" title="Edit skill">
-                          <i className="fas fa-pencil-alt text-muted hover-primary" style={{ fontSize: '0.8rem' }}></i>
-                        </button>
-                        <button onClick={() => onDelete(skill.id)} className="btn btn-link text-danger p-0" title="Delete skill">
-                          <i className="fas fa-trash-alt text-muted hover-danger" style={{ fontSize: '0.8rem' }}></i>
-                        </button>
-                      </div>
+                  <div key={skill.id || index} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
+                    <div className="position-absolute top-0 end-0 mt-3 me-3 d-flex gap-2">
+                      <button onClick={() => onOpenModal(skill)} className="btn btn-link text-primary p-0" title="Edit skill" style={{ textDecoration: 'none' }}>
+                        <i className="fas fa-pencil-alt text-muted hover-primary" style={{ fontSize: '0.85rem' }}></i>
+                      </button>
+                      <button onClick={() => onDelete(skill.id)} className="btn btn-link text-danger p-0" title="Delete skill" style={{ textDecoration: 'none' }}>
+                        <i className="fas fa-trash-alt text-muted hover-danger" style={{ fontSize: '0.85rem' }}></i>
+                      </button>
                     </div>
-                    <div className="progress rounded progress-custom">
-                      <div
-                        className="progress-bar"
-                        role="progressbar"
-                        style={{ width: `${skill.level}%` }}
-                        aria-valuenow={skill.level}
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                      ></div>
+                    <h6 className="fw-bold mb-3 text-dark text-hover-primary" style={{ fontSize: '0.95rem', paddingRight: '45px', lineHeight: '1.4' }}>
+                      {skill.name}
+                    </h6>
+                    <div className="d-flex align-items-center gap-3">
+                      <div className="progress rounded progress-custom flex-grow-1" style={{ height: '6px' }}>
+                        <div
+                          className="progress-bar"
+                          role="progressbar"
+                          style={{ width: `${skill.level}%` }}
+                          aria-valuenow={skill.level}
+                          aria-valuemin="0"
+                          aria-valuemax="100"
+                        ></div>
+                      </div>
+                      <span className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-normal d-inline-flex align-items-center" style={{ fontSize: '0.7rem' }}>
+                        {skill.level}%
+                      </span>
                     </div>
                   </div>
                 ))
@@ -115,7 +120,7 @@ const CandidateSkills = ({
 
       {/* Skill Add/Edit Modal */}
       {showModal && (
-        <div className="profile-modal-overlay" style={{ zIndex: 1100 }} onClick={onCloseModal}>
+        <div className="profile-modal-overlay" style={{ zIndex: 100000 }} onClick={onCloseModal}>
           <div className="profile-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="profile-modal-header">
               <h5 className="profile-modal-title">
@@ -137,7 +142,7 @@ const CandidateSkills = ({
                 </div>
               )}
               <div style={{ position: 'relative' }}>
-                <label className="form-label fw-semibold text-secondary small">Skill Name</label>
+                <label className="form-label fw-semibold text-secondary small">Skill Name <span className="text-danger">*</span></label>
                 <input
                   type="text"
                   className="form-control"

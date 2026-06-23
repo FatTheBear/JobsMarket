@@ -126,7 +126,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1050;
+  z-index: 100000 !important; /* Đè lên thanh NavBar có z-index: 99999 */
+  padding: 20px;               /* Tránh việc modal bị chạm sát mép trên/dưới màn hình */
+  box-sizing: border-box;
   animation: fadeIn 0.25s ease-out;
 }
 
@@ -135,6 +137,9 @@
   border-radius: 16px;
   width: 90%;
   max-width: 500px;
+  max-height: calc(100vh - 40px); /* Giới hạn chiều cao an toàn thích ứng với padding của overlay */
+  display: flex;
+  flex-direction: column;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.2);
   overflow: hidden;
@@ -174,6 +179,8 @@
 
 .profile-modal-body {
   padding: 24px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .profile-modal-body table th {

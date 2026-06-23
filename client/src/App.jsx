@@ -25,6 +25,8 @@ import SavedCandidates from './pages/SavedCandidates/SavedCandidates';
 import TermsOfService from './pages/Authentication/TermsOfService';
 import NewsDetail from './pages/Dashboard/CompanyDashboard/NewsDetail';
 import MyApplications from './pages/MyApplications/MyApplications';
+import CommunityFeed from './pages/Community/CommunityFeed';
+import CreatePost from './pages/DashBoard/CompanyDashboard/CreatePost';
 
 // Child components for Candidate Profile
 import CandidateMyProfile from './pages/CandidateProfile/CandidateMyProfile';
@@ -112,8 +114,8 @@ const router = createBrowserRouter([
           { path: "post-job", element: <JobPosting /> },
           { path: "templates", element: <PostTemplates /> },
           { path: "applicants", element: <AppliedCandidates /> },
-          { path: "saved-candidates", element: <SavedCandidates /> }
-
+          { path: "saved-candidates", element: <SavedCandidates /> },
+          { path: "create-post", element: <CreatePost /> }
         ]
       },
 
@@ -130,6 +132,7 @@ const router = createBrowserRouter([
 
       { path: "/jobs", element: <SearchJobs /> },
       { path: "/applications", element: <MyApplications /> },
+      { path: "/community", element: <CommunityFeed /> },
       
       // ĐÃ SỬA: Thêm chữ 's' vào đường dẫn để khớp với lệnh navigate('/jobs/...')
       { path: "/jobs/:id", element: <JobDetail /> },

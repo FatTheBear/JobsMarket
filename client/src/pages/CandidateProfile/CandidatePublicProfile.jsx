@@ -163,28 +163,27 @@ export default function CandidatePublicProfile() {
         const authorName = profile.full_name || 'Candidate';
         const authorAvatar = profile.avatar_url || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cccccc'><circle cx='12' cy='12' r='10' fill='%23e4e6eb'/><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z' fill='%23ffffff'/></svg>";
 
-        setCandidatePosts([
-          {
-            id: 1,
-            author: authorName,
-            avatar: authorAvatar,
-            time: '3 days ago',
-            content: `Chào mọi người, đây là bài viết đầu tiên của tôi trên JobsMarket. Chúc các ứng viên sớm tìm được công việc mơ ước và các doanh nghiệp tuyển được nhân tài thích hợp!`,
-            likes: 18,
-            comments: 3,
-            shares: 1
-          },
-          {
-            id: 2,
-            author: authorName,
-            avatar: authorAvatar,
-            time: '2 weeks ago',
-            content: `Làm sao để thiết kế một CV lập trình viên thu hút nhà tuyển dụng? Đối với tôi, việc tập trung vào các dự án thực tế, mô tả công nghệ sử dụng và kết quả đạt được luôn là chìa khóa quan trọng nhất.`,
-            likes: 35,
-            comments: 8,
-            shares: 4
+        try {
+          const postsRes = await axios.get(`http://localhost:5000/api/posts/user/${profile.user_id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (postsRes.data && Array.isArray(postsRes.data)) {
+            setCandidatePosts(postsRes.data.map(p => ({
+              id: p.id,
+              author: p.author_name || authorName,
+              avatar: p.author_avatar || authorAvatar,
+              time: p.created_at ? new Date(p.created_at).toLocaleDateString() : 'Just now',
+              content: p.content,
+              mediaList: p.mediaList || [],
+              likes: p.likes_count || 0,
+              comments: p.comments_count || 0,
+              shares: p.reposts_count || 0
+            })));
           }
-        ]);
+        } catch (postsErr) {
+          console.error("Failed to load user posts from DB for public profile:", postsErr);
+          setCandidatePosts([]);
+        }
 
         setLoading(false);
       } catch (err) {

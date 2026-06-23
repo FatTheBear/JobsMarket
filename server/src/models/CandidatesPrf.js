@@ -98,7 +98,7 @@ const CandidateProfileModel = {
     },
     // 3. Cập nhật thông tin profile
     updateByUserId: async (user_id, updateData) => {
-        const { full_name, display_name, phone, avatar_url, headline, about, years_of_experience, is_public, address, cv_url, education, experience, skills, birthday, portfolio, github, facebook, blog, x, linkedin, languages, certifications, awards } = updateData;
+        const { full_name, display_name, phone, avatar_url, headline, about, years_of_experience, is_public, address, cv_url, education, experience, skills, birthday, portfolio, github, facebook, blog, x, linkedin, languages, certifications, awards, nationality } = updateData;
         const connection = await pool.getConnection();
         try {
             await connection.beginTransaction();
@@ -133,7 +133,7 @@ const CandidateProfileModel = {
                  SET full_name = ?, display_name = ?, phone = ?, avatar_url = ?, headline = ?, 
                      about = ?, years_of_experience = ?, is_public = ?, address = ?, cv_url = ?, birthday = ?,
                      portfolio = ?, github = ?, facebook = ?, blog = ?, x = ?, linkedin = ?,
-                     languages = ?, certifications = ?, awards = ?
+                     languages = ?, certifications = ?, awards = ?, nationality = ?
                  WHERE id = ?`,
                 [
                     full_name,
@@ -156,6 +156,7 @@ const CandidateProfileModel = {
                     languages || null,
                     certifications || null,
                     awards || null,
+                    nationality || null,
                     profileId
                 ]
             );

@@ -31,6 +31,7 @@ const skillsRoutes = require('./routes/skills');
 const applicationRoutes = require('./routes/applicationRoutes');
 const industryRoutes = require('./routes/industryRoutes');
 const newsController = require('./controllers/adminController');
+const postRoutes = require('./routes/postRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -41,6 +42,7 @@ app.use('/api/skills', skillsRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/jobs', jobs);
 app.use('/api/industries', industryRoutes);
+app.use('/api/posts', postRoutes);
 
 
 io.on('connection', (socket) => {

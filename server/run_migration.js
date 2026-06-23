@@ -460,6 +460,116 @@ async function runMigration() {
             }
         }
 
+        // 3e. Create Saved_Candidate table
+        try {
+            console.log('Creating Saved_Candidate table...');
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS \`Saved_Candidate\` (
+                    \`hr_id\` INT NOT NULL,
+                    \`candidate_id\` INT NOT NULL,
+                    \`saved_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (\`hr_id\`, \`candidate_id\`),
+                    CONSTRAINT \`fk_savedcand_hr\` FOREIGN KEY (\`hr_id\`) REFERENCES \`User\` (\`id\`) ON DELETE CASCADE ON UPDATE CASCADE,
+                    CONSTRAINT \`fk_savedcand_profile\` FOREIGN KEY (\`candidate_id\`) REFERENCES \`Candidate_Profile\` (\`id\`) ON DELETE CASCADE ON UPDATE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            `);
+            console.log('Successfully created Saved_Candidate table.');
+        } catch (err) {
+            console.error('Error creating Saved_Candidate table:', err.message);
+        }
+
+        // 3f. Create Community_Post, Post_Like, and Post_Comment tables
+        try {
+            console.log('Creating Community_Post table...');
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS \`Community_Post\` (
+                    \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                    \`user_id\` INT NOT NULL,
+                    \`content\` TEXT DEFAULT NULL,
+                    \`media_url\` VARCHAR(255) DEFAULT NULL,
+                    \`media_type\` VARCHAR(50) DEFAULT NULL,
+                    \`parent_post_id\` INT DEFAULT NULL,
+                    \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    FOREIGN KEY (\`user_id\`) REFERENCES \`User\`(\`id\`) ON DELETE CASCADE,
+                    FOREIGN KEY (\`parent_post_id\`) REFERENCES \`Community_Post\`(\`id\`) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            `);
+            console.log('Successfully created Community_Post table.');
+
+            console.log('Creating Post_Like table...');
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS \`Post_Like\` (
+                    \`post_id\` INT NOT NULL,
+                    \`user_id\` INT NOT NULL,
+                    \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (\`post_id\`, \`user_id\`),
+                    FOREIGN KEY (\`post_id\`) REFERENCES \`Community_Post\`(\`id\`) ON DELETE CASCADE,
+                    FOREIGN KEY (\`user_id\`) REFERENCES \`User\`(\`id\`) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            `);
+            console.log('Successfully created Post_Like table.');
+
+            console.log('Creating Post_Comment table...');
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS \`Post_Comment\` (
+                    \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                    \`post_id\` INT NOT NULL,
+                    \`user_id\` INT NOT NULL,
+                    \`content\` TEXT NOT NULL,
+                    \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (\`post_id\`) REFERENCES \`Community_Post\`(\`id\`) ON DELETE CASCADE,
+                    FOREIGN KEY (\`user_id\`) REFERENCES \`User\`(\`id\`) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            `);
+            console.log('Successfully created Post_Comment table.');
+
+            console.log('Creating Post_Media table...');
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS \`Post_Media\` (
+                    \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                    \`post_id\` INT NOT NULL,
+                    \`media_url\` VARCHAR(255) NOT NULL,
+                    \`media_type\` VARCHAR(50) NOT NULL,
+                    \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (\`post_id\`) REFERENCES \`Community_Post\`(\`id\`) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            `);
+            console.log('Successfully created Post_Media table.');
+
+            console.log('Creating Comment_Like table...');
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS \`Comment_Like\` (
+                    \`comment_id\` INT NOT NULL,
+                    \`user_id\` INT NOT NULL,
+                    \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (\`comment_id\`, \`user_id\`),
+                    FOREIGN KEY (\`comment_id\`) REFERENCES \`Post_Comment\`(\`id\`) ON DELETE CASCADE,
+                    FOREIGN KEY (\`user_id\`) REFERENCES \`User\`(\`id\`) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            `);
+            console.log('Successfully created Comment_Like table.');
+
+            // Add parent_comment_id to Post_Comment if not present
+            try {
+                console.log('Adding parent_comment_id to Post_Comment...');
+                await pool.query(`
+                    ALTER TABLE \`Post_Comment\` 
+                    ADD COLUMN \`parent_comment_id\` INT DEFAULT NULL,
+                    ADD FOREIGN KEY (\`parent_comment_id\`) REFERENCES \`Post_Comment\`(\`id\`) ON DELETE CASCADE
+                `);
+                console.log('Successfully added parent_comment_id to Post_Comment.');
+            } catch (err) {
+                if (err.code === 'ER_DUP_FIELDNAME' || err.code === 'ER_FK_DUP_NAME' || err.code === 'ER_DUP_KEY') {
+                    console.log('parent_comment_id column or key already exists in Post_Comment.');
+                } else {
+                    throw err;
+                }
+            }
+        } catch (err) {
+            console.error('Error creating community post tables:', err.message);
+        }
+
     } catch (dbError) {
         console.error('\n[CRITICAL ERROR] Table creation failed:', dbError.message);
         process.exit(1); // Exit process with failure code
