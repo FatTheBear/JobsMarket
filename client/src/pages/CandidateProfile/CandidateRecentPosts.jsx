@@ -26,7 +26,7 @@ const CandidateRecentPosts = () => {
             </div>
           ) : (
             candidatePosts.map((post) => (
-              <div key={post.id} className="p-3.5 rounded border bg-light">
+              <div key={post.id} className="p-3 rounded candidate-post-card bg-light">
                 <div className="d-flex align-items-center gap-3 mb-3">
                   <img
                     src={post.avatar}

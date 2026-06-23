@@ -124,6 +124,18 @@ export default function CompanyProfile() {
           linkedin: data.linkedin || '',
           twitter: data.twitter || '',
         });
+        if (data.scale) {
+          const parsedScale = typeof data.scale === 'string' ? JSON.parse(data.scale) : data.scale;
+          setScale(prev => ({ ...prev, ...parsedScale }));
+        }
+        if (data.culture) {
+          const parsedCulture = typeof data.culture === 'string' ? JSON.parse(data.culture) : data.culture;
+          setCulture(prev => ({ ...prev, ...parsedCulture }));
+        }
+        if (data.benefits) {
+          const parsedBenefits = typeof data.benefits === 'string' ? JSON.parse(data.benefits) : data.benefits;
+          setBenefits(prev => ({ ...prev, ...parsedBenefits }));
+        }
         if (data.logo_url) setLogoPreview(data.logo_url);
         setIsEdit(true);
       }
@@ -181,7 +193,13 @@ export default function CompanyProfile() {
     setLoading(true);
     const hrId = getHrId();
     try {
-      const payload = { ...form, hr_id: hrId };
+      const payload = { 
+        ...form, 
+        scale,
+        culture,
+        benefits,
+        hr_id: hrId 
+      };
       const method = isEdit ? 'PUT' : 'POST';
       const url = isEdit ? `${API_URL}/api/company/${hrId}` : `${API_URL}/api/company`;
       const res = await fetch(url, {

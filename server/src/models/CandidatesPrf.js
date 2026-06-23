@@ -104,7 +104,7 @@ const CandidateProfileModel = {
             await connection.beginTransaction();
 
             const [profiles] = await connection.execute(
-                'SELECT id FROM Candidate_Profile WHERE user_id = ?',
+                'SELECT id, avatar_url, cv_url FROM Candidate_Profile WHERE user_id = ?',
                 [user_id]
             );
             if (profiles.length === 0) {
@@ -113,6 +113,9 @@ const CandidateProfileModel = {
                 return false;
             }
             const profileId = profiles[0].id;
+            const currentAvatarUrl = profiles[0].avatar_url;
+            const currentCvUrl = profiles[0].cv_url;
+
             // tính số năm kinh nghiệm lưu vào DB
             let calculatedYears = 0;
             if (experience && Array.isArray(experience)) {
@@ -139,13 +142,13 @@ const CandidateProfileModel = {
                     full_name,
                     display_name || null,
                     phone || null,
-                    avatar_url || null,
+                    avatar_url ? avatar_url : currentAvatarUrl,
                     headline || null,
                     about || null,
                     calculatedYears,
                     is_public !== undefined ? is_public : true,
                     address || null,
-                    cv_url || null,
+                    cv_url ? cv_url : currentCvUrl,
                     birthday || null,
                     portfolio || null,
                     github || null,
@@ -251,13 +254,14 @@ const CandidateProfileModel = {
 
             const { display_name, phone, avatar_url, headline, address, education, experience, skills, followedCompanyIds, birthday } = onboardingData;
 
-            // Lấy profile id
+            // Lấy profile id và avatar_url hiện tại
             const [profiles] = await connection.execute(
-                'SELECT id FROM Candidate_Profile WHERE user_id = ?',
+                'SELECT id, avatar_url FROM Candidate_Profile WHERE user_id = ?',
                 [user_id]
             );
 
             let profileId;
+            let currentAvatarUrl = null;
             if (profiles.length === 0) {
                 const [insertResult] = await connection.execute(
                     'INSERT INTO Candidate_Profile (user_id, display_name, is_public) VALUES (?, ?, ?)',
@@ -266,6 +270,7 @@ const CandidateProfileModel = {
                 profileId = insertResult.insertId;
             } else {
                 profileId = profiles[0].id;
+                currentAvatarUrl = profiles[0].avatar_url;
             }
 
             // 1. Cập nhật bảng Candidate_Profile (LOẠI BỎ CỘT SKILLS JSON)
@@ -277,7 +282,7 @@ const CandidateProfileModel = {
                     display_name || null,
                     display_name || null,
                     phone || null,
-                    avatar_url || null,
+                    avatar_url ? avatar_url : currentAvatarUrl,
                     headline || null,
                     address || null,
                     birthday || null,

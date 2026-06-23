@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import PostCreator from '../../components/Community/PostCreator';
 import './CommunityFeed.css';
@@ -129,6 +130,7 @@ const getRoleBadgeClass = (role) => {
 };
 
 export default function CommunityFeed() {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -453,9 +455,9 @@ export default function CommunityFeed() {
   };
 
   return (
-    <div className="community-feed-layout container py-5">
+    <div className="community-feed-layout container py-5" style={{ maxWidth: '650px', margin: '0 auto' }}>
       <div className="row justify-content-center">
-        <div className="col-12 col-lg-8">
+        <div className="col-12">
           
           {/* Feed Header */}
           <div className="community-header mb-4 text-center text-lg-start">
@@ -510,12 +512,31 @@ export default function CommunityFeed() {
                           <img
                             src={post.author_avatar || '/default-avatar.png'}
                             alt="avatar"
-                            className="rounded-circle border"
+                            className="rounded-circle border cursor-pointer"
                             style={{ width: '48px', height: '48px', objectFit: 'cover' }}
+                            onClick={() => {
+                              if (post.user_role?.toLowerCase() === 'candidate') {
+                                navigate(`/candidate/${post.user_id}`);
+                              } else if (post.company_id) {
+                                navigate(`/company/${post.company_id}`);
+                              }
+                            }}
                           />
                           <div>
                             <div className="d-flex align-items-center gap-2 flex-wrap">
-                              <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '0.95rem' }}>{post.author_name}</h6>
+                              <h6 
+                                className="fw-bold mb-0 text-dark cursor-pointer hover-text-primary" 
+                                style={{ fontSize: '0.95rem' }}
+                                onClick={() => {
+                                  if (post.user_role?.toLowerCase() === 'candidate') {
+                                    navigate(`/candidate/${post.user_id}`);
+                                  } else if (post.company_id) {
+                                    navigate(`/company/${post.company_id}`);
+                                  }
+                                }}
+                              >
+                                {post.author_name}
+                              </h6>
                               <span className={`role-badge ${getRoleBadgeClass(post.user_role)}`}>
                                 {post.user_role?.toLowerCase() === 'candidate' ? 'Candidate' : 'Employer'}
                               </span>
@@ -560,12 +581,30 @@ export default function CommunityFeed() {
                                 <img
                                   src={post.parent_author_avatar || '/default-avatar.png'}
                                   alt="parent avatar"
-                                  className="rounded-circle"
+                                  className="rounded-circle cursor-pointer"
                                   style={{ width: '32px', height: '32px', objectFit: 'cover' }}
+                                  onClick={() => {
+                                    if (post.parent_user_role?.toLowerCase() === 'candidate' && post.parent_author_id) {
+                                      navigate(`/candidate/${post.parent_author_id}`);
+                                    } else if (post.parent_company_id) {
+                                      navigate(`/company/${post.parent_company_id}`);
+                                    }
+                                  }}
                                 />
                                 <div>
                                   <div className="d-flex align-items-center gap-1.5 flex-wrap">
-                                    <span className="fw-bold text-dark small">{post.parent_author_name}</span>
+                                    <span 
+                                      className="fw-bold text-dark small cursor-pointer hover-text-primary"
+                                      onClick={() => {
+                                        if (post.parent_user_role?.toLowerCase() === 'candidate' && post.parent_author_id) {
+                                          navigate(`/candidate/${post.parent_author_id}`);
+                                        } else if (post.parent_company_id) {
+                                          navigate(`/company/${post.parent_company_id}`);
+                                        }
+                                      }}
+                                    >
+                                      {post.parent_author_name}
+                                    </span>
                                     <span className={`role-badge mini ${getRoleBadgeClass(post.parent_user_role)}`}>
                                       {post.parent_user_role?.toLowerCase() === 'candidate' ? 'Candidate' : 'Employer'}
                                     </span>
@@ -682,12 +721,31 @@ export default function CommunityFeed() {
                                       <img
                                         src={comment.author_avatar || '/default-avatar.png'}
                                         alt="comment avatar"
-                                        className="rounded-circle border"
+                                        className="rounded-circle border cursor-pointer"
                                         style={{ width: '32px', height: '32px', objectFit: 'cover' }}
+                                        onClick={() => {
+                                          if (comment.user_role?.toLowerCase() === 'candidate') {
+                                            navigate(`/candidate/${comment.user_id}`);
+                                          } else if (comment.company_id) {
+                                            navigate(`/company/${comment.company_id}`);
+                                          }
+                                        }}
                                       />
                                       <div className="flex-grow-1">
                                         <div className="d-flex align-items-center gap-1.5 flex-wrap">
-                                          <span className="fw-bold text-dark small" style={{ fontSize: '0.85rem' }}>{comment.author_name}</span>
+                                          <span 
+                                            className="fw-bold text-dark small cursor-pointer hover-text-primary" 
+                                            style={{ fontSize: '0.85rem' }}
+                                            onClick={() => {
+                                              if (comment.user_role?.toLowerCase() === 'candidate') {
+                                                navigate(`/candidate/${comment.user_id}`);
+                                              } else if (comment.company_id) {
+                                                navigate(`/company/${comment.company_id}`);
+                                              }
+                                            }}
+                                          >
+                                            {comment.author_name}
+                                          </span>
                                           <span className={`role-badge mini ${getRoleBadgeClass(comment.user_role)}`}>
                                             {comment.user_role?.toLowerCase() === 'candidate' ? 'Candidate' : 'Employer'}
                                           </span>
@@ -728,7 +786,6 @@ export default function CommunityFeed() {
                                         </div>
                                       </div>
                                     </div>
-
                                     {/* Replies List */}
                                     {replies.length > 0 && (
                                       <div className="d-flex flex-column gap-2 ms-4 ps-2 border-start mt-1">
@@ -737,12 +794,31 @@ export default function CommunityFeed() {
                                             <img
                                               src={reply.author_avatar || '/default-avatar.png'}
                                               alt="reply avatar"
-                                              className="rounded-circle border"
+                                              className="rounded-circle border cursor-pointer"
                                               style={{ width: '26px', height: '26px', objectFit: 'cover' }}
+                                              onClick={() => {
+                                                if (reply.user_role?.toLowerCase() === 'candidate') {
+                                                  navigate(`/candidate/${reply.user_id}`);
+                                                } else if (reply.company_id) {
+                                                  navigate(`/company/${reply.company_id}`);
+                                                }
+                                              }}
                                             />
                                             <div className="flex-grow-1">
                                               <div className="d-flex align-items-center gap-1.5 flex-wrap">
-                                                <span className="fw-bold text-dark small" style={{ fontSize: '0.8rem' }}>{reply.author_name}</span>
+                                                <span 
+                                                  className="fw-bold text-dark small cursor-pointer hover-text-primary" 
+                                                  style={{ fontSize: '0.8rem' }}
+                                                  onClick={() => {
+                                                    if (reply.user_role?.toLowerCase() === 'candidate') {
+                                                      navigate(`/candidate/${reply.user_id}`);
+                                                    } else if (reply.company_id) {
+                                                      navigate(`/company/${reply.company_id}`);
+                                                    }
+                                                  }}
+                                                >
+                                                  {reply.author_name}
+                                                </span>
                                                 <span className={`role-badge mini ${getRoleBadgeClass(reply.user_role)}`} style={{ fontSize: '0.55rem', padding: '1px 5px' }}>
                                                   {reply.user_role?.toLowerCase() === 'candidate' ? 'Candidate' : 'Employer'}
                                                 </span>

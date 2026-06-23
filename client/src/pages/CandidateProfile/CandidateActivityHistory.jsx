@@ -20,6 +20,8 @@ const CandidateActivityHistory = () => {
   const [activeTab, setActiveTab] = useState('wallet'); // 'wallet' or 'activity'
   const [activeWalletTab, setActiveWalletTab] = useState('history'); // 'history' or 'topup'
   const [activitySubTab, setActivitySubTab] = useState('jobs'); // 'jobs', 'likes', 'comments', 'shares'
+  const [activityMessage, setActivityMessage] = useState('');
+  const [activityMessageType, setActivityMessageType] = useState('success');
 
   const handleUnsaveJob = (jobId) => {
     const confirmUnsave = window.confirm("Are you sure you want to unsave this job?");
@@ -27,7 +29,9 @@ const CandidateActivityHistory = () => {
       const updated = favoriteJobs.filter(job => job.id !== jobId);
       setFavoriteJobs(updated);
       localStorage.setItem('activity_fav_jobs', JSON.stringify(updated));
-      alert("Job removed from saved list successfully!");
+      setActivityMessageType('success');
+      setActivityMessage("Job removed from saved list successfully!");
+      setTimeout(() => setActivityMessage(''), 3000);
     }
   };
 
@@ -37,7 +41,9 @@ const CandidateActivityHistory = () => {
       const updated = likedPosts.filter(post => post.id !== postId);
       setLikedPosts(updated);
       localStorage.setItem('activity_liked_posts', JSON.stringify(updated));
-      alert("Post unliked successfully!");
+      setActivityMessageType('success');
+      setActivityMessage("Post unliked successfully!");
+      setTimeout(() => setActivityMessage(''), 3000);
     }
   };
 
@@ -47,7 +53,9 @@ const CandidateActivityHistory = () => {
       const updated = commentedPosts.filter(post => post.id !== postId);
       setCommentedPosts(updated);
       localStorage.setItem('activity_commented_posts', JSON.stringify(updated));
-      alert("Comment activity removed from history!");
+      setActivityMessageType('success');
+      setActivityMessage("Comment activity removed from history!");
+      setTimeout(() => setActivityMessage(''), 3000);
     }
   };
 
@@ -57,12 +65,20 @@ const CandidateActivityHistory = () => {
       const updated = sharedPosts.filter(post => post.id !== postId);
       setSharedPosts(updated);
       localStorage.setItem('activity_shared_posts', JSON.stringify(updated));
-      alert("Share activity removed from history!");
+      setActivityMessageType('success');
+      setActivityMessage("Share activity removed from history!");
+      setTimeout(() => setActivityMessage(''), 3000);
     }
   };
 
   return (
     <div className="animate-fade-in d-flex flex-column gap-4">
+      {activityMessage && (
+        <div className={`alert alert-${activityMessageType} py-2.5 px-3 small border-0 shadow-sm animate-fade-in`} role="alert">
+          <i className={activityMessageType === 'success' ? "fas fa-check-circle me-2" : "fas fa-exclamation-triangle me-2"}></i>
+          {activityMessage}
+        </div>
+      )}
       {/* Tab Selector for Wallet vs Activity */}
       <div className="card border-0 shadow-sm">
         <div className="d-flex border-bottom bg-white rounded-top">

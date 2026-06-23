@@ -346,6 +346,7 @@ const CandidateAccountSettings = () => {
 
   const [editProfileForm, setEditProfileForm] = useState(null);
   const [settingsError, setSettingsError] = useState('');
+  const [settingsSuccess, setSettingsSuccess] = useState('');
   const [modalError, setModalError] = useState('');
 
   // Experience state
@@ -539,16 +540,22 @@ const CandidateAccountSettings = () => {
   };
 
   const handleChangeEmailClick = () => {
-    alert("Change Email Request:\nPlease contact the administrator at support@jobsmarket.com to verify and update your primary email address.");
+    setSettingsError('');
+    setSettingsSuccess("Change Email Request: Please contact the administrator at support@jobsmarket.com to verify and update your primary email address.");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleChangePasswordClick = () => {
     const newPassword = window.prompt("Enter your new password:");
     if (newPassword) {
       if (newPassword.length < 6) {
-        alert("Password must be at least 6 characters long!");
+        setSettingsSuccess('');
+        setSettingsError("Password must be at least 6 characters long!");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        alert("Password change request submitted successfully!");
+        setSettingsError('');
+        setSettingsSuccess("Password change request submitted successfully!");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     }
   };
@@ -955,38 +962,52 @@ const CandidateAccountSettings = () => {
 
     // Validate Full Name
     if (!fullNameCombined) {
-      alert('Full Name is required!');
+      setSettingsSuccess('');
+      setSettingsError('Full Name is required!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     if (!lettersOnlyRegex.test(fullNameCombined)) {
-      alert('Full Name can only contain letters and spaces!');
+      setSettingsSuccess('');
+      setSettingsError('Full Name can only contain letters and spaces!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     // Validate Date of Birth
     if (!editProfileForm.birthday || !editProfileForm.birthday.trim()) {
-      alert('Date of Birth is required!');
+      setSettingsSuccess('');
+      setSettingsError('Date of Birth is required!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     const dobRegex = /^\d{2}\/\d{2}\/\d{4}$/;
     if (!dobRegex.test(editProfileForm.birthday.trim())) {
-      alert('Date of Birth must be in DD/MM/YYYY format!');
+      setSettingsSuccess('');
+      setSettingsError('Date of Birth must be in DD/MM/YYYY format!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     // Validate Phone Number
     if (editProfileForm.phone && editProfileForm.phone.trim() && !/^\d{10}$/.test(editProfileForm.phone.trim())) {
-      alert('Phone Number must be exactly 10 digits!');
+      setSettingsSuccess('');
+      setSettingsError('Phone Number must be exactly 10 digits!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     // Validate Job Title (if provided)
     if (editProfileForm.jobTitle && editProfileForm.jobTitle.trim() && !/^[\p{L}\s-]*$/u.test(editProfileForm.jobTitle.trim())) {
-      alert('Job Title can only contain letters, spaces, and hyphens!');
+      setSettingsSuccess('');
+      setSettingsError('Job Title can only contain letters, spaces, and hyphens!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     // Validate Nationality (if provided)
     if (editProfileForm.nationality && editProfileForm.nationality.trim() && !lettersOnlyRegex.test(editProfileForm.nationality.trim())) {
-      alert('Nationality can only contain letters and spaces!');
+      setSettingsSuccess('');
+      setSettingsError('Nationality can only contain letters and spaces!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -994,7 +1015,9 @@ const CandidateAccountSettings = () => {
     if (editProfileForm.portfolio && editProfileForm.portfolio.trim()) {
       const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/i;
       if (!urlRegex.test(editProfileForm.portfolio.trim())) {
-        alert('Website / Portfolio must be a valid URL (e.g., https://myportfolio.com)!');
+        setSettingsSuccess('');
+        setSettingsError('Website / Portfolio must be a valid URL (e.g., https://myportfolio.com)!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
     }
@@ -1002,7 +1025,9 @@ const CandidateAccountSettings = () => {
     if (editProfileForm.github && editProfileForm.github.trim()) {
       const githubRegex = /^(https?:\/\/)?(www\.)?github\.com\/[a-zA-Z0-9_-]+\/?$/i;
       if (!githubRegex.test(editProfileForm.github.trim())) {
-        alert('GitHub link must be a valid profile URL (e.g., https://github.com/username)!');
+        setSettingsSuccess('');
+        setSettingsError('GitHub link must be a valid profile URL (e.g., https://github.com/username)!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
     }
@@ -1010,7 +1035,9 @@ const CandidateAccountSettings = () => {
     if (editProfileForm.facebook && editProfileForm.facebook.trim()) {
       const facebookRegex = /^(https?:\/\/)?(www\.)?facebook\.com\/[a-zA-Z0-9.-]+\/?$/i;
       if (!facebookRegex.test(editProfileForm.facebook.trim())) {
-        alert('Facebook link must be a valid profile URL (e.g., https://facebook.com/username)!');
+        setSettingsSuccess('');
+        setSettingsError('Facebook link must be a valid profile URL (e.g., https://facebook.com/username)!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
     }
@@ -1018,7 +1045,9 @@ const CandidateAccountSettings = () => {
     if (editProfileForm.blog && editProfileForm.blog.trim()) {
       const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/i;
       if (!urlRegex.test(editProfileForm.blog.trim())) {
-        alert('Blog must be a valid URL (e.g., https://myblog.com)!');
+        setSettingsSuccess('');
+        setSettingsError('Blog must be a valid URL (e.g., https://myblog.com)!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
     }
@@ -1026,7 +1055,9 @@ const CandidateAccountSettings = () => {
     if (editProfileForm.x && editProfileForm.x.trim()) {
       const xRegex = /^(https?:\/\/)?(www\.)?(twitter\.com|x\.com)\/[a-zA-Z0-9_-]+\/?$/i;
       if (!xRegex.test(editProfileForm.x.trim())) {
-        alert('X link must be a valid profile URL (e.g., https://x.com/username)!');
+        setSettingsSuccess('');
+        setSettingsError('X link must be a valid profile URL (e.g., https://x.com/username)!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
     }
@@ -1034,7 +1065,9 @@ const CandidateAccountSettings = () => {
     if (editProfileForm.linkedin && editProfileForm.linkedin.trim()) {
       const linkedinRegex = /^(https?:\/\/)?(www\.)?linkedin\.com\/(in|company)\/[a-zA-Z0-9_-]+\/?$/i;
       if (!linkedinRegex.test(editProfileForm.linkedin.trim())) {
-        alert('LinkedIn link must be a valid profile URL (e.g., https://linkedin.com/in/username)!');
+        setSettingsSuccess('');
+        setSettingsError('LinkedIn link must be a valid profile URL (e.g., https://linkedin.com/in/username)!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
     }
@@ -1113,10 +1146,14 @@ const CandidateAccountSettings = () => {
 
       setProfileData(updatedForm);
       localStorage.setItem('hide_phone_' + editProfileForm.email, editProfileForm.hidePhone ? 'true' : 'false');
-      alert('Account settings saved successfully!');
+      setSettingsError('');
+      setSettingsSuccess('Account settings saved successfully!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       console.error("Failed to save profile settings:", err);
-      alert("Error occurred while saving profile settings. Please try again.");
+      setSettingsSuccess('');
+      setSettingsError("Error occurred while saving profile settings. Please try again.");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -1135,6 +1172,11 @@ const CandidateAccountSettings = () => {
         {settingsError && (
           <div className="alert alert-danger py-2 px-3 small border-0 mb-4" role="alert">
             <i className="fas fa-exclamation-triangle me-1"></i> {settingsError}
+          </div>
+        )}
+        {settingsSuccess && (
+          <div className="alert alert-success py-2 px-3 small border-0 mb-4 animate-fade-in" role="alert">
+            <i className="fas fa-check-circle me-1"></i> {settingsSuccess}
           </div>
         )}
 

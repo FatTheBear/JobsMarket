@@ -1231,3 +1231,91 @@
   pointer-events: none;
   z-index: 1;
 }
+
+/* User Role Badges */
+.role-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 50px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  display: inline-flex;
+  align-items: center;
+}
+
+.role-badge.candidate {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.role-badge.company {
+  background-color: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.role-badge.mini {
+  font-size: 0.58rem;
+  padding: 1px 6px;
+}
+
+/* Repost quote box styling */
+.repost-quote-box {
+  border: 1px solid #e2e8f0;
+  border-left: 3px solid #01796F !important;
+  background-color: #f8fafc;
+  transition: background-color 0.2s ease;
+}
+
+.repost-quote-box:hover {
+  background-color: #f1f5f9;
+}
+
+/* Custom styling for post card borders and shadow hover effect */
+.candidate-post-card {
+  border: 1.5px solid #cbd5e1 !important; /* Prominent slate border */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  transition: all 0.25s ease-in-out;
+}
+
+.candidate-post-card:hover {
+  border-color: var(--color-slate-blue) !important; /* Highlights brand color on hover */
+  box-shadow: 0 6px 16px rgba(109, 129, 150, 0.2);
+  transform: translateY(-1.5px);
+}
+
+/* Comments section styling */
+.comments-drawer {
+  animation: slideDownFade 0.25s ease-out;
+}
+
+.comment-item {
+  border: 1px solid #f1f5f9;
+  background-color: #f8fafc;
+}
+
+/* Scrollbar styling for comments */
+.comments-drawer > div::-webkit-scrollbar {
+  width: 5px;
+}
+
+.comments-drawer > div::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.comments-drawer > div::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.comments-drawer > div::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+@keyframes slideDownFade {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

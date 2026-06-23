@@ -3,7 +3,8 @@
 .community-feed-layout {
   font-family: 'Outfit', 'Inter', system-ui, sans-serif;
   color: #1e293b;
-  max-width: 900px;
+  max-width: 680px !important;
+  margin: 0 auto !important;
 }
 
 .community-header {

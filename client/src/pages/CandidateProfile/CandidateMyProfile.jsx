@@ -426,7 +426,7 @@ const CandidateMyProfile = () => {
 
       {/* Recent Posts Section */}
       <div className="mt-4 pt-3 border-top w-100">
-        <CandidatePosts candidatePosts={candidatePosts} />
+        <CandidatePosts candidatePosts={candidatePosts} setCandidatePosts={setCandidatePosts} />
       </div>
 
       {/* Personal Info Modal */}

@@ -17,6 +17,7 @@ const CandidateManageCVs = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [localError, setLocalError] = useState('');
+  const [localSuccess, setLocalSuccess] = useState('');
 
   useEffect(() => {
     fetchCVs();
@@ -25,6 +26,7 @@ const CandidateManageCVs = () => {
   const processFile = async (file) => {
     if (!file) return;
     setLocalError('');
+    setLocalSuccess('');
 
     const allowedTypes = [
       'application/pdf',
@@ -59,7 +61,7 @@ const CandidateManageCVs = () => {
         }
       });
 
-      alert("🎉 " + response.data.message);
+      setLocalSuccess("🎉 " + response.data.message);
 
       // Load lại danh sách CV
       if (fetchCVs) await fetchCVs();
@@ -97,6 +99,8 @@ const CandidateManageCVs = () => {
 
   const handleCvDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this CV? This action cannot be undone.")) return;
+    setLocalError('');
+    setLocalSuccess('');
 
     try {
       const token = localStorage.getItem('token');
@@ -104,7 +108,7 @@ const CandidateManageCVs = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      alert("🗑️ CV deleted successfully!");
+      setLocalSuccess("🗑️ CV deleted successfully!");
 
       if (fetchCVs) await fetchCVs();
 
@@ -137,6 +141,11 @@ const CandidateManageCVs = () => {
         {localError && (
           <div className="alert alert-danger py-2 px-3 small border-0 shadow-sm" role="alert">
             <i className="fas fa-exclamation-triangle me-2"></i>{localError}
+          </div>
+        )}
+        {localSuccess && (
+          <div className="alert alert-success py-2 px-3 small border-0 shadow-sm animate-fade-in" role="alert">
+            <i className="fas fa-check-circle me-2"></i>{localSuccess}
           </div>
         )}
 

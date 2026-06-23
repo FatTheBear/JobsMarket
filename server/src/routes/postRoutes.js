@@ -124,6 +124,7 @@ router.get('/', async (req, res) => {
       `SELECT 
           p.*,
           u.role AS user_role,
+          com.id AS company_id,
           CASE 
               WHEN u.role IN ('candidate', 'Candidate') THEN cp.full_name 
               WHEN u.role IN ('company', 'HR') THEN com.name
@@ -149,7 +150,9 @@ router.get('/', async (req, res) => {
           parent.media_url AS parent_media_url,
           parent.media_type AS parent_media_type,
           parent.created_at AS parent_created_at,
+          parent_u.id AS parent_author_id,
           parent_u.role AS parent_user_role,
+          parent_com.id AS parent_company_id,
           CASE 
               WHEN parent_u.role IN ('candidate', 'Candidate') THEN parent_cp.full_name 
               WHEN parent_u.role IN ('company', 'HR') THEN parent_com.name
@@ -206,6 +209,7 @@ router.get('/user/:user_id', async (req, res) => {
       `SELECT 
           p.*,
           u.role AS user_role,
+          com.id AS company_id,
           CASE 
               WHEN u.role IN ('candidate', 'Candidate') THEN cp.full_name 
               WHEN u.role IN ('company', 'HR') THEN com.name
@@ -231,7 +235,9 @@ router.get('/user/:user_id', async (req, res) => {
           parent.media_url AS parent_media_url,
           parent.media_type AS parent_media_type,
           parent.created_at AS parent_created_at,
+          parent_u.id AS parent_author_id,
           parent_u.role AS parent_user_role,
+          parent_com.id AS parent_company_id,
           CASE 
               WHEN parent_u.role IN ('candidate', 'Candidate') THEN parent_cp.full_name 
               WHEN parent_u.role IN ('company', 'HR') THEN parent_com.name
@@ -321,6 +327,7 @@ router.post('/', authMiddleware, uploadMiddleware, async (req, res) => {
       `SELECT 
           p.*,
           u.role AS user_role,
+          com.id AS company_id,
           CASE 
               WHEN u.role IN ('candidate', 'Candidate') THEN cp.full_name 
               WHEN u.role IN ('company', 'HR') THEN com.name
@@ -434,6 +441,7 @@ router.get('/:id/comments', async (req, res) => {
       `SELECT 
           c.*,
           u.role AS user_role,
+          com.id AS company_id,
           CASE 
               WHEN u.role IN ('candidate', 'Candidate') THEN cp.full_name 
               WHEN u.role IN ('company', 'HR') THEN com.name
@@ -488,6 +496,7 @@ router.post('/:id/comments', authMiddleware, async (req, res) => {
       `SELECT 
           c.*,
           u.role AS user_role,
+          com.id AS company_id,
           CASE 
               WHEN u.role IN ('candidate', 'Candidate') THEN cp.full_name 
               WHEN u.role IN ('company', 'HR') THEN com.name
@@ -610,6 +619,7 @@ router.post('/:id/repost', authMiddleware, async (req, res) => {
           parent.media_url AS parent_media_url,
           parent.media_type AS parent_media_type,
           parent.created_at AS parent_created_at,
+          parent_u.id AS parent_author_id,
           parent_u.role AS parent_user_role,
           CASE 
               WHEN parent_u.role IN ('candidate', 'Candidate') THEN parent_cp.full_name 

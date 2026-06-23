@@ -33,6 +33,9 @@ router.post('/onboarding', authMiddleware, validateOnboarding, candidateControll
 // Lấy thông tin public của một candidate khác bằng profile ID
 router.get('/public/:id', authMiddleware, candidateController.getPublicProfile);
 
+// Lấy danh sách CV công khai của một candidate khác
+router.get('/public/:id/cvs', authMiddleware, candidateController.getPublicCVs);
+
 // Upload CV
 router.post('/upload-cv', authMiddleware, uploadCv.single('cv_file'), candidateController.uploadCV);
 

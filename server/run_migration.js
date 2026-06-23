@@ -570,6 +570,42 @@ async function runMigration() {
             console.error('Error creating community post tables:', err.message);
         }
 
+        // Upgrade Company table structure
+        try {
+            console.log('Modifying Company table columns...');
+            // 1. Modify logo_url to LONGTEXT
+            await pool.query("ALTER TABLE `Company` MODIFY COLUMN `logo_url` LONGTEXT DEFAULT NULL");
+            console.log('Successfully modified logo_url column to LONGTEXT.');
+            
+            // 2. Add columns: email, phone, facebook, linkedin, twitter, scale, culture, benefits
+            const companyCols = [
+                { name: 'email', sql: "ALTER TABLE `Company` ADD COLUMN `email` VARCHAR(255) DEFAULT NULL" },
+                { name: 'phone', sql: "ALTER TABLE `Company` ADD COLUMN `phone` VARCHAR(20) DEFAULT NULL" },
+                { name: 'facebook', sql: "ALTER TABLE `Company` ADD COLUMN `facebook` VARCHAR(255) DEFAULT NULL" },
+                { name: 'linkedin', sql: "ALTER TABLE `Company` ADD COLUMN `linkedin` VARCHAR(255) DEFAULT NULL" },
+                { name: 'twitter', sql: "ALTER TABLE `Company` ADD COLUMN `twitter` VARCHAR(255) DEFAULT NULL" },
+                { name: 'scale', sql: "ALTER TABLE `Company` ADD COLUMN `scale` JSON DEFAULT NULL" },
+                { name: 'culture', sql: "ALTER TABLE `Company` ADD COLUMN `culture` JSON DEFAULT NULL" },
+                { name: 'benefits', sql: "ALTER TABLE `Company` ADD COLUMN `benefits` JSON DEFAULT NULL" }
+            ];
+            for (const col of companyCols) {
+                try {
+                    console.log(`Adding ${col.name} column to Company...`);
+                    await pool.query(col.sql);
+                    console.log(`Successfully added ${col.name} column to Company.`);
+                } catch (err) {
+                    if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+                        console.log(`${col.name} column already exists in Company.`);
+                    } else {
+                        throw err;
+                    }
+                }
+            }
+            console.log('Successfully completed Company structure migration.');
+        } catch (err) {
+            console.error('Error modifying Company table columns:', err.message);
+        }
+
     } catch (dbError) {
         console.error('\n[CRITICAL ERROR] Table creation failed:', dbError.message);
         process.exit(1); // Exit process with failure code

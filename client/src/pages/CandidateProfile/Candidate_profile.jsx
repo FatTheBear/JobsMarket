@@ -277,6 +277,7 @@ const CandidateProfile = () => {
           if (postsRes.data && Array.isArray(postsRes.data)) {
             setCandidatePosts(postsRes.data.map(p => ({
               id: p.id,
+              user_id: p.user_id,
               author: p.author_name || profile.full_name || 'Candidate',
               avatar: p.author_avatar || profile.avatar_url || defaultFacebookAvatar,
               time: p.created_at ? new Date(p.created_at).toLocaleDateString() : 'Just now',
@@ -284,7 +285,19 @@ const CandidateProfile = () => {
               mediaList: p.mediaList || [],
               likes: p.likes_count || 0,
               comments: p.comments_count || 0,
-              shares: p.reposts_count || 0
+              shares: p.reposts_count || 0,
+              is_liked: p.is_liked || 0,
+              user_role: p.user_role,
+              parent_post_id: p.parent_post_id,
+              parent_author_id: p.parent_author_id,
+              parent_content: p.parent_content,
+              parent_media_url: p.parent_media_url,
+              parent_media_type: p.parent_media_type,
+              parent_author_name: p.parent_author_name,
+              parent_author_avatar: p.parent_author_avatar,
+              parent_user_role: p.parent_user_role,
+              parent_author_title: p.parent_author_title,
+              parent_created_at: p.parent_created_at
             })));
           }
         } catch (postsErr) {
