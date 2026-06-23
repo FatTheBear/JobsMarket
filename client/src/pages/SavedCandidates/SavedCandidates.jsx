@@ -30,7 +30,7 @@ export default function SavedCandidates() {
 
   const handleUnsave = async (candidateId, e) => {
     e.stopPropagation();
-    if (!window.confirm("Bạn có chắc muốn bỏ lưu ứng viên này?")) return;
+    if (!window.confirm("Are you sure you want to unsave this candidate?")) return;
     try {
       const currentUserId = localStorage.getItem('userId');
       const token = localStorage.getItem('token');
@@ -90,14 +90,14 @@ export default function SavedCandidates() {
                       <div className="sc-headline">{candidate.headline || 'No headline provided'}</div>
                       <div className="sc-candidate-meta">{candidate.skills}</div>
                     </td>
-                    <td>{new Date(candidate.saved_at).toLocaleDateString('vi-VN')}</td>
+                    <td>{new Date(candidate.saved_at).toLocaleDateString('en-US')}</td>
                     <td>
                       <button 
                         className="sc-btn-unsave"
                         onClick={(e) => handleUnsave(candidate.candidate_id, e)}
-                        title="Bỏ lưu"
+                        title="Unsave"
                       >
-                        Bỏ lưu
+                        Unsave
                       </button>
                     </td>
                   </tr>
@@ -105,7 +105,7 @@ export default function SavedCandidates() {
               ) : (
                 <tr>
                   <td colSpan="4" className="sc-table-empty">
-                    Chưa có ứng viên nào được lưu.
+                    No saved candidates yet.
                   </td>
                 </tr>
               )}
@@ -134,7 +134,7 @@ export default function SavedCandidates() {
                 <h3>Candidate Profile</h3>
                 <p>Skills: {selectedCandidate.skills || 'N/A'}</p>
                 <p>Experience: {selectedCandidate.years_of_experience || 0} years</p>
-                <p>Saved on: {new Date(selectedCandidate.saved_at).toLocaleString('vi-VN')}</p>
+                <p>Saved on: {new Date(selectedCandidate.saved_at).toLocaleString('en-US')}</p>
               </div>
             </div>
           </div>

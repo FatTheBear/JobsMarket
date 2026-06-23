@@ -9,6 +9,7 @@ router.post('/login', authController.login);
 router.post('/register', validateRegister, authController.register);
 router.post('/verify-otp', authController.verifyOTP);
 router.post("/resend-otp", authController.resendOtp);
+
 //đừng đụng vô đống này
 // const { verifyToken } = require('../middleware/authMiddleware');
 // const profileController = require('../controllers/profileController');

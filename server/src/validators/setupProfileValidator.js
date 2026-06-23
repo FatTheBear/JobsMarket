@@ -5,6 +5,11 @@ const onboardingSchema = Joi.object({
         'string.empty': 'Display Name cannot be blank',
         'any.required': 'Display Name is required'
     }),
+    birthday: Joi.string().regex(/^\d{4}-\d{2}-\d{2}$/).required().messages({
+        'string.empty': 'Date of Birth is required',
+        'string.pattern.base': 'Date of Birth must be in YYYY-MM-DD format',
+        'any.required': 'Date of Birth is required'
+    }),
     phone: Joi.string().trim().allow('', null).optional(),
     avatar_url: Joi.string().trim().allow('', null).optional(),
     headline: Joi.string().trim().allow('', null).optional(),

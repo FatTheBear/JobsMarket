@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/adminController.js");
-const upload = require("../middleware/upload");
+const { upload ,uploadAvatar, uploadCompany } = require('../middleware/upload');
 
 const { authMiddleware, adminMiddleware } = require('../middleware/authMiddleware');
 
@@ -31,9 +31,8 @@ router.post('/industries', adminController.createIndustry);
 router.delete('/industries/:id', adminController.deleteIndustry);
 
 
-router.post("/news", upload.single("thumbnail"),adminController.createNews); 
-
-router.put('/news/:id', upload.single("thumbnail"), adminController.updateNews);
+router.post("/news",uploadAvatar.single("thumbnail"),adminController.createNews);
+router.put('/news/:id', uploadAvatar.single("thumbnail"), adminController.updateNews);
 router.delete('/news/:id', adminController.deleteNews);
 
 
@@ -51,5 +50,10 @@ router.delete('/coin-fees/:id', adminController.deleteCoinFee);
 router.get('/notifications', adminController.getNotifications);
 router.put('/notifications/:id/read', adminController.markNotificationRead);
 router.delete('/notifications/:id', adminController.deleteNotification);
+
+
+router.get('/pending-companies', adminController.getPendingCompanies);
+router.patch('/company/:id/approve', adminController.approveCompany);
+router.patch('/users/:id/ban', adminController.banAccount);
 
 module.exports = router;

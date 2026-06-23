@@ -1,11 +1,22 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import './JobCard.css';
+import axios from 'axios';
 
-export default function JobCard({ company_logo, job, onClick }) {
+const API_URL = 'http://localhost:5000';
+
+export default function JobCard({ job, onClick }) {
   const [imgError, setImgError] = useState(false);
-  // 1. Destructure data from the job object
+  
+  // States for Application Flow
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [selectedCvId, setSelectedCvId] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState({ type: "", text: "" });
+  const [myCVs, setMyCVs] = useState([]);
+  const [isLoadingCVs, setIsLoadingCVs] = useState(false);
+
   const {
+    id: jobId, 
     title,
     company_name,
     logo_url,
@@ -15,35 +26,98 @@ export default function JobCard({ company_logo, job, onClick }) {
     job_type,
   } = job;
 
-  // 2. Logic to format salary nicely
+  const getValidLogo = () => {
+    if (imgError || !logo_url) return '/default-company-logo.png';
+    if (logo_url.startsWith('http')) return logo_url;
+    return `${API_URL}${logo_url}`;
+  };
+
   const formatSalary = () => {
-    // 1. Suy luận Internship từ cột job_type
     if (job_type && job_type.toLowerCase().includes('intern')) {
-        return 'Internship';
+      return 'Internship';
     }
-
-    // 2. Suy luận Negotiable (Thỏa thuận) nếu không có min max
     if (!salary_min && !salary_max) {
-        return 'Negotiable';
+      return 'Negotiable';
     }
-
-    // 3. Xử lý Specific (Cụ thể)
     if (salary_min && salary_max) return `$${salary_min} - $${salary_max}`;
     if (salary_min) return `From $${salary_min}`;
     return `Up to $${salary_max}`;
   };
-  const navigate = useNavigate();
 
+  const fetchMyCVs = async () => {
+    setIsLoadingCVs(true);
+    try {
+      const token = localStorage.getItem('token');
+     
+      const response = await axios.get(`${API_URL}/api/candidate/cvs`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setMyCVs(response.data);
+    } catch (error) {
+      console.error("Failed to fetch CVs", error);
+      setFeedbackMessage({ type: "danger", text: "Could not load your CVs. Please try again." });
+    } finally {
+      setIsLoadingCVs(false);
+    }
+  };
+
+  const handleOpenApplyModal = (e) => {
+    e.stopPropagation(); 
+    setShowApplyModal(true);
+    setFeedbackMessage({ type: "", text: "" });
+    setSelectedCvId("");
+    fetchMyCVs();
+  };
+
+  const handleApplySubmit = async (e) => {
+    e.preventDefault();
+    setFeedbackMessage({ type: "", text: "" });
+
+    if (!selectedCvId) {
+      return setFeedbackMessage({ type: "danger", text: "Please select a CV to apply." });
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const token = localStorage.getItem('token'); 
+      const payload = {
+        jobId: jobId, 
+        cvId: selectedCvId
+      };
+
+      const response = await axios.post(`${API_URL}/api/candidate/apply`, payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.status === 201) {
+        setFeedbackMessage({ type: "success", text: "Application submitted successfully!" });
+        
+        setTimeout(() => {
+          setShowApplyModal(false);
+          setSelectedCvId("");
+          setFeedbackMessage({ type: "", text: "" });
+        }, 2000);
+      }
+    } catch (error) {
+      if (error.response && error.response.data) {
+        setFeedbackMessage({ type: "danger", text: error.response.data.message });
+      } else {
+        setFeedbackMessage({ type: "danger", text: "Connection error! Please try again." });
+      }
+    } finally {
+      setIsSubmitting(false); 
+    }
+  };
   // 3. Render the UI
   return (
-    <div className="job-card-container" onClick={() => onSelect?.(job)}>
+    <div className="job-card-container" onClick={onClick}>
       {/* Khối trên: Logo + Tên Job + Tên Công ty */}
       <div className="job-card-header">
         <img
-          src={imgError ? '/default-company-logo.png' : (logo_url || '/default-company-logo.png')}
-          alt={`${company_name || 'Company'} logo`}
+          src={getValidLogo()}
           onError={() => setImgError(true)}
-          className="job-card-logo"
+          alt="Company Logo"
         />
         <div className="job-card-main-info">
           <h3 className="job-card-title">{title || 'Untitled Job'}</h3>

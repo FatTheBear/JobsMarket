@@ -43,6 +43,7 @@ export default function Login() {
     } catch (error) {
       // 2. Catch Backend Errors
       if (error.response && error.response.data) {
+        setErrorMessage(error.response.data.message || "Login failed. Please try again.");
       } else {
         setErrorMessage("Connection error! Please ensure the server is running.");
       }

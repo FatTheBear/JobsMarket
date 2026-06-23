@@ -9,93 +9,92 @@ export default function SearchJobs() {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
-  
-  // State quản lý các giá trị nhập vào bộ lọc tìm kiếm
+
+  // Search filter state
   const [keyword, setKeyword] = useState('');
   const [location, setLocation] = useState('');
   const [salary, setSalary] = useState('');
 
-  // Tự động tải danh sách công việc khi vừa vào trang lần đầu hoặc khi đổi filter
+  // Load jobs on first visit and whenever filters change
   useEffect(() => {
-    handleSearch();
+    fetchJobs();
   }, [location, salary]);
 
-  // Hàm xử lý gọi API tìm kiếm đến Backend
-  const handleSearch = async (e) => {
-    if (e) e.preventDefault(); // Chặn hành vi load lại trang của form
-    
+  const fetchJobs = async () => {
     try {
       setLoading(true);
-      
-      // Gửi các tham số tìm kiếm qua query string (URL Parameters)
       const response = await axios.get(`${API_URL}/api/jobs/search`, {
         params: {
           q: keyword.trim(),
           location: location,
-          salary: salary
-        }
+          salary: salary,
+        },
       });
-      
       setJobs(response.data || []);
     } catch (error) {
-      console.error('Lỗi khi thực hiện tìm kiếm công việc:', error);
+      console.error('Error searching jobs:', error);
+      setJobs([]);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSearch = (e) => {
+    if (e) e.preventDefault();
+    fetchJobs();
+  };
+
   return (
     <div className="search-jobs-container">
-      {/* KHU VỰC THANH TÌM KIẾM & BỘ LỌC */}
+      {/* SEARCH BAR & FILTERS */}
       <div className="search-header-box">
         <form onSubmit={handleSearch} className="search-form-grid">
-          
           <div className="search-input-group">
             <span>🔍</span>
             <input
               type="text"
-              placeholder="Nhập tên công việc, vị trí hoặc kỹ năng..."
+              placeholder="Enter job title, position, or skill..."
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
             />
           </div>
 
           <select value={location} onChange={(e) => setLocation(e.target.value)}>
-            <option value="">Tất cả địa điểm</option>
-            <option value="Hồ Chí Minh">Hồ Chí Minh</option>
-            <option value="Hà Nội">Hà Nội</option>
-            <option value="Đà Nẵng">Đà Nẵng</option>
+            <option value="">All locations</option>
+            <option value="Ho Chi Minh">Ho Chi Minh City</option>
+            <option value="Hanoi">Hanoi</option>
+            <option value="Da Nang">Da Nang</option>
           </select>
 
           <select value={salary} onChange={(e) => setSalary(e.target.value)}>
-            <option value="">Tất cả mức lương</option>
-            <option value="Thỏa thuận">Thỏa thuận</option>
-            <option value="Dưới 10 triệu">Dưới 10 triệu</option>
-            <option value="10 - 20 triệu">10 - 20 triệu</option>
-            <option value="Trên 20 triệu">Trên 20 triệu</option>
+            <option value="">All salary ranges</option>
+            <option value="Negotiable">Negotiable</option>
+            <option value="Under 10 million">Under 10 million VND</option>
+            <option value="10 - 20 million">10 - 20 million VND</option>
+            <option value="Over 20 million">Over 20 million VND</option>
           </select>
 
           <button type="submit" className="search-submit-btn">
-            Tìm kiếm
+            Search
           </button>
         </form>
       </div>
 
-      {/* KHU VỰC HIỂN THỊ KẾT QUẢ */}
+      {/* SEARCH RESULTS */}
       <div className="search-results-section">
         <div className="results-count">
-          {loading ? 'Đang tìm kiếm...' : `Tìm thấy ${jobs.length} việc làm phù hợp`}
+          {loading ? 'Searching...' : `Found ${jobs.length} matching jobs`}
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '20px' }}>Đang tải dữ liệu...</div>
+          <div style={{ textAlign: 'center', padding: '40px' }}>Loading...</div>
         ) : jobs.length > 0 ? (
           <div className="jobs-grid-layout">
             {jobs.map((job) => (
-              <div 
-                key={job.id} 
+              <div
+                key={job.id}
                 className="job-card-item"
-                onClick={() => navigate(`/job/${job.id}`)} // Điều hướng đến trang chi tiết
+                onClick={() => navigate(`/jobs/${job.id}`)}
               >
                 <div className="job-card-left">
                   <div className="job-card-logo">
@@ -107,24 +106,32 @@ export default function SearchJobs() {
                   </div>
                   <div className="job-card-content">
                     <h3 className="job-card-title">{job.title}</h3>
-                    <div className="job-card-company">{job.company_name || 'Công ty thành viên JobsMarket'}</div>
-                    
+                    <div className="job-card-company">
+                      {job.company_name || 'JobsMarket Member Company'}
+                    </div>
+
                     <div className="job-card-info-tags">
-                      <span>📍 {job.company_address || 'Chưa cập nhật địa điểm'}</span>
-                      <span className="salary-tag">💰 {
-                        (job.salary_min && job.salary_max) 
-                          ? `${(job.salary_min / 1000000).toLocaleString('vi-VN')} - ${(job.salary_max / 1000000).toLocaleString('vi-VN')} triệu`
-                          : (job.salary_min ? `Từ ${(job.salary_min / 1000000).toLocaleString('vi-VN')} triệu` : 
-                            (job.salary_max ? `Đến ${(job.salary_max / 1000000).toLocaleString('vi-VN')} triệu` : 'Thỏa thuận'))
-                      }</span>
+                      <span>📍 {job.company_address || 'Location not updated yet'}</span>
+                      <span className="salary-tag">
+                        💰{' '}
+                        {job.salary_min && job.salary_max
+                          ? `$${Number(job.salary_min).toLocaleString()} - $${Number(job.salary_max).toLocaleString()}`
+                          : job.salary_min
+                          ? `From $${Number(job.salary_min).toLocaleString()}`
+                          : job.salary_max
+                          ? `Up to $${Number(job.salary_max).toLocaleString()}`
+                          : 'Negotiable'}
+                      </span>
                     </div>
 
                     <div className="job-card-skills-list">
-                      {job.skills && job.skills.length > 0 ? job.skills.map((skill) => (
-                        <span key={skill.id} className="job-card-skill-tag">
-                          {skill.name}
-                        </span>
-                      )) : (
+                      {job.skills && job.skills.length > 0 ? (
+                        job.skills.map((skill) => (
+                          <span key={skill.id} className="job-card-skill-tag">
+                            {skill.name}
+                          </span>
+                        ))
+                      ) : (
                         <span className="job-card-skill-tag">{job.job_type}</span>
                       )}
                     </div>
@@ -132,8 +139,15 @@ export default function SearchJobs() {
                 </div>
 
                 <div className="job-card-right">
-                  <button className="view-detail-btn" type="button">
-                    Ứng tuyển ngay
+                  <button
+                    className="view-detail-btn"
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/jobs/${job.id}`);
+                    }}
+                  >
+                    View Details
                   </button>
                 </div>
               </div>
@@ -141,8 +155,8 @@ export default function SearchJobs() {
           </div>
         ) : (
           <div className="no-results-box">
-            <h3>Không tìm thấy kết quả phù hợp</h3>
-            <p>Hãy thử tìm kiếm với từ khóa khác hoặc điều chỉnh lại bộ lọc vị trí/mức lương.</p>
+            <h3>No matching results found</h3>
+            <p>Try another keyword or adjust the location / salary filters.</p>
           </div>
         )}
       </div>

@@ -10,7 +10,7 @@ const getAuthHeaders = () => {
 };
 
 /**
- * ApplyModal — Popup chọn CV và nộp đơn (pages/ApplyModal, phụ trách: Thông)
+ * ApplyModal - popup for selecting a CV and submitting an application.
  */
 export default function ApplyModal({ jobId, jobTitle, onClose, onSuccess, onError }) {
   const [myCVs, setMyCVs] = useState([]);
@@ -38,7 +38,7 @@ export default function ApplyModal({ jobId, jobTitle, onClose, onSuccess, onErro
       }
     } catch (err) {
       setMyCVs([]);
-      setFetchError('Không thể tải danh sách CV. Vui lòng đăng nhập lại hoặc thử sau.');
+      setFetchError('Cannot load your CV list. Please log in again or try later.');
     } finally {
       setLoadingCVs(false);
     }
@@ -49,7 +49,7 @@ export default function ApplyModal({ jobId, jobTitle, onClose, onSuccess, onErro
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      onError('Dung lượng file không được vượt quá 5MB');
+      onError('File size cannot exceed 5MB');
       return;
     }
 
@@ -68,7 +68,7 @@ export default function ApplyModal({ jobId, jobTitle, onClose, onSuccess, onErro
 
       await fetchCandidateCVs();
     } catch (err) {
-      onError(err.response?.data?.message || 'Tải CV lên thất bại. Vui lòng thử lại!');
+      onError(err.response?.data?.message || 'Failed to upload CV. Please try again!');
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -77,7 +77,7 @@ export default function ApplyModal({ jobId, jobTitle, onClose, onSuccess, onErro
 
   const handleSubmit = async () => {
     if (!selectedCVId) {
-      onError('Vui lòng chọn CV trước khi nộp đơn');
+      onError('Please select a CV before applying');
       return;
     }
 
@@ -88,13 +88,13 @@ export default function ApplyModal({ jobId, jobTitle, onClose, onSuccess, onErro
         { job_id: Number(jobId), cv_id: selectedCVId },
         { headers: getAuthHeaders() }
       );
-      onSuccess('Nộp đơn thành công! Nhà tuyển dụng sẽ sớm liên hệ với bạn 🎉');
+      onSuccess('Application submitted successfully! The employer will contact you soon.');
     } catch (err) {
       const msg = err.response?.data?.message || '';
       if (msg.includes('already applied')) {
-        onError('Bạn đã ứng tuyển vào công việc này rồi.');
+        onError('You have already applied for this job.');
       } else {
-        onError(msg || 'Có lỗi xảy ra khi nộp đơn. Vui lòng thử lại!');
+        onError(msg || 'An error occurred while applying. Please try again!');
       }
     } finally {
       setApplying(false);
@@ -107,8 +107,8 @@ export default function ApplyModal({ jobId, jobTitle, onClose, onSuccess, onErro
 
         <div className="apply-modal-header">
           <div>
-            <h2>Chọn CV để ứng tuyển</h2>
-            <p>Ứng tuyển vào vị trí <strong>{jobTitle}</strong></p>
+            <h2>Select a CV to Apply</h2>
+            <p>Applying for <strong>{jobTitle}</strong></p>
           </div>
           <button className="apply-modal-close" onClick={onClose} disabled={applying || uploading}>✕</button>
         </div>
@@ -119,11 +119,11 @@ export default function ApplyModal({ jobId, jobTitle, onClose, onSuccess, onErro
           )}
 
           {loadingCVs ? (
-            <div className="apply-modal-loading">Đang tải danh sách CV...</div>
+            <div className="apply-modal-loading">Loading CV list...</div>
           ) : myCVs.length === 0 ? (
             <div className="apply-modal-empty">
               <div className="apply-modal-empty-icon">📄</div>
-              <p>Bạn chưa có CV nào. Hãy tải CV lên bên dưới để ứng tuyển!</p>
+              <p>You do not have any CVs yet. Upload one below to apply!</p>
             </div>
           ) : (
             <div className="apply-cv-list">
@@ -159,15 +159,15 @@ export default function ApplyModal({ jobId, jobTitle, onClose, onSuccess, onErro
               disabled={uploading || applying}
             />
             <label htmlFor="apply-upload-cv" className={`apply-upload-label ${uploading ? 'disabled' : ''}`}>
-              {uploading ? '⏳ Đang tải lên...' : '☁️ Tải CV mới lên'}
+              {uploading ? '⏳ Uploading...' : '☁️ Upload New CV'}
             </label>
-            <p className="apply-upload-hint">Hỗ trợ PDF, DOC, DOCX (tối đa 5MB)</p>
+            <p className="apply-upload-hint">Supports PDF, DOC, DOCX (max 5MB)</p>
           </div>
         </div>
 
         <div className="apply-modal-footer">
           <button className="apply-btn-cancel" onClick={onClose} disabled={applying || uploading}>
-            Hủy
+            Cancel
           </button>
           <button
             className="apply-btn-submit"
@@ -175,9 +175,9 @@ export default function ApplyModal({ jobId, jobTitle, onClose, onSuccess, onErro
             disabled={applying || uploading || !selectedCVId}
           >
             {applying ? (
-              <span className="apply-spinner">⏳ Đang gửi...</span>
+              <span className="apply-spinner">⏳ Submitting...</span>
             ) : (
-              '📨 Nộp CV này'
+              '📨 Submit This CV'
             )}
           </button>
         </div>

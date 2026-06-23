@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
+import axios from 'axios';
 
 const CandidateExperience = ({
   workExperiences,
@@ -12,6 +13,42 @@ const CandidateExperience = ({
   onSave,
   modalError
 }) => {
+  const [jobSuggestions, setJobSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const debounceTimerRef = useRef(null);
+
+  const handleJobTitleChange = (e) => {
+    const val = e.target.value;
+    setExperienceForm({ ...experienceForm, role: val });
+
+    if (!val.trim()) {
+      setJobSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await axios.get(
+          `http://localhost:5000/api/candidate/suggest-industries?search=${encodeURIComponent(val.trim())}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setJobSuggestions(res.data || []);
+        setShowSuggestions(true);
+      } catch (err) {
+        console.warn('Failed to fetch job suggestions:', err);
+      }
+    }, 300);
+  };
+
+  const selectSuggestion = (role) => {
+    setExperienceForm({ ...experienceForm, role });
+    setJobSuggestions([]);
+    setShowSuggestions(false);
+  };
+
   return (
     <>
       {/* Column 1: Experience Section */}
@@ -75,8 +112,8 @@ const CandidateExperience = ({
 
       {/* Experience Add/Edit Modal */}
       {showModal && (
-        <div className="profile-modal-overlay" style={{ zIndex: 1100 }} onClick={onCloseModal}>
-          <div className="profile-modal-card" onClick={(e) => e.stopPropagation()}>
+        <div className="profile-modal-overlay" style={{ zIndex: 100000 }} onClick={onCloseModal}>
+          <form className="profile-modal-card" onSubmit={onSave} onClick={(e) => e.stopPropagation()}>
             <div className="profile-modal-header">
               <h5 className="profile-modal-title">
                 <i className="fas fa-briefcase me-2 text-primary"></i>
@@ -90,24 +127,40 @@ const CandidateExperience = ({
                 &times;
               </button>
             </div>
-            <form onSubmit={onSave} className="profile-modal-body p-4 d-flex flex-column gap-3">
+            <div className="profile-modal-body p-4 d-flex flex-column gap-3" style={{ overflowY: 'auto' }}>
               {modalError && (
                 <div className="alert alert-danger py-2 px-3 mb-2 small border-0 shadow-sm" role="alert">
                   <i className="fas fa-exclamation-triangle me-1.5"></i> {modalError}
                 </div>
               )}
-              <div>
-                <label className="form-label fw-semibold text-secondary small">Job Title / Role</label>
+              <div style={{ position: 'relative' }}>
+                <label className="form-label fw-semibold text-secondary small">Job Title / Role <span className="text-danger">*</span></label>
                 <input
                   type="text"
                   className="form-control"
                   value={experienceForm.role}
-                  onChange={(e) => setExperienceForm({ ...experienceForm, role: e.target.value })}
+                  onChange={handleJobTitleChange}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  onFocus={() => { if (jobSuggestions.length > 0) setShowSuggestions(true); }}
                   placeholder="e.g. Senior Frontend Developer"
+                  autoComplete="off"
                 />
+                {showSuggestions && jobSuggestions.length > 0 && (
+                  <div className="address-suggestions-dropdown" style={{ zIndex: 1200 }}>
+                    {jobSuggestions.map((job, idx) => (
+                      <div
+                        key={idx}
+                        className="address-suggestion-item"
+                        onClick={() => selectSuggestion(job)}
+                      >
+                        {job}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div>
-                <label className="form-label fw-semibold text-secondary small">Company Name</label>
+                <label className="form-label fw-semibold text-secondary small">Company Name <span className="text-danger">*</span></label>
                 <input
                   type="text"
                   className="form-control"
@@ -118,7 +171,7 @@ const CandidateExperience = ({
               </div>
               <div className="row g-3">
                 <div className="col-6">
-                  <label className="form-label fw-semibold text-secondary small">Start Date</label>
+                  <label className="form-label fw-semibold text-secondary small">Start Date <span className="text-danger">*</span></label>
                   <input
                     type="month"
                     className="form-control"
@@ -138,12 +191,22 @@ const CandidateExperience = ({
                   />
                 </div>
               </div>
-              <div className="profile-modal-footer mt-3 pt-3 border-top d-flex gap-2 justify-content-end bg-white">
-                <button type="button" className="btn btn-light border" onClick={onCloseModal}>Cancel</button>
-                <button type="submit" className="btn btn-primary">Save</button>
+              <div>
+                <label className="form-label fw-semibold text-secondary small">Job Description</label>
+                <textarea
+                  className="form-control"
+                  rows="3"
+                  value={experienceForm.description || ''}
+                  onChange={(e) => setExperienceForm({ ...experienceForm, description: e.target.value })}
+                  placeholder="e.g. Responsible for developing and maintaining web applications, collaborating with design teams..."
+                ></textarea>
               </div>
-            </form>
-          </div>
+            </div>
+            <div className="profile-modal-footer p-3 border-top d-flex gap-2 justify-content-end bg-white mt-auto">
+              <button type="button" className="btn btn-light border" onClick={onCloseModal}>Cancel</button>
+              <button type="submit" className="btn btn-primary">Save</button>
+            </div>
+          </form>
         </div>
       )}
     </>

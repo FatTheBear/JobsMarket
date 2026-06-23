@@ -1,5 +1,5 @@
 
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './NavBar.css';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -8,14 +8,15 @@ import axios from 'axios';
 
 
 // 1. Cấu hình Menu cho tất cả các trạng thái (Kể cả Khách chưa đăng nhập)
+const API_URL = 'http://localhost:5000';
 const MENU_CONFIG = {
   guest: [
-    { label: 'Find Jobs', path: '/jobs' },
+    { label: 'Explore', path: '/community' },
     { label: 'Companies', path: '/companies' },
     { label: 'Career Guide', path: '/guide' }
   ],
   candidate: [
-    { label: 'Find Jobs', path: '/jobs' },
+    { label: 'Explore', path: '/community' },
     { label: 'My Applications', path: '/applications' },
     { label: 'Saved', path: '/saved' }
   ],
@@ -53,45 +54,66 @@ export default function NavBar() {
   });
 
   const [userName, setUserName] = useState('User');
-  const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
+  const [avatarUrl, setAvatarUrl] = useState('/img/default-avatar.png');
   //const navigate = useNavigate();
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
-    const rawRole = localStorage.getItem('role');
-    const roleMap = {
-      HR: 'company',
-      Candidate: 'candidate',
-      Admin: 'admin',
-    };
-    setRole(token ? (roleMap[rawRole] || 'candidate') : 'guest');
+ useEffect(() => {
+    const fetchProfileData = async () => {
+      const token = localStorage.getItem('token');
+      const rawRole = localStorage.getItem('role');
 
-    if (token) {
-      const fetchProfile = async () => {
+      const hasToken = !!token && token !== 'undefined' && token !== 'null';
+      setIsLoggedIn(hasToken);
+      const roleMap = { HR: 'company', Candidate: 'candidate', Admin: 'admin' };
+      const currentRole = hasToken ? (roleMap[rawRole] || 'candidate') : 'guest';
+      setRole(currentRole);
+
+      if (hasToken) {
         try {
-          const response = await axios.get('http://localhost:5000/api/candidate/profile', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const profile = response.data;
-          const name = profile.full_name || profile.display_name || 'User';
-          const avatar = profile.avatar_url || '/default-avatar.png';
-          setUserName(name);
-          setAvatarUrl(avatar);
+          let url = '';
+          if (currentRole === 'candidate') {
+            url = `${API_URL}/api/candidate/profile`;
+          } else if (currentRole === 'company') {
+            url = `${API_URL}/api/company/profile`;
+          }
+
+          if (url) {
+            const response = await axios.get(url, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            const profile = response.data;
+            
+            setUserName(profile.display_name || profile.full_name || profile.name || profile.companyName || 'User');
+            
+            let avatar = profile.avatar_url || profile.logo_url;
+            if (avatar && !avatar.startsWith('http')) {
+              avatar = `${API_URL}${avatar}`;
+            }
+            setAvatarUrl(avatar || '/img/default-avatar.png');
+          } else {
+            setUserName(rawRole === 'HR' ? 'Company User' : 'Admin');
+          }
         } catch (err) {
-          console.error('Failed to fetch profile for NavBar:', err);
-          setUserName('User');
-          setAvatarUrl('/default-avatar.png');
+          console.error("Profile fetch failed:", err);
+          if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+            localStorage.clear();
+            setIsLoggedIn(false);
+            setRole('guest');
+            setUserName('User');
+            setAvatarUrl('/img/default-avatar.png');
+          }
         }
-      };
-      fetchProfile();
-    } else {
-      setUserName('User');
-      setAvatarUrl('/default-avatar.png');
-    }
+      }
+    };
+
+    fetchProfileData();
+
+    window.addEventListener('profileUpdated', fetchProfileData);
+    return () => window.removeEventListener('profileUpdated', fetchProfileData);
   }, []);
+  
   const menuItems = MENU_CONFIG[role] || [];
   const handleLogout = () => {
     localStorage.clear();
@@ -131,8 +153,8 @@ export default function NavBar() {
                 alt="Avatar"
                 className="nav-avatar"
                 onError={() => {
-                  if (avatarUrl !== '/default-avatar.png') {
-                    setAvatarUrl('/default-avatar.png');
+                  if (avatarUrl !== '/img/default-avatar.png') {
+                    setAvatarUrl('/img/default-avatar.png');
                   }
                 }}
               />
@@ -140,7 +162,7 @@ export default function NavBar() {
               <span
                 className="nav-user-name"
                 title={`Welcome, ${userName}`}
-                onClick={() => navigate('/candidate-profile')}
+                onClick={() => navigate('/candidate/my-profile')}
                 style={{ cursor: 'pointer' }}
               >
                 {userName}

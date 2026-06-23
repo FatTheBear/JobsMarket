@@ -1,47 +1,80 @@
 import React from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 export default function PostTemplates() {
-  const templates = [
-    {
-      title: "Frontend Developer",
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const title = searchParams.get("title");
+
+  const articles = {
+    "Job Management Guide": {
+      title: "Job Management Guide",
       content:
-        "We are looking for a Frontend Developer with experience in React.js and modern JavaScript.",
+        "Learn how to create attractive job postings, manage openings, and track recruitment performance efficiently.",
     },
-    {
-      title: "Backend Developer",
+
+    "Candidate Management Guide": {
+      title: "Candidate Management Guide",
       content:
-        "We are looking for a Backend Developer with experience in Node.js, Express and MySQL.",
+        "Learn how to review applications, schedule interviews, communicate with candidates, and manage hiring workflows.",
     },
-    {
-      title: "UI/UX Designer",
+
+    "Frequently Asked Questions": {
+      title: "Frequently Asked Questions",
       content:
-        "We are seeking a creative UI/UX Designer to design user-friendly web applications.",
+        "Find answers to common employer questions regarding job posting, candidate management, and account settings.",
     },
-    {
-      title: "QA Engineer",
+
+    "Terms of Service": {
+      title: "Terms of Service",
       content:
-        "We are hiring a QA Engineer to ensure software quality through testing and automation.",
+        "Review the platform policies, responsibilities, and conditions for using JobsMarket employer services.",
     },
-  ];
+  };
+
+  const article = articles[title];
 
   return (
     <div>
-      <h1>Job Post Templates</h1>
+      <button
+        onClick={() => navigate(-1)}
+        style={{
+          padding: "10px 16px",
+          border: "none",
+          borderRadius: "6px",
+          background: "#1976d2",
+          color: "#fff",
+          cursor: "pointer",
+          marginBottom: "20px",
+        }}
+      >
+        ← Back
+      </button>
 
-      {templates.map((template) => (
+      {article ? (
         <div
-          key={template.title}
           style={{
             background: "#fff",
-            padding: "20px",
+            padding: "24px",
             borderRadius: "8px",
-            marginBottom: "20px",
           }}
         >
-          <h3>{template.title}</h3>
-          <p>{template.content}</p>
+          <h2>{article.title}</h2>
+          <p>{article.content}</p>
         </div>
-      ))}
+      ) : (
+        <div
+          style={{
+            background: "#fff",
+            padding: "24px",
+            borderRadius: "8px",
+          }}
+        >
+          <h2>Employer Resources</h2>
+          <p>Select a guide from the dashboard.</p>
+        </div>
+      )}
     </div>
   );
 }

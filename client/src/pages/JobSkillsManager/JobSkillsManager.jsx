@@ -53,7 +53,7 @@ export default function JobSkillsManager({ jobId }) {
       const response = await axios.get(`${API_URL}/api/skills`);
       setAllSkills(response.data || []);
     } catch (error) {
-      console.error('Lỗi khi lấy danh sách kỹ năng:', error);
+      console.error('Error loading skills:', error);
     }
   };
 
@@ -62,7 +62,7 @@ export default function JobSkillsManager({ jobId }) {
       const response = await axios.get(`${API_URL}/api/skills/job/${jobId}`);
       setJobSkills(response.data || []);
     } catch (error) {
-      console.error('Lỗi khi lấy kỹ năng công việc:', error);
+      console.error('Error loading job skills:', error);
     }
   };
 
@@ -74,13 +74,14 @@ export default function JobSkillsManager({ jobId }) {
       const response = await axios.post(`${API_URL}/api/skills`, payload);
       setNewSkill('');
       await fetchAllSkills();
-      setMessage('Thêm kỹ năng mới thành công');
-      if (jobId && response.data && response.data.id) {
-        await handleAddSkill(response.data.id);
+      setMessage('New skill added successfully');
+      const createdSkillId = response.data?.skill?.id || response.data?.id;
+      if (jobId && createdSkillId) {
+        await handleAddSkill(createdSkillId);
       }
     } catch (error) {
-      console.error('Tạo kỹ năng thất bại:', error);
-      setMessage('Tạo kỹ năng thất bại');
+      console.error('Failed to create skill:', error);
+      setMessage('Failed to create skill');
     } finally {
       setLoading(false);
       setTimeout(() => setMessage(''), 2500);
@@ -92,12 +93,12 @@ export default function JobSkillsManager({ jobId }) {
     try {
       await axios.post(`${API_URL}/api/skills/job/${jobId}`, { skill_id: skillId });
       fetchJobSkills(jobId);
-      setMessage('Đã thêm kỹ năng vào công việc');
+      setMessage('Skill added to this job');
       setInputValue('');
       setIsOpen(false);
       setTimeout(() => setMessage(''), 2500);
     } catch (error) {
-      console.error('Thêm kỹ năng thất bại:', error);
+      console.error('Failed to add skill:', error);
     }
   };
 
@@ -106,10 +107,10 @@ export default function JobSkillsManager({ jobId }) {
     try {
       await axios.delete(`${API_URL}/api/skills/job/${jobId}/${skillId}`);
       fetchJobSkills(jobId);
-      setMessage('Đã xóa kỹ năng khỏi công việc');
+      setMessage('Skill removed from this job');
       setTimeout(() => setMessage(''), 2500);
     } catch (error) {
-      console.error('Xóa kỹ năng thất bại:', error);
+      console.error('Failed to remove skill:', error);
     }
   };
 
@@ -117,8 +118,8 @@ export default function JobSkillsManager({ jobId }) {
     <div className="skill-manager-card" ref={wrapperRef}>
       <div className="skill-manager-header">
         <div>
-          <h3>Quản lý kỹ năng yêu cầu</h3>
-          <p>Chọn kỹ năng cần có cho tin tuyển dụng này.</p>
+          <h3>Required Skills Manager</h3>
+          <p>Select the skills required for this job posting.</p>
         </div>
         {jobId && <div className="skill-manager-job-id">Job ID: {jobId}</div>}
       </div>
@@ -141,7 +142,7 @@ export default function JobSkillsManager({ jobId }) {
             
             <input
               type="text"
-              placeholder={jobSkills.length === 0 ? "Tìm kiếm kỹ năng..." : ""}
+              placeholder={jobSkills.length === 0 ? "Search skills..." : ""}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onFocus={() => setIsOpen(true)}
@@ -162,7 +163,7 @@ export default function JobSkillsManager({ jobId }) {
 
           {isOpen && suggestions.length > 0 && (
             <ul className="skills-autocomplete-dropdown">
-              <li className="dropdown-section-title">Kỹ năng gợi ý</li>
+              <li className="dropdown-section-title">Suggested Skills</li>
               {suggestions.map((skill) => (
                 <li 
                   key={skill.id} 
@@ -177,12 +178,12 @@ export default function JobSkillsManager({ jobId }) {
 
           {isOpen && suggestions.length === 0 && inputValue.trim() !== '' && (
             <ul className="skills-autocomplete-dropdown">
-              <li className="dropdown-section-title">Không tìm thấy kỹ năng phù hợp</li>
+              <li className="dropdown-section-title">No matching skills found</li>
               <li className="dropdown-suggestion-item custom-create-prompt" onClick={() => {
                 setNewSkill(inputValue.trim());
                 setIsOpen(false);
               }}>
-                Tạo nhanh kỹ năng mới: "<strong>{inputValue}</strong>"
+                Create new skill: "<strong>{inputValue}</strong>"
               </li>
             </ul>
           )}
@@ -192,12 +193,12 @@ export default function JobSkillsManager({ jobId }) {
           <div className="skill-manager-form">
             <input
               type="text"
-              placeholder="Nhập tên kỹ năng mới"
+              placeholder="Enter a new skill name"
               value={newSkill}
               onChange={(e) => setNewSkill(e.target.value)}
             />
             <button type="button" onClick={handleCreateSkill} disabled={loading}>
-              {loading ? 'Đang lưu...' : 'Thêm kỹ năng'}
+              {loading ? 'Saving...' : 'Add Skill'}
             </button>
           </div>
         )}
