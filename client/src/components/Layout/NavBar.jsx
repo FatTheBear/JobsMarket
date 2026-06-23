@@ -1,5 +1,5 @@
 
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './NavBar.css';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -8,6 +8,7 @@ import axios from 'axios';
 
 
 // 1. Cấu hình Menu cho tất cả các trạng thái (Kể cả Khách chưa đăng nhập)
+const API_URL = 'http://localhost:5000';
 const MENU_CONFIG = {
   guest: [
     { label: 'Find Jobs', path: '/jobs' },
@@ -58,36 +59,51 @@ export default function NavBar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const rawRole = localStorage.getItem('role'); // "HR", "Candidate", "Admin"
+ useEffect(() => {
+    const fetchProfileData = async () => {
+      const token = localStorage.getItem('token');
+      const rawRole = localStorage.getItem('role');
 
-    setIsLoggedIn(!!token);
-    const roleMap = { HR: 'company', Candidate: 'candidate', Admin: 'admin' };
-    const currentRole = token ? (roleMap[rawRole] || 'candidate') : 'guest';
-    setRole(currentRole);
+      setIsLoggedIn(!!token);
+      const roleMap = { HR: 'company', Candidate: 'candidate', Admin: 'admin' };
+      const currentRole = token ? (roleMap[rawRole] || 'candidate') : 'guest';
+      setRole(currentRole);
 
-    if (token) {
-      // CHỈ GỌI API PROFILE NẾU LÀ CANDIDATE
-      if (currentRole === 'candidate') {
-        const fetchProfile = async () => {
-          try {
-            const response = await axios.get('http://localhost:5000/api/candidate/profile', {
+      if (token) {
+        try {
+          let url = '';
+          if (currentRole === 'candidate') {
+            url = `${API_URL}/api/candidate/profile`;
+          } else if (currentRole === 'company') {
+            url = `${API_URL}/api/company/profile`;
+          }
+
+          if (url) {
+            const response = await axios.get(url, {
               headers: { Authorization: `Bearer ${token}` },
             });
             const profile = response.data;
-            setUserName(profile.full_name || 'User');
-            setAvatarUrl(profile.avatar_url || '/default-avatar.png');
-          } catch (err) {
-            console.error('Failed to fetch candidate profile:', err);
+            
+            setUserName(profile.full_name || profile.name || profile.companyName || 'User');
+            
+            let avatar = profile.avatar_url || profile.logo_url;
+            if (avatar && !avatar.startsWith('http')) {
+              avatar = `${API_URL}${avatar}`;
+            }
+            setAvatarUrl(avatar || '/default-avatar.png');
+          } else {
+            setUserName(rawRole === 'HR' ? 'Company User' : 'Admin');
           }
-        };
-        fetchProfile();
-      } else {
-        // Nếu là HR hoặc Admin, bạn có thể gọi API khác hoặc set tên mặc định
-        setUserName(rawRole === 'HR' ? 'Company User' : 'Admin');
+        } catch (err) {
+          console.error(err);
+        }
       }
-    }
+    };
+
+    fetchProfileData();
+
+    window.addEventListener('profileUpdated', fetchProfileData);
+    return () => window.removeEventListener('profileUpdated', fetchProfileData);
   }, []);
   
   const menuItems = MENU_CONFIG[role] || [];
