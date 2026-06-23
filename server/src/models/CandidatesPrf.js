@@ -168,8 +168,8 @@ const CandidateProfileModel = {
                 await connection.execute('DELETE FROM Candidate_Education WHERE candidate_id = ?', [profileId]);
                 for (const item of education) {
                     await connection.execute(
-                        'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
-                        [profileId, item.school || '', item.degree || '', item.startDate || item.gradDate || '1970-01', item.gradDate || null]
+                        'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date, description) VALUES (?, ?, ?, ?, ?, ?)',
+                        [profileId, item.school || '', item.degree || '', item.startDate || item.gradDate || '1970-01', item.gradDate || null, item.description || null]
                     );
                 }
             }
@@ -179,8 +179,8 @@ const CandidateProfileModel = {
                 await connection.execute('DELETE FROM Candidate_Experience WHERE candidate_id = ?', [profileId]);
                 for (const item of experience) {
                     await connection.execute(
-                        'INSERT INTO Candidate_Experience (candidate_id, company_name, role, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
-                        [profileId, item.company || '', item.role || '', item.startDate || null, item.endDate || null]
+                        'INSERT INTO Candidate_Experience (candidate_id, company_name, role, start_date, end_date, description) VALUES (?, ?, ?, ?, ?, ?)',
+                        [profileId, item.company || '', item.role || '', item.startDate || null, item.endDate || null, item.description || null]
                     );
                 }
             }
@@ -295,8 +295,8 @@ const CandidateProfileModel = {
             if (education && Array.isArray(education)) {
                 for (const item of education) {
                     await connection.execute(
-                        'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
-                        [profileId, item.school || 'School', item.degree || 'Degree', item.startDate || '2026-01', item.gradDate || null]
+                        'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date, description) VALUES (?, ?, ?, ?, ?, ?)',
+                        [profileId, item.school || 'School', item.degree || 'Degree', item.startDate || '2026-01', item.gradDate || null, item.description || null]
                     );
                 }
             }
@@ -306,8 +306,8 @@ const CandidateProfileModel = {
             if (experience && Array.isArray(experience)) {
                 for (const item of experience) {
                     await connection.execute(
-                        'INSERT INTO Candidate_Experience (candidate_id, company_name, role, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
-                        [profileId, item.company || 'Company', item.role || 'Role', item.startDate || '2026-01', item.endDate || null]
+                        'INSERT INTO Candidate_Experience (candidate_id, company_name, role, start_date, end_date, description) VALUES (?, ?, ?, ?, ?, ?)',
+                        [profileId, item.company || 'Company', item.role || 'Role', item.startDate || '2026-01', item.endDate || null, item.description || null]
                     );
                 }
             }
