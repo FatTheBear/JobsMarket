@@ -36,6 +36,7 @@ import CandidateNotifications from './pages/CandidateProfile/CandidateNotificati
 import CandidateActivityHistory from './pages/CandidateProfile/CandidateActivityHistory';
 import CandidateAppliedJobsPage from './pages/CandidateProfile/CandidateAppliedJobsPage';
 import CandidateManageCVs from './pages/CandidateProfile/CandidateManageCVs';
+import CompanyRegister from './pages/Authentication/CompanyRegister';
 
 import './App.css';
 
@@ -62,8 +63,8 @@ const router = createBrowserRouter([
   { path: "/setup-profile", element: <SetupProfilePage /> },
   { path: "/terms-of-service", element: <TermsOfService /> },
 
-{
-  element: <MainLayout />,
+  {
+    element: <MainLayout />,
     children: [
       { path: "/", element: <LandingPage /> },
       { path: "/dashboard", element: <UserDashboard /> },
@@ -135,16 +136,21 @@ const router = createBrowserRouter([
       { path: "/jobs", element: <SearchJobs /> },
       { path: "/applications", element: <MyApplications /> },
       { path: "/community", element: <CommunityFeed /> },
+
       
-      // ĐÃ SỬA: Thêm chữ 's' vào đường dẫn để khớp với lệnh navigate('/jobs/...')
       { path: "/jobs/:id", element: <JobDetail /> },
-      { path: "/news-detail/:id", element: <NewsDetail /> }
+      { path: "/news-detail/:id", element: <NewsDetail /> },
+
+      {
+        path: '/register-company', 
+        element: <CompanyRegister /> 
+      },
     ]
-},
+  },
 
   // Fallback for unknown routes
-  { 
-    path: "*", 
+  {
+    path: "*",
     element: (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'Inter, sans-serif' }}>
         <h1 style={{ fontSize: '72px', margin: '0', color: '#1e293b' }}>404</h1>

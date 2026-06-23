@@ -142,10 +142,6 @@ export default function CompanyProfile() {
     } catch { /* empty form */ }
   };
 
-  const showToast = (message, type = 'success') => {
-    setToast({ show: true, message, type });
-    setTimeout(() => setToast(t => ({ ...t, show: false })), 3000);
-  };
 
   const handleFormChange = e => setForm({ ...form, [e.target.name]: e.target.value });
   const handleScaleChange = e => setScale({ ...scale, [e.target.name]: e.target.value });
@@ -173,6 +169,14 @@ export default function CompanyProfile() {
   };
 
   const [errors, setErrors] = useState({});
+
+const showToast = (message, type) => {
+  setToast({ show: true, message, type });
+  
+  setTimeout(() => {
+    setToast(prev => ({ ...prev, show: false }));
+  }, 3000);
+};
 
   const handleSubmit = async () => {
     let newErrors = {};
@@ -208,9 +212,11 @@ export default function CompanyProfile() {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
+      
       if (res.ok) {
         showToast(isEdit ? 'Profile updated successfully!' : 'Company profile created!', 'success');
         setIsEdit(true);
+        window.dispatchEvent(new Event('profileUpdated'));
       } else {
         showToast(data.message || 'An error occurred', 'error');
       }
@@ -220,33 +226,19 @@ export default function CompanyProfile() {
       setLoading(false);
     }
   };
-
+  
   return (
     <div className={styles.page}>
-      {/* Toast */}
       <div className={`${styles.toast} ${toast.show ? styles.toastShow : ''} ${toast.type === 'error' ? styles.toastError : styles.toastSuccess}`}>
-        {toast.type === 'success' ? '✅' : '❌'} {toast.message}
-
+        {toast.message}
       </div>
-
       <div className={styles.layout}>
-        
-        {/* Main Content */}
         <main className={styles.main}>
-          <div className={styles.pageHeader}>
+          
             <div>
-              <div className={styles.pageSubTitle}>Company Information</div>
               <h1 className={styles.pageTitle}>Company Profile</h1>
             </div>
-            <div className={styles.headerActions}>
-              <button
-                className={styles.btnOutline}
-                onClick={() => navigate('/company-profile/job-posting')}
-              >
-                View Job List
-              </button>
-            </div>
-          </div>
+          
 
           <div className={styles.tabs}>
             {TABS.map((tab, i) => (
@@ -260,25 +252,8 @@ export default function CompanyProfile() {
             ))}
           </div>
 
-          <div className={styles.summaryGrid}>
-            <div className={styles.summaryCard}>
-              <div className={styles.summaryTitle}>Company Information</div>
-              <div className={styles.summaryRow}><strong>Company Name:</strong> {form.name || 'Not updated yet'}</div>
-              <div className={styles.summaryRow}><strong>Industry:</strong> {industries.find(i => String(i.id) === String(form.industry_id))?.name || 'Not selected'}</div>
-              <div className={styles.summaryRow}><strong>Website:</strong> {form.website || 'Not updated yet'}</div>
-            </div>
-            <div className={styles.summaryCard}>
-              <div className={styles.summaryTitle}>Quick Stats</div>
-              <div className={styles.summaryRow}><strong>Jobs:</strong> 0</div>
-              <div className={styles.summaryRow}><strong>Applicants:</strong> 0</div>
-              <div className={styles.summaryRow}><strong>Saved Profiles:</strong> 0</div>
-            </div>
-          </div>
-
-          {/* ── TAB 0: Overview ── */}
           {activeTab === 0 && (
             <div className={styles.tabContent}>
-              {/* Logo */}
               <div className={styles.card}>
                 <div className={styles.cardHeader}>Company Logo</div>
                 <div className={styles.cardBody}>
@@ -286,18 +261,18 @@ export default function CompanyProfile() {
                     <div className={styles.logoPreview}>
                       {logoPreview
                         ? <img src={logoPreview} alt="Logo" />
-                        : <div className={styles.logoPlaceholder}>🏢</div>}
+                        : <div className={styles.logoPlaceholder}>LOGO</div>}
                     </div>
                     <div className={styles.logoActions}>
-                      <p className={styles.logoHint}>Formats: <strong>JPG, PNG, GIF, WEBP</strong> · Max <strong>5MB</strong></p>
+                      <p className={styles.logoHint}>Formats: JPG, PNG, GIF, WEBP · Max 5MB</p>
                       <div className={styles.logoButtons}>
                         <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleLogoChange} />
                         <button type="button" className={styles.btnSecondary} onClick={() => fileInputRef.current.click()}>
-                          📁 Select Image
+                          Select Image
                         </button>
                         {logoPreview && (
                           <button type="button" className={styles.btnDanger} onClick={() => { setLogoPreview(null); setForm(p => ({ ...p, logo_url: '' })); }}>
-                            🗑 Remove
+                            Remove
                           </button>
                         )}
                       </div>
@@ -306,16 +281,22 @@ export default function CompanyProfile() {
                 </div>
               </div>
 
-              {/* Basic Info */}
               <div className={styles.card}>
                 <div className={styles.cardHeader}>Basic Information</div>
                 <div className={styles.cardBody}>
                   <div className={styles.formRow}>
                     <div className={styles.formGroup}>
                       <label className={styles.label}>Company Name <span className={styles.req}>*</span></label>
-                      <input className={`${styles.input} ${errors.name ? styles.hasError : ''}`} name="name" value={form.name} onChange={handleFormChange} placeholder="e.g. ABC Company Ltd." />
+                      <input className={`${styles.input} ${errors.name ? styles.hasError : ''}`} name="name" value={form.name} onChange={handleFormChange} placeholder="Company Ltd." />
                       {errors.name && <span className={styles.errorText}>{errors.name}</span>}
                     </div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.label}>Tax ID <span className={styles.req}>*</span></label>
+                      <input className={`${styles.input} ${errors.taxId ? styles.hasError : ''}`} name="taxId" value={form.taxId} onChange={handleFormChange} placeholder="Tax Identification Number" />
+                      {errors.taxId && <span className={styles.errorText}>{errors.taxId}</span>}
+                    </div>
+                  </div>
+                  <div className={styles.formRow}>
                     <div className={styles.formGroup}>
                       <label className={styles.label}>Industry <span className={styles.req}>*</span></label>
                       <select className={`${styles.input} ${errors.industry_id ? styles.hasError : ''}`} name="industry_id" value={form.industry_id} onChange={handleFormChange}>
@@ -324,50 +305,63 @@ export default function CompanyProfile() {
                       </select>
                       {errors.industry_id && <span className={styles.errorText}>{errors.industry_id}</span>}
                     </div>
-                  </div>
-                  <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                      <label className={styles.label}>Email</label>
-                      <input className={styles.input} name="email" type="email" value={form.email} onChange={handleFormChange} placeholder="company@example.com" />
-                    </div>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label}>Phone</label>
-                      <input className={styles.input} name="phone" value={form.phone} onChange={handleFormChange} placeholder="0xxx xxx xxx" />
+                      <label className={styles.label}>Company Email <span className={styles.req}>*</span></label>
+                      <input className={styles.input} name="email" type="email" value={form.email} disabled />
                     </div>
                   </div>
                   <div className={styles.formRow}>
-                    <div className={styles.formGroupFull}>
+                    <div className={styles.formGroup}>
+                      <label className={styles.label}>Company Phone</label>
+                      <input className={styles.input} name="phone" value={form.phone} onChange={handleFormChange} placeholder="Company contact number" />
+                    </div>
+                    <div className={styles.formGroup}>
                       <label className={styles.label}>Website</label>
                       <input className={styles.input} name="website" type="url" value={form.website} onChange={handleFormChange} placeholder="https://www.company.com" />
                     </div>
                   </div>
                   <div className={styles.formRow}>
                     <div className={styles.formGroupFull}>
-                      <label className={styles.label}>Address</label>
-                      <textarea className={styles.textarea} name="address" value={form.address} onChange={handleFormChange} placeholder="House number, street, district, city..." rows={3} />
+                      <label className={styles.label}>Headquarters Address</label>
+                      <textarea className={styles.textarea} name="address" value={form.address} onChange={handleFormChange} placeholder="Full company address..." rows={3} />
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Social Media */}
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>HR Contact Information</div>
+                <div className={styles.cardBody}>
+                  <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                      <label className={styles.label}>HR Representative Name</label>
+                      <input className={styles.input} name="hrName" value={form.hrName} onChange={handleFormChange} placeholder="HR Name" />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.label}>HR Phone Number</label>
+                      <input className={styles.input} name="hrPhone" value={form.hrPhone} onChange={handleFormChange} placeholder="HR direct contact" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className={styles.card}>
                 <div className={styles.cardHeader}>Social Media</div>
                 <div className={styles.cardBody}>
                   <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                      <label className={styles.label}>🔵 Facebook</label>
-                      <input className={styles.input} name="facebook" value={form.facebook} onChange={handleFormChange} placeholder="https://facebook.com/yourcompany" />
+                      <label className={styles.label}>Facebook</label>
+                      <input className={styles.input} name="facebook" value={form.facebook} onChange={handleFormChange} placeholder="https://facebook.com/company" />
                     </div>
                     <div className={styles.formGroup}>
-                      <label className={styles.label}>🔗 LinkedIn</label>
-                      <input className={styles.input} name="linkedin" value={form.linkedin} onChange={handleFormChange} placeholder="https://linkedin.com/company/yourcompany" />
+                      <label className={styles.label}>LinkedIn</label>
+                      <input className={styles.input} name="linkedin" value={form.linkedin} onChange={handleFormChange} placeholder="https://linkedin.com/company" />
                     </div>
                   </div>
                   <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                      <label className={styles.label}>🐦 Twitter / X</label>
-                      <input className={styles.input} name="twitter" value={form.twitter} onChange={handleFormChange} placeholder="https://twitter.com/yourcompany" />
+                      <label className={styles.label}>Twitter</label>
+                      <input className={styles.input} name="twitter" value={form.twitter} onChange={handleFormChange} placeholder="https://twitter.com/company" />
                     </div>
                     <div className={styles.formGroup} />
                   </div>
@@ -376,7 +370,6 @@ export default function CompanyProfile() {
             </div>
           )}
 
-          {/* ── TAB 1: HR Structure ── */}
           {activeTab === 1 && (
             <div className={styles.tabContent}>
               <div className={styles.card}>
@@ -390,9 +383,9 @@ export default function CompanyProfile() {
                   </div>
                   <div className={styles.formRow}>
                     <div className={styles.formGroup}>
-                      <label className={styles.label}>Number of Employees</label>
-                      <select className={styles.input} name="num_employees" value={scale.num_employees} onChange={handleScaleChange}>
-                        <option value="">-- Select --</option>
+                      <label className={styles.label}>Company Size</label>
+                      <select className={styles.input} name="size" value={scale.size} onChange={handleScaleChange}>
+                        <option value="">-- Select Size --</option>
                         {EMPLOYEE_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
                       </select>
                     </div>
@@ -431,27 +424,23 @@ export default function CompanyProfile() {
             </div>
           )}
 
-          {/* ── TAB 2: Images ── */}
           {activeTab === 2 && (
             <div className={styles.tabContent}>
               <div className={styles.card}>
                 <div className={styles.cardHeader}>Company Images</div>
                 <div className={styles.cardBody}>
                   <div className={styles.imageUploadArea}>
-                    <div className={styles.imageUploadIcon}>🖼️</div>
                     <p className={styles.imageUploadText}>Drag & drop images here or click to browse</p>
                     <p className={styles.imageUploadHint}>Upload photos of your office, team, and work environment<br />Formats: JPG, PNG · Max 5MB each</p>
-                    <button type="button" className={styles.btnSecondary}>📁 Select Images</button>
+                    <button type="button" className={styles.btnSecondary}>Select Images</button>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* ── TAB 3: Other ── */}
           {activeTab === 3 && (
             <div className={styles.tabContent}>
-              {/* Culture */}
               <div className={styles.card}>
                 <div className={styles.cardHeader}>Company Culture</div>
                 <div className={styles.cardBody}>
@@ -459,15 +448,15 @@ export default function CompanyProfile() {
                     <div className={styles.formGroup}>
                       <label className={styles.label}>Working Hours</label>
                       <div className={styles.workHoursRow}>
-                        <input className={styles.inputSmall} name="work_hours_per_day" type="number" value={culture.work_hours_per_day} onChange={handleCultureChange} placeholder="e.g. 8" min={1} max={24} />
+                        <input className={styles.inputSmall} name="work_hours_per_day" type="number" value={culture.work_hours_per_day} onChange={handleCultureChange} placeholder="8" min={1} max={24} />
                         <span className={styles.workHoursUnit}>hrs/day</span>
-                        <input className={styles.inputSmall} name="work_days_per_week" type="number" value={culture.work_days_per_week} onChange={handleCultureChange} placeholder="e.g. 5" min={1} max={7} />
+                        <input className={styles.inputSmall} name="work_days_per_week" type="number" value={culture.work_days_per_week} onChange={handleCultureChange} placeholder="5" min={1} max={7} />
                         <span className={styles.workHoursUnit}>days/week</span>
                       </div>
                     </div>
                     <div className={styles.formGroup}>
                       <label className={styles.label}>Dress Code</label>
-                      <input className={styles.input} name="dress_code" value={culture.dress_code} onChange={handleCultureChange} placeholder="e.g. Business casual" />
+                      <input className={styles.input} name="dress_code" value={culture.dress_code} onChange={handleCultureChange} placeholder="Business casual" />
                     </div>
                   </div>
                   <div className={styles.formRow}>
@@ -479,24 +468,23 @@ export default function CompanyProfile() {
                 </div>
               </div>
 
-              {/* Benefits */}
               <div className={styles.card}>
                 <div className={styles.cardHeader}>Benefits & Perks</div>
                 <div className={styles.cardBody}>
                   <div className={styles.checkboxGroup}>
                     <label className={styles.checkboxItem}>
                       <input type="checkbox" name="social_insurance" checked={benefits.social_insurance} onChange={handleBenefitChange} />
-                      <span>🛡️ Social Insurance</span>
+                      <span>Social Insurance</span>
                     </label>
                     <label className={styles.checkboxItem}>
                       <input type="checkbox" name="health_insurance" checked={benefits.health_insurance} onChange={handleBenefitChange} />
-                      <span>🏥 Health Insurance</span>
+                      <span>Health Insurance</span>
                     </label>
                   </div>
                   <div className={styles.formRow} style={{ marginTop: '16px' }}>
                     <div className={styles.formGroupFull}>
                       <label className={styles.label}>Other Benefits</label>
-                      <textarea className={styles.textarea} name="other_benefits" value={benefits.other_benefits} onChange={handleBenefitChange} placeholder="e.g. Annual bonus, team outing, flexible work hours, remote work..." rows={3} />
+                      <textarea className={styles.textarea} name="other_benefits" value={benefits.other_benefits} onChange={handleBenefitChange} placeholder="Annual bonus, team outing, flexible work hours..." rows={3} />
                     </div>
                   </div>
                 </div>
@@ -504,13 +492,12 @@ export default function CompanyProfile() {
             </div>
           )}
 
-          {/* Save / Cancel */}
           <div className={styles.formActions}>
             <button type="button" className={styles.btnCancel} onClick={fetchCompany} disabled={loading}>
-              ✕ Cancel
+              Cancel
             </button>
             <button type="button" className={styles.btnSave} onClick={handleSubmit} disabled={loading}>
-              {loading ? 'Saving...' : '💾 Save Changes'}
+              {loading ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </main>

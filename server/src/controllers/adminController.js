@@ -1,5 +1,7 @@
-const db = require('../config/db'); 
+const db = require('../config/db');
 const CoinExchangeFeeModel = require('../models/CoinExchangeFee');
+const pool = require('../config/db');
+const email = require('../services/email/emailServices');
 
 // 1. Lấy dữ liệu tổng quan (Đồng bộ chuẩn db.query)
 exports.getStats = async (req, res) => {
@@ -332,48 +334,48 @@ exports.createNews = async (req, res) => {
 };
 
 exports.updateNews = async (req, res) => {
-  try {
-    const { id } = req.params;
+    try {
+        const { id } = req.params;
 
-    const {
-      title,
-      slug,
-      category_id,
-      short_description,
-      content,
-      status,
-      thumbnail_url
-    } = req.body;
+        const {
+            title,
+            slug,
+            category_id,
+            short_description,
+            content,
+            status,
+            thumbnail_url
+        } = req.body;
 
-    const categoryId = Number(category_id);
+        const categoryId = Number(category_id);
 
-    // 1. validate cứng
-    if (!title || !slug || !categoryId) {
-      return res.status(400).json({
-        message: "Missing title, slug, category_id"
-      });
-    }
+        // 1. validate cứng
+        if (!title || !slug || !categoryId) {
+            return res.status(400).json({
+                message: "Missing title, slug, category_id"
+            });
+        }
 
-    // 2. check category tồn tại
-    const [cat] = await db.query(
-      "SELECT id FROM news_category WHERE id = ?",
-      [categoryId]
-    );
+        // 2. check category tồn tại
+        const [cat] = await db.query(
+            "SELECT id FROM news_category WHERE id = ?",
+            [categoryId]
+        );
 
-    if (cat.length === 0) {
-      return res.status(400).json({
-        message: "Invalid category_id"
-      });
-    }
+        if (cat.length === 0) {
+            return res.status(400).json({
+                message: "Invalid category_id"
+            });
+        }
 
-    // 3. fix thumbnail không bị xoá khi update
-    const finalThumbnail =
-      req.file
-        ? `/uploads/${req.file.filename}`
-        : thumbnail_url || null;
+        // 3. fix thumbnail không bị xoá khi update
+        const finalThumbnail =
+            req.file
+                ? `/uploads/${req.file.filename}`
+                : thumbnail_url || null;
 
-    await db.query(
-      `UPDATE news SET
+        await db.query(
+            `UPDATE news SET
         title = ?,
         slug = ?,
         category_id = ?,
@@ -382,24 +384,24 @@ exports.updateNews = async (req, res) => {
         content = ?,
         status = ?
       WHERE id = ?`,
-      [
-        title,
-        slug,
-        categoryId,
-        finalThumbnail,
-        short_description || "",
-        content || "",
-        status || "Draft",
-        id
-      ]
-    );
+            [
+                title,
+                slug,
+                categoryId,
+                finalThumbnail,
+                short_description || "",
+                content || "",
+                status || "Draft",
+                id
+            ]
+        );
 
-    res.json({ success: true });
+        res.json({ success: true });
 
-  } catch (err) {
-    console.error("UPDATE NEWS ERROR:", err);
-    res.status(500).json({ message: err.message });
-  }
+    } catch (err) {
+        console.error("UPDATE NEWS ERROR:", err);
+        res.status(500).json({ message: err.message });
+    }
 };
 
 // 13. Xóa bài viết
@@ -684,10 +686,137 @@ exports.getPublicNewsById = async (req, res) => {
             FROM news n 
             LEFT JOIN news_category nc ON n.category_id = nc.id 
             WHERE n.id = ? AND n.status = 'Published'`, [id]);
-        
+
         if (rows.length === 0) return res.status(404).json({ message: "Bài viết không tồn tại hoặc chưa được xuất bản" });
         res.json(rows[0]);
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+exports.approveCompany = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const connection = await db.getConnection();
+        try {
+            const [rows] = await connection.execute(
+                `SELECT u.email, c.hr_name, c.name AS company_name 
+                 FROM User u 
+                 JOIN Company c ON u.id = c.hr_id 
+                 WHERE u.id = ? AND u.role = 'HR'`,
+                [id]
+            );
+
+            if (rows.length === 0) {
+                connection.release();
+                return res.status(404).json({ message: "Company account not found" });
+            }
+
+            const { email, hr_name, company_name } = rows[0];
+
+            await connection.execute(
+                'UPDATE User SET status = ? WHERE id = ?',
+                ['Active', id]
+            );
+
+            await emailService.sendCompanyActive(email, hr_name, company_name);
+
+            connection.release();
+            return res.status(200).json({ message: "Company approved successfully!" });
+
+        } catch (dbError) {
+            connection.release();
+            return res.status(500).json({ message: "Database error" });
+        }
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+exports.banAccount = async (req, res) => {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    if (!reason) {
+        return res.status(400).json({ message: "Ban reason is required" });
+    }
+
+    try {
+        const connection = await db.getConnection();
+        try {
+            const [users] = await connection.execute(
+                'SELECT email, role FROM User WHERE id = ?',
+                [id]
+            );
+
+            if (users.length === 0) {
+                connection.release();
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            const { email, role } = users[0];
+            let userName = "User";
+
+            if (role === 'HR') {
+                const [company] = await connection.execute('SELECT hr_name FROM Company WHERE hr_id = ?', [id]);
+                if (company.length > 0) userName = company[0].hr_name;
+            } else if (role === 'Candidate') {
+                const [candidate] = await connection.execute('SELECT full_name FROM Candidate_Profile WHERE user_id = ?', [id]);
+                if (candidate.length > 0 && candidate[0].full_name) userName = candidate[0].full_name;
+            }
+
+            await connection.execute(
+                'UPDATE User SET status = ? WHERE id = ?',
+                ['Banned', id]
+            );
+
+            await emailService.sendAccountBanned(email, userName, reason);
+
+            connection.release();
+            return res.status(200).json({ message: "Account has been banned" });
+
+        } catch (dbError) {
+            connection.release();
+            return res.status(500).json({ message: "Database error" });
+        }
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+
+exports.getPendingCompanies = async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT
+                u.id,
+                u.email,
+                u.status,
+
+                c.name,
+                c.hr_name,
+                c.hr_phone,
+                c.company_phone,
+                c.tax_id,
+                c.address,
+                c.business_license_url,
+                c.logo_url,
+                c.size
+
+            FROM User u
+            JOIN Company c
+                ON u.id = c.hr_id
+
+            WHERE u.role = 'HR'
+            AND LOWER(u.status) = 'pending'
+        `);
+
+        res.json(rows);
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
     }
 };
