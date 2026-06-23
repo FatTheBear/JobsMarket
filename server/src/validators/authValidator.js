@@ -56,7 +56,7 @@ const companyRegisterSchema = Joi.object({
         'string.pattern.base': 'HR Phone must be a valid number (8-15 digits, optional + at the beginning)',
         'any.required': 'HR Phone is required'
     }),
-    companyName: Joi.string().pattern(/^[\p{L}0-9\s\.\&\-]+$/u).min(2).max(150).required().messages({
+    companyName: Joi.string().pattern(/^[\p{L}0-9\s.&-]+$/u).min(2).max(150).required().messages({
         'string.empty': 'Company Name cannot be blank',
         'string.pattern.base': 'Company Name cannot contain special characters (only letters, numbers, spaces, ., &, -)',
         'any.required': 'Company Name is required'

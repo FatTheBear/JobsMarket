@@ -1,7 +1,7 @@
 const db = require('../config/db'); 
 const CoinExchangeFeeModel = require('../models/CoinExchangeFee');
-const pool = require('../../config/database');
-const emailService = require('../../services/email/emailService');
+const pool = require('../config/db');
+const email = require('../services/email/emailServices');
 
 // 1. Lấy dữ liệu tổng quan (Đồng bộ chuẩn db.query)
 exports.getStats = async (req, res) => {

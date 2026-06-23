@@ -65,6 +65,7 @@ const uploadCompany = multer({
 });
 
 module.exports = {
+    upload,
     uploadAvatar: upload,
     uploadCompany
 };
