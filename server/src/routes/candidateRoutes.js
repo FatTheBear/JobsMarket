@@ -3,14 +3,14 @@ const router = express.Router();
 const candidateController = require('../controllers/candidateController');
 const { authMiddleware } = require('../middleware/authMiddleware'); // Sử dụng file xác thực JWT đã tạo
 const { validateOnboarding } = require('../validators/setupProfileValidator');
-const upload = require('../middleware/upload');
+const { uploadAvatar } = require('../middleware/upload');
 const uploadCv = require('../middleware/uploadCV');
 
 // Lấy thông tin cá nhân
 router.get('/profile', authMiddleware, candidateController.getProfile);
 
 // Cập nhật thông tin cá nhân
-router.put('/profile', authMiddleware, upload.single('avatar'), candidateController.updateProfile);
+router.put('/profile', authMiddleware, uploadAvatar.single('avatar'), candidateController.updateProfile);
 
 // Lấy danh sách doanh nghiệp đề xuất cho setup wizard
 router.get('/companies', authMiddleware, candidateController.getRecommendedCompanies);
