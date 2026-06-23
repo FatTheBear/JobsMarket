@@ -649,6 +649,44 @@ const candidateController = {
         }
     }
 };
+exports.applyForJob = async (req, res) => {
+    const { id: userId } = req.user;
+    const { jobId, cvId } = req.body;
+
+    if (!jobId || !cvId) {
+        return res.status(400).json({ message: "Job ID and CV ID are required" });
+    }
+
+    try {
+        const connection = await pool.getConnection();
+
+        try {
+            const [existingApplication] = await connection.execute(
+                'SELECT id FROM application WHERE job_id = ? AND candidate_id = ?',
+                [jobId, userId]
+            );
+
+            if (existingApplication.length > 0) {
+                connection.release();
+                return res.status(409).json({ message: "You have already applied for this job" });
+            }
+
+            await connection.execute(
+                'INSERT INTO application (job_id, candidate_id, cv_id) VALUES (?, ?, ?)',
+                [jobId, userId, cvId]
+            );
+
+            connection.release();
+            return res.status(201).json({ message: "Application submitted successfully" });
+
+        } catch (dbError) {
+            connection.release();
+            return res.status(500).json({ message: "Database query error" });
+        }
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
 
 let countriesCache = null;
 let countriesCacheTime = 0;
