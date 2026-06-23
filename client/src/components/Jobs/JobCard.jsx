@@ -2,35 +2,37 @@ import React, { useState } from "react";
 import './JobCard.css';
 
 export default function JobCard({ company_logo, job, onClick }) {
-  const [imgError, setImgError] = useState(false);
-  // 1. Destructure data from the job object
-  const {
-    title,
-    company_name,
-    logo_url,
-    salary_min,
-    salary_max,
-    loc,
-    job_type,
-  } = job;
+  const API_URL = 'http://localhost:5000';
 
-  // 2. Logic to format salary nicely
-  const formatSalary = () => {
-    // 1. Suy luận Internship từ cột job_type
-    if (job_type && job_type.toLowerCase().includes('intern')) {
-        return 'Internship';
-    }
+const [imgError, setImgError] = useState(false);
 
-    // 2. Suy luận Negotiable (Thỏa thuận) nếu không có min max
-    if (!salary_min && !salary_max) {
-        return 'Negotiable';
-    }
+const {
+  title,
+  company_name,
+  logo_url,
+  salary_min,
+  salary_max,
+  loc,
+  job_type,
+} = job;
 
-    // 3. Xử lý Specific (Cụ thể)
-    if (salary_min && salary_max) return `$${salary_min} - $${salary_max}`;
-    if (salary_min) return `From $${salary_min}`;
-    return `Up to $${salary_max}`;
-  };
+const getValidLogo = () => {
+  if (imgError || !logo_url) return '/default-company-logo.png';
+  if (logo_url.startsWith('http')) return logo_url;
+  return `${API_URL}${logo_url}`;
+};
+
+const formatSalary = () => {
+  if (job_type && job_type.toLowerCase().includes('intern')) {
+    return 'Internship';
+  }
+  if (!salary_min && !salary_max) {
+    return 'Negotiable';
+  }
+  if (salary_min && salary_max) return `$${salary_min} - $${salary_max}`;
+  if (salary_min) return `From $${salary_min}`;
+  return `Up to $${salary_max}`;
+};
 
   // 3. Render the UI
   return (
@@ -38,10 +40,9 @@ export default function JobCard({ company_logo, job, onClick }) {
       {/* Khối trên: Logo + Tên Job + Tên Công ty */}
       <div className="job-card-header">
         <img
-          src={imgError ? '/default-company-logo.png' : (logo_url || '/default-company-logo.png')}
-          alt={`${company_name || 'Company'} logo`}
+          src={getValidLogo()}
           onError={() => setImgError(true)}
-          className="job-card-logo"
+          alt="Company Logo"
         />
         <div className="job-card-main-info">
           <h3 className="job-card-title">{title || 'Untitled Job'}</h3>
