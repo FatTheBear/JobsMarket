@@ -43,7 +43,6 @@ const applicationRoutes = require('./routes/applicationRoutes');
 const industryRoutes = require('./routes/industryRoutes');
 const newsController = require('./controllers/adminController');
 const postRoutes = require('./routes/postRoutes');
-const companyRoutes = require('./routes/companyRoutes');
 
 
 app.use('/api/company', companyRoutes);
@@ -51,7 +50,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/candidate', candidateRoutes);
 app.use('/api/wallet', walletRoutes);
-app.use('/api/company', companyRoutes);
 app.use('/api/skills', skillsRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/jobs', jobs);

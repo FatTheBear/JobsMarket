@@ -57,8 +57,6 @@ router.get('/notifications', authMiddleware, candidateController.getNotification
 // Đánh dấu 1 thông báo đã đọc
 router.put('/notifications/:id/read', authMiddleware, candidateController.markNotificationAsRead);
 
-router.post('/apply', authMiddleware, candidateController.applyForJob);
-
 // Đánh dấu tất cả thông báo đã đọc
 router.put('/notifications/read-all', authMiddleware, candidateController.markAllNotificationsAsRead);
 router.post('/test-ping', (req, res) => {

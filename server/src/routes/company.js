@@ -6,6 +6,7 @@ const { authMiddleware } = require('../middleware/authMiddleware');
 
 
 router.get('/applications', authMiddleware, companyController.getAppliedCandidates);
+router.put('/applications/:id/status', authMiddleware, companyController.updateApplicationStatus);
 // GET /api/company/meta/industries — Lấy danh sách ngành nghề
 router.get('/meta/industries', async (req, res) => {
   try {
