@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { useWallet } from '../../context/WalletContext';
 import RechargeCoins from './RechargeCoins';
 
 const CandidateActivityHistory = () => {
+  const navigate = useNavigate();
   const {
     favoriteJobs,
     setFavoriteJobs,
@@ -12,10 +14,27 @@ const CandidateActivityHistory = () => {
     commentedPosts,
     setCommentedPosts,
     sharedPosts,
-    setSharedPosts
+    setSharedPosts,
+    fetchActivityHistory
   } = useOutletContext();
 
   const { coins, transactions } = useWallet();
+
+  const formatDateTime = (isoString) => {
+    if (!isoString) return '';
+    try {
+      const date = new Date(isoString);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+    } catch (e) {
+      return isoString;
+    }
+  };
 
   const [activeTab, setActiveTab] = useState('wallet'); // 'wallet' or 'activity'
   const [activeWalletTab, setActiveWalletTab] = useState('history'); // 'history' or 'topup'
@@ -35,39 +54,63 @@ const CandidateActivityHistory = () => {
     }
   };
 
-  const handleUnlikePost = (postId) => {
+  const handleUnlikePost = async (postId) => {
     const confirmUnlike = window.confirm("Are you sure you want to unlike this post?");
     if (confirmUnlike) {
-      const updated = likedPosts.filter(post => post.id !== postId);
-      setLikedPosts(updated);
-      localStorage.setItem('activity_liked_posts', JSON.stringify(updated));
-      setActivityMessageType('success');
-      setActivityMessage("Post unliked successfully!");
-      setTimeout(() => setActivityMessage(''), 3000);
+      try {
+        const token = localStorage.getItem('token');
+        await axios.post(`http://localhost:5000/api/posts/${postId}/like`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        await fetchActivityHistory();
+        setActivityMessageType('success');
+        setActivityMessage("Post unliked successfully!");
+        setTimeout(() => setActivityMessage(''), 3000);
+      } catch (err) {
+        console.error("Failed to unlike post:", err);
+        setActivityMessageType('danger');
+        setActivityMessage("Failed to unlike post. Please try again.");
+      }
     }
   };
 
-  const handleDeleteCommentActivity = (postId) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this comment activity?");
+  const handleDeleteCommentActivity = async (commentId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this comment?");
     if (confirmDelete) {
-      const updated = commentedPosts.filter(post => post.id !== postId);
-      setCommentedPosts(updated);
-      localStorage.setItem('activity_commented_posts', JSON.stringify(updated));
-      setActivityMessageType('success');
-      setActivityMessage("Comment activity removed from history!");
-      setTimeout(() => setActivityMessage(''), 3000);
+      try {
+        const token = localStorage.getItem('token');
+        await axios.delete(`http://localhost:5000/api/posts/comments/${commentId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        await fetchActivityHistory();
+        setActivityMessageType('success');
+        setActivityMessage("Comment deleted successfully!");
+        setTimeout(() => setActivityMessage(''), 3000);
+      } catch (err) {
+        console.error("Failed to delete comment:", err);
+        setActivityMessageType('danger');
+        setActivityMessage("Failed to delete comment. Please try again.");
+      }
     }
   };
 
-  const handleRemoveShareActivity = (postId) => {
+  const handleRemoveShareActivity = async (postId) => {
     const confirmRemove = window.confirm("Are you sure you want to remove this share activity?");
     if (confirmRemove) {
-      const updated = sharedPosts.filter(post => post.id !== postId);
-      setSharedPosts(updated);
-      localStorage.setItem('activity_shared_posts', JSON.stringify(updated));
-      setActivityMessageType('success');
-      setActivityMessage("Share activity removed from history!");
-      setTimeout(() => setActivityMessage(''), 3000);
+      try {
+        const token = localStorage.getItem('token');
+        await axios.delete(`http://localhost:5000/api/posts/${postId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        await fetchActivityHistory();
+        setActivityMessageType('success');
+        setActivityMessage("Share activity removed successfully!");
+        setTimeout(() => setActivityMessage(''), 3000);
+      } catch (err) {
+        console.error("Failed to remove share activity:", err);
+        setActivityMessageType('danger');
+        setActivityMessage("Failed to remove share activity. Please try again.");
+      }
     }
   };
 
@@ -269,18 +312,26 @@ const CandidateActivityHistory = () => {
                 ) : (
                   <div className="d-flex flex-column gap-3">
                     {likedPosts.map((post) => (
-                      <div key={post.id} className="p-3 rounded border bg-light d-flex flex-column gap-2 hover-shadow-sm transition-all position-relative" style={{ padding: '1.25rem' }}>
+                      <div 
+                        key={post.id} 
+                        className="p-3 rounded border bg-light d-flex flex-column gap-2 hover-shadow-sm transition-all position-relative cursor-pointer" 
+                        style={{ padding: '1.25rem' }}
+                        onClick={() => navigate(`/community?postId=${post.id}`)}
+                      >
                         <div className="d-flex align-items-center gap-3">
                           <img src={post.avatar} alt="avatar" className="rounded-circle border" style={{ width: '40px', height: '40px' }} />
                           <div className="flex-grow-1" style={{ minWidth: 0 }}>
                             <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '0.9rem' }}>{post.author}</h6>
-                            <p className="mb-0 text-muted small" style={{ fontSize: '0.75rem' }}>Liked: {post.liked_at}</p>
+                            <p className="mb-0 text-muted small" style={{ fontSize: '0.75rem' }}>Liked: {formatDateTime(post.liked_at)}</p>
                           </div>
                           <button
                             type="button"
                             className="btn btn-xs btn-outline-danger px-2.5 py-1 rounded-pill fw-semibold"
                             style={{ fontSize: '0.75rem' }}
-                            onClick={() => handleUnlikePost(post.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleUnlikePost(post.id);
+                            }}
                           >
                             Unlike
                           </button>
@@ -306,18 +357,26 @@ const CandidateActivityHistory = () => {
                 ) : (
                   <div className="d-flex flex-column gap-3">
                     {commentedPosts.map((post) => (
-                      <div key={post.id} className="p-3 rounded border bg-light d-flex flex-column gap-3 hover-shadow-sm transition-all position-relative" style={{ padding: '1.25rem' }}>
+                      <div 
+                        key={post.id} 
+                        className="p-3 rounded border bg-light d-flex flex-column gap-3 hover-shadow-sm transition-all position-relative cursor-pointer" 
+                        style={{ padding: '1.25rem' }}
+                        onClick={() => navigate(`/community?postId=${post.post_id}`)}
+                      >
                         <div className="d-flex align-items-center gap-3">
                           <img src={post.avatar} alt="avatar" className="rounded-circle border" style={{ width: '40px', height: '40px' }} />
                           <div className="flex-grow-1" style={{ minWidth: 0 }}>
                             <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '0.9rem' }}>{post.author}</h6>
-                            <p className="mb-0 text-muted small" style={{ fontSize: '0.75rem' }}>Commented: {post.commented_at}</p>
+                            <p className="mb-0 text-muted small" style={{ fontSize: '0.75rem' }}>Commented: {formatDateTime(post.commented_at)}</p>
                           </div>
                           <button
                             type="button"
                             className="btn btn-xs btn-outline-danger px-2.5 py-1 rounded-pill fw-semibold"
                             style={{ fontSize: '0.75rem' }}
-                            onClick={() => handleDeleteCommentActivity(post.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteCommentActivity(post.id);
+                            }}
                           >
                             Delete
                           </button>
@@ -347,18 +406,26 @@ const CandidateActivityHistory = () => {
                 ) : (
                   <div className="d-flex flex-column gap-3">
                     {sharedPosts.map((post) => (
-                      <div key={post.id} className="p-3 rounded border bg-light d-flex flex-column gap-3 hover-shadow-sm transition-all position-relative" style={{ padding: '1.25rem' }}>
+                      <div 
+                        key={post.id} 
+                        className="p-3 rounded border bg-light d-flex flex-column gap-3 hover-shadow-sm transition-all position-relative cursor-pointer" 
+                        style={{ padding: '1.25rem' }}
+                        onClick={() => navigate(`/community?postId=${post.id}`)}
+                      >
                         <div className="d-flex align-items-center gap-3">
                           <img src={post.avatar} alt="avatar" className="rounded-circle border" style={{ width: '40px', height: '40px' }} />
                           <div className="flex-grow-1" style={{ minWidth: 0 }}>
                             <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '0.9rem' }}>{post.author}</h6>
-                            <p className="mb-0 text-muted small" style={{ fontSize: '0.75rem' }}>Shared: {post.shared_at}</p>
+                            <p className="mb-0 text-muted small" style={{ fontSize: '0.75rem' }}>Shared: {formatDateTime(post.shared_at)}</p>
                           </div>
                           <button
                             type="button"
                             className="btn btn-xs btn-outline-danger px-2.5 py-1 rounded-pill fw-semibold"
                             style={{ fontSize: '0.75rem' }}
-                            onClick={() => handleRemoveShareActivity(post.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveShareActivity(post.id);
+                            }}
                           >
                             Remove
                           </button>

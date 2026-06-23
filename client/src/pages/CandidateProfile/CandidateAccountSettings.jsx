@@ -1111,6 +1111,7 @@ const CandidateAccountSettings = () => {
           "Content-Type": "multipart/form-data"
         }
       });
+      window.dispatchEvent(new Event('profileUpdated'));
 
       let calculatedAge = '';
       if (editProfileForm.birthday) {

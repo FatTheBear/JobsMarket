@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import PostCreator from '../../components/Community/PostCreator';
 import './CommunityFeed.css';
@@ -131,6 +131,8 @@ const getRoleBadgeClass = (role) => {
 
 export default function CommunityFeed() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const postIdParam = searchParams.get('postId');
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -192,6 +194,41 @@ export default function CommunityFeed() {
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  useEffect(() => {
+    if (!loading && posts.length > 0 && postIdParam) {
+      const postId = parseInt(postIdParam);
+      setTimeout(() => {
+        const element = document.getElementById(`post-${postId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.classList.add('highlight-post');
+          
+          // Auto open comments section
+          setActiveCommentsPostId(postId);
+          
+          // Preload comments if they are not already loaded
+          if (!commentsMap[postId]) {
+            const token = localStorage.getItem('token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            axios.get(`http://localhost:5000/api/posts/${postId}/comments`, { headers })
+              .then(response => {
+                setCommentsMap(prev => ({
+                  ...prev,
+                  [postId]: response.data
+                }));
+              })
+              .catch(err => console.error('Failed to load comments:', err));
+          }
+
+          // Remove highlight after animation duration
+          setTimeout(() => {
+            element.classList.remove('highlight-post');
+          }, 3000);
+        }
+      }, 300);
+    }
+  }, [loading, posts, postIdParam]);
 
   const handlePostCreated = (newPost) => {
     // Add the newly created post to the top of the feed
@@ -503,7 +540,7 @@ export default function CommunityFeed() {
                 const hasMedia = !!post.media_url;
 
                 return (
-                  <div key={post.id} className="card border-0 shadow-sm post-card" style={{ borderRadius: '12px' }}>
+                  <div key={post.id} id={`post-${post.id}`} className="card border-0 shadow-sm post-card" style={{ borderRadius: '12px' }}>
                     <div className="card-body p-4">
                       
                       {/* Post Header */}

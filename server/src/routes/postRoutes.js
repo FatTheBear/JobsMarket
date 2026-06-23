@@ -274,6 +274,127 @@ router.get('/user/:user_id', async (req, res) => {
   }
 });
 
+// GET /api/posts/activity/history - Get activity history (likes, comments, shares) of the current user
+router.get('/activity/history', authMiddleware, async (req, res) => {
+  const userId = req.user.id;
+  try {
+    // 1. Get liked posts
+    const [likes] = await pool.query(
+      `SELECT 
+          pl.post_id AS id,
+          pl.created_at AS liked_at,
+          p.content,
+          CASE 
+              WHEN u.role IN ('candidate', 'Candidate') THEN cp.full_name 
+              WHEN u.role IN ('company', 'HR') THEN com.name
+              ELSE 'System User'
+          END AS author,
+          CASE 
+              WHEN u.role IN ('candidate', 'Candidate') THEN cp.avatar_url 
+              WHEN u.role IN ('company', 'HR') THEN com.logo_url
+              ELSE NULL
+          END AS avatar
+      FROM Post_Like pl
+      JOIN Community_Post p ON pl.post_id = p.id
+      JOIN User u ON p.user_id = u.id
+      LEFT JOIN Candidate_Profile cp ON u.id = cp.user_id
+      LEFT JOIN Company com ON u.id = com.hr_id
+      WHERE pl.user_id = ?
+      ORDER BY pl.created_at DESC`,
+      [userId]
+    );
+
+    // 2. Get comments
+    const [comments] = await pool.query(
+      `SELECT 
+          c.id,
+          c.post_id,
+          c.content AS comment,
+          c.created_at AS commented_at,
+          p.content AS content,
+          CASE 
+              WHEN p_u.role IN ('candidate', 'Candidate') THEN p_cp.full_name 
+              WHEN p_u.role IN ('company', 'HR') THEN p_com.name
+              ELSE 'System User'
+          END AS author,
+          CASE 
+              WHEN p_u.role IN ('candidate', 'Candidate') THEN p_cp.avatar_url 
+              WHEN p_u.role IN ('company', 'HR') THEN p_com.logo_url
+              ELSE NULL
+          END AS avatar
+      FROM Post_Comment c
+      JOIN Community_Post p ON c.post_id = p.id
+      JOIN User p_u ON p.user_id = p_u.id
+      LEFT JOIN Candidate_Profile p_cp ON p_u.id = p_cp.user_id
+      LEFT JOIN Company p_com ON p_u.id = p_com.hr_id
+      WHERE c.user_id = ?
+      ORDER BY c.created_at DESC`,
+      [userId]
+    );
+
+    // 3. Get shared posts
+    const [shares] = await pool.query(
+      `SELECT 
+          p.id,
+          p.content AS message,
+          p.created_at AS shared_at,
+          parent.content AS content,
+          CASE 
+              WHEN parent_u.role IN ('candidate', 'Candidate') THEN parent_cp.full_name 
+              WHEN parent_u.role IN ('company', 'HR') THEN parent_com.name
+              ELSE 'System User'
+          END AS author,
+          CASE 
+              WHEN parent_u.role IN ('candidate', 'Candidate') THEN parent_cp.avatar_url 
+              WHEN parent_u.role IN ('company', 'HR') THEN parent_com.logo_url
+              ELSE NULL
+          END AS avatar
+      FROM Community_Post p
+      JOIN Community_Post parent ON p.parent_post_id = parent.id
+      JOIN User parent_u ON parent.user_id = parent_u.id
+      LEFT JOIN Candidate_Profile parent_cp ON parent_u.id = parent_cp.user_id
+      LEFT JOIN Company parent_com ON parent_u.id = parent_com.hr_id
+      WHERE p.user_id = ?
+      ORDER BY p.created_at DESC`,
+      [userId]
+    );
+
+    res.json({
+      likes,
+      comments,
+      shares
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// DELETE /api/posts/comments/:commentId - Delete a comment
+router.delete('/comments/:commentId', authMiddleware, async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    // Check comment ownership
+    const [comments] = await pool.query('SELECT user_id FROM Post_Comment WHERE id = ?', [commentId]);
+    if (comments.length === 0) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    if (comments[0].user_id !== userId && userRole !== 'Admin') {
+      return res.status(403).json({ message: 'Unauthorized. You can only delete your own comments.' });
+    }
+
+    await pool.query('DELETE FROM Post_Comment WHERE id = ?', [commentId]);
+    res.json({ message: 'Comment deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 // POST /api/posts - Create a new post
 router.post('/', authMiddleware, uploadMiddleware, async (req, res) => {
   const connection = await pool.getConnection();
