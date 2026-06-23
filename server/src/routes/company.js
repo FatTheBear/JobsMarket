@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const companyController = require('../controllers/companyController');
 const { authMiddleware } = require('../middleware/authMiddleware');
 
+
+router.get('/applications', authMiddleware, companyController.getAppliedCandidates);
 // GET /api/company/meta/industries — Lấy danh sách ngành nghề
 router.get('/meta/industries', async (req, res) => {
   try {
