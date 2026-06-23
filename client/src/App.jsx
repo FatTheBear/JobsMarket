@@ -4,6 +4,7 @@ import { SocketProvider } from './context/SocketContext';
 import MainLayout from './components/layout/MainLayout';
 import LandingPage from './pages/LandingPage/LandingPage';
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
+import CompanyPublicProfile from './pages/CompanyPublicProfile/CompanyPublicProfile';
 import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
 import CandidatePublicProfile from './pages/CandidateProfile/CandidatePublicProfile';
 import Login from './pages/Authentication/Login';
@@ -65,6 +66,8 @@ const router = createBrowserRouter([
       { path: "/", element: <LandingPage /> },
       { path: "/dashboard", element: <UserDashboard /> },
       { path: "/profile", element: <Home /> },
+      { path: "/company/:companyId", element: <CompanyPublicProfile /> },
+      { path: "/candidate/:id", element: <CandidatePublicProfile /> },
 
       {
         path: "/candidate-profile",
@@ -87,8 +90,6 @@ const router = createBrowserRouter([
           { path: "manage-cvs", element: <CandidateManageCVs /> }
         ]
       },
-
-      { path: "/candidate/:id", element: <CandidatePublicProfile /> },
 
       {
         path: "/job-skills",

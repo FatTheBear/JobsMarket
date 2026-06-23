@@ -129,6 +129,7 @@ export default function JobDetail() {
           </div>
         </div>
 
+
         <div className="job-detail-card-action">
           <p className="job-detail-card-deadline">
             Deadline: {new Date(job.deadline).toLocaleDateString('en-GB')}

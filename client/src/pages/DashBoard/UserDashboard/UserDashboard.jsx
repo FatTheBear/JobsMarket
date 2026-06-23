@@ -4,6 +4,7 @@ import styles from './UserDashboard.module.css';
 import axios from 'axios';
 import ApplyJobModal from './ApplyJobModal';
 import JobCard from '../../../components/Jobs/JobCard';
+import FeaturedCompanies from '../../FeaturedCompanies/FeaturedCompanies';
 
 const LOCATIONS = [
   'Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Binh Duong', 'Dong Nai', 'Can Tho'
@@ -140,6 +141,10 @@ export default function CandidateDashboard() {
               </div>
             </div>
           </section>
+
+      {/* ───── FEATURED COMPANIES ───── */}
+      <FeaturedCompanies />
+
  
      
 
