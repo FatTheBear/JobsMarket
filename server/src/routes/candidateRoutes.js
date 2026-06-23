@@ -56,5 +56,8 @@ router.put('/notifications/:id/read', authMiddleware, candidateController.markNo
 
 // Đánh dấu tất cả thông báo đã đọc
 router.put('/notifications/read-all', authMiddleware, candidateController.markAllNotificationsAsRead);
+router.post('/test-ping', (req, res) => {
+    return res.status(200).json({ message: "ROUTE ĐÃ NHẬN!" });
+});
 
 module.exports = router;

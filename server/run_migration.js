@@ -390,7 +390,7 @@ async function runMigration() {
         console.log('-> metadata column in Job_Posting is ready.');
 
         // 3. INTEGRATED MIGRATIONS FROM OLD FILES & NEW NATIONALITY COLUMN
-        
+
         // 3a. Add birthday column to Candidate_Profile (from add_birthday_column.js)
         try {
             console.log('Adding birthday column to Candidate_Profile...');
@@ -458,6 +458,76 @@ async function runMigration() {
             } else {
                 throw err;
             }
+        }
+
+        try {
+            console.log('Creating Job_Industry table...');
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS \`Job_Industry\` (
+                    \`job_id\` INT NOT NULL,
+                    \`industry_id\` INT NOT NULL,
+                    PRIMARY KEY (\`job_id\`, \`industry_id\`),
+                    CONSTRAINT \`fk_job_industry_job\` FOREIGN KEY (\`job_id\`) REFERENCES \`Job_Posting\` (\`id\`) ON DELETE CASCADE ON UPDATE CASCADE,
+                    CONSTRAINT \`fk_job_industry_industry\` FOREIGN KEY (\`industry_id\`) REFERENCES \`Industry\` (\`id\`) ON DELETE CASCADE ON UPDATE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            `);
+            console.log('Successfully created Job_Industry table.');
+        } catch (err) {
+            console.error('\n[CRITICAL ERROR] Failed to create Job_Industry table:', err.message);
+            throw err;
+        }
+
+
+        try {
+            console.log('Updating Job_Skill schema...');
+
+            // Thêm cột min_level
+            try {
+                await pool.query("ALTER TABLE `Job_Skill` ADD COLUMN `min_level` VARCHAR(50) DEFAULT 'Beginner'");
+                console.log('Added column min_level.');
+            } catch (err) {
+                if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+                    console.log('Column min_level already exists.');
+                } else {
+                    throw err;
+                }
+            }
+
+            // Thêm cột min_years
+            try {
+                await pool.query("ALTER TABLE `Job_Skill` ADD COLUMN `min_years` INT DEFAULT 0");
+                console.log('Added column min_years.');
+            } catch (err) {
+                if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+                    console.log('Column min_years already exists.');
+                } else {
+                    throw err;
+                }
+            }
+
+            console.log('Job_Skill update completed.');
+        } catch (dbError) {
+            console.error('\n[CRITICAL ERROR] Schema update failed:', dbError.message);
+            process.exit(1);
+        }
+
+
+        try {
+            console.log('Altering Company table to add new registration fields...');
+            await pool.query(`
+                ALTER TABLE \`Company\`
+                ADD COLUMN \`hr_name\` VARCHAR(255) DEFAULT NULL,
+                ADD COLUMN \`hr_phone\` VARCHAR(50) DEFAULT NULL,
+                ADD COLUMN \`company_phone\` VARCHAR(50) DEFAULT NULL,
+                ADD COLUMN \`tax_id\` VARCHAR(100) DEFAULT NULL,
+                ADD COLUMN \`business_license_url\` VARCHAR(255) DEFAULT NULL,
+                ADD COLUMN \`size\` VARCHAR(50) DEFAULT NULL,
+                ADD COLUMN \`description\` TEXT DEFAULT NULL;
+            `);
+            console.log('Successfully altered Company table.');
+        } catch (err) {
+            console.error('\n[CRITICAL ERROR] Failed to alter Company table:', err.message);
+            throw err;
         }
 
     } catch (dbError) {

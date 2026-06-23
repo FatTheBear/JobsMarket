@@ -52,4 +52,6 @@ router.get('/notifications', adminController.getNotifications);
 router.put('/notifications/:id/read', adminController.markNotificationRead);
 router.delete('/notifications/:id', adminController.deleteNotification);
 
+router.patch('/company/:id/approve', adminController.approveCompany);
+router.patch('/users/:id/ban', adminController.banAccount);
 module.exports = router;
