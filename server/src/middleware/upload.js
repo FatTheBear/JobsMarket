@@ -35,4 +35,36 @@ const upload = multer({
     limits: { fileSize: 10 * 1024 * 1024 } // Giới hạn 10MB
 });
 
-module.exports = upload;
+const companyUploadDir = path.join(__dirname, '../../uploads/companies');
+if (!fs.existsSync(companyUploadDir)) {
+    fs.mkdirSync(companyUploadDir, { recursive: true });
+}
+
+const companyStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, companyUploadDir);
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'company-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const companyFileFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith("image/") || file.mimetype === "application/pdf") {
+        cb(null, true);
+    } else {
+        cb(new Error("Only images and PDF files are allowed for company documents"), false);
+    }
+};
+
+const uploadCompany = multer({
+    storage: companyStorage,
+    fileFilter: companyFileFilter,
+    limits: { fileSize: 15 * 1024 * 1024 }
+});
+
+module.exports = {
+    uploadAvatar: upload,
+    uploadCompany
+};

@@ -48,7 +48,7 @@ export default function Register() {
           state: {
             email: userData.email,
             role: selectedRole
-            // Đã xóa việc truyền full_name sang trang OTP
+            
           }
         });
       }

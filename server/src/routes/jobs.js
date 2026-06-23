@@ -4,8 +4,8 @@ const pool = require('../config/db');
 const { authMiddleware } = require('../middleware/authMiddleware');
 
 // POST /api/jobs - Create a new job posting
-router.post('/',authMiddleware, async (req, res) => {
-   console.log("USER FROM TOKEN:", req.user);
+router.post('/', authMiddleware, async (req, res) => {
+  console.log("USER FROM TOKEN:", req.user);
 
   try {
     const {
@@ -31,10 +31,7 @@ router.post('/',authMiddleware, async (req, res) => {
       selected_industries
     } = req.body;
 
-
-    // Lấy user id từ JWT
     const user_id = req.user?.id;
-
 
     if (!user_id) {
       return res.status(401).json({
@@ -42,15 +39,12 @@ router.post('/',authMiddleware, async (req, res) => {
       });
     }
 
-
     const requiredFields = {
       title,
       job_type
     };
 
-    const missingFields = Object.keys(requiredFields)
-      .filter(key => !requiredFields[key]);
-
+    const missingFields = Object.keys(requiredFields).filter(key => !requiredFields[key]);
 
     if (missingFields.length > 0) {
       return res.status(400).json({
@@ -58,27 +52,16 @@ router.post('/',authMiddleware, async (req, res) => {
       });
     }
 
-
-    // Validate salary range
-    if (
-      salary_min != null &&
-      salary_max != null &&
-      salary_min > salary_max
-    ) {
+    if (salary_min != null && salary_max != null && salary_min > salary_max) {
       return res.status(400).json({
         message: 'Minimum salary cannot exceed maximum salary'
       });
     }
 
-
-    // Validate deadline
     if (deadline) {
-
       const deadlineDate = new Date(deadline);
       const today = new Date();
-
       today.setHours(0, 0, 0, 0);
-
 
       if (deadlineDate < today) {
         return res.status(400).json({
@@ -92,72 +75,70 @@ router.post('/',authMiddleware, async (req, res) => {
       [user_id]
     );
 
-
     if (companies.length === 0) {
       return res.status(404).json({
         message: 'Please create a Company Profile first before posting a job.'
       });
     }
 
-
     const company_id = companies[0].id;
-    // The user posting this job is the HR
     const hr_id = user_id;
 
+    const fullLocation = [exact_address, ward, district, province].filter(Boolean).join(', ');
 
-    // Tạo job
-    const [result] = await pool.query(
-      `
-      INSERT INTO Job_Posting
-      (
-        company_id,
-        hr_id,
-        title,
-        description,
-        requirements,
-        salary_min,
-        salary_max,
-        job_type,
-        status,
-        experience_req,
-        working_hours,
-        job_level,
-        vacancies,
-        gender_req,
-        age_req,
-        language_req,
-        province,
-        district,
-        ward,
-        exact_address
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `,
-      [
-        company_id,
-        hr_id,
-        title,
-        description || null,
-        requirements || null,
-        salary_min || null,
-        salary_max || null,
-        job_type || 'Full-time',
-        experience_req || null,
-        working_hours ? JSON.stringify(working_hours) : null,
-        job_level || null,
-        vacancies || null,
-        gender_req || null,
-        age_req || null,
-        language_req || null,
-        province || null,
-        district || null,
-        ward || null,
-        exact_address || null
-      ]
-    );
+    const workHoursString = typeof working_hours === 'object'
+      ? JSON.stringify(working_hours)
+      : (working_hours || null);
 
+    const metadataObj = {
+      deadline: deadline || null,
+      job_level: job_level || null,
+      vacancies: vacancies || null,
+      gender_req: gender_req || null,
+      detailed_address: fullLocation
+    };
 
+    const metadataString = JSON.stringify(metadataObj);
 
+    const sql = `
+      INSERT INTO Job_Posting (
+        company_id, 
+        hr_id, 
+        title, 
+        description, 
+        requirements, 
+        salary_min, 
+        salary_max, 
+        job_type, 
+        status, 
+        loc, 
+        work_hrs, 
+        exp_yrs, 
+        age_req, 
+        lang_req,
+        metadata
+      ) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, ?, ?)
+    `;
+
+    const values = [
+      company_id,
+      hr_id,
+      title,
+      description || null,
+      requirements || null,
+      salary_min || null,
+      salary_max || null,
+      job_type || 'Full-time',
+      province || null,
+      workHoursString,
+      experience_req || null,
+      age_req || null,
+      language_req || null,
+      metadataString
+    ];
+
+    const [result] = await pool.query(sql, values);
     const jobId = result.insertId;
 
     if (selected_skills && Array.isArray(selected_skills) && selected_skills.length > 0) {
@@ -177,21 +158,16 @@ router.post('/',authMiddleware, async (req, res) => {
     }
 
     res.status(201).json({
-      message: 'Job posted successfully! Your job is waiting for Admin approval.',
+      message: 'Job posted successfully! Waiting for Admin approval.',
       jobId: jobId
     });
 
-
-
   } catch (err) {
-
     console.error("Create Job Error:", err);
-
     res.status(500).json({
       message: 'Server error',
       error: err.message
     });
-
   }
 });
 

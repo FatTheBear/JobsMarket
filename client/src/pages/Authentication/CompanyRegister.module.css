@@ -1,0 +1,50 @@
+.gradientCustom3 {
+  background: linear-gradient(
+    to right,
+    rgba(132, 250, 176, 0.5),
+    rgba(143, 211, 244, 0.5)
+  );
+}
+
+.gradientCustom4 {
+  background: linear-gradient(
+    to right,
+    #01796F,
+    #10b981
+  );
+  border: none;
+  color: #fff;
+  transition: opacity 0.3s ease;
+}
+
+.gradientCustom4:hover {
+  opacity: 0.9;
+}
+
+.formControl {
+  border: 1px solid #d6d6d6 !important;
+  box-shadow: none !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease;
+}
+
+.formControl:focus {
+  border: 1px solid #01796F !important;
+  box-shadow: 0 0 4px rgba(1, 121, 111, 0.2) !important;
+}
+
+.card {
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+/* Fix for floating label color when focused */
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+  color: #01796F;
+}
+
+/* Ensure select boxes look like floating inputs */
+.form-select {
+  border-radius: 8px !important;
+  border: 1px solid #d6d6d6 !important;
+}
