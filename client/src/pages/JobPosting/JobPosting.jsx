@@ -42,6 +42,7 @@ const translateLocation = (name) => {
 
 export default function JobPosting() {
   const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [submittedJobId, setSubmittedJobId] = useState(null); // Track successful post
@@ -180,6 +181,37 @@ export default function JobPosting() {
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+  };
+
+  const handleNext = () => {
+    let newErrors = {};
+    if (currentStep === 1) {
+       const trimmedTitle = form.title.trim();
+       if (!trimmedTitle) newErrors.title = "Job Title cannot be empty.";
+       else if (trimmedTitle.length < 10) newErrors.title = "Job Title must be at least 10 characters long.";
+       else if (/^\d+$/.test(trimmedTitle)) newErrors.title = "Job Title cannot contain only numbers.";
+
+       if (!form.description.trim()) newErrors.description = "Job Description cannot be empty.";
+       if (!form.requirements.trim()) newErrors.requirements = "Requirements cannot be empty.";
+       if (!form.benefits.trim()) newErrors.benefits = "Benefits cannot be empty.";
+       
+       if (!form.province) newErrors.province = "Please select a Province / City.";
+       if (!form.district_code && provinces.length > 0) newErrors.district = "Please select a District.";
+       if (!form.exact_address.trim()) newErrors.exact_address = "Please enter a specific location.";
+    } else if (currentStep === 2) {
+        if (form.salary_type === 'specific') {
+          if (!form.salary_min || !form.salary_max) newErrors.salary = "Please enter both Minimum and Maximum Salary.";
+          else if (Number(form.salary_min) < 0 || Number(form.salary_max) < 0) newErrors.salary = "Salary cannot be negative.";
+          else if (Number(form.salary_min) > Number(form.salary_max)) newErrors.salary = "Minimum salary cannot exceed maximum salary.";
+        }
+        if (form.selected_industries.length === 0) newErrors.industries = "Please select at least one industry.";
+    }
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length === 0) {
+      setCurrentStep(prev => prev + 1);
+      window.scrollTo(0, 0);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -345,12 +377,16 @@ export default function JobPosting() {
       </div>
 
       <div className="jp-stepper">
-        <div className="jp-step active">
+        <div className={`jp-step ${currentStep >= 1 ? 'active' : ''}`}>
           <div className="jp-step-number">1</div>
+          <div className="jp-step-text">Basic Information</div>
+        </div>
+        <div className={`jp-step ${currentStep >= 2 ? 'active' : ''}`}>
+          <div className="jp-step-number">2</div>
           <div className="jp-step-text">Detailed Information</div>
         </div>
-        <div className="jp-step">
-          <div className="jp-step-number">2</div>
+        <div className={`jp-step ${currentStep >= 3 ? 'active' : ''}`}>
+          <div className="jp-step-number">3</div>
           <div className="jp-step-text">Activation Info</div>
         </div>
       </div>
@@ -360,7 +396,7 @@ export default function JobPosting() {
       </div>
 
       <div className="jp-form-container">
-        {/* BASIC INFORMATION */}
+        {currentStep === 1 && (
         <section className="jp-card">
           <div className="jp-card-title">Basic Information</div>
           <div className="jp-card-body">
@@ -368,6 +404,24 @@ export default function JobPosting() {
               <label>Job Title <span>*</span></label>
               <input type="text" name="title" value={form.title} onChange={handleChange} placeholder="e.g. Data Engineer" className={errors.title ? 'has-error' : ''} />
               {errors.title && <span className="jp-error-text">{errors.title}</span>}
+            </div>
+
+            <div className="jp-field mt-10">
+              <label>Job Description <span>*</span></label>
+              <textarea name="description" value={form.description} onChange={handleChange} rows="6" placeholder="Describe the job responsibilities..." style={{ width: '100%', padding: '12px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '15px' }} />
+              {errors.description && <span className="jp-error-text">{errors.description}</span>}
+            </div>
+
+            <div className="jp-field mt-10">
+              <label>Requirements <span>*</span></label>
+              <textarea name="requirements" value={form.requirements} onChange={handleChange} rows="6" placeholder="Describe the job requirements..." style={{ width: '100%', padding: '12px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '15px' }} />
+              {errors.requirements && <span className="jp-error-text">{errors.requirements}</span>}
+            </div>
+
+            <div className="jp-field mt-10">
+              <label>Benefits <span>*</span></label>
+              <textarea name="benefits" value={form.benefits} onChange={handleChange} rows="6" placeholder="Describe the benefits..." style={{ width: '100%', padding: '12px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '15px' }} />
+              {errors.benefits && <span className="jp-error-text">{errors.benefits}</span>}
             </div>
 
             <div className="jp-row jp-row-two">
@@ -481,10 +535,11 @@ export default function JobPosting() {
             </div>
           </div>
         </section>
+        )}
 
-        {/* ADDITIONAL INFORMATION */}
+        {currentStep === 2 && (
         <section className="jp-card mt-20">
-          <div className="jp-card-title">Additional Information</div>
+          <div className="jp-card-title">Detailed Information</div>
           <div className="jp-card-body">
             
             <IndustrySelector 
@@ -572,12 +627,37 @@ export default function JobPosting() {
 
           </div>
         </section>
+        )}
+
+        {currentStep === 3 && (
+        <section className="jp-card mt-20">
+          <div className="jp-card-title">Activation Info</div>
+          <div className="jp-card-body">
+            <p style={{ color: '#4b5563', fontSize: '15px', lineHeight: '1.6' }}>
+              You have completed the job information. Please review the details.
+              <br /><br />
+              Click <strong>"Continue & Post Job"</strong> below to submit your job posting. Our admin team will review and approve it within 1-2 business days.
+            </p>
+          </div>
+        </section>
+        )}
 
         <div className="jp-actions mt-20" style={{ borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
-          <button type="button" className="jp-btn jp-btn-cancel" onClick={() => navigate(-1)}>Cancel</button>
-          <button type="button" className="jp-btn jp-btn-primary" onClick={handleSubmit} disabled={loading}>
-            {loading ? "Processing..." : "Continue & Post Job"}
-          </button>
+          {currentStep > 1 && (
+            <button type="button" className="jp-btn jp-btn-cancel" onClick={() => { setCurrentStep(prev => prev - 1); window.scrollTo(0, 0); }}>
+              Back
+            </button>
+          )}
+          
+          {currentStep < 3 ? (
+            <button type="button" className="jp-btn jp-btn-primary" onClick={handleNext}>
+              Next Step
+            </button>
+          ) : (
+            <button type="button" className="jp-btn jp-btn-primary" onClick={handleSubmit} disabled={loading}>
+              {loading ? "Processing..." : "Continue & Post Job"}
+            </button>
+          )}
         </div>
       </div>
       </div>

@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node src/server.js",
+    "migrate": "node run_migration.js",
+    "seed:companies": "node seed_real_companies.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
