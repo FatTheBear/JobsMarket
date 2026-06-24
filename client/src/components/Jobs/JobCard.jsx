@@ -4,6 +4,7 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:5000';
 
+export default function JobCard({ job, onClick }) {
   const [imgError, setImgError] = useState(false);
   
   // States for Application Flow

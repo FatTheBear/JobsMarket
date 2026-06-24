@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import PostCreator from '../../components/Community/PostCreator';
 import './CommunityFeed.css';
@@ -131,6 +131,8 @@ const getRoleBadgeClass = (role) => {
 
 export default function CommunityFeed() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const postIdParam = searchParams.get('postId');
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -153,6 +155,58 @@ export default function CommunityFeed() {
   const [lightboxMedia, setLightboxMedia] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingCommentText, setEditingCommentText] = useState('');
+
+  const handleCommentDelete = async (postId, commentId) => {
+    if (!window.confirm('Are you sure you want to delete this comment?')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:5000/api/posts/comments/${commentId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setCommentsMap(prev => ({
+        ...prev,
+        [postId]: prev[postId].filter(c => c.id !== commentId)
+      }));
+
+      setPosts(prev => prev.map(post => {
+        if (post.id === postId) {
+          return { ...post, comments_count: Math.max(0, (post.comments_count || 0) - 1) };
+        }
+        return post;
+      }));
+    } catch (err) {
+      console.error('Failed to delete comment:', err);
+      alert('Failed to delete comment. Please try again.');
+    }
+  };
+
+  const handleCommentEditSubmit = async (postId, commentId) => {
+    if (!editingCommentText || !editingCommentText.trim()) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`http://localhost:5000/api/posts/comments/${commentId}`, {
+        content: editingCommentText.trim()
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setCommentsMap(prev => ({
+        ...prev,
+        [postId]: prev[postId].map(c => c.id === commentId ? { ...c, content: editingCommentText.trim() } : c)
+      }));
+
+      setEditingCommentId(null);
+    } catch (err) {
+      console.error('Failed to update comment:', err);
+      alert('Failed to edit comment. Please try again.');
+    }
+  };
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!lightboxMedia) return;
@@ -170,7 +224,27 @@ export default function CommunityFeed() {
 
   const isLoggedIn = !!localStorage.getItem('token');
   const currentUserId = parseInt(localStorage.getItem('userId')) || null;
-  const currentUserRole = localStorage.getItem('role') || '';
+  const userObj = JSON.parse(localStorage.getItem('user')) || null;
+  const currentUserRole = userObj?.role || '';
+
+  const handleCandidateClick = (targetUserId) => {
+    if (Number(targetUserId) === Number(currentUserId) && currentUserRole?.toLowerCase() === 'candidate') {
+      navigate('/candidate/my-profile');
+    } else {
+      navigate(`/candidate/${targetUserId}`);
+    }
+  };
+
+  const handleCompanyClick = (targetCompanyId) => {
+    const userCompanyId = userObj?.company_id || null;
+    const isSelfCompany = Number(targetCompanyId) === Number(userCompanyId);
+    const isCompanyUser = currentUserRole?.toLowerCase() === 'company' || currentUserRole?.toLowerCase() === 'hr';
+    if (isSelfCompany && isCompanyUser) {
+      navigate('/company/dashboard');
+    } else {
+      navigate(`/company/${targetCompanyId}`);
+    }
+  };
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -192,6 +266,41 @@ export default function CommunityFeed() {
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  useEffect(() => {
+    if (!loading && posts.length > 0 && postIdParam) {
+      const postId = parseInt(postIdParam);
+      setTimeout(() => {
+        const element = document.getElementById(`post-${postId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.classList.add('highlight-post');
+          
+          // Auto open comments section
+          setActiveCommentsPostId(postId);
+          
+          // Preload comments if they are not already loaded
+          if (!commentsMap[postId]) {
+            const token = localStorage.getItem('token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            axios.get(`http://localhost:5000/api/posts/${postId}/comments`, { headers })
+              .then(response => {
+                setCommentsMap(prev => ({
+                  ...prev,
+                  [postId]: response.data
+                }));
+              })
+              .catch(err => console.error('Failed to load comments:', err));
+          }
+
+          // Remove highlight after animation duration
+          setTimeout(() => {
+            element.classList.remove('highlight-post');
+          }, 3000);
+        }
+      }, 300);
+    }
+  }, [loading, posts, postIdParam]);
 
   const handlePostCreated = (newPost) => {
     // Add the newly created post to the top of the feed
@@ -451,7 +560,7 @@ export default function CommunityFeed() {
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
 
-    return date.toLocaleDateString();
+    return date.toLocaleDateString('vi-VN');
   };
 
   return (
@@ -459,6 +568,24 @@ export default function CommunityFeed() {
       <div className="row justify-content-center">
         <div className="col-12">
           
+          {/* Back to Dashboard Button */}
+          <div className="mb-4 text-start">
+            <button
+              onClick={() => {
+                const isCompanyUser = currentUserRole?.toLowerCase() === 'company' || currentUserRole?.toLowerCase() === 'hr';
+                if (isCompanyUser) {
+                  navigate('/company/dashboard');
+                } else {
+                  navigate('/dashboard');
+                }
+              }}
+              className="btn btn-link text-secondary text-decoration-none d-inline-flex align-items-center gap-2 fw-semibold p-0"
+              style={{ fontSize: '0.95rem' }}
+            >
+              <i className="fas fa-chevron-left" style={{ fontSize: '0.8rem' }}></i> Back to dashboard
+            </button>
+          </div>
+
           {/* Feed Header */}
           <div className="community-header mb-4 text-center text-lg-start">
             <h2 className="fw-bold text-dark"><i className="fas fa-users text-primary me-2"></i>Community Hub</h2>
@@ -503,7 +630,7 @@ export default function CommunityFeed() {
                 const hasMedia = !!post.media_url;
 
                 return (
-                  <div key={post.id} className="card border-0 shadow-sm post-card" style={{ borderRadius: '12px' }}>
+                  <div key={post.id} id={`post-${post.id}`} className="card border-0 shadow-sm post-card" style={{ borderRadius: '12px' }}>
                     <div className="card-body p-4">
                       
                       {/* Post Header */}
@@ -516,9 +643,9 @@ export default function CommunityFeed() {
                             style={{ width: '48px', height: '48px', objectFit: 'cover' }}
                             onClick={() => {
                               if (post.user_role?.toLowerCase() === 'candidate') {
-                                navigate(`/candidate/${post.user_id}`);
+                                handleCandidateClick(post.user_id);
                               } else if (post.company_id) {
-                                navigate(`/company/${post.company_id}`);
+                                handleCompanyClick(post.company_id);
                               }
                             }}
                           />
@@ -529,9 +656,9 @@ export default function CommunityFeed() {
                                 style={{ fontSize: '0.95rem' }}
                                 onClick={() => {
                                   if (post.user_role?.toLowerCase() === 'candidate') {
-                                    navigate(`/candidate/${post.user_id}`);
+                                    handleCandidateClick(post.user_id);
                                   } else if (post.company_id) {
-                                    navigate(`/company/${post.company_id}`);
+                                    handleCompanyClick(post.company_id);
                                   }
                                 }}
                               >
@@ -585,9 +712,9 @@ export default function CommunityFeed() {
                                   style={{ width: '32px', height: '32px', objectFit: 'cover' }}
                                   onClick={() => {
                                     if (post.parent_user_role?.toLowerCase() === 'candidate' && post.parent_author_id) {
-                                      navigate(`/candidate/${post.parent_author_id}`);
+                                      handleCandidateClick(post.parent_author_id);
                                     } else if (post.parent_company_id) {
-                                      navigate(`/company/${post.parent_company_id}`);
+                                      handleCompanyClick(post.parent_company_id);
                                     }
                                   }}
                                 />
@@ -597,9 +724,9 @@ export default function CommunityFeed() {
                                       className="fw-bold text-dark small cursor-pointer hover-text-primary"
                                       onClick={() => {
                                         if (post.parent_user_role?.toLowerCase() === 'candidate' && post.parent_author_id) {
-                                          navigate(`/candidate/${post.parent_author_id}`);
+                                          handleCandidateClick(post.parent_author_id);
                                         } else if (post.parent_company_id) {
-                                          navigate(`/company/${post.parent_company_id}`);
+                                          handleCompanyClick(post.parent_company_id);
                                         }
                                       }}
                                     >
@@ -634,9 +761,9 @@ export default function CommunityFeed() {
 
                       {/* Interaction Counts bar */}
                       <div className="d-flex align-items-center justify-content-between text-muted pb-2.5 mb-2 border-bottom" style={{ fontSize: '0.78rem' }}>
-                        <div>
-                          <i className="fas fa-thumbs-up text-primary me-1.5"></i>
-                          <span>{post.likes_count || 0} Likes</span>
+                        <div style={{ color: '#01796F' }}>
+                          <i className="fas fa-thumbs-up me-1.5" style={{ color: '#01796F' }}></i>
+                          <span className="fw-semibold">{post.likes_count || 0} Likes</span>
                         </div>
                         <div className="d-flex gap-3">
                           <span>{post.comments_count || 0} Comments</span>
@@ -648,16 +775,18 @@ export default function CommunityFeed() {
                       <div className="d-flex align-items-center justify-content-around text-muted">
                         <button
                           onClick={() => handleLike(post.id)}
-                          className={`btn-action d-inline-flex align-items-center gap-2 hover-bg-light ${post.is_liked ? 'text-primary liked' : ''}`}
+                          className={`btn-action d-inline-flex align-items-center gap-2 hover-bg-light ${post.is_liked ? 'liked' : ''}`}
+                          style={{ color: post.is_liked ? '#01796F' : undefined }}
                         >
-                          <i className={post.is_liked ? "fas fa-thumbs-up" : "far fa-thumbs-up"}></i>
+                          <i className={post.is_liked ? "fas fa-thumbs-up" : "far fa-thumbs-up"} style={{ color: post.is_liked ? '#01796F' : undefined }}></i>
                           Like
                         </button>
                         <button
                           onClick={() => toggleComments(post.id)}
-                          className={`btn-action d-inline-flex align-items-center gap-2 hover-bg-light ${activeCommentsPostId === post.id ? 'text-primary' : ''}`}
+                          className="btn-action d-inline-flex align-items-center gap-2 hover-bg-light"
+                          style={{ color: activeCommentsPostId === post.id ? '#01796F' : undefined }}
                         >
-                          <i className="far fa-comment"></i>
+                          <i className="far fa-comment" style={{ color: activeCommentsPostId === post.id ? '#01796F' : undefined }}></i>
                           Comment
                         </button>
                         <button
@@ -725,32 +854,90 @@ export default function CommunityFeed() {
                                         style={{ width: '32px', height: '32px', objectFit: 'cover' }}
                                         onClick={() => {
                                           if (comment.user_role?.toLowerCase() === 'candidate') {
-                                            navigate(`/candidate/${comment.user_id}`);
+                                            handleCandidateClick(comment.user_id);
                                           } else if (comment.company_id) {
-                                            navigate(`/company/${comment.company_id}`);
+                                            handleCompanyClick(comment.company_id);
                                           }
                                         }}
                                       />
                                       <div className="flex-grow-1">
-                                        <div className="d-flex align-items-center gap-1.5 flex-wrap">
-                                          <span 
-                                            className="fw-bold text-dark small cursor-pointer hover-text-primary" 
-                                            style={{ fontSize: '0.85rem' }}
-                                            onClick={() => {
-                                              if (comment.user_role?.toLowerCase() === 'candidate') {
-                                                navigate(`/candidate/${comment.user_id}`);
-                                              } else if (comment.company_id) {
-                                                navigate(`/company/${comment.company_id}`);
-                                              }
-                                            }}
-                                          >
-                                            {comment.author_name}
-                                          </span>
-                                          <span className={`role-badge mini ${getRoleBadgeClass(comment.user_role)}`}>
-                                            {comment.user_role?.toLowerCase() === 'candidate' ? 'Candidate' : 'Employer'}
-                                          </span>
+                                        <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                          <div className="d-flex align-items-center gap-1.5 flex-wrap">
+                                            <span 
+                                              className="fw-bold text-dark small cursor-pointer hover-text-primary" 
+                                              style={{ fontSize: '0.85rem' }}
+                                              onClick={() => {
+                                                if (comment.user_role?.toLowerCase() === 'candidate') {
+                                                  handleCandidateClick(comment.user_id);
+                                                } else if (comment.company_id) {
+                                                  handleCompanyClick(comment.company_id);
+                                                }
+                                              }}
+                                            >
+                                              {comment.author_name}
+                                            </span>
+                                            <span className={`role-badge mini ${getRoleBadgeClass(comment.user_role)}`}>
+                                              {comment.user_role?.toLowerCase() === 'candidate' ? 'Candidate' : 'Employer'}
+                                            </span>
+                                          </div>
+                                          <div className="d-flex align-items-center gap-2">
+                                            {comment.user_id === currentUserId && (
+                                              <button
+                                                type="button"
+                                                className="btn btn-link text-muted p-0 hover-primary border-0 bg-transparent"
+                                                title="Edit comment"
+                                                onClick={() => {
+                                                  setEditingCommentId(comment.id);
+                                                  setEditingCommentText(comment.content);
+                                                }}
+                                              >
+                                                <i className="fas fa-pencil-alt" style={{ fontSize: '0.7rem' }}></i>
+                                              </button>
+                                            )}
+                                            {((comment.user_id === currentUserId) || currentUserRole === 'Admin') && (
+                                              <button
+                                                type="button"
+                                                className="btn btn-link text-muted p-0 hover-danger border-0 bg-transparent"
+                                                title="Delete comment"
+                                                onClick={() => handleCommentDelete(post.id, comment.id)}
+                                              >
+                                                <i className="far fa-trash-alt" style={{ fontSize: '0.7rem' }}></i>
+                                              </button>
+                                            )}
+                                          </div>
                                         </div>
-                                        <p className="mb-0 text-dark mt-1" style={{ fontSize: '0.82rem', lineHeight: '1.4' }}>{comment.content}</p>
+                                        {editingCommentId === comment.id ? (
+                                          <div className="mt-1 d-flex flex-column gap-1.5">
+                                            <input
+                                              type="text"
+                                              className="form-control form-control-sm"
+                                              value={editingCommentText}
+                                              onChange={(e) => setEditingCommentText(e.target.value)}
+                                              autoFocus
+                                            />
+                                            <div className="d-flex gap-2 justify-content-end mt-1">
+                                              <button 
+                                                type="button" 
+                                                className="btn btn-sm btn-light border py-0 px-2"
+                                                style={{ fontSize: '0.7rem' }}
+                                                onClick={() => setEditingCommentId(null)}
+                                              >
+                                                Cancel
+                                              </button>
+                                              <button 
+                                                type="button" 
+                                                className="btn btn-sm btn-primary py-0 px-2 border-0"
+                                                style={{ fontSize: '0.7rem', backgroundColor: '#01796F' }}
+                                                onClick={() => handleCommentEditSubmit(post.id, comment.id)}
+                                                disabled={!editingCommentText.trim() || editingCommentText.trim() === comment.content}
+                                              >
+                                                Save
+                                              </button>
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <p className="mb-0 text-dark mt-1" style={{ fontSize: '0.82rem', lineHeight: '1.4' }}>{comment.content}</p>
+                                        )}
                                         <div className="d-flex align-items-center gap-2 mt-1 text-muted" style={{ fontSize: '0.68rem' }}>
                                           <span>{formatPostTime(comment.created_at)}</span>
                                           <span>•</span>
@@ -798,32 +985,90 @@ export default function CommunityFeed() {
                                               style={{ width: '26px', height: '26px', objectFit: 'cover' }}
                                               onClick={() => {
                                                 if (reply.user_role?.toLowerCase() === 'candidate') {
-                                                  navigate(`/candidate/${reply.user_id}`);
+                                                  handleCandidateClick(reply.user_id);
                                                 } else if (reply.company_id) {
-                                                  navigate(`/company/${reply.company_id}`);
+                                                  handleCompanyClick(reply.company_id);
                                                 }
                                               }}
                                             />
                                             <div className="flex-grow-1">
-                                              <div className="d-flex align-items-center gap-1.5 flex-wrap">
-                                                <span 
-                                                  className="fw-bold text-dark small cursor-pointer hover-text-primary" 
-                                                  style={{ fontSize: '0.8rem' }}
-                                                  onClick={() => {
-                                                    if (reply.user_role?.toLowerCase() === 'candidate') {
-                                                      navigate(`/candidate/${reply.user_id}`);
-                                                    } else if (reply.company_id) {
-                                                      navigate(`/company/${reply.company_id}`);
-                                                    }
-                                                  }}
-                                                >
-                                                  {reply.author_name}
-                                                </span>
-                                                <span className={`role-badge mini ${getRoleBadgeClass(reply.user_role)}`} style={{ fontSize: '0.55rem', padding: '1px 5px' }}>
-                                                  {reply.user_role?.toLowerCase() === 'candidate' ? 'Candidate' : 'Employer'}
-                                                </span>
-                                              </div>
-                                              <p className="mb-0 text-dark mt-0.5" style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>{reply.content}</p>
+                                                <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                                  <div className="d-flex align-items-center gap-1.5 flex-wrap">
+                                                    <span 
+                                                      className="fw-bold text-dark small cursor-pointer hover-text-primary" 
+                                                      style={{ fontSize: '0.8rem' }}
+                                                      onClick={() => {
+                                                        if (reply.user_role?.toLowerCase() === 'candidate') {
+                                                          handleCandidateClick(reply.user_id);
+                                                        } else if (reply.company_id) {
+                                                          handleCompanyClick(reply.company_id);
+                                                        }
+                                                      }}
+                                                    >
+                                                      {reply.author_name}
+                                                    </span>
+                                                    <span className={`role-badge mini ${getRoleBadgeClass(reply.user_role)}`} style={{ fontSize: '0.55rem', padding: '1px 5px' }}>
+                                                      {reply.user_role?.toLowerCase() === 'candidate' ? 'Candidate' : 'Employer'}
+                                                    </span>
+                                                  </div>
+                                                  <div className="d-flex align-items-center gap-2">
+                                                    {reply.user_id === currentUserId && (
+                                                      <button
+                                                        type="button"
+                                                        className="btn btn-link text-muted p-0 hover-primary border-0 bg-transparent"
+                                                        title="Edit comment"
+                                                        onClick={() => {
+                                                          setEditingCommentId(reply.id);
+                                                          setEditingCommentText(reply.content);
+                                                        }}
+                                                      >
+                                                        <i className="fas fa-pencil-alt" style={{ fontSize: '0.65rem' }}></i>
+                                                      </button>
+                                                    )}
+                                                    {((reply.user_id === currentUserId) || currentUserRole === 'Admin') && (
+                                                      <button
+                                                        type="button"
+                                                        className="btn btn-link text-muted p-0 hover-danger border-0 bg-transparent"
+                                                        title="Delete comment"
+                                                        onClick={() => handleCommentDelete(post.id, reply.id)}
+                                                      >
+                                                        <i className="far fa-trash-alt" style={{ fontSize: '0.65rem' }}></i>
+                                                      </button>
+                                                    )}
+                                                  </div>
+                                                </div>
+                                                {editingCommentId === reply.id ? (
+                                                  <div className="mt-1 d-flex flex-column gap-1.5">
+                                                    <input
+                                                      type="text"
+                                                      className="form-control form-control-sm"
+                                                      value={editingCommentText}
+                                                      onChange={(e) => setEditingCommentText(e.target.value)}
+                                                      autoFocus
+                                                    />
+                                                    <div className="d-flex gap-2 justify-content-end mt-1">
+                                                      <button 
+                                                        type="button" 
+                                                        className="btn btn-sm btn-light border py-0 px-2"
+                                                        style={{ fontSize: '0.65rem' }}
+                                                        onClick={() => setEditingCommentId(null)}
+                                                      >
+                                                        Cancel
+                                                      </button>
+                                                      <button 
+                                                        type="button" 
+                                                        className="btn btn-sm btn-primary py-0 px-2 border-0"
+                                                        style={{ fontSize: '0.65rem', backgroundColor: '#01796F' }}
+                                                        onClick={() => handleCommentEditSubmit(post.id, reply.id)}
+                                                        disabled={!editingCommentText.trim() || editingCommentText.trim() === reply.content}
+                                                      >
+                                                        Save
+                                                      </button>
+                                                    </div>
+                                                  </div>
+                                                ) : (
+                                                  <p className="mb-0 text-dark mt-0.5" style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>{reply.content}</p>
+                                                )}
                                               <div className="d-flex align-items-center gap-2 mt-1 text-muted" style={{ fontSize: '0.65rem' }}>
                                                 <span>{formatPostTime(reply.created_at)}</span>
                                                 <span>•</span>

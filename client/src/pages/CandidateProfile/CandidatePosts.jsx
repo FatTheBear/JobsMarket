@@ -140,12 +140,66 @@ const formatPostTime = (timeStr) => {
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
 
-  return date.toLocaleDateString();
+  return date.toLocaleDateString('vi-VN');
 };
 
 const CandidatePosts = ({ candidatePosts, setCandidatePosts }) => {
   const [lightboxMedia, setLightboxMedia] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingCommentText, setEditingCommentText] = useState('');
+
+  const handleCommentDelete = async (postId, commentId) => {
+    if (!window.confirm('Are you sure you want to delete this comment?')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:5000/api/posts/comments/${commentId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setCommentsMap(prev => ({
+        ...prev,
+        [postId]: prev[postId].filter(c => c.id !== commentId)
+      }));
+
+      if (setCandidatePosts) {
+        setCandidatePosts(prev => prev.map(post => {
+          if (post.id === postId) {
+            return { ...post, comments: Math.max(0, (post.comments || 0) - 1) };
+          }
+          return post;
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to delete comment:', err);
+      alert('Failed to delete comment. Please try again.');
+    }
+  };
+
+  const handleCommentEditSubmit = async (postId, commentId) => {
+    if (!editingCommentText || !editingCommentText.trim()) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`http://localhost:5000/api/posts/comments/${commentId}`, {
+        content: editingCommentText.trim()
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setCommentsMap(prev => ({
+        ...prev,
+        [postId]: prev[postId].map(c => c.id === commentId ? { ...c, content: editingCommentText.trim() } : c)
+      }));
+
+      setEditingCommentId(null);
+    } catch (err) {
+      console.error('Failed to update comment:', err);
+      alert('Failed to edit comment. Please try again.');
+    }
+  };
 
   const [commentsMap, setCommentsMap] = useState({});
   const [activeCommentsPostId, setActiveCommentsPostId] = useState(null);
@@ -639,13 +693,71 @@ const CandidatePosts = ({ candidatePosts, setCandidatePosts }) => {
                                     style={{ width: '32px', height: '32px', objectFit: 'cover' }}
                                   />
                                   <div className="flex-grow-1">
-                                    <div className="d-flex align-items-center gap-1.5 flex-wrap">
-                                      <span className="fw-bold text-dark small" style={{ fontSize: '0.85rem' }}>{comment.author_name}</span>
-                                      <span className={`role-badge mini ${getRoleBadgeClass(comment.user_role)}`}>
-                                        {comment.user_role?.toLowerCase() === 'candidate' ? 'Candidate' : 'Employer'}
-                                      </span>
+                                    <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                      <div className="d-flex align-items-center gap-1.5 flex-wrap">
+                                        <span className="fw-bold text-dark small" style={{ fontSize: '0.85rem' }}>{comment.author_name}</span>
+                                        <span className={`role-badge mini ${getRoleBadgeClass(comment.user_role)}`}>
+                                          {comment.user_role?.toLowerCase() === 'candidate' ? 'Candidate' : 'Employer'}
+                                        </span>
+                                      </div>
+                                      <div className="d-flex align-items-center gap-2">
+                                        {comment.user_id === currentUserId && (
+                                          <button
+                                            type="button"
+                                            className="btn btn-link text-muted p-0 hover-primary border-0 bg-transparent"
+                                            title="Edit comment"
+                                            onClick={() => {
+                                              setEditingCommentId(comment.id);
+                                              setEditingCommentText(comment.content);
+                                            }}
+                                          >
+                                            <i className="fas fa-pencil-alt" style={{ fontSize: '0.7rem' }}></i>
+                                          </button>
+                                        )}
+                                        {((comment.user_id === currentUserId) || currentUserRole === 'Admin') && (
+                                          <button
+                                            type="button"
+                                            className="btn btn-link text-muted p-0 hover-danger border-0 bg-transparent"
+                                            title="Delete comment"
+                                            onClick={() => handleCommentDelete(post.id, comment.id)}
+                                          >
+                                            <i className="far fa-trash-alt" style={{ fontSize: '0.7rem' }}></i>
+                                          </button>
+                                        )}
+                                      </div>
                                     </div>
-                                    <p className="mb-0 text-dark mt-1" style={{ fontSize: '0.82rem', lineHeight: '1.4' }}>{comment.content}</p>
+                                    {editingCommentId === comment.id ? (
+                                      <div className="mt-1 d-flex flex-column gap-1.5">
+                                        <input
+                                          type="text"
+                                          className="form-control form-control-sm"
+                                          value={editingCommentText}
+                                          onChange={(e) => setEditingCommentText(e.target.value)}
+                                          autoFocus
+                                        />
+                                        <div className="d-flex gap-2 justify-content-end mt-1">
+                                          <button 
+                                            type="button" 
+                                            className="btn btn-sm btn-light border py-0 px-2"
+                                            style={{ fontSize: '0.7rem' }}
+                                            onClick={() => setEditingCommentId(null)}
+                                          >
+                                            Cancel
+                                          </button>
+                                          <button 
+                                            type="button" 
+                                            className="btn btn-sm btn-primary py-0 px-2 border-0"
+                                            style={{ fontSize: '0.7rem', backgroundColor: '#01796F' }}
+                                            onClick={() => handleCommentEditSubmit(post.id, comment.id)}
+                                            disabled={!editingCommentText.trim() || editingCommentText.trim() === comment.content}
+                                          >
+                                            Save
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <p className="mb-0 text-dark mt-1" style={{ fontSize: '0.82rem', lineHeight: '1.4' }}>{comment.content}</p>
+                                    )}
                                     <div className="d-flex align-items-center gap-2 mt-1 text-muted" style={{ fontSize: '0.68rem' }}>
                                       <span>{formatPostTime(comment.created_at)}</span>
                                       <span>•</span>
@@ -694,13 +806,71 @@ const CandidatePosts = ({ candidatePosts, setCandidatePosts }) => {
                                           style={{ width: '26px', height: '26px', objectFit: 'cover' }}
                                         />
                                         <div className="flex-grow-1">
-                                          <div className="d-flex align-items-center gap-1.5 flex-wrap">
-                                            <span className="fw-bold text-dark small" style={{ fontSize: '0.8rem' }}>{reply.author_name}</span>
-                                            <span className={`role-badge mini ${getRoleBadgeClass(reply.user_role)}`} style={{ fontSize: '0.55rem', padding: '1px 5px' }}>
-                                              {reply.user_role?.toLowerCase() === 'candidate' ? 'Candidate' : 'Employer'}
-                                            </span>
+                                          <div className="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                            <div className="d-flex align-items-center gap-1.5 flex-wrap">
+                                              <span className="fw-bold text-dark small" style={{ fontSize: '0.8rem' }}>{reply.author_name}</span>
+                                              <span className={`role-badge mini ${getRoleBadgeClass(reply.user_role)}`} style={{ fontSize: '0.55rem', padding: '1px 5px' }}>
+                                                {reply.user_role?.toLowerCase() === 'candidate' ? 'Candidate' : 'Employer'}
+                                              </span>
+                                            </div>
+                                            <div className="d-flex align-items-center gap-2">
+                                              {reply.user_id === currentUserId && (
+                                                <button
+                                                  type="button"
+                                                  className="btn btn-link text-muted p-0 hover-primary border-0 bg-transparent"
+                                                  title="Edit comment"
+                                                  onClick={() => {
+                                                    setEditingCommentId(reply.id);
+                                                    setEditingCommentText(reply.content);
+                                                  }}
+                                                >
+                                                  <i className="fas fa-pencil-alt" style={{ fontSize: '0.65rem' }}></i>
+                                                </button>
+                                              )}
+                                              {((reply.user_id === currentUserId) || currentUserRole === 'Admin') && (
+                                                <button
+                                                  type="button"
+                                                  className="btn btn-link text-muted p-0 hover-danger border-0 bg-transparent"
+                                                  title="Delete comment"
+                                                  onClick={() => handleCommentDelete(post.id, reply.id)}
+                                                >
+                                                  <i className="far fa-trash-alt" style={{ fontSize: '0.65rem' }}></i>
+                                                </button>
+                                              )}
+                                            </div>
                                           </div>
-                                          <p className="mb-0 text-dark mt-0.5" style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>{reply.content}</p>
+                                          {editingCommentId === reply.id ? (
+                                            <div className="mt-1 d-flex flex-column gap-1.5">
+                                              <input
+                                                type="text"
+                                                className="form-control form-control-sm"
+                                                value={editingCommentText}
+                                                onChange={(e) => setEditingCommentText(e.target.value)}
+                                                autoFocus
+                                              />
+                                              <div className="d-flex gap-2 justify-content-end mt-1">
+                                                <button 
+                                                  type="button" 
+                                                  className="btn btn-sm btn-light border py-0 px-2"
+                                                  style={{ fontSize: '0.65rem' }}
+                                                  onClick={() => setEditingCommentId(null)}
+                                                >
+                                                  Cancel
+                                                </button>
+                                                <button 
+                                                  type="button" 
+                                                  className="btn btn-sm btn-primary py-0 px-2 border-0"
+                                                  style={{ fontSize: '0.65rem', backgroundColor: '#01796F' }}
+                                                  onClick={() => handleCommentEditSubmit(post.id, reply.id)}
+                                                  disabled={!editingCommentText.trim() || editingCommentText.trim() === reply.content}
+                                                >
+                                                  Save
+                                                </button>
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <p className="mb-0 text-dark mt-0.5" style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>{reply.content}</p>
+                                          )}
                                           <div className="d-flex align-items-center gap-2 mt-1 text-muted" style={{ fontSize: '0.65rem' }}>
                                             <span>{formatPostTime(reply.created_at)}</span>
                                             <span>•</span>

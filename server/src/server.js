@@ -1,12 +1,14 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+
 const express = require("express");
 const cors = require("cors");
 const { Server } = require('socket.io');
 const http = require('http');
-const dotenv = require("dotenv");
 const app = express();
 const server = http.createServer(app);
-const path = require('path');
 const authController = require('./controllers/authController');
+
 
 
 app.use(cors());
@@ -16,7 +18,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 
 const { uploadCompany } = require('./middleware/upload');
-app.post('/register-company', uploadCompany.fields([
+app.post('/api/auth/register-company', uploadCompany.fields([
     { name: 'logo', maxCount: 1 },
     { name: 'businessLicense', maxCount: 1 }
 ]), authController.registerCompany);
@@ -51,7 +53,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/candidate', candidateRoutes);
 app.use('/api/wallet', walletRoutes);
-app.use('/api/company', companyRoutes);
 app.use('/api/skills', skillsRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/jobs', jobs);
