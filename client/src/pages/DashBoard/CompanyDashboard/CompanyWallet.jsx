@@ -4,7 +4,14 @@ import RechargeCoins from '../../CandidateProfile/RechargeCoins';
 
 const CompanyWallet = () => {
   const { coins, transactions } = useWallet();
-  const [activeWalletTab, setActiveWalletTab] = useState('history'); // 'history' or 'topup'
+  const [activeWalletTab, setActiveWalletTab] = useState(() => {
+    const saved = localStorage.getItem('walletActiveTab');
+    if (saved) {
+      localStorage.removeItem('walletActiveTab');
+      return saved;
+    }
+    return 'history';
+  });
 
   return (
     <div className="animate-fade-in d-flex flex-column gap-4 p-4" style={{ maxWidth: '800px', margin: '0 auto' }}>

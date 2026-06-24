@@ -183,7 +183,8 @@ export default function CandidatePublicProfile() {
                 id: idx + 1,
                 degree: e.degree || 'Degree / Field of Study',
                 school: e.school || 'School / Institute',
-                duration: durationText
+                duration: durationText,
+                description: e.description || ''
               };
             }));
           }
@@ -217,7 +218,8 @@ export default function CandidatePublicProfile() {
                 id: idx + 1,
                 role: e.role || 'Job Title',
                 company: e.company || 'Company Name',
-                duration: durationText
+                duration: durationText,
+                description: e.description || ''
               };
             }));
           }
@@ -267,7 +269,7 @@ export default function CandidatePublicProfile() {
               user_id: p.user_id,
               author: p.author_name || authorName,
               avatar: p.author_avatar || authorAvatar,
-              time: p.created_at ? new Date(p.created_at).toLocaleDateString() : 'Just now',
+              time: p.created_at ? new Date(p.created_at).toLocaleDateString('vi-VN') : 'Just now',
               content: p.content,
               mediaList: p.mediaList || [],
               likes: p.likes_count || 0,
@@ -341,321 +343,381 @@ export default function CandidatePublicProfile() {
 
   return (
     <section className="profile-section">
-      <div className="container py-5">
+      <div className="animate-fade-in container py-4" style={{ fontFamily: 'Outfit, sans-serif' }}>
+      
+      {/* Navigation back */}
+      <div className="mb-4">
+        <button onClick={() => navigate(-1)} className="btn btn-link text-secondary text-decoration-none d-inline-flex align-items-center gap-2 fw-semibold p-0" style={{ fontSize: '0.95rem' }}>
+          <i className="fas fa-chevron-left" style={{ fontSize: '0.8rem' }}></i> Back
+        </button>
+      </div>
 
-        {/* Navigation back */}
-        <div className="mb-4">
-          <button onClick={() => navigate(-1)} className="btn btn-link text-secondary text-decoration-none d-inline-flex align-items-center gap-2 fw-semibold p-0" style={{ fontSize: '0.95rem' }}>
-            <i className="fas fa-chevron-left" style={{ fontSize: '0.8rem' }}></i> Back
-          </button>
-        </div>
-
-        <div className="animate-fade-in d-flex flex-column gap-4">
-          {/* ── Profile Hero Card ── */}
-          <div className="candidate-new-hero">
-            <div className="row align-items-center g-4">
-              <div className="col-12 col-md-auto text-center text-md-start">
-                <div className="hero-avatar-container">
-                  <img src={profileData.avatar} alt="avatar" />
-                </div>
+      <div className="row g-4">
+        
+        {/* ── Left Column (Overview & Social Profiles) ── */}
+        <div className="col-12 col-lg-4">
+          
+          {/* Candidate Overview Card */}
+          <div className="card border-0 shadow-sm p-4 text-center" style={{ borderRadius: '12px', background: '#fff' }}>
+            <div className="position-relative mx-auto mb-3" style={{ width: '120px', height: '120px' }}>
+              <img
+                src={profileData.avatar || '/default-avatar.png'}
+                alt="candidate avatar"
+                className="rounded-circle border border-2 shadow-sm w-100 h-100"
+                style={{ objectFit: 'cover' }}
+              />
+            </div>
+            <h4 className="fw-bold text-dark mb-1">{profileData.displayName || 'Candidate Name'}</h4>
+            <p className="text-primary small fw-semibold mb-3">{profileData.jobTitle || 'Full Stack Web Developer'}</p>
+            
+            <div className="d-flex justify-content-center gap-4 border-top border-bottom py-2.5 my-3 text-muted small">
+              <div>
+                <span className="d-block fw-bold text-dark fs-5">{calculateCustomExperienceYears(workExperiences)}</span>
+                Years Exp
               </div>
-              <div className="col-12 col-md flex-grow-1 text-center text-md-start">
-                <h2 className="hero-candidate-name m-0">{profileData.displayName || 'Candidate Name'}</h2>
-                <div className="hero-candidate-title fw-semibold" style={{ fontSize: '1.15rem', color: '#01796F', marginTop: '4px' }}>
-                  {profileData.jobTitle || 'No Title'}
-                </div>
-                <div className="hero-action-buttons justify-content-center justify-content-md-start mt-3">
-                  <button type="button" className="btn btn-new-contact" onClick={() => setShowPersonalInfo(true)}>Contact</button>
-                  
-                  {/* Dropdown list of public CVs */}
-                  <div className="position-relative d-inline-block">
-                    <button
-                      type="button"
-                      className="btn btn-new-contact d-inline-flex align-items-center gap-1.5"
-                      style={{ backgroundColor: '#01796F', borderColor: '#01796F', color: '#fff' }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowCvDropdown(!showCvDropdown);
-                      }}
-                    >
-                      <i className="far fa-file-pdf"></i> CV <i className={`fas fa-chevron-${showCvDropdown ? 'up' : 'down'}`} style={{ fontSize: '0.75rem' }}></i>
-                    </button>
-                    {showCvDropdown && (
-                      <div 
-                        className="dropdown-menu show position-absolute start-0 mt-2 p-2 shadow border-0" 
-                        style={{ 
-                          zIndex: 1000, 
-                          minWidth: '220px', 
-                          borderRadius: '8px',
-                          background: '#fff',
-                          maxHeight: '280px',
-                          overflowY: 'auto'
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {cvList.length > 0 ? (
-                          cvList.map(cv => (
-                            <a
-                              key={cv.id}
-                              href={cv.dataUrl}
-                              download={cv.name}
-                              className="dropdown-item d-flex flex-column align-items-start gap-1 py-2 px-3 rounded hover-bg-light text-decoration-none"
-                              style={{ borderBottom: '1px solid #f1f5f9' }}
-                            >
-                              <span className="fw-semibold text-dark text-truncate w-100" style={{ fontSize: '0.85rem' }} title={cv.name}>
-                                {cv.name}
-                              </span>
-                              <span className="text-muted small" style={{ fontSize: '0.7rem' }}>
-                                {cv.uploadedAt} • {cv.size}
-                              </span>
-                            </a>
-                          ))
-                        ) : (
-                          <div className="text-muted text-center py-2 small">No CV uploaded.</div>
-                        )}
-                      </div>
+              <div className="border-end"></div>
+              <div>
+                <span className="d-block fw-bold text-dark fs-5">{profileData.age || 'N/A'}</span>
+                Age
+              </div>
+            </div>
+
+            <div className="d-flex flex-column gap-2 mt-3">
+              <button
+                type="button"
+                className="btn w-100 rounded-pill fw-bold py-2 text-white transition-all"
+                onClick={() => setShowPersonalInfo(true)}
+                style={{ backgroundColor: '#01796F', borderColor: '#01796F' }}
+              >
+                Contact Info
+              </button>
+              
+              {/* Dropdown list of public CVs */}
+              <div className="position-relative w-100">
+                <button
+                  type="button"
+                  className="btn w-100 rounded-pill fw-bold py-2 btn-outline-secondary transition-all d-flex align-items-center justify-content-center gap-1.5"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowCvDropdown(!showCvDropdown);
+                  }}
+                >
+                  <i className="far fa-file-pdf"></i> CV <i className={`fas fa-chevron-${showCvDropdown ? 'up' : 'down'}`} style={{ fontSize: '0.75rem' }}></i>
+                </button>
+                {showCvDropdown && (
+                  <div 
+                    className="dropdown-menu show position-absolute start-0 mt-2 p-2 shadow border-0 w-100" 
+                    style={{ 
+                      zIndex: 1000, 
+                      borderRadius: '8px',
+                      background: '#fff',
+                      maxHeight: '280px',
+                      overflowY: 'auto'
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {cvList.length > 0 ? (
+                      cvList.map(cv => (
+                        <a
+                          key={cv.id}
+                          href={cv.dataUrl}
+                          download={cv.name}
+                          className="dropdown-item d-flex flex-column align-items-start gap-1 py-2 px-3 rounded hover-bg-light text-decoration-none"
+                          style={{ borderBottom: '1px solid #f1f5f9' }}
+                        >
+                          <span className="fw-semibold text-dark text-truncate w-100" style={{ fontSize: '0.85rem' }} title={cv.name}>
+                            {cv.name}
+                          </span>
+                          <span className="text-muted small" style={{ fontSize: '0.7rem' }}>
+                            {cv.uploadedAt} • {cv.size}
+                          </span>
+                        </a>
+                      ))
+                    ) : (
+                      <div className="text-muted text-center py-2 small">No CV uploaded.</div>
                     )}
                   </div>
-                </div>
-              </div>
-              <div className="col-12 col-md-4 border-start px-md-4">
-                <ul className="hero-detail-list">
-                  <li>
-                    <span className="detail-label">Age:</span>
-                    <span className="detail-value">{profileData.age || 'N/A'}</span>
-                  </li>
-                  <li>
-                    <span className="detail-label">Nationality:</span>
-                    <span className="detail-value">{profileData.nationality || 'Not specified'}</span>
-                  </li>
-                  <li>
-                    <span className="detail-label">Location:</span>
-                    <span className="detail-value text-truncate" style={{ maxWidth: '180px' }} title={profileData.address || 'Not specified'}>
-                      {profileData.address || 'Not specified'}
-                    </span>
-                  </li>
-                  <li>
-                    <span className="detail-label">Years Experience:</span>
-                    <span className="detail-value text-truncate" style={{ maxWidth: '180px' }}>
-                      {calculateCustomExperienceYears(workExperiences)} Years
-                    </span>
-                  </li>
-                </ul>
-                <div className="hero-social-icons gap-3 mt-3" style={{ justifyContent: 'flex-start' }}>
-                  <a
-                    href={profileData.portfolio || '#'}
-                    target={profileData.portfolio ? "_blank" : undefined}
-                    rel="noopener noreferrer"
-                    title={profileData.portfolio ? "Website/Portfolio: " + profileData.portfolio : "Website/Portfolio (Not added)"}
-                    style={{
-                      pointerEvents: profileData.portfolio ? 'auto' : 'none',
-                      opacity: profileData.portfolio ? 1 : 0.35,
-                      color: profileData.portfolio ? '#0d6efd' : '#cbd5e1',
-                      fontSize: '1.35rem'
-                    }}
-                  >
-                    <i className="fas fa-globe"></i>
-                  </a>
-                  <a
-                    href={profileData.blog || '#'}
-                    target={profileData.blog ? "_blank" : undefined}
-                    rel="noopener noreferrer"
-                    title={profileData.blog ? "Blog: " + profileData.blog : "Blog (Not added)"}
-                    style={{
-                      pointerEvents: profileData.blog ? 'auto' : 'none',
-                      opacity: profileData.blog ? 1 : 0.35,
-                      color: profileData.blog ? '#198754' : '#cbd5e1',
-                      fontSize: '1.35rem'
-                    }}
-                  >
-                    <i className="fas fa-blog"></i>
-                  </a>
-                  <a
-                    href={profileData.github || '#'}
-                    target={profileData.github ? "_blank" : undefined}
-                    rel="noopener noreferrer"
-                    title={profileData.github ? "GitHub: " + profileData.github : "GitHub (Not added)"}
-                    style={{
-                      pointerEvents: profileData.github ? 'auto' : 'none',
-                      opacity: profileData.github ? 1 : 0.35,
-                      color: profileData.github ? '#212529' : '#cbd5e1',
-                      fontSize: '1.35rem'
-                    }}
-                  >
-                    <i className="fab fa-github"></i>
-                  </a>
-                  <a
-                    href={profileData.facebook || '#'}
-                    target={profileData.facebook ? "_blank" : undefined}
-                    rel="noopener noreferrer"
-                    title={profileData.facebook ? "Facebook: " + profileData.facebook : "Facebook (Not added)"}
-                    style={{
-                      pointerEvents: profileData.facebook ? 'auto' : 'none',
-                      opacity: profileData.facebook ? 1 : 0.35,
-                      color: profileData.facebook ? '#1877f2' : '#cbd5e1',
-                      fontSize: '1.35rem'
-                    }}
-                  >
-                    <i className="fab fa-facebook"></i>
-                  </a>
-                  <a
-                    href={profileData.x || '#'}
-                    target={profileData.x ? "_blank" : undefined}
-                    rel="noopener noreferrer"
-                    title={profileData.x ? "X (Twitter): " + profileData.x : "X (Twitter) (Not added)"}
-                    style={{
-                      pointerEvents: profileData.x ? 'auto' : 'none',
-                      opacity: profileData.x ? 1 : 0.35,
-                      color: profileData.x ? '#0f1419' : '#cbd5e1',
-                      fontSize: '1.35rem'
-                    }}
-                  >
-                    <i className="fab fa-twitter"></i>
-                  </a>
-                  <a
-                    href={profileData.linkedin || '#'}
-                    target={profileData.linkedin ? "_blank" : undefined}
-                    rel="noopener noreferrer"
-                    title={profileData.linkedin ? "LinkedIn: " + profileData.linkedin : "LinkedIn (Not added)"}
-                    style={{
-                      pointerEvents: profileData.linkedin ? 'auto' : 'none',
-                      opacity: profileData.linkedin ? 1 : 0.35,
-                      color: profileData.linkedin ? '#0a66c2' : '#cbd5e1',
-                      fontSize: '1.35rem'
-                    }}
-                  >
-                    <i className="fab fa-linkedin"></i>
-                  </a>
-                </div>
+                )}
               </div>
             </div>
           </div>
 
-          {/* ── Main Profile Details (About, Experience, Education, Skills, Languages, Certifications, Awards) ── */}
-          <div className="column-card border-0 shadow-sm rounded-3">
-            <div className="column-card-section-title" style={{ marginTop: 0 }}>About</div>
-            <div className="about-text">
-              {profileData.about || 'No bio added yet.'}
-            </div>
-
-            <div className="column-card-section-title">Experience</div>
-            <div className="d-flex flex-column gap-3.5 mt-2">
-              {workExperiences && workExperiences.length > 0 ? (
-                workExperiences.map((exp, idx) => (
-                  <div key={exp.id || idx} className="mb-4 profile-text-entry">
-                    <div>
-                      <h5 className="m-0 fw-bold text-dark" style={{ fontSize: '1.05rem' }}>
-                        <i className="fas fa-briefcase text-primary me-2" style={{ fontSize: '0.9rem' }}></i>{exp.role}
-                      </h5>
-                      <div className="d-flex align-items-center flex-wrap gap-2 mt-1.5" style={{ fontSize: '0.9rem', color: '#64748b' }}>
-                        <span className="fw-semibold text-secondary">{exp.company}</span>
-                        <span>•</span>
-                        <span className="d-flex align-items-center gap-1.5">
-                          <i className="far fa-calendar-alt" style={{ fontSize: '0.85rem' }}></i>
-                          {exp.duration}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-muted small mb-0">No experience added yet.</p>
-              )}
-            </div>
-
-            <div className="column-card-section-title">Education</div>
-            <div className="d-flex flex-column gap-3.5 mt-2">
-              {educations && educations.length > 0 ? (
-                educations.map((edu, idx) => (
-                  <div key={edu.id || idx} className="mb-4 profile-text-entry">
-                    <div>
-                      <h5 className="m-0 fw-bold text-dark" style={{ fontSize: '1.05rem' }}>
-                        <i className="fas fa-university text-primary me-2" style={{ fontSize: '0.9rem' }}></i>{edu.degree}
-                      </h5>
-                      <div className="d-flex align-items-center flex-wrap gap-2 mt-1.5" style={{ fontSize: '0.9rem', color: '#64748b' }}>
-                        <span className="fw-semibold text-secondary">{edu.school}</span>
-                        <span>•</span>
-                        <span className="d-flex align-items-center gap-1.5">
-                          <i className="far fa-calendar-alt" style={{ fontSize: '0.85rem' }}></i>
-                          {edu.duration}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-muted small mb-0">No education added yet.</p>
-              )}
-            </div>
-
-            <div className="column-card-section-title">Skills</div>
-            <div className="skills-container">
-              {skills && skills.length > 0 ? (
-                skills.map(s => (
-                  <span key={s.id || s.name} className="skill-tag-chip">{s.name} ({s.level}%)</span>
-                ))
-              ) : (
-                <p className="text-muted small mb-0">No skills added yet.</p>
-              )}
-            </div>
-
-            <div className="column-card-section-title">Languages</div>
-            <div className="skills-container">
-              {languages && languages.length > 0 ? (
-                languages.map((lang, idx) => (
-                  <span key={lang.id || idx} className="skill-tag-chip">
-                    <i className="fas fa-globe text-primary me-1.5" style={{ fontSize: '0.8rem' }}></i>
-                    <strong className="text-dark">{lang.name}</strong>
-                    <span className="text-muted small ms-1.5">({lang.level})</span>
-                  </span>
-                ))
-              ) : (
-                <p className="text-muted small mb-0">No languages added yet.</p>
-              )}
-            </div>
-
-            <div className="column-card-section-title">Certifications</div>
-            <div className="skills-container">
-              {certifications && certifications.length > 0 ? (
-                certifications.map((cert, idx) => (
-                  <span key={cert.id || idx} className="skill-tag-chip">
-                    <i className="fas fa-certificate text-primary me-1.5" style={{ fontSize: '0.8rem' }}></i>
-                    {cert.name}
-                  </span>
-                ))
-              ) : (
-                <p className="text-muted small mb-0">No certifications added yet.</p>
-              )}
-            </div>
-
-            <div className="column-card-section-title">Awards & Achievements</div>
-            <div className="skills-container">
-              {awards && awards.length > 0 ? (
-                awards.map((award, idx) => (
-                  <span
-                    key={award.id || idx}
-                    className="skill-tag-chip cursor-pointer"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => setSelectedAward(award)}
-                    title="Click to view details"
-                  >
-                    <i className="fas fa-award text-primary me-1.5" style={{ fontSize: '0.8rem' }}></i>
-                    <strong className="text-dark">{award.title}</strong>
-                    <span className="text-muted small ms-1.5">({formatAwardDate(award.date)})</span>
-                    <span className="text-secondary small ms-1.5">• {award.issuer}</span>
-                  </span>
-                ))
-              ) : (
-                <p className="text-muted small mb-0">No awards added yet.</p>
-              )}
+          {/* Social Profiles Card */}
+          <div className="card border-0 shadow-sm p-4 mt-4" style={{ borderRadius: '12px', background: '#fff' }}>
+            <h5 className="fw-bold text-dark mb-3">
+              <i className="fas fa-share-alt text-primary me-2"></i>Social Profiles
+            </h5>
+            <div className="d-flex gap-3 flex-wrap justify-content-center">
+              <a
+                href={profileData.portfolio || '#'}
+                target={profileData.portfolio ? "_blank" : undefined}
+                rel="noopener noreferrer"
+                title={profileData.portfolio ? "Website/Portfolio" : "No Portfolio"}
+                style={{
+                  pointerEvents: profileData.portfolio ? 'auto' : 'none',
+                  opacity: profileData.portfolio ? 1 : 0.35,
+                  color: '#0d6efd',
+                  fontSize: '1.25rem'
+                }}
+              >
+                <i className="fas fa-globe"></i>
+              </a>
+              <a
+                href={profileData.blog || '#'}
+                target={profileData.blog ? "_blank" : undefined}
+                rel="noopener noreferrer"
+                title={profileData.blog ? "Blog" : "No Blog"}
+                style={{
+                  pointerEvents: profileData.blog ? 'auto' : 'none',
+                  opacity: profileData.blog ? 1 : 0.35,
+                  color: '#198754',
+                  fontSize: '1.25rem'
+                }}
+              >
+                <i className="fas fa-blog"></i>
+              </a>
+              <a
+                href={profileData.github || '#'}
+                target={profileData.github ? "_blank" : undefined}
+                rel="noopener noreferrer"
+                title={profileData.github ? "GitHub" : "No GitHub"}
+                style={{
+                  pointerEvents: profileData.github ? 'auto' : 'none',
+                  opacity: profileData.github ? 1 : 0.35,
+                  color: '#212529',
+                  fontSize: '1.25rem'
+                }}
+              >
+                <i className="fab fa-github"></i>
+              </a>
+              <a
+                href={profileData.facebook || '#'}
+                target={profileData.facebook ? "_blank" : undefined}
+                rel="noopener noreferrer"
+                title={profileData.facebook ? "Facebook" : "No Facebook"}
+                style={{
+                  pointerEvents: profileData.facebook ? 'auto' : 'none',
+                  opacity: profileData.facebook ? 1 : 0.35,
+                  color: '#1877f2',
+                  fontSize: '1.25rem'
+                }}
+              >
+                <i className="fab fa-facebook"></i>
+              </a>
+              <a
+                href={profileData.x || '#'}
+                target={profileData.x ? "_blank" : undefined}
+                rel="noopener noreferrer"
+                title={profileData.x ? "X (Twitter)" : "No X Profile"}
+                style={{
+                  pointerEvents: profileData.x ? 'auto' : 'none',
+                  opacity: profileData.x ? 1 : 0.35,
+                  color: '#0f1419',
+                  fontSize: '1.25rem'
+                }}
+              >
+                <i className="fab fa-twitter"></i>
+              </a>
+              <a
+                href={profileData.linkedin || '#'}
+                target={profileData.linkedin ? "_blank" : undefined}
+                rel="noopener noreferrer"
+                title={profileData.linkedin ? "LinkedIn" : "No LinkedIn"}
+                style={{
+                  pointerEvents: profileData.linkedin ? 'auto' : 'none',
+                  opacity: profileData.linkedin ? 1 : 0.35,
+                  color: '#0a66c2',
+                  fontSize: '1.25rem'
+                }}
+              >
+                <i className="fab fa-linkedin"></i>
+              </a>
             </div>
           </div>
 
-          {/* Recent Posts Section */}
-          <div className="mt-4 pt-3 border-top w-100">
-            <CandidatePosts candidatePosts={candidatePosts} setCandidatePosts={setCandidatePosts} />
-          </div>
         </div>
+
+        {/* ── Right Column (Profile details: About, Exp, Edu, Skills, Posts) ── */}
+        <div className="col-12 col-lg-8">
+          
+          {/* Candidate Profile Details Card (About, Exp, Edu, Skills) */}
+          <div className="card border-0 shadow-sm p-4 mb-4" style={{ borderRadius: '12px', background: '#fff' }}>
+            
+            {/* About Me Section */}
+            <div className="mb-4">
+              <h5 className="fw-bold text-dark mb-3">
+                <i className="far fa-user text-primary me-2"></i>About Me
+              </h5>
+              <p className="text-secondary small mb-0" style={{ lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                {profileData.about || 'No bio added yet.'}
+              </p>
+            </div>
+
+            {/* Work Experience Section */}
+            <div className="border-top pt-4 mb-4">
+              <h5 className="fw-bold text-dark mb-4">
+                <i className="fas fa-briefcase text-primary me-2"></i>Work Experience
+              </h5>
+              <div className="d-flex flex-column gap-3.5">
+                {workExperiences && workExperiences.length > 0 ? (
+                  workExperiences.map((exp, idx) => (
+                    <div key={exp.id || idx} className="mb-4 profile-text-entry">
+                      <div>
+                        <h5 className="m-0 fw-bold text-dark" style={{ fontSize: '1.05rem' }}>
+                          {exp.role}
+                        </h5>
+                        <div className="d-flex align-items-center flex-wrap gap-2 mt-1.5" style={{ fontSize: '0.9rem', color: '#64748b' }}>
+                          <span className="fw-semibold text-secondary">{exp.company}</span>
+                          <span>•</span>
+                          <span className="d-flex align-items-center gap-1.5">
+                            <i className="far fa-calendar-alt" style={{ fontSize: '0.85rem' }}></i>
+                            {exp.duration}
+                          </span>
+                        </div>
+                      </div>
+                      {exp.description && (
+                        <div className="mt-2 text-secondary small" style={{ whiteSpace: 'pre-line', lineHeight: '1.6' }}>
+                          {exp.description}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted small mb-0">No experience added yet.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Education Section */}
+            <div className="border-top pt-4 mb-4">
+              <h5 className="fw-bold text-dark mb-4">
+                <i className="fas fa-university text-primary me-2"></i>Education
+              </h5>
+              <div className="d-flex flex-column gap-3.5">
+                {educations && educations.length > 0 ? (
+                  educations.map((edu, idx) => (
+                    <div key={edu.id || idx} className="mb-4 profile-text-entry">
+                      <div>
+                        <h5 className="m-0 fw-bold text-dark" style={{ fontSize: '1.05rem' }}>
+                          {edu.degree}
+                        </h5>
+                        <div className="d-flex align-items-center flex-wrap gap-2 mt-1.5" style={{ fontSize: '0.9rem', color: '#64748b' }}>
+                          <span className="fw-semibold text-secondary">{edu.school}</span>
+                          <span>•</span>
+                          <span className="d-flex align-items-center gap-1.5">
+                            <i className="far fa-calendar-alt" style={{ fontSize: '0.85rem' }}></i>
+                            {edu.duration}
+                          </span>
+                        </div>
+                      </div>
+                      {edu.description && (
+                        <div className="mt-2 text-secondary small" style={{ whiteSpace: 'pre-line', lineHeight: '1.6' }}>
+                          {edu.description}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted small mb-0">No education added yet.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Skills & Qualifications Section */}
+            <div className="border-top pt-4">
+              <h5 className="fw-bold text-dark mb-4">
+                <i className="fas fa-star text-primary me-2"></i>Skills & Qualifications
+              </h5>
+              
+              {/* Skills section */}
+              <div className="mb-4">
+                <div className="fw-bold text-dark mb-2" style={{ fontSize: '0.95rem' }}>Technical Skills</div>
+                <div className="skills-container d-flex flex-wrap gap-2">
+                  {skills && skills.length > 0 ? (
+                    skills.map(s => (
+                      <span key={s.id || s.name} className="skill-tag-chip">{s.name} ({s.level}%)</span>
+                    ))
+                  ) : (
+                    <p className="text-muted small mb-0">No skills added yet.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Languages section */}
+              <div className="mb-4 border-top pt-3">
+                <div className="fw-bold text-dark mb-2" style={{ fontSize: '0.95rem' }}>Languages</div>
+                <div className="skills-container d-flex flex-wrap gap-2">
+                  {languages && languages.length > 0 ? (
+                    languages.map((lang, idx) => (
+                      <span key={lang.id || idx} className="skill-tag-chip">
+                        <i className="fas fa-globe text-primary me-1.5" style={{ fontSize: '0.8rem' }}></i>
+                        <strong className="text-dark">{lang.name}</strong>
+                        <span className="text-muted small ms-1.5">({lang.level})</span>
+                      </span>
+                    ))
+                  ) : (
+                    <p className="text-muted small mb-0">No languages added yet.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Certifications section */}
+              <div className="mb-4 border-top pt-3">
+                <div className="fw-bold text-dark mb-2" style={{ fontSize: '0.95rem' }}>Certifications</div>
+                <div className="skills-container d-flex flex-wrap gap-2">
+                  {certifications && certifications.length > 0 ? (
+                    certifications.map((cert, idx) => (
+                      <span key={cert.id || idx} className="skill-tag-chip">
+                        <i className="fas fa-certificate text-primary me-1.5" style={{ fontSize: '0.8rem' }}></i>
+                        {cert.name}
+                      </span>
+                    ))
+                  ) : (
+                    <p className="text-muted small mb-0">No certifications added yet.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Awards section */}
+              <div className="border-top pt-3">
+                <div className="fw-bold text-dark mb-2" style={{ fontSize: '0.95rem' }}>Awards & Achievements</div>
+                <div className="skills-container d-flex flex-wrap gap-2">
+                  {awards && awards.length > 0 ? (
+                    awards.map((award, idx) => (
+                      <span
+                        key={award.id || idx}
+                        className="skill-tag-chip cursor-pointer"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setSelectedAward(award)}
+                        title="Click to view details"
+                      >
+                        <i className="fas fa-award text-primary me-1.5" style={{ fontSize: '0.8rem' }}></i>
+                        <strong className="text-dark">{award.title}</strong>
+                        <span className="text-muted small ms-1.5">({formatAwardDate(award.date)})</span>
+                        <span className="text-secondary small ms-1.5">• {award.issuer}</span>
+                      </span>
+                    ))
+                  ) : (
+                    <p className="text-muted small mb-0">No awards added yet.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Recent Activity Card */}
+          <div className="card border-0 shadow-sm p-4" style={{ borderRadius: '12px', background: '#fff' }}>
+            <h5 className="fw-bold text-dark mb-4">
+              <i className="fas fa-history text-primary me-2"></i>Community Posts
+            </h5>
+            <div className="border-top pt-3">
+              <CandidatePosts candidatePosts={candidatePosts} setCandidatePosts={setCandidatePosts} />
+            </div>
+          </div>
+
+        </div>
+
       </div>
 
       {/* Personal Contact Info Modal */}
@@ -708,6 +770,7 @@ export default function CandidatePublicProfile() {
           </div>
         </div>
       )}
+      </div>
     </section>
   );
 }

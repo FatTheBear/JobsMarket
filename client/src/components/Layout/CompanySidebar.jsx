@@ -46,7 +46,7 @@ export default function CompanySidebar() {
           to="/company/create-post"
           className={`jp-menu-item ${location.pathname.includes('/create-post') ? 'active' : ''}`}
         >
-          Create Community Post
+          Community Post
         </Link>
       </div>
 

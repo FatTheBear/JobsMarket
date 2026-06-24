@@ -5,6 +5,49 @@ import '../CandidateProfile/Candidate_profile.css'; // Tái sử dụng CSS đ�
 
 const API_URL = 'http://localhost:5000';
 
+// Media grid component for posts
+const MediaGrid = ({ mediaList }) => {
+  if (!mediaList || mediaList.length === 0) return null;
+  
+  const count = mediaList.length;
+  
+  return (
+    <div className="row g-2 mb-3">
+      {mediaList.map((media, idx) => {
+        const isImage = media.media_type === 'image';
+        const mediaSrc = `${API_URL}${media.media_url}`;
+        const colClass = count === 1 ? 'col-12' : 'col-6';
+        
+        return (
+          <div key={idx} className={colClass}>
+            <div 
+              className="rounded overflow-hidden border bg-light position-relative" 
+              style={{ height: count === 1 ? '350px' : '200px' }}
+            >
+              {isImage ? (
+                <img 
+                  src={mediaSrc} 
+                  alt="post attachment" 
+                  className="w-100 h-100" 
+                  style={{ objectFit: 'cover', cursor: 'pointer' }}
+                  onClick={() => window.open(mediaSrc, '_blank')}
+                />
+              ) : (
+                <video 
+                  src={mediaSrc} 
+                  className="w-100 h-100" 
+                  style={{ objectFit: 'cover' }}
+                  controls
+                />
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 export default function CompanyPublicProfile() {
   const { id } = useParams(); // company_id
   const navigate = useNavigate();
@@ -13,10 +56,22 @@ export default function CompanyPublicProfile() {
   const [error, setError] = useState('');
   const [followLoading, setFollowLoading] = useState(false);
 
-  useEffect(() => {
-    fetchCompanyPublic();
-  }, [id]);
+  // States for community posts in public view
+  const [posts, setPosts] = useState([]);
+  const [postsLoading, setPostsLoading] = useState(true);
+  const [postsError, setPostsError] = useState('');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  // States for comments functionality
+  const [commentsMap, setCommentsMap] = useState({});
+  const [activeCommentsPostId, setActiveCommentsPostId] = useState(null);
+  const [newCommentText, setNewCommentText] = useState({});
+  const [submittingComment, setSubmittingComment] = useState({});
+
+  const currentUserId = parseInt(localStorage.getItem('userId')) || null;
+  const currentUserRole = localStorage.getItem('role') || '';
+
+  // Fetch company public profile info
   const fetchCompanyPublic = async () => {
     try {
       setLoading(true);
@@ -34,6 +89,31 @@ export default function CompanyPublicProfile() {
       setLoading(false);
     }
   };
+
+  // Fetch all posts to filter later
+  const fetchPosts = async () => {
+    setPostsLoading(true);
+    setPostsError('');
+    try {
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const response = await axios.get(`${API_URL}/api/posts`, { headers });
+      setPosts(response.data || []);
+    } catch (err) {
+      console.error("Failed to fetch community posts:", err);
+      setPostsError('Failed to load community posts.');
+    } finally {
+      setPostsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCompanyPublic();
+  }, [id]);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [id, refreshTrigger]);
 
   const handleFollowToggle = async () => {
     const token = localStorage.getItem('token');
@@ -71,6 +151,127 @@ export default function CompanyPublicProfile() {
     }
   };
 
+  const handleLike = async (postId) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please log in to like this post!');
+      return;
+    }
+    try {
+      const response = await axios.post(`${API_URL}/api/posts/${postId}/like`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPosts(prev => prev.map(p => {
+        if (p.id === postId) {
+          return {
+            ...p,
+            is_liked: response.data.is_liked ? 1 : 0,
+            likes_count: response.data.likes_count
+          };
+        }
+        return p;
+      }));
+    } catch (err) {
+      console.error('Failed to toggle like:', err);
+    }
+  };
+
+  const fetchComments = async (postId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const response = await axios.get(`${API_URL}/api/posts/${postId}/comments`, { headers });
+      setCommentsMap(prev => ({
+        ...prev,
+        [postId]: response.data || []
+      }));
+    } catch (err) {
+      console.error('Failed to load comments:', err);
+    }
+  };
+
+  const toggleComments = async (postId) => {
+    if (activeCommentsPostId === postId) {
+      setActiveCommentsPostId(null);
+      return;
+    }
+    setActiveCommentsPostId(postId);
+    if (!commentsMap[postId]) {
+      await fetchComments(postId);
+    }
+  };
+
+  const handleAddComment = async (postId, e) => {
+    if (e) e.preventDefault();
+    const commentText = newCommentText[postId] || '';
+    if (!commentText.trim()) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Please log in to comment.');
+      return;
+    }
+
+    setSubmittingComment(prev => ({ ...prev, [postId]: true }));
+    try {
+      await axios.post(`${API_URL}/api/posts/${postId}/comments`, {
+        content: commentText
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNewCommentText(prev => ({ ...prev, [postId]: '' }));
+      await fetchComments(postId);
+      setPosts(prev => prev.map(p => {
+        if (p.id === postId) {
+          return {
+            ...p,
+            comments_count: (p.comments_count || 0) + 1
+          };
+        }
+        return p;
+      }));
+    } catch (err) {
+      console.error("Failed to add comment:", err);
+      alert("Failed to add comment. Please try again.");
+    } finally {
+      setSubmittingComment(prev => ({ ...prev, [postId]: false }));
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm("Are you sure you want to delete this post?")) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_URL}/api/posts/${postId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setRefreshTrigger(prev => prev + 1);
+      if (activeCommentsPostId === postId) {
+        setActiveCommentsPostId(null);
+      }
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+      alert("Failed to delete post. Please try again.");
+    }
+  };
+
+  const formatPostTime = (dateStr) => {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+
+    return date.toLocaleDateString('vi-VN');
+  };
+
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
@@ -99,231 +300,318 @@ export default function CompanyPublicProfile() {
   // Parse JSON fields safely
   const scale = company.scale ? (typeof company.scale === 'string' ? JSON.parse(company.scale) : company.scale) : {};
   const culture = company.culture ? (typeof company.culture === 'string' ? JSON.parse(company.culture) : company.culture) : {};
-  const benefits = company.benefits ? (typeof company.benefits === 'string' ? JSON.parse(company.benefits) : company.benefits) : {};
+
+  // Filter posts to show only those created by this company
+  const companyPosts = posts.filter(post => post.company_id === parseInt(id));
 
   return (
     <section className="profile-section">
       <div className="container py-5">
-        
-        {/* Navigation back */}
-        <div className="mb-4">
-          <button onClick={() => navigate(-1)} className="btn btn-link text-secondary text-decoration-none d-inline-flex align-items-center gap-2 fw-semibold p-0" style={{ fontSize: '0.95rem' }}>
-            <i className="fas fa-chevron-left" style={{ fontSize: '0.8rem' }}></i> Back
+        {/* Navigation back & Dropdown */}
+        <div className="mb-4 d-flex justify-content-between align-items-center">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="btn btn-link text-secondary text-decoration-none d-inline-flex align-items-center gap-2 fw-semibold p-0"
+            style={{ fontSize: '0.95rem' }}
+          >
+            <i className="fas fa-chevron-left" style={{ fontSize: '0.8rem' }}></i> Back to dashboard
           </button>
         </div>
 
-        <div className="animate-fade-in d-flex flex-column gap-4">
-          
-          {/* ── Company Hero Card ── */}
-          <div className="candidate-new-hero">
-            <div className="row align-items-center g-4">
+        <div className="row g-4">
+          {/* Left Column - Overview */}
+          <div className="col-12 col-lg-4">
+            <div className="card border-0 shadow-sm p-4 text-center" style={{ borderRadius: '12px', background: '#fff' }}>
+              <img
+                src={company.logo_url || '/default-company-logo.png'}
+                alt="company logo"
+                className="rounded-3 border mx-auto mb-3"
+                style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+              />
+              <h4 className="fw-bold text-dark mb-1">{company.name}</h4>
+              <p className="text-primary small fw-semibold mb-3">{company.industry_name || 'Technology'}</p>
               
-              {/* Logo */}
-              <div className="col-12 col-md-auto text-center text-md-start">
-                <div className="hero-avatar-container" style={{ borderRadius: '16px' }}>
-                  {company.logo_url ? (
-                    <img src={company.logo_url} alt="Logo" style={{ borderRadius: '16px' }} />
-                  ) : (
-                    <div style={{ fontSize: '3rem', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', background: '#e2e8f0', color: '#64748b', borderRadius: '16px' }}>🏢</div>
-                  )}
+              <div className="d-flex justify-content-center gap-4 border-top py-2.5 my-3 text-muted small">
+                <div>
+                  <span className="d-block fw-bold text-dark fs-5">{jobs ? jobs.length : 0}</span>
+                  Jobs Open
                 </div>
               </div>
+            </div>
 
-              {/* Company Meta Info */}
-              <div className="col-12 col-md flex-grow-1 text-center text-md-start">
-                <h2 className="hero-candidate-name m-0">{company.name}</h2>
-                <div className="hero-candidate-title fw-semibold" style={{ fontSize: '1.15rem', color: '#01796F', marginTop: '4px' }}>
-                  <i className="fas fa-building me-2"></i>{company.industry_name || 'General Industry'}
-                </div>
-                
-                <div className="hero-action-buttons justify-content-center justify-content-md-start mt-3 gap-2">
-                  {/* Follow Button */}
-                  <button 
-                    type="button" 
-                    className="btn btn-new-contact d-inline-flex align-items-center gap-2"
-                    onClick={handleFollowToggle}
-                    disabled={followLoading}
-                    style={isFollowed ? { backgroundColor: '#cbd5e1', borderColor: '#cbd5e1', color: '#1e293b' } : {}}
-                  >
-                    <i className={isFollowed ? "fas fa-check" : "fas fa-plus"}></i>
-                    {isFollowed ? 'Following' : 'Follow'} ({company.followers_count || 0})
-                  </button>
-
-                  {/* Website link */}
+            {/* About Company Card */}
+            <div className="card border-0 shadow-sm p-4 mt-4" style={{ borderRadius: '12px', background: '#fff' }}>
+              <h5 className="fw-bold text-dark mb-3"><i className="far fa-building text-primary me-2"></i>About Company</h5>
+              <div className="d-flex flex-column gap-3 text-muted small">
+                {company.about && <p className="mb-0" style={{ lineHeight: '1.6', whiteSpace: 'pre-line' }}>{company.about}</p>}
+                <div className="border-top pt-3 d-flex flex-column gap-2">
                   {company.website && (
-                    <a 
-                      href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="btn btn-new-resume text-decoration-none d-inline-flex align-items-center justify-content-center gap-2"
-                    >
-                      <i className="fas fa-globe"></i> Website
-                    </a>
+                    <div>
+                      <strong className="text-secondary d-block">Website</strong>
+                      <a href={company.website} target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-none">{company.website}</a>
+                    </div>
+                  )}
+                  {company.address && (
+                    <div>
+                      <strong className="text-secondary d-block">Headquarters</strong>
+                      <span>{company.address}</span>
+                    </div>
+                  )}
+                  {scale.size && (
+                    <div>
+                      <strong className="text-secondary d-block">Company Size</strong>
+                      <span>{scale.size} employees</span>
+                    </div>
+                  )}
+                  {company.hr_email && (
+                    <div>
+                      <strong className="text-secondary d-block">Contact Email</strong>
+                      <span>{company.hr_email}</span>
+                    </div>
                   )}
                 </div>
               </div>
-
-              {/* Quick Info Grid */}
-              <div className="col-12 col-md-4 border-start px-md-4">
-                <ul className="hero-detail-list">
-                  <li>
-                    <span className="detail-label">Employees:</span>
-                    <span className="detail-value">{scale.num_employees || 'Not specified'}</span>
-                  </li>
-                  <li>
-                    <span className="detail-label">Branches:</span>
-                    <span className="detail-value">{scale.num_branches || 'Not specified'}</span>
-                  </li>
-                  <li>
-                    <span className="detail-label">Working Hours:</span>
-                    <span className="detail-value text-truncate" style={{ maxWidth: '180px' }} title={culture.work_hours_per_day ? `${culture.work_hours_per_day}h/day • ${culture.work_days_per_week}days/week` : 'Not specified'}>
-                      {culture.work_hours_per_day ? `${culture.work_hours_per_day}h/day • ${culture.work_days_per_week}days/week` : 'Not specified'}
-                    </span>
-                  </li>
-                  <li>
-                    <span className="detail-label">Headquarters:</span>
-                    <span className="detail-value text-truncate" style={{ maxWidth: '180px' }} title={company.address || 'Not specified'}>
-                      {company.address || 'Not specified'}
-                    </span>
-                  </li>
-                </ul>
-
-                {/* Social links */}
-                <div className="hero-social-icons gap-3 mt-3" style={{ justifyContent: 'flex-start' }}>
-                  {company.website && (
-                    <a href={company.website.startsWith('http') ? company.website : `https://${company.website}`} target="_blank" rel="noopener noreferrer" title="Company Website" style={{ color: '#0d6efd', fontSize: '1.35rem' }}>
-                      <i className="fas fa-globe"></i>
-                    </a>
-                  )}
-                  {company.facebook && (
-                    <a href={company.facebook} target="_blank" rel="noopener noreferrer" title="Facebook" style={{ color: '#1877f2', fontSize: '1.35rem' }}>
-                      <i className="fab fa-facebook"></i>
-                    </a>
-                  )}
-                  {company.linkedin && (
-                    <a href={company.linkedin} target="_blank" rel="noopener noreferrer" title="LinkedIn" style={{ color: '#0a66c2', fontSize: '1.35rem' }}>
-                      <i className="fab fa-linkedin"></i>
-                    </a>
-                  )}
-                  {company.twitter && (
-                    <a href={company.twitter} target="_blank" rel="noopener noreferrer" title="Twitter / X" style={{ color: '#0f1419', fontSize: '1.35rem' }}>
-                      <i className="fab fa-twitter"></i>
-                    </a>
-                  )}
-                </div>
-              </div>
-
             </div>
           </div>
 
-          {/* ── Main Details Card ── */}
-          <div className="column-card border-0 shadow-sm rounded-3">
-            
-            {/* About / Description */}
-            <div className="column-card-section-title" style={{ marginTop: 0 }}>Company Overview</div>
-            <div className="about-text" style={{ whiteSpace: 'pre-line', lineHeight: '1.7' }}>
-              {scale.description || 'No description provided by the company yet.'}
-            </div>
-
-            {/* Benefits & Perks */}
-            <div className="column-card-section-title">Benefits & Perks</div>
-            <div className="d-flex flex-column gap-2 mb-3">
-              <div className="d-flex align-items-center gap-3 flex-wrap">
-                <span className="skill-tag-chip" style={{ fontSize: '0.9rem', padding: '6px 16px', background: benefits.social_insurance ? '#ecfdf5' : '#f1f5f9', color: benefits.social_insurance ? '#065f46' : '#64748b', border: benefits.social_insurance ? '1px solid #a7f3d0' : '1px solid #cbd5e1' }}>
-                  🛡️ Social Insurance: {benefits.social_insurance ? 'Covered' : 'Not specified'}
-                </span>
-                <span className="skill-tag-chip" style={{ fontSize: '0.9rem', padding: '6px 16px', background: benefits.health_insurance ? '#ecfdf5' : '#f1f5f9', color: benefits.health_insurance ? '#065f46' : '#64748b', border: benefits.health_insurance ? '1px solid #a7f3d0' : '1px solid #cbd5e1' }}>
-                  🏥 Health Insurance: {benefits.health_insurance ? 'Covered' : 'Not specified'}
-                </span>
-              </div>
-              {benefits.other_benefits && (
-                <div className="mt-3 p-3 rounded bg-light text-secondary small" style={{ whiteSpace: 'pre-line', lineHeight: '1.6' }}>
-                  <strong>Other benefits:</strong>
-                  <div className="mt-1">{benefits.other_benefits}</div>
-                </div>
-              )}
-            </div>
-
-            {/* Environment & Culture */}
-            <div className="column-card-section-title">Work Environment & Culture</div>
-            <div className="row g-3">
-              <div className="col-12 col-sm-6">
-                <div className="p-3 rounded border bg-light d-flex flex-column gap-1">
-                  <span className="text-muted small">Average Age</span>
-                  <span className="fw-bold text-dark">{scale.avg_age || 'Not specified'}</span>
-                </div>
-              </div>
-              <div className="col-12 col-sm-6">
-                <div className="p-3 rounded border bg-light d-flex flex-column gap-1">
-                  <span className="text-muted small">Female Ratio</span>
-                  <span className="fw-bold text-dark">{scale.female_ratio ? `${scale.female_ratio}%` : 'Not specified'}</span>
-                </div>
-              </div>
-              <div className="col-12 col-sm-6">
-                <div className="p-3 rounded border bg-light d-flex flex-column gap-1">
-                  <span className="text-muted small">Dress Code</span>
-                  <span className="fw-bold text-dark">{culture.dress_code || 'Not specified'}</span>
-                </div>
-              </div>
-              <div className="col-12 col-sm-6">
-                <div className="p-3 rounded border bg-light d-flex flex-column gap-1">
-                  <span className="text-muted small">Office Locations</span>
-                  <span className="fw-bold text-dark text-truncate" title={scale.branch_info || 'Not specified'}>
-                    {scale.branch_info || 'Not specified'}
-                  </span>
-                </div>
-              </div>
-              {culture.other_info && (
-                <div className="col-12">
+          {/* Right Column - Culture & Jobs & Posts */}
+          <div className="col-12 col-lg-8">
+            {/* Company Culture */}
+            <div className="card border-0 shadow-sm p-4 mb-4" style={{ borderRadius: '12px', background: '#fff' }}>
+              <div className="column-card-section-title mb-4" style={{ marginTop: 0 }}>Company Culture & Work Environment</div>
+              <div className="row g-3">
+                <div className="col-12 col-sm-6">
                   <div className="p-3 rounded border bg-light">
-                    <span className="text-muted small d-block mb-1">Additional Culture Info</span>
-                    <span className="text-secondary small" style={{ whiteSpace: 'pre-line' }}>{culture.other_info}</span>
+                    <span className="text-muted small d-block mb-1">Key Value</span>
+                    <span className="fw-bold text-dark small">{culture.key_value || 'None specified'}</span>
                   </div>
                 </div>
-              )}
-            </div>
-
-            {/* Active Job Openings */}
-            <div className="column-card-section-title">Active Job Openings</div>
-            <div className="d-flex flex-column gap-3 mt-3">
-              {jobs && jobs.length > 0 ? (
-                jobs.map(job => (
-                  <div 
-                    key={job.id} 
-                    className="p-3 rounded-3 border hover-shadow transition d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3"
-                    style={{ background: '#fff' }}
-                  >
-                    <div>
-                      <h5 className="m-0 fw-bold text-dark" style={{ fontSize: '1.1rem' }}>{job.title}</h5>
-                      <div className="d-flex align-items-center flex-wrap gap-2.5 mt-2 text-muted small" style={{ fontSize: '0.85rem' }}>
-                        <span className="fw-semibold text-secondary">
-                          <i className="fas fa-coins me-1 text-warning"></i>
-                          {job.salary_min && job.salary_max 
-                            ? `${(job.salary_min / 1000000).toFixed(0)} - ${(job.salary_max / 1000000).toFixed(0)}M VND` 
-                            : 'Negotiable'}
-                        </span>
-                        <span>•</span>
-                        <span><i className="fas fa-map-marker-alt me-1"></i>{job.province || 'Remote'}</span>
-                        <span>•</span>
-                        <span className="badge bg-secondary-subtle text-secondary">{job.job_type}</span>
-                      </div>
+                <div className="col-12 col-sm-6">
+                  <div className="p-3 rounded border bg-light">
+                    <span className="text-muted small d-block mb-1">Working Hours</span>
+                    <span className="fw-bold text-dark small">{culture.working_hours || 'Flexible / Standard'}</span>
+                  </div>
+                </div>
+                <div className="col-12 col-sm-6">
+                  <div className="p-3 rounded border bg-light">
+                    <span className="text-muted small d-block mb-1">Overtime Policy</span>
+                    <span className="fw-bold text-dark small">{culture.overtime_policy || 'No overtime / Standard'}</span>
+                  </div>
+                </div>
+                <div className="col-12 col-sm-6">
+                  <div className="p-3 rounded border bg-light">
+                    <span className="text-muted small d-block mb-1">Dress Code</span>
+                    <span className="fw-bold text-dark small">{culture.dress_code || 'Casual / Smart Casual'}</span>
+                  </div>
+                </div>
+                {culture.other_info && (
+                  <div className="col-12">
+                    <div className="p-3 rounded border bg-light">
+                      <span className="text-muted small d-block mb-1">Additional Culture Info</span>
+                      <span className="text-secondary small" style={{ whiteSpace: 'pre-line' }}>{culture.other_info}</span>
                     </div>
-                    <button 
-                      type="button" 
-                      onClick={() => navigate(`/jobs/${job.id}`)}
-                      className="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold"
-                      style={{ color: '#01796F', borderColor: '#01796F' }}
-                    >
-                      View Details
-                    </button>
                   </div>
-                ))
-              ) : (
-                <div className="text-center py-4 text-muted small">
-                  <i className="far fa-folder-open d-block fs-3 mb-2"></i>
-                  No active job openings found for this company.
-                </div>
-              )}
+                )}
+              </div>
+
+              {/* Active Job Openings */}
+              <div className="column-card-section-title mt-4">Active Job Openings</div>
+              <div className="d-flex flex-column gap-3 mt-3">
+                {jobs && jobs.length > 0 ? (
+                  jobs.map(job => (
+                    <div 
+                      key={job.id} 
+                      className="p-3 rounded-3 border hover-shadow transition d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3"
+                      style={{ background: '#fff' }}
+                    >
+                      <div>
+                        <h5 className="m-0 fw-bold text-dark" style={{ fontSize: '1.1rem' }}>{job.title}</h5>
+                        <div className="d-flex align-items-center flex-wrap gap-2.5 mt-2 text-muted small" style={{ fontSize: '0.85rem' }}>
+                          <span className="fw-semibold text-secondary">
+                            <i className="fas fa-coins me-1 text-warning"></i>
+                            {job.salary_min && job.salary_max 
+                              ? `${(job.salary_min / 1000000).toFixed(0)} - ${(job.salary_max / 1000000).toFixed(0)}M VND` 
+                              : 'Negotiable'}
+                          </span>
+                          <span>•</span>
+                          <span><i className="fas fa-map-marker-alt me-1"></i>{job.province || 'Remote'}</span>
+                          <span>•</span>
+                          <span className="badge bg-secondary-subtle text-secondary">{job.job_type}</span>
+                        </div>
+                      </div>
+                      <button 
+                        type="button" 
+                        onClick={() => navigate(`/jobs/${job.id}`)}
+                        className="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold"
+                        style={{ color: '#01796F', borderColor: '#01796F' }}
+                      >
+                        View Details
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-4 text-muted small">
+                    <i className="far fa-folder-open d-block fs-3 mb-2"></i>
+                    No active job openings found for this company.
+                  </div>
+                )}
+              </div>
+
+              {/* Community Posts */}
+              <div className="column-card-section-title mt-5">Community Posts</div>
+              <div className="d-flex flex-column gap-4 mt-3">
+                {postsLoading && companyPosts.length === 0 ? (
+                  <div className="text-center py-4">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading posts...</span>
+                    </div>
+                  </div>
+                ) : postsError ? (
+                  <div className="text-center py-4 text-muted small">{postsError}</div>
+                ) : companyPosts.length === 0 ? (
+                  <div className="text-center py-4 text-muted small bg-light rounded border">
+                    <i className="far fa-paper-plane d-block fs-3 mb-2 opacity-50"></i>
+                    No community posts found for this company.
+                  </div>
+                ) : (
+                  companyPosts.map((post) => {
+                    const isAuthor = post.user_id === currentUserId;
+                    const isAdmin = currentUserRole === 'Admin';
+                    return (
+                      <div key={post.id} className="p-3 rounded-3 border" style={{ background: '#fff' }}>
+                        <div className="d-flex align-items-center gap-3 mb-3">
+                          <img
+                            src={post.author_avatar || '/default-avatar.png'}
+                            alt="author avatar"
+                            className="rounded-circle shadow-sm border"
+                            style={{ width: '48px', height: '48px', objectFit: 'cover' }}
+                          />
+                          <div>
+                            <div className="d-flex align-items-center gap-2 flex-wrap">
+                              <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '0.95rem' }}>{post.author_name}</h6>
+                              <span 
+                                className="px-2 py-0.5 rounded-pill fw-semibold" 
+                                style={{ 
+                                  fontSize: '0.7rem',
+                                  backgroundColor: '#e8f5e9',
+                                  color: '#2e7d32'
+                                }}
+                              >
+                                Employer
+                              </span>
+                            </div>
+                            <p className="mb-0 text-muted small fw-medium">
+                              {post.author_title || 'Company'} • {formatPostTime(post.created_at)} <i className="fas fa-globe-asia ms-1"></i>
+                            </p>
+                          </div>
+
+                          {/* Delete post button */}
+                          {(isAuthor || isAdmin) && (
+                            <button
+                              onClick={() => handleDeletePost(post.id)}
+                              className="btn btn-link text-muted p-1 hover-danger border-0 bg-transparent ms-auto align-self-start"
+                              title="Delete post"
+                            >
+                              <i className="far fa-trash-alt" style={{ fontSize: '0.85rem' }}></i>
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Post content */}
+                        {post.content && (
+                          <div 
+                            className="post-content-text text-dark mb-3" 
+                            style={{ fontSize: '0.92rem', lineHeight: '1.6', whiteSpace: 'pre-line' }}
+                          >
+                            {post.content}
+                          </div>
+                        )}
+
+                        {/* Media attachments */}
+                        <MediaGrid mediaList={post.mediaList} />
+
+                        {/* Post Footer/Activity statistics - Fully interactive */}
+                        <div className="d-flex align-items-center justify-content-between border-top pt-3 text-muted small">
+                          <div className="d-flex align-items-center gap-4">
+                            <button
+                              type="button"
+                              onClick={() => handleLike(post.id)}
+                              className="btn btn-link text-decoration-none d-inline-flex align-items-center gap-1.5 p-0 border-0 bg-transparent transition-all"
+                              style={{ fontSize: '0.85rem', color: post.is_liked ? '#01796F' : '#6c757d' }}
+                            >
+                              <i className={`${post.is_liked ? 'fas' : 'far'} fa-thumbs-up fs-6`} style={{ color: post.is_liked ? '#01796F' : undefined }}></i>
+                              <span className="fw-semibold">{post.likes_count || 0} Likes</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => toggleComments(post.id)}
+                              className="btn btn-link text-decoration-none d-inline-flex align-items-center gap-1.5 p-0 border-0 bg-transparent transition-all"
+                              style={{ fontSize: '0.85rem', color: activeCommentsPostId === post.id ? '#01796F' : '#6c757d' }}
+                            >
+                              <i className="far fa-comment-dots fs-6" style={{ color: activeCommentsPostId === post.id ? '#01796F' : undefined }}></i>
+                              <span className="fw-semibold">{post.comments_count || 0} Comments</span>
+                            </button>
+                          </div>
+                          <span className="d-inline-flex align-items-center gap-1.5 text-muted small">
+                            <i className="far fa-share-square fs-6"></i>
+                            <span className="fw-semibold">{post.reposts_count || 0} Shares</span>
+                          </span>
+                        </div>
+
+                        {/* Interactive Comments Drawer */}
+                        {activeCommentsPostId === post.id && (
+                          <div className="border-top mt-3 pt-3">
+                            <div className="d-flex flex-column gap-2 mb-3" style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                              {(commentsMap[post.id] || []).length === 0 ? (
+                                <p className="text-muted small mb-0 py-2">No comments yet.</p>
+                              ) : (
+                                (commentsMap[post.id] || []).map((comment) => (
+                                  <div key={comment.id} className="d-flex gap-2 p-2 rounded bg-white border">
+                                    <img 
+                                      src={comment.author_avatar || '/default-avatar.png'} 
+                                      alt="avatar" 
+                                      className="rounded-circle border" 
+                                      style={{ width: '32px', height: '32px', objectFit: 'cover' }}
+                                    />
+                                    <div className="flex-grow-1">
+                                      <div className="d-flex justify-content-between align-items-center mb-1">
+                                        <span className="fw-bold text-dark" style={{ fontSize: '0.8rem' }}>{comment.author_name}</span>
+                                        <span className="text-muted" style={{ fontSize: '0.65rem' }}>{formatPostTime(comment.created_at)}</span>
+                                      </div>
+                                      <p className="mb-0 text-dark" style={{ fontSize: '0.82rem', whiteSpace: 'pre-line' }}>{comment.content}</p>
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                            
+                            <form onSubmit={(e) => handleAddComment(post.id, e)} className="d-flex gap-2">
+                              <input 
+                                type="text" 
+                                className="form-control form-control-sm rounded-pill px-3"
+                                placeholder="Write a comment..."
+                                value={newCommentText[post.id] || ''}
+                                onChange={(e) => setNewCommentText(prev => ({ ...prev, [post.id]: e.target.value }))}
+                                disabled={submittingComment[post.id]}
+                                style={{ fontSize: '0.85rem' }}
+                              />
+                              <button 
+                                type="submit" 
+                                className="btn btn-sm text-white rounded-pill px-3 fw-semibold border-0"
+                                disabled={submittingComment[post.id] || !(newCommentText[post.id] || '').trim()}
+                                style={{ fontSize: '0.8rem', backgroundColor: '#01796F' }}
+                              >
+                                {submittingComment[post.id] ? 'Posting...' : 'Post'}
+                              </button>
+                            </form>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
             </div>
 
           </div>
