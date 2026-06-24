@@ -639,3 +639,272 @@
   gap: 12px;
   justify-content: center;
 }
+
+/* ── PREMIUM PLANS MODAL STYLES ── */
+.jp-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+  animation: jpFadeIn 0.25s ease-out;
+}
+
+.jp-modal-content {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 30px 24px;
+  width: 95%;
+  max-width: 920px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  animation: jpSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.jp-modal-warning-content {
+  max-width: 480px;
+  padding: 30px 24px;
+}
+
+.jp-plans-grid {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 20px;
+  width: 100%;
+}
+
+.jp-plan-card {
+  flex: 1 1 240px;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  background: #ffffff;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+}
+
+.jp-plan-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.08), 0 8px 8px -5px rgba(0, 0, 0, 0.03);
+}
+
+.jp-plan-badge {
+  position: absolute;
+  top: -12px;
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.jp-plan-free {
+  border-color: #cbd5e1;
+}
+.jp-plan-free:hover {
+  border-color: #94a3b8;
+}
+.jp-plan-free .jp-plan-badge {
+  background: #64748b;
+}
+
+.jp-plan-pro-day {
+  border-color: #01796F;
+  background: linear-gradient(180deg, #f0fdfa 0%, #ffffff 100%);
+}
+.jp-plan-pro-day:hover {
+  border-color: #0f766e;
+  box-shadow: 0 15px 20px -5px rgba(1, 121, 111, 0.12);
+}
+.jp-plan-pro-day .jp-plan-badge {
+  background: #01796F;
+}
+
+.jp-plan-pro-month {
+  border-color: #d97706;
+  background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%);
+}
+.jp-plan-pro-month:hover {
+  border-color: #b45309;
+  box-shadow: 0 15px 20px -5px rgba(217, 119, 6, 0.12);
+}
+.jp-plan-pro-month .jp-plan-badge {
+  background: #d97706;
+}
+
+.jp-plan-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 12px 0 6px 0;
+  color: #1e293b;
+}
+.jp-plan-pro-day .jp-plan-title {
+  color: #01796F;
+}
+.jp-plan-pro-month .jp-plan-title {
+  color: #d97706;
+}
+
+.jp-plan-price {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 6px 0 12px 0;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+.jp-plan-price span {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.jp-plan-pro-day .jp-plan-price {
+  color: #01796F;
+}
+.jp-plan-pro-month .jp-plan-price {
+  color: #d97706;
+}
+
+.jp-plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 20px 0;
+  text-align: left;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jp-plan-features li {
+  font-size: 13px;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.4;
+}
+
+.jp-plan-features li.pro-feature {
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.jp-plan-features li i.fa-check-circle {
+  color: #059669;
+}
+.jp-plan-features li i.fa-times-circle {
+  color: #ef4444;
+}
+
+.jp-plan-button {
+  margin-top: auto;
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 0;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.jp-plan-free .jp-plan-button {
+  background: #475569;
+  color: #ffffff;
+}
+.jp-plan-free .jp-plan-button:hover {
+  background: #334155;
+}
+
+.jp-plan-pro-day .jp-plan-button {
+  background: #01796F;
+  color: #ffffff;
+}
+.jp-plan-pro-day .jp-plan-button:hover {
+  background: #005a52;
+}
+
+.jp-plan-pro-month .jp-plan-button {
+  background: #d97706;
+  color: #ffffff;
+}
+.jp-plan-pro-month .jp-plan-button:hover {
+  background: #b45309;
+}
+
+.jp-modal-cancel-btn {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  color: #475569;
+  border-radius: 12px;
+  padding: 10px 30px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.jp-modal-cancel-btn:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+  border-color: #cbd5e1;
+}
+
+.jp-modal-confirm-btn {
+  background: #01796F;
+  border: none;
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 10px 30px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.jp-modal-confirm-btn:hover {
+  background: #005a52;
+}
+
+@keyframes jpFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes jpSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}

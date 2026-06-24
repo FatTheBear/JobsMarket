@@ -3,7 +3,7 @@ const router = express.Router();
 const candidateController = require('../controllers/candidateController');
 const { authMiddleware } = require('../middleware/authMiddleware'); // Sử dụng file xác thực JWT đã tạo
 const { validateOnboarding } = require('../validators/setupProfileValidator');
-const { upload } = require('../middleware/upload');
+const { upload, uploadAvatar } = require('../middleware/upload');
 const uploadCv = require('../middleware/uploadCV');
 
 // Lấy thông tin cá nhân
@@ -56,8 +56,6 @@ router.get('/notifications', authMiddleware, candidateController.getNotification
 
 // Đánh dấu 1 thông báo đã đọc
 router.put('/notifications/:id/read', authMiddleware, candidateController.markNotificationAsRead);
-
-router.post('/apply', authMiddleware, candidateController.applyForJob);
 
 // Đánh dấu tất cả thông báo đã đọc
 router.put('/notifications/read-all', authMiddleware, candidateController.markAllNotificationsAsRead);

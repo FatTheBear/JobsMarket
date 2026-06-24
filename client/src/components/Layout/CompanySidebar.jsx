@@ -46,7 +46,7 @@ export default function CompanySidebar() {
           to="/company/create-post"
           className={`jp-menu-item ${location.pathname.includes('/create-post') ? 'active' : ''}`}
         >
-          Create Community Post
+          Community Post
         </Link>
       </div>
 
@@ -78,6 +78,16 @@ export default function CompanySidebar() {
 
         <Link to="/company/search" className="jp-menu-item">
           Search Candidates
+        </Link>
+      </div>
+      
+      <div className="jp-menu-group">
+        <div className="jp-menu-title">ACCOUNT & WALLET</div>
+        <Link 
+          to="/company/wallet" 
+          className={`jp-menu-item ${location.pathname.includes('/wallet') ? 'active' : ''}`}
+        >
+          My Wallet
         </Link>
       </div>
 

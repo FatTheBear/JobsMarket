@@ -96,6 +96,21 @@ const CandidateProfile = () => {
     }
   };
 
+  const fetchActivityHistory = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const res = await axiosInstance.get('http://localhost:5000/api/posts/activity/history', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setLikedPosts(res.data.likes || []);
+      setCommentedPosts(res.data.comments || []);
+      setSharedPosts(res.data.shares || []);
+    } catch (err) {
+      console.error("Failed to load activity history from DB:", err);
+    }
+  };
+
   const handleMarkAsRead = async (notiId) => {
     const token = localStorage.getItem('token');
     if (!token) return;
@@ -198,7 +213,8 @@ const CandidateProfile = () => {
               school: e.school || 'School / Institute',
               duration: durationText,
               startDate: e.startDate,
-              gradDate: e.gradDate
+              gradDate: e.gradDate,
+              description: e.description || ''
             };
           }));
         }
@@ -229,7 +245,8 @@ const CandidateProfile = () => {
               company: e.company || 'Company Name',
               duration: durationText,
               startDate: e.startDate,
-              endDate: e.endDate
+              endDate: e.endDate,
+              description: e.description || ''
             };
           }));
         }
@@ -280,7 +297,7 @@ const CandidateProfile = () => {
               user_id: p.user_id,
               author: p.author_name || profile.full_name || 'Candidate',
               avatar: p.author_avatar || profile.avatar_url || defaultFacebookAvatar,
-              time: p.created_at ? new Date(p.created_at).toLocaleDateString() : 'Just now',
+              time: p.created_at ? new Date(p.created_at).toLocaleDateString('vi-VN') : 'Just now',
               content: p.content,
               mediaList: p.mediaList || [],
               likes: p.likes_count || 0,
@@ -326,11 +343,9 @@ const CandidateProfile = () => {
     loadProfile();
     fetchCVs();
     fetchNotifications();
+    fetchActivityHistory();
 
     const localFavJobs = localStorage.getItem('activity_fav_jobs');
-    const localLiked = localStorage.getItem('activity_liked_posts');
-    const localCommented = localStorage.getItem('activity_commented_posts');
-    const localShared = localStorage.getItem('activity_shared_posts');
 
     if (localFavJobs) {
       setFavoriteJobs(JSON.parse(localFavJobs));
@@ -341,37 +356,6 @@ const CandidateProfile = () => {
       ];
       setFavoriteJobs(defaultJobs);
       localStorage.setItem('activity_fav_jobs', JSON.stringify(defaultJobs));
-    }
-
-    if (localLiked) {
-      setLikedPosts(JSON.parse(localLiked));
-    } else {
-      const defaultLiked = [
-        { id: 101, author: 'Alex Johnson', avatar: 'https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava6.webp', content: 'Hôm nay vừa hoàn thành dự án React Native đầu tay, cảm giác thật tuyệt vời! Mọi người có kinh nghiệm gì về tối ưu hiệu năng không?', liked_at: '2 hours ago' },
-        { id: 102, author: 'Sarah Green', avatar: 'https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava5.webp', content: 'Excited to share that I am starting a new position as Lead UI Engineer at TechMarket Solutions!', liked_at: '1 day ago' }
-      ];
-      setLikedPosts(defaultLiked);
-      localStorage.setItem('activity_liked_posts', JSON.stringify(defaultLiked));
-    }
-
-    if (localCommented) {
-      setCommentedPosts(JSON.parse(localCommented));
-    } else {
-      const defaultCommented = [
-        { id: 201, author: 'Tech Academy', avatar: 'https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava4.webp', content: 'Khóa học Node.js nâng cao miễn phí cho cộng đồng bắt đầu tuyển sinh tuần này. Link đăng ký ở bio.', comment: 'Khóa học này vô cùng bổ ích, mình khuyên mọi người nên thử!', commented_at: '1 day ago' }
-      ];
-      setCommentedPosts(defaultCommented);
-      localStorage.setItem('activity_commented_posts', JSON.stringify(defaultCommented));
-    }
-
-    if (localShared) {
-      setSharedPosts(JSON.parse(localShared));
-    } else {
-      const defaultShared = [
-        { id: 301, author: 'Google Developers', avatar: 'https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava2.webp', content: 'Announcing the new features in Chrome DevTools 2026: better performance analysis, CSS debugging tools, and AI integration.', message: 'Rất nhiều cập nhật mới cực xịn từ Chrome DevTools cho anh em web dev!', shared_at: '3 days ago' }
-      ];
-      setSharedPosts(defaultShared);
-      localStorage.setItem('activity_shared_posts', JSON.stringify(defaultShared));
     }
   }, []);
 
@@ -385,17 +369,28 @@ const CandidateProfile = () => {
       formData.append('phone', profileData.phone || '');
       formData.append('headline', profileData.jobTitle || '');
       formData.append('address', profileData.address || '');
+      formData.append('about', profileData.about || '');
+      formData.append('nationality', profileData.nationality || '');
+      formData.append('portfolio', profileData.portfolio || '');
+      formData.append('github', profileData.github || '');
+      formData.append('facebook', profileData.facebook || '');
+      formData.append('blog', profileData.blog || '');
+      formData.append('x', profileData.x || '');
+      formData.append('linkedin', profileData.linkedin || '');
+
+      const birthdayParts = (profileData.birthday || '').trim().split('/');
+      const apiBirthday = birthdayParts.length === 3 ? `${birthdayParts[2]}-${birthdayParts[1]}-${birthdayParts[0]}` : '';
+      formData.append('birthday', apiBirthday);
 
       const currentEdu = overrideData.educations || educations;
       const currentExp = overrideData.workExperiences || workExperiences;
       const currentSkills = overrideData.skills || skills;
 
-      formData.append('about', profileData.about || '');
       formData.append('education', JSON.stringify(currentEdu.map(edu => ({
-        school: edu.school, degree: edu.degree, startDate: edu.startDate, gradDate: edu.gradDate
+        school: edu.school, degree: edu.degree, startDate: edu.startDate, gradDate: edu.gradDate, description: edu.description
       }))));
       formData.append('experience', JSON.stringify(currentExp.map(exp => ({
-        company: exp.company, role: exp.role, startDate: exp.startDate, endDate: exp.endDate
+        company: exp.company, role: exp.role, startDate: exp.startDate, endDate: exp.endDate, description: exp.description
       }))));
       formData.append('skills', JSON.stringify(currentSkills.map(s => ({ name: s.name, level: s.level }))));
 
@@ -411,6 +406,7 @@ const CandidateProfile = () => {
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
       });
       console.log('Auto-saved successfully!');
+      window.dispatchEvent(new Event('profileUpdated'));
     } catch (err) {
       console.error('Auto-save failed:', err);
     }
@@ -420,7 +416,7 @@ const CandidateProfile = () => {
     const path = location.pathname;
     if (path.endsWith('/account-settings')) return 'Account Settings';
     if (path.endsWith('/notifications')) return 'Notifications';
-    if (path.endsWith('/activity-history')) return 'Activity History & Wallet';
+    if (path.endsWith('/activity-history')) return 'Activity History';
     if (path.endsWith('/applied-jobs')) return 'Applied Jobs';
     if (path.endsWith('/manage-cvs')) return 'Manage CVs';
     return 'My Profile';
@@ -472,7 +468,7 @@ const CandidateProfile = () => {
                   className={({ isActive }) => `dropdown-item dropdown-item-custom w-100 text-start ${isActive ? 'active' : ''}`}
                   onClick={() => setShowDropdown(false)}
                 >
-                  <i className="fas fa-history me-2"></i> Activity &amp; Wallet
+                  <i className="fas fa-history me-2"></i> Activity History
                 </NavLink>
                 <NavLink
                   to="/candidate/my-profile/notifications"
@@ -539,6 +535,7 @@ const CandidateProfile = () => {
                 setCommentedPosts,
                 sharedPosts,
                 setSharedPosts,
+                fetchActivityHistory,
                 cvList,
                 fetchCVs,
                 handleMarkAsRead,

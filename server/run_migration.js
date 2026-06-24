@@ -595,6 +595,32 @@ async function runMigration() {
             throw err;
         }
 
+        // Altering Company table to add pro package columns
+        try {
+            console.log('Altering Company table to add pro package columns...');
+            const proCols = [
+                { name: 'pro_package', sql: "ALTER TABLE `Company` ADD COLUMN `pro_package` ENUM('Free', 'Pro_Day', 'Pro_Month') DEFAULT 'Free'" },
+                { name: 'pro_expired_at', sql: "ALTER TABLE `Company` ADD COLUMN `pro_expired_at` DATETIME DEFAULT NULL" }
+            ];
+            for (const col of proCols) {
+                try {
+                    console.log(`Adding ${col.name} column to Company...`);
+                    await pool.query(col.sql);
+                    console.log(`Successfully added ${col.name} column to Company.`);
+                } catch (err) {
+                    if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+                        console.log(`${col.name} column already exists in Company.`);
+                    } else {
+                        throw err;
+                    }
+                }
+            }
+            console.log('Successfully completed Company pro package columns migration.');
+        } catch (err) {
+            console.error('\n[CRITICAL ERROR] Failed to alter Company table for pro packages:', err.message);
+            throw err;
+        }
+
     } catch (dbError) {
         console.error('\n[CRITICAL ERROR] Table creation failed:', dbError.message);
         process.exit(1);

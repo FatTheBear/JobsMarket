@@ -9,6 +9,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -26,6 +27,16 @@ export default function Login() {
       });
 
       if (response.status === 200) {
+        // Clear any previous session/persistent data first
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('userId');
+
+        if (!rememberMe) {
+          // Setting token in sessionStorage activates the session-only redirect for setItem
+          sessionStorage.setItem('token', response.data.token);
+        }
+
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
         localStorage.setItem('userId', response.data.user.id);
@@ -118,6 +129,8 @@ export default function Login() {
                         className="form-check-input me-2"
                         type="checkbox"
                         id="rememberMe"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
                       />
                       <label
                         className="form-check-label"
