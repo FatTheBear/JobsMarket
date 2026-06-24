@@ -80,6 +80,16 @@ export default function CompanySidebar() {
           Search Candidates
         </Link>
       </div>
+      
+      <div className="jp-menu-group">
+        <div className="jp-menu-title">ACCOUNT & WALLET</div>
+        <Link 
+          to="/company/wallet" 
+          className={`jp-menu-item ${location.pathname.includes('/wallet') ? 'active' : ''}`}
+        >
+          My Wallet
+        </Link>
+      </div>
 
       <div className="jp-promo-card">
         <div className="jp-promo-title">NEW FEATURE</div>
