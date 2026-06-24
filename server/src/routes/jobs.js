@@ -71,7 +71,7 @@ router.post('/', authMiddleware, async (req, res) => {
     }
 
     const [companies] = await pool.query(
-      'SELECT id, hr_id FROM Company WHERE hr_id = ?',
+      'SELECT id, hr_id, pro_package, pro_expired_at FROM Company WHERE hr_id = ?',
       [user_id]
     );
 
@@ -81,8 +81,105 @@ router.post('/', authMiddleware, async (req, res) => {
       });
     }
 
-    const company_id = companies[0].id;
+    const company = companies[0];
+    const company_id = company.id;
     const hr_id = user_id;
+
+    // 1. Kiểm tra gói Pro hiện tại
+    let currentProPackage = company.pro_package || 'Free';
+    let currentProExpiredAt = company.pro_expired_at ? new Date(company.pro_expired_at) : null;
+    let isProCurrentlyActive = currentProExpiredAt && currentProExpiredAt >= new Date();
+
+    const { post_type } = req.body; // 'Free', 'Pro_Day', 'Pro_Month'
+    
+    // Kết nối database transaction để thực hiện trừ coins an toàn nếu nạp gói mới
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      if (!isProCurrentlyActive && (post_type === 'Pro_Day' || post_type === 'Pro_Month')) {
+        // Cần mua gói Pro mới
+        const coinsRequired = post_type === 'Pro_Day' ? 20 : 500;
+        
+        // Lấy coins hiện tại của User
+        const [users] = await connection.execute(
+          'SELECT coins FROM User WHERE id = ? FOR UPDATE',
+          [user_id]
+        );
+        const userCoins = users[0]?.coins || 0;
+        
+        if (userCoins < coinsRequired) {
+          await connection.rollback();
+          connection.release();
+          return res.status(400).json({
+            message: `Insufficient coins balance to purchase Pro plan (Required: ${coinsRequired} coins, current balance: ${userCoins} coins).`
+          });
+        }
+        
+        // Trừ coins
+        await connection.execute(
+          'UPDATE User SET coins = coins - ? WHERE id = ?',
+          [coinsRequired, user_id]
+        );
+        
+        // Tạo Transaction
+        await connection.execute(
+          `INSERT INTO Transaction (user_id, amount_fiat, coins, type, payment_method, status, reference_code) 
+           VALUES (?, 0, ?, 'spend', 'system', 'completed', ?)`,
+          [user_id, coinsRequired, `PRO_SUB_${post_type.toUpperCase()}_${Date.now()}`]
+        );
+        
+        // Kích hoạt gói Pro cho Company
+        const durationHours = post_type === 'Pro_Day' ? 24 : (30 * 24);
+        const newExpiredAt = new Date(Date.now() + durationHours * 60 * 60 * 1000);
+        
+        await connection.execute(
+          'UPDATE Company SET pro_package = ?, pro_expired_at = ? WHERE id = ?',
+          [post_type, newExpiredAt, company_id]
+        );
+        
+        currentProPackage = post_type;
+        currentProExpiredAt = newExpiredAt;
+        isProCurrentlyActive = true;
+      }
+
+      // 2. Kiểm tra giới hạn đăng tin trong 24 giờ qua
+      const [recentJobs] = await connection.execute(
+        'SELECT created_at FROM Job_Posting WHERE hr_id = ? AND created_at >= NOW() - INTERVAL 1 DAY',
+        [hr_id]
+      );
+      
+      const recentPostsCount = recentJobs.length;
+      
+      if (isProCurrentlyActive) {
+        if (recentPostsCount >= 2) {
+          await connection.rollback();
+          connection.release();
+          return res.status(400).json({
+            message: 'Pro plan limit exceeded: Maximum 2 job postings per 24 hours.'
+          });
+        }
+      } else {
+        if (recentPostsCount >= 1) {
+          await connection.rollback();
+          connection.release();
+          return res.status(400).json({
+            message: 'Free account limit exceeded: Maximum 1 job posting per 24 hours. Please upgrade to Pro plan to post more.'
+          });
+        }
+      }
+
+      await connection.commit();
+      connection.release();
+    } catch (transactionError) {
+      await connection.rollback();
+      connection.release();
+      console.error("Transaction failed during job post:", transactionError);
+      return res.status(500).json({
+        message: 'System error occurred while processing job posting and coin deduction.',
+        error: transactionError.message
+      });
+    }
 
     const fullLocation = [exact_address, ward, district, province].filter(Boolean).join(', ');
 
@@ -95,7 +192,8 @@ router.post('/', authMiddleware, async (req, res) => {
       job_level: job_level || null,
       vacancies: vacancies || null,
       gender_req: gender_req || null,
-      detailed_address: fullLocation
+      detailed_address: fullLocation,
+      is_pro: isProCurrentlyActive ? 1 : 0
     };
 
     const metadataString = JSON.stringify(metadataObj);
