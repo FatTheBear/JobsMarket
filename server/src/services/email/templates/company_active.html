@@ -1,18 +1,25 @@
 <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #B0C4DE; padding: 40px 20px; color: #5A5A5A; line-height: 1.6;">
     <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);">
+        
         <div style="background-color: #01796F; padding: 30px; text-align: center;">
             <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: 2px;">JobsMarket</h1>
         </div>
         
         <div style="padding: 40px 30px;">
             <h2 style="color: #01796F; margin-top: 0; font-size: 22px;">Account Approved</h2>
-            <p style="font-size: 16px;">Dear {{hrName}},</p>
-            <p style="font-size: 16px;">Great news! The registration for <strong>{{companyName}}</strong> has been successfully verified and approved by our administrative team.</p>
             
-            <p style="font-size: 16px; margin-top: 20px;">Your enterprise account is now fully active. You can log in to your employer dashboard to start posting job vacancies, managing applications, and finding top-tier candidates.</p>
+            <p style="font-size: 16px;">Dear HR Team,</p>
+            <p style="font-size: 16px;">Great news! The registration for <strong>{{COMPANY_NAME}}</strong> has been successfully verified and approved by our administrative team.</p>
+            
+            <p style="font-size: 16px; margin-top: 20px;">To fully activate your enterprise account and access the employer dashboard, please use the activation code below:</p>
+            
+            <div style="background-color: #f0fdfa; border: 2px dashed #01796F; border-radius: 8px; padding: 20px; text-align: center; margin: 30px 0;">
+                <span style="font-size: 14px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 8px;">Your Activation Code</span>
+                <span style="font-size: 32px; font-weight: 700; color: #01796F; letter-spacing: 4px;">{{ACTIVATION_CODE}}</span>
+            </div>
             
             <div style="text-align: center; margin: 35px 0 10px 0;">
-                <a href="http://localhost:3000/login" style="background-color: #01796F; color: #ffffff; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; display: inline-block;">Access Dashboard</a>
+                <a href="http://localhost:3000/activate-company" style="background-color: #01796F; color: #ffffff; padding: 14px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; display: inline-block;">Activate Account Now</a>
             </div>
         </div>
         
@@ -25,5 +32,6 @@
                 <a href="#" style="color: #01796F; text-decoration: none; margin: 0 5px;">Help Center</a>
             </p>
         </div>
+        
     </div>
 </div>

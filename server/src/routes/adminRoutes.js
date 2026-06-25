@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/adminController.js");
 const { upload ,uploadAvatar, uploadCompany } = require('../middleware/upload');
-
 const { authMiddleware, adminMiddleware } = require('../middleware/authMiddleware');
 
 // Áp dụng middleware kiểm tra quyền Admin cho toàn bộ route admin
@@ -53,7 +52,10 @@ router.delete('/notifications/:id', adminController.deleteNotification);
 
 
 router.get('/pending-companies', adminController.getPendingCompanies);
-router.patch('/company/:id/approve', adminController.approveCompany);
+// router.patch('/company/:id/approve', adminController.approveCompany);
 router.patch('/users/:id/ban', adminController.banAccount);
+
+router.get('/companies/pending', authMiddleware, adminController.getPendingCompanies);
+router.patch('/companies/:id/approve', authMiddleware, adminController.approveCompany);
 
 module.exports = router;

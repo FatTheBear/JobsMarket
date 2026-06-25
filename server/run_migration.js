@@ -621,6 +621,45 @@ async function runMigration() {
             throw err;
         }
 
+
+        try {
+            console.log('Altering Company table to add new registration fields...');
+            await pool.query(`
+        ALTER TABLE \`Company\`
+        ADD COLUMN \`email\` VARCHAR(255) DEFAULT NULL,
+        ADD COLUMN \`company_phone\` VARCHAR(50) DEFAULT NULL,
+        ADD COLUMN \`tax_id\` VARCHAR(100) DEFAULT NULL,
+        ADD COLUMN \`size\` VARCHAR(50) DEFAULT NULL,
+        ADD COLUMN \`description\` TEXT DEFAULT NULL;
+    `);
+            console.log('Successfully altered Company table.');
+        } catch (err) {
+            console.error('\n[CRITICAL ERROR] Failed to alter Company table:', err.message);
+            throw err;
+        }
+
+        try {
+            console.log('Connecting to database...');
+
+            await pool.query(`
+      ALTER TABLE \`Company\`
+      DROP COLUMN \`facebook\`,
+      DROP COLUMN \`linkedin\`,
+      DROP COLUMN \`twitter\`;
+    `);
+
+            console.log('Successfully dropped unused columns from Company table.');
+            process.exit(0);
+        } catch (error) {
+            if (error.code === 'ER_CANT_DROP_FIELD_OR_KEY') {
+                console.log('Columns are already dropped. Database is clean!');
+                process.exit(0);
+            }
+            console.error('[CRITICAL ERROR] Migration failed:', error.message);
+            process.exit(1);
+        }
+
+
     } catch (dbError) {
         console.error('\n[CRITICAL ERROR] Table creation failed:', dbError.message);
         process.exit(1);
