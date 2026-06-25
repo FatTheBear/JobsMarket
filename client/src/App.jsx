@@ -38,6 +38,9 @@ import CandidateActivityHistory from './pages/CandidateProfile/CandidateActivity
 import CandidateAppliedJobsPage from './pages/CandidateProfile/CandidateAppliedJobsPage';
 import CandidateManageCVs from './pages/CandidateProfile/CandidateManageCVs';
 import CompanyRegister from './pages/Authentication/CompanyRegister';
+import RegistrationPending from './pages/Authentication/RegistrationPending';
+import ActivateCompany from './pages/Authentication/ActivateCompany';
+import CompanyJobList from './pages/DashBoard/CompanyDashboard/CompanyJobList';
 
 import './App.css';
 
@@ -63,6 +66,9 @@ const router = createBrowserRouter([
   { path: "/verify-otp", element: <VerifyOTP /> },
   { path: "/setup-profile", element: <SetupProfilePage /> },
   { path: "/terms-of-service", element: <TermsOfService /> },
+  { path: "/registration-pending", element: <RegistrationPending /> },
+  { path: "/activate-company", element: <ActivateCompany /> },
+  
 
   {
     element: <MainLayout />,
@@ -111,7 +117,6 @@ const router = createBrowserRouter([
       {
         path: "/company",
         element: <CompanyDashboard />,
-        // ĐÃ SỬA: Gom tất cả children của company vào chung 1 khối duy nhất
         children: [
           { path: "dashboard", element: <></> },
           { path: "profile", element: <CompanyProfile /> },
@@ -120,7 +125,8 @@ const router = createBrowserRouter([
           { path: "applicants", element: <AppliedCandidates /> },
           { path: "saved-candidates", element: <SavedCandidates /> },
           { path: "create-post", element: <CreatePost /> },
-          { path: "wallet", element: <CompanyWallet /> }
+          { path: "wallet", element: <CompanyWallet /> },
+          { path: "jobs", element: <CompanyJobList /> },
         ]
       },
 

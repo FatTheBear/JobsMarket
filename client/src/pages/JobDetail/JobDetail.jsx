@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ApplyModal from '../ApplyModal/ApplyModal';
 import './JobDetail.css';
-
+import ApplySuccess from '../../components/Modal/ApplySuccess/ApplySuccess'; 
 const API_URL = 'http://localhost:5000';
 
 const saveAppliedJobId = (jobId) => {
@@ -27,6 +27,7 @@ export default function JobDetail() {
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
   const [toast, setToast] = useState({ show: false, msg: '', type: '' });
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const showToast = (msg, type) => {
     setToast({ show: true, msg, type });
@@ -42,6 +43,33 @@ export default function JobDetail() {
       checkAppliedStatus(job.title);
     }
   }, [job, id]);
+
+
+  const handleApplyJob = async () => {
+    setIsApplying(true);
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/applications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ job_id: job.id })
+      });
+
+      if (response.ok) {
+        setIsModalOpen(true);
+      } else {
+        alert("Failed to apply. Please try again.");
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
 
   const fetchJobDetail = async () => {
     setLoading(true);
@@ -122,9 +150,9 @@ export default function JobDetail() {
             <h1 className="job-detail-card-title">{job.title}</h1>
             <p className="job-detail-card-company">{job.company_name}</p>
             <div className="job-detail-card-badges">
-              <span className="jd-badge badge-salary">💰 {formatSalary()}</span>
-              <span className="jd-badge badge-location">📍 {job.loc || 'Location updating'}</span>
-              <span className="jd-badge badge-experience">💼 {job.experience || 'Not specified'}</span>
+              <span className="jd-badge badge-salary">{formatSalary()}</span>
+              <span className="jd-badge badge-location">{job.loc || 'Location updating'}</span>
+              <span className="jd-badge badge-experience">{job?.job_type || 'Not specified'}</span>
             </div>
           </div>
         </div>
@@ -134,7 +162,7 @@ export default function JobDetail() {
             Deadline: {new Date(job.deadline).toLocaleDateString('en-GB')}
           </p>
           {hasApplied ? (
-            <button className="job-detail-card-btn applied" disabled>
+            <button className="job-detail-card-btn onClick={handleApplyJob} applied" disabled>
               Applied
             </button>
           ) : (
@@ -171,7 +199,7 @@ export default function JobDetail() {
             showToast(msg, 'success');
           }}
           onError={(msg) => {
-            if (msg.includes('already applied') || msg.includes('đã ứng tuyển')) {
+            if (msg.includes('already applied')) {
               setHasApplied(true);
               saveAppliedJobId(id);
             }
@@ -179,6 +207,11 @@ export default function JobDetail() {
           }}
         />
       )}
+      <ApplySuccess 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        job={job} 
+      />
     </div>
   );
 }

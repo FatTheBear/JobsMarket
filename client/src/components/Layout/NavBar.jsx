@@ -16,6 +16,7 @@ const MENU_CONFIG = {
     { label: 'Career Guide', path: '/guide' }
   ],
   candidate: [
+    { label: 'Home', path: '/dashboard' },
     { label: 'Explore', path: '/community' },
     { label: 'My Applications', path: '/applications' },
     { label: 'Saved', path: '/saved' }
