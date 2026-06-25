@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import './AppliedCandidates.css';
 
@@ -88,12 +89,16 @@ export default function ViewAppliedCandidates() {
                     
                     <td className="px-4">
                       <div className="d-flex align-items-center gap-3">
-                        <img 
-                          src={cand.candidate_avatar ? `${API_URL}${cand.candidate_avatar}` : '/default-avatar.png'} 
-                          alt="avatar" 
-                          className="rounded-circle object-fit-cover avatar-border"
-                        />
-                        <span className="fw-semibold text-dark">{cand.candidate_name}</span>
+                        <Link to={`/candidate/${cand.candidate_id}`}>
+                          <img 
+                            src={cand.candidate_avatar ? (cand.candidate_avatar.startsWith('http') ? cand.candidate_avatar : `${API_URL}${cand.candidate_avatar}`) : '/default-avatar.png'} 
+                            alt="avatar" 
+                            className="rounded-circle object-fit-cover avatar-border"
+                          />
+                        </Link>
+                        <Link to={`/candidate/${cand.candidate_id}`} className="fw-semibold text-decoration-none text-primary hover-underline">
+                          {cand.candidate_name}
+                        </Link>
                       </div>
                     </td>
 
