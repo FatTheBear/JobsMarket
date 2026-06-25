@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import React, { useState } from "react";
 import './JobCard.css';
 import axios from 'axios';
@@ -39,6 +40,10 @@ export default function JobCard({ job, onClick }) {
   const [feedbackMessage, setFeedbackMessage] = useState({ type: "", text: "" });
   const [myCVs, setMyCVs] = useState([]);
   const [isLoadingCVs, setIsLoadingCVs] = useState(false);
+=======
+import React from 'react';
+import './JobCard.module.css';
+>>>>>>> Stashed changes
 
   const {
     id: jobId,
