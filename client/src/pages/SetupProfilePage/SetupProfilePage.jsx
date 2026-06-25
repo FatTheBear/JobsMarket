@@ -131,6 +131,33 @@ export default function SetupProfilePage() {
     loadAddressData();
   }, [token]);
 
+  // Load existing profile if any
+  useEffect(() => {
+    if (!token) return;
+
+    const loadExistingProfile = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/candidate/profile', getHeaders());
+        if (res.data) {
+          const profile = res.data;
+          setFormData(prev => ({
+            ...prev,
+            display_name: profile.display_name || profile.full_name || prev.display_name,
+            phone: profile.phone || prev.phone,
+            avatar_url: profile.avatar_url || prev.avatar_url,
+            headline: profile.headline || prev.headline,
+            address: profile.address || prev.address,
+            birthday: profile.birthday ? formatDisplayDate(profile.birthday.substring(0, 10)) : prev.birthday,
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to load existing profile in setup wizard:", err);
+      }
+    };
+
+    loadExistingProfile();
+  }, [token]);
+
   // Handle simple input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;

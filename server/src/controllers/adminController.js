@@ -1,5 +1,11 @@
-const db = require('../config/db'); 
+const db = require('../config/db');
 const CoinExchangeFeeModel = require('../models/CoinExchangeFee');
+const pool = require('../config/db');
+const email = require('../services/email/emailServices');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
+const fs = require('fs');
+const path = require('path');
 
 // 1. Lấy dữ liệu tổng quan (Đồng bộ chuẩn db.query)
 exports.getStats = async (req, res) => {
@@ -196,12 +202,11 @@ exports.updateJobStatus = async (req, res) => {
 
 // 6. Lấy danh sách kỹ năng
 exports.getSkills = async (req, res) => {
-    try {
-        const [skills] = await db.query("SELECT id, skill_name AS name FROM `skill` ORDER BY id DESC");
-        res.json(skills);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+    const [skills] = await db.query(
+        "SELECT id, skill_name FROM skill ORDER BY id DESC"
+    );
+
+    res.json(skills);
 };
 
 // 7. Lấy danh sách ngành nghề
@@ -242,7 +247,10 @@ exports.createSkill = async (req, res) => {
     const { name } = req.body;
     try {
         if (!name) return res.status(400).json({ message: "Skill name is required" });
-        await db.query("INSERT INTO `skill` (skill_name) VALUES (?)", [name]);
+        await db.query(
+            "INSERT INTO skill (skill_name) VALUES (?)",
+            [name]
+        );
         res.json({ message: "Skill added successfully" });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -332,48 +340,48 @@ exports.createNews = async (req, res) => {
 };
 
 exports.updateNews = async (req, res) => {
-  try {
-    const { id } = req.params;
+    try {
+        const { id } = req.params;
 
-    const {
-      title,
-      slug,
-      category_id,
-      short_description,
-      content,
-      status,
-      thumbnail_url
-    } = req.body;
+        const {
+            title,
+            slug,
+            category_id,
+            short_description,
+            content,
+            status,
+            thumbnail_url
+        } = req.body;
 
-    const categoryId = Number(category_id);
+        const categoryId = Number(category_id);
 
-    // 1. validate cứng
-    if (!title || !slug || !categoryId) {
-      return res.status(400).json({
-        message: "Missing title, slug, category_id"
-      });
-    }
+        // 1. validate cứng
+        if (!title || !slug || !categoryId) {
+            return res.status(400).json({
+                message: "Missing title, slug, category_id"
+            });
+        }
 
-    // 2. check category tồn tại
-    const [cat] = await db.query(
-      "SELECT id FROM news_category WHERE id = ?",
-      [categoryId]
-    );
+        // 2. check category tồn tại
+        const [cat] = await db.query(
+            "SELECT id FROM news_category WHERE id = ?",
+            [categoryId]
+        );
 
-    if (cat.length === 0) {
-      return res.status(400).json({
-        message: "Invalid category_id"
-      });
-    }
+        if (cat.length === 0) {
+            return res.status(400).json({
+                message: "Invalid category_id"
+            });
+        }
 
-    // 3. fix thumbnail không bị xoá khi update
-    const finalThumbnail =
-      req.file
-        ? `/uploads/${req.file.filename}`
-        : thumbnail_url || null;
+        // 3. fix thumbnail không bị xoá khi update
+        const finalThumbnail =
+            req.file
+                ? `/uploads/${req.file.filename}`
+                : thumbnail_url || null;
 
-    await db.query(
-      `UPDATE news SET
+        await db.query(
+            `UPDATE news SET
         title = ?,
         slug = ?,
         category_id = ?,
@@ -382,24 +390,24 @@ exports.updateNews = async (req, res) => {
         content = ?,
         status = ?
       WHERE id = ?`,
-      [
-        title,
-        slug,
-        categoryId,
-        finalThumbnail,
-        short_description || "",
-        content || "",
-        status || "Draft",
-        id
-      ]
-    );
+            [
+                title,
+                slug,
+                categoryId,
+                finalThumbnail,
+                short_description || "",
+                content || "",
+                status || "Draft",
+                id
+            ]
+        );
 
-    res.json({ success: true });
+        res.json({ success: true });
 
-  } catch (err) {
-    console.error("UPDATE NEWS ERROR:", err);
-    res.status(500).json({ message: err.message });
-  }
+    } catch (err) {
+        console.error("UPDATE NEWS ERROR:", err);
+        res.status(500).json({ message: err.message });
+    }
 };
 
 // 13. Xóa bài viết
@@ -684,10 +692,335 @@ exports.getPublicNewsById = async (req, res) => {
             FROM news n 
             LEFT JOIN news_category nc ON n.category_id = nc.id 
             WHERE n.id = ? AND n.status = 'Published'`, [id]);
-        
+
         if (rows.length === 0) return res.status(404).json({ message: "Bài viết không tồn tại hoặc chưa được xuất bản" });
         res.json(rows[0]);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
+};
+
+// exports.approveCompany = async (req, res) => {
+//     const { id } = req.params;
+
+//     try {
+//         const connection = await db.getConnection();
+//         try {
+//             const [rows] = await connection.execute(
+//                 `SELECT u.email, c.hr_name, c.name AS company_name 
+//                  FROM User u 
+//                  JOIN Company c ON u.id = c.hr_id 
+//                  WHERE u.id = ? AND u.role = 'HR'`,
+//                 [id]
+//             );
+
+//             if (rows.length === 0) {
+//                 connection.release();
+//                 return res.status(404).json({ message: "Company account not found" });
+//             }
+
+//             const { email, hr_name, company_name } = rows[0];
+
+//             await connection.execute(
+//                 'UPDATE User SET status = ? WHERE id = ?',
+//                 ['Active', id]
+//             );
+
+//             await emailService.sendCompanyActive(email, hr_name, company_name);
+
+//             connection.release();
+//             return res.status(200).json({ message: "Company approved successfully!" });
+
+//         } catch (dbError) {
+//             connection.release();
+//             return res.status(500).json({ message: "Database error" });
+//         }
+//     } catch (error) {
+//         return res.status(500).json({ message: "Internal server error" });
+//     }
+// };
+
+exports.banAccount = async (req, res) => {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    if (!reason) {
+        return res.status(400).json({ message: "Ban reason is required" });
+    }
+
+    try {
+        const connection = await db.getConnection();
+        try {
+            const [users] = await connection.execute(
+                'SELECT email, role FROM User WHERE id = ?',
+                [id]
+            );
+
+            if (users.length === 0) {
+                connection.release();
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            const { email, role } = users[0];
+            let userName = "User";
+
+            if (role === 'HR') {
+                const [company] = await connection.execute('SELECT hr_name FROM Company WHERE hr_id = ?', [id]);
+                if (company.length > 0) userName = company[0].hr_name;
+            } else if (role === 'Candidate') {
+                const [candidate] = await connection.execute('SELECT full_name FROM Candidate_Profile WHERE user_id = ?', [id]);
+                if (candidate.length > 0 && candidate[0].full_name) userName = candidate[0].full_name;
+            }
+
+            await connection.execute(
+                'UPDATE User SET status = ? WHERE id = ?',
+                ['Banned', id]
+            );
+
+            await emailService.sendAccountBanned(email, userName, reason);
+
+            connection.release();
+            return res.status(200).json({ message: "Account has been banned" });
+
+        } catch (dbError) {
+            connection.release();
+            return res.status(500).json({ message: "Database error" });
+        }
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+
+exports.getPendingCompanies = async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        id AS company_id,
+        hr_id,
+        name AS company_name,
+        email AS company_email,
+        company_phone,
+        tax_id,
+        size,
+        description,
+        business_license_url,
+        status,
+        created_at
+      FROM Company
+      WHERE status = 'Pending'
+      ORDER BY created_at DESC
+    `);
+    
+    return res.status(200).json(rows);
+  } catch (error) {
+    // THÊM DÒNG NÀY ĐỂ BẮT ĐÚNG LỖI CỘT NÀO
+    console.error("GET PENDING COMPANIES ERROR:", error); 
+    return res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+exports.approveCompany = async (req, res) => {
+  const { id } = req.params;
+  const activationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+
+  try {
+    const [companyData] = await pool.query(
+      `SELECT c.name, u.email 
+       FROM Company c
+       JOIN User u ON c.hr_id = u.id
+       WHERE c.id = ? AND c.status = 'Pending'`,
+      [id]
+    );
+
+    if (companyData.length === 0) {
+      return res.status(404).json({ message: "Company not found or already processed" });
+    }
+
+    const companyEmail = companyData[0].email;
+    const companyName = companyData[0].name;
+
+    // 1. Update Database
+    await pool.query(
+      `UPDATE Company 
+       SET status = 'Approved', activation_code = ? 
+       WHERE id = ?`,
+      [activationCode, id]
+    );
+
+    // 2. Log activation details for debugging/testing
+    console.log(`\nSUCCESS: Company approved - ${companyName}`);
+    console.log(`ACTIVATION CODE: ${activationCode}`);
+    console.log(`SENDING TO EMAIL: ${companyEmail || 'NOT FOUND IN DB'}\n`);
+
+    // 3. Handle Email Sending Fallback
+    if (companyEmail) {
+      try {
+        const templatePath = path.join(__dirname, '..', 'services', 'email', 'templates', 'company_active.html');
+        let htmlContent = fs.readFileSync(templatePath, 'utf8');
+
+const activationLink = `http://localhost:3000/activate-company?code=${activationCode}`;
+
+        htmlContent = htmlContent
+          .replace(/{{COMPANY_NAME}}/g, companyName)
+          .replace(/{{ACTIVATION_CODE}}/g, activationCode)
+          .replace(/{{ACTIVATION_LINK}}/g, activationLink);
+
+        const transporter = nodemailer.createTransport({
+          host: process.env.EMAIL_HOST,
+          port: process.env.EMAIL_PORT,
+          secure: false, // Required false for port 587, true for port 465
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+          }
+        });
+
+        const mailOptions = {
+          from: '"JobsMarket Team" <jobsmarket33@gmail.com>',
+          to: companyEmail,
+          subject: 'Your Company Account Has Been Approved!',
+          html: htmlContent
+        };
+
+        // Attempt to send email
+        await transporter.sendMail(mailOptions);
+        console.log("Email sent successfully!");
+
+      } catch (mailError) {
+        // Fallback: Log error but do not crash the API if SMTP fails
+        console.error("Mail Error (Company was still approved in DB):", mailError.message);
+      }
+    } else {
+      console.warn("Warning: Skipped email sending because no email was found in the database.");
+    }
+
+    // 4. Return success response to Frontend
+    return res.status(200).json({ message: "Company approved successfully", activationCode });
+
+  } catch (error) {
+    console.error("APPROVE COMPANY ERROR:", error);
+    return res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+// GET /admin/dashboard-trends?period=7d|30d|12m
+exports.getDashboardTrends = async (req, res) => {
+    try {
+        const { period = '30d', year, month } = req.query;
+
+        const selectedYear = parseInt(year) || new Date().getFullYear();
+        const selectedMonth = parseInt(month) || new Date().getMonth() + 1;
+
+        let groupFormat, dateFilter, labelFormat;
+
+        if (period === '7d') {
+            groupFormat = '%Y-%m-%d';
+            labelFormat = '%d/%m';
+            dateFilter = 'DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)';
+        } else if (period === '12m') {
+            groupFormat = '%Y-%m';
+            labelFormat = '%m/%Y';
+            dateFilter = `YEAR(created_at) = ${selectedYear}`;
+        } else {
+            // 30d — theo tháng + năm được chọn
+            groupFormat = '%Y-%m-%d';
+            labelFormat = '%d/%m';
+            dateFilter = `YEAR(created_at) = ${selectedYear} AND MONTH(created_at) = ${selectedMonth}`;
+        }
+
+        const [jobTrends] = await db.query(`
+            SELECT DATE_FORMAT(created_at, '${groupFormat}') AS period,
+                   DATE_FORMAT(created_at, '${labelFormat}') AS label,
+                   COUNT(*) AS count
+            FROM job_posting
+            WHERE ${dateFilter}
+            GROUP BY period, label ORDER BY period ASC
+        `);
+
+        const appDateFilter = dateFilter.replace(/created_at/g, 'applied_at');
+        const [appTrends] = await db.query(`
+            SELECT DATE_FORMAT(applied_at, '${groupFormat}') AS period,
+                   DATE_FORMAT(applied_at, '${labelFormat}') AS label,
+                   COUNT(*) AS count
+            FROM application
+            WHERE ${appDateFilter}
+            GROUP BY period, label ORDER BY period ASC
+        `);
+
+        const [revenueTrends] = await db.query(`
+            SELECT DATE_FORMAT(created_at, '${groupFormat}') AS period,
+                   DATE_FORMAT(created_at, '${labelFormat}') AS label,
+                   COALESCE(SUM(amount_fiat), 0) AS total
+            FROM transaction
+            WHERE status = 'completed' AND type = 'deposit'
+            AND ${dateFilter}
+            GROUP BY period, label ORDER BY period ASC
+        `);
+
+        res.json({ jobTrends, appTrends, revenueTrends });
+    } catch (error) {
+        console.error('GET TRENDS ERROR:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// GET /admin/top-skills
+exports.getTopSkills = async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT s.skill_name AS name, COUNT(js.job_id) AS count
+            FROM skill s
+            JOIN job_skill js ON s.id = js.skill_id
+            JOIN job_posting jp ON js.job_id = jp.id
+            WHERE jp.status = 'Approved'
+GROUP BY s.id, s.skill_name
+            ORDER BY count DESC
+            LIMIT 8
+        `);
+        res.json(rows);
+    } catch (error) {
+        console.error('GET TOP SKILLS ERROR:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getTopIndustries = async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT i.name, COUNT(ji.job_id) AS count
+            FROM industry i
+            JOIN job_industry ji ON i.id = ji.industry_id
+            JOIN job_posting jp ON ji.job_id = jp.id
+            WHERE jp.status = 'Approved'
+            GROUP BY i.id, i.name
+            ORDER BY count DESC
+            LIMIT 8
+        `);
+        res.json(rows);
+    } catch (error) {
+        console.error('GET TOP INDUSTRIES ERROR:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.activateCompany = async (req, res) => {
+  const { activationCode } = req.body;
+
+  try {
+    const [companies] = await pool.query(
+      `SELECT * FROM Company WHERE activation_code = ?`,
+      [activationCode]
+    );
+
+    if (companies.length === 0) {
+      return res.status(400).json({ message: "Invalid activation code!" });
+    }
+
+    await pool.query(
+      `UPDATE Company SET status = 'Active', activation_code = NULL WHERE id = ?`,
+      [companies[0].id]
+    );
+
+    return res.status(200).json({ message: "Account activated!" });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error" });
+  }
 };

@@ -4,8 +4,8 @@ const pool = require('../config/db');
 const { authMiddleware } = require('../middleware/authMiddleware');
 
 // POST /api/jobs - Create a new job posting
-router.post('/',authMiddleware, async (req, res) => {
-   console.log("USER FROM TOKEN:", req.user);
+router.post('/', authMiddleware, async (req, res) => {
+  console.log("USER FROM TOKEN:", req.user);
 
   try {
     const {
@@ -31,10 +31,7 @@ router.post('/',authMiddleware, async (req, res) => {
       selected_industries
     } = req.body;
 
-
-    // Lấy user id từ JWT
     const user_id = req.user?.id;
-
 
     if (!user_id) {
       return res.status(401).json({
@@ -42,15 +39,12 @@ router.post('/',authMiddleware, async (req, res) => {
       });
     }
 
-
     const requiredFields = {
       title,
       job_type
     };
 
-    const missingFields = Object.keys(requiredFields)
-      .filter(key => !requiredFields[key]);
-
+    const missingFields = Object.keys(requiredFields).filter(key => !requiredFields[key]);
 
     if (missingFields.length > 0) {
       return res.status(400).json({
@@ -58,27 +52,16 @@ router.post('/',authMiddleware, async (req, res) => {
       });
     }
 
-
-    // Validate salary range
-    if (
-      salary_min != null &&
-      salary_max != null &&
-      salary_min > salary_max
-    ) {
+    if (salary_min != null && salary_max != null && salary_min > salary_max) {
       return res.status(400).json({
         message: 'Minimum salary cannot exceed maximum salary'
       });
     }
 
-
-    // Validate deadline
     if (deadline) {
-
       const deadlineDate = new Date(deadline);
       const today = new Date();
-
       today.setHours(0, 0, 0, 0);
-
 
       if (deadlineDate < today) {
         return res.status(400).json({
@@ -88,10 +71,9 @@ router.post('/',authMiddleware, async (req, res) => {
     }
 
     const [companies] = await pool.query(
-      'SELECT id, hr_id FROM Company WHERE hr_id = ?',
+      'SELECT id, hr_id, pro_package, pro_expired_at FROM Company WHERE hr_id = ?',
       [user_id]
     );
-
 
     if (companies.length === 0) {
       return res.status(404).json({
@@ -99,65 +81,162 @@ router.post('/',authMiddleware, async (req, res) => {
       });
     }
 
-
-    const company_id = companies[0].id;
-    // The user posting this job is the HR
+    const company = companies[0];
+    const company_id = company.id;
     const hr_id = user_id;
 
+    // 1. Kiểm tra gói Pro hiện tại
+    let currentProPackage = company.pro_package || 'Free';
+    let currentProExpiredAt = company.pro_expired_at ? new Date(company.pro_expired_at) : null;
+    let isProCurrentlyActive = currentProExpiredAt && currentProExpiredAt >= new Date();
 
-    // Tạo job
-    const [result] = await pool.query(
-      `
-      INSERT INTO Job_Posting
-      (
-        company_id,
-        hr_id,
-        title,
-        description,
-        requirements,
-        salary_min,
-        salary_max,
-        job_type,
-        status,
-        experience_req,
-        working_hours,
-        job_level,
-        vacancies,
-        gender_req,
-        age_req,
-        language_req,
-        province,
-        district,
-        ward,
-        exact_address
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `,
-      [
-        company_id,
-        hr_id,
-        title,
-        description || null,
-        requirements || null,
-        salary_min || null,
-        salary_max || null,
-        job_type || 'Full-time',
-        experience_req || null,
-        working_hours ? JSON.stringify(working_hours) : null,
-        job_level || null,
-        vacancies || null,
-        gender_req || null,
-        age_req || null,
-        language_req || null,
-        province || null,
-        district || null,
-        ward || null,
-        exact_address || null
-      ]
-    );
+    const { post_type } = req.body; // 'Free', 'Pro_Day', 'Pro_Month'
 
+    // Kết nối database transaction để thực hiện trừ coins an toàn nếu nạp gói mới
+    const connection = await pool.getConnection();
+    try {
+      await connection.beginTransaction();
 
+      if (!isProCurrentlyActive && (post_type === 'Pro_Day' || post_type === 'Pro_Month')) {
+        // Cần mua gói Pro mới
+        const coinsRequired = post_type === 'Pro_Day' ? 20 : 500;
 
+        // Lấy coins hiện tại của User
+        const [users] = await connection.execute(
+          'SELECT coins FROM User WHERE id = ? FOR UPDATE',
+          [user_id]
+        );
+        const userCoins = users[0]?.coins || 0;
+
+        if (userCoins < coinsRequired) {
+          await connection.rollback();
+          connection.release();
+          return res.status(400).json({
+            message: `Insufficient coins balance to purchase Pro plan (Required: ${coinsRequired} coins, current balance: ${userCoins} coins).`
+          });
+        }
+
+        // Trừ coins
+        await connection.execute(
+          'UPDATE User SET coins = coins - ? WHERE id = ?',
+          [coinsRequired, user_id]
+        );
+
+        // Tạo Transaction
+        await connection.execute(
+          `INSERT INTO Transaction (user_id, amount_fiat, coins, type, payment_method, status, reference_code) 
+           VALUES (?, 0, ?, 'spend', 'system', 'completed', ?)`,
+          [user_id, coinsRequired, `PRO_SUB_${post_type.toUpperCase()}_${Date.now()}`]
+        );
+
+        // Kích hoạt gói Pro cho Company
+        const durationHours = post_type === 'Pro_Day' ? 24 : (30 * 24);
+        const newExpiredAt = new Date(Date.now() + durationHours * 60 * 60 * 1000);
+
+        await connection.execute(
+          'UPDATE Company SET pro_package = ?, pro_expired_at = ? WHERE id = ?',
+          [post_type, newExpiredAt, company_id]
+        );
+
+        currentProPackage = post_type;
+        currentProExpiredAt = newExpiredAt;
+        isProCurrentlyActive = true;
+      }
+
+      // 2. Kiểm tra giới hạn đăng tin trong 24 giờ qua
+      const [recentJobs] = await connection.execute(
+        'SELECT created_at FROM Job_Posting WHERE hr_id = ? AND created_at >= NOW() - INTERVAL 1 DAY',
+        [hr_id]
+      );
+
+      const recentPostsCount = recentJobs.length;
+
+      if (isProCurrentlyActive) {
+        if (recentPostsCount >= 2) {
+          await connection.rollback();
+          connection.release();
+          return res.status(400).json({
+            message: 'Pro plan limit exceeded: Maximum 2 job postings per 24 hours.'
+          });
+        }
+      } else {
+        if (recentPostsCount >= 1) {
+          await connection.rollback();
+          connection.release();
+          return res.status(400).json({
+            message: 'Free account limit exceeded: Maximum 1 job posting per 24 hours. Please upgrade to Pro plan to post more.'
+          });
+        }
+      }
+
+      await connection.commit();
+      connection.release();
+    } catch (transactionError) {
+      await connection.rollback();
+      connection.release();
+      console.error("Transaction failed during job post:", transactionError);
+      return res.status(500).json({
+        message: 'System error occurred while processing job posting and coin deduction.',
+        error: transactionError.message
+      });
+    }
+
+    const fullLocation = [exact_address, ward, district, province].filter(Boolean).join(', ');
+
+    const workHoursString = typeof working_hours === 'object'
+      ? JSON.stringify(working_hours)
+      : (working_hours || null);
+
+    const metadataObj = {
+      deadline: deadline || null,
+      job_level: job_level || null,
+      vacancies: vacancies || null,
+      gender_req: gender_req || null,
+      detailed_address: fullLocation,
+      is_pro: isProCurrentlyActive ? 1 : 0
+    };
+
+    const metadataString = JSON.stringify(metadataObj);
+
+    const sql = `
+      INSERT INTO Job_Posting (
+        company_id, 
+        hr_id, 
+        title, 
+        description, 
+        requirements, 
+        salary_min, 
+        salary_max, 
+        job_type, 
+        status, 
+        loc, 
+        work_hrs, 
+        exp_yrs, 
+        age_req, 
+        lang_req,
+        metadata
+      ) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, ?, ?)
+    `;
+
+    const values = [
+      company_id,
+      hr_id,
+      title,
+      description || null,
+      requirements || null,
+      salary_min || null,
+      salary_max || null,
+      job_type || 'Full-time',
+      province || null,
+      workHoursString,
+      experience_req || null,
+      age_req || null,
+      language_req || null,
+      metadataString
+    ];
+
+    const [result] = await pool.query(sql, values);
     const jobId = result.insertId;
 
     if (selected_skills && Array.isArray(selected_skills) && selected_skills.length > 0) {
@@ -177,21 +256,16 @@ router.post('/',authMiddleware, async (req, res) => {
     }
 
     res.status(201).json({
-      message: 'Job posted successfully! Your job is waiting for Admin approval.',
+      message: 'Job posted successfully! Waiting for Admin approval.',
       jobId: jobId
     });
 
-
-
   } catch (err) {
-
     console.error("Create Job Error:", err);
-
     res.status(500).json({
       message: 'Server error',
       error: err.message
     });
-
   }
 });
 
@@ -203,23 +277,28 @@ router.get('/', async (req, res) => {
 
     const [rows] = await pool.query(
       `
-      SELECT 
-        jp.*,
-        c.name AS company_name,
-        c.logo_url
-
-      FROM Job_Posting jp
-
-      LEFT JOIN Company c 
-      ON jp.company_id = c.id
-
-      ORDER BY jp.created_at DESC
-      `
+  SELECT 
+    jp.*,
+    c.name AS company_name,
+    c.logo_url,
+    GROUP_CONCAT(DISTINCT i.id ORDER BY i.id SEPARATOR ',') AS industry_ids,
+    GROUP_CONCAT(DISTINCT i.name ORDER BY i.id SEPARATOR '||') AS industry_names
+  FROM Job_Posting jp
+  LEFT JOIN Company c ON jp.company_id = c.id
+  LEFT JOIN Job_Industry ji ON jp.id = ji.job_id
+  LEFT JOIN Industry i ON ji.industry_id = i.id
+  GROUP BY jp.id
+  ORDER BY jp.created_at DESC
+  `
     );
 
+    const jobs = rows.map(job => ({
+      ...job,
+      industry_ids: job.industry_ids ? job.industry_ids.split(',').map(Number) : [],
+      industry_names: job.industry_names ? job.industry_names.split('||') : [],
+    }));
 
-    res.json(rows);
-
+    res.json(jobs);
 
   } catch (err) {
 
@@ -272,13 +351,34 @@ router.get('/search', async (req, res) => {
     query += ` ORDER BY jp.created_at DESC`;
 
     const [rows] = await pool.query(query, queryParams);
-    
+
     // In a real app we'd fetch skills per job here, or use GROUP_CONCAT. 
     // For simplicity we will return jobs array directly.
     res.json(rows);
   } catch (err) {
     console.error('Error searching jobs:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+router.get('/my-jobs', authMiddleware, async (req, res) => {
+  const hr_id = req.user.id;
+  try {
+    const [rows] = await pool.query(
+      `SELECT 
+                jp.id, jp.title, jp.status, jp.job_type, jp.job_level,
+                jp.salary_min, jp.salary_max, jp.deadline, jp.created_at,
+                jp.view_count, jp.vacancies, jp.province,
+                (SELECT COUNT(*) FROM application a WHERE a.job_id = jp.id) AS applicant_count
+             FROM Job_Posting jp
+             WHERE jp.hr_id = ?
+             ORDER BY jp.created_at DESC`,
+      [hr_id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching my jobs:', err);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
@@ -333,6 +433,27 @@ router.get('/:id', async (req, res) => {
   }
 
 });
-
+// PATCH /api/jobs/:id/close — HR tự đóng job của mình
+router.patch('/:id/close', authMiddleware, async (req, res) => {
+  const hr_id = req.user.id;
+  const { id } = req.params;
+  try {
+    const [rows] = await pool.query(
+      'SELECT id FROM Job_Posting WHERE id = ? AND hr_id = ?',
+      [id, hr_id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Job not found or unauthorized' });
+    }
+    await pool.query(
+      "UPDATE Job_Posting SET status = 'Closed' WHERE id = ?",
+      [id]
+    );
+    res.json({ message: 'Job closed successfully' });
+  } catch (err) {
+    console.error('Error closing job:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 module.exports = router;

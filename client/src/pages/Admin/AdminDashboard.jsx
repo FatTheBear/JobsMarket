@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Briefcase, BarChart2, FolderTree, Newspaper, CreditCard, Coins, Bell } from 'lucide-react';
+import { Users, Briefcase, BarChart2, FolderTree, Newspaper, CreditCard, Coins, Bell, Building2 } from 'lucide-react';
 import { adminApi } from '../../services/adminApi';
 import AdminOverview from './AdminOverview';
 import AdminUser from './AdminUser';
@@ -11,6 +11,7 @@ import AdminCoinFees from './AdminCoinFees';
 import './Admin.css';
 import CreateNewsModal from './CreateNewsModal';
 import AdminNotifications from "./AdminNotifications";
+import AdminCompanyApproval from "./AdminCompanyApproval";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -23,6 +24,7 @@ const AdminDashboard = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newsCategories, setNewsCategories] = useState([]);
   const [editingNews, setEditingNews] = useState(null);
+  const [pendingCompanies, setPendingCompanies] = useState([]);
 
   // Đóng gói hàm fetch danh mục ra ngoài để dùng tái sử dụng khi Add/Delete
   const fetchCategoriesData = async () => {
@@ -51,6 +53,7 @@ const AdminDashboard = () => {
         setLoading(false);
         return;
       }
+      
       setLoading(true);
       try {
         if (activeTab === 'overview') {
@@ -59,6 +62,9 @@ const AdminDashboard = () => {
         } else if (activeTab === 'users') {
           const res = await adminApi.getUsers();
           setUsers(res.data || res);
+        } else if (activeTab === 'companies') {
+          const res = await adminApi.getPendingCompanies();
+          setPendingCompanies(res.data || res);
         } else if (activeTab === 'jobs') {
           const res = await adminApi.getPendingJobs();
           setPendingJobs(res.data || res);
@@ -196,6 +202,36 @@ const AdminDashboard = () => {
       console.error(err);
     }
   };
+  const handleApproveCompany = async (
+    companyId
+  ) => {
+    const confirmed = window.confirm(
+      "Approve this company?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await adminApi.approveCompany(
+        companyId
+      );
+
+      const res =
+        await adminApi.getPendingCompanies();
+
+      setPendingCompanies(
+        res.data || res
+      );
+
+      alert(
+        "Company approved successfully!"
+      );
+    } catch (error) {
+      alert(
+        "Failed to approve company"
+      );
+    }
+  };
 
   return (
     <div className="admin-container">
@@ -204,7 +240,8 @@ const AdminDashboard = () => {
         <div className="sidebar-menu">
           <button onClick={() => setActiveTab('overview')} className={`sidebar-btn ${activeTab === 'overview' ? 'active' : ''}`}><BarChart2 size={20} /> Overview</button>
           <button onClick={() => setActiveTab('users')} className={`sidebar-btn ${activeTab === 'users' ? 'active' : ''}`}><Users size={20} /> Users</button>
-          <button onClick={() => setActiveTab('jobs')} className={`sidebar-btn ${activeTab === 'jobs' ? 'active' : ''}`}><Briefcase size={20} /> Job Approval</button>
+          <button onClick={() => setActiveTab('companies')} className={`sidebar-btn ${activeTab === 'companies' ? 'active' : ''}`}><Briefcase size={20} /> Company Approval</button>
+          <button onClick={() => setActiveTab('jobs')} className={`sidebar-btn ${activeTab === 'jobs' ? 'active' : ''}`}><Building2 size={20} /> Job Approval</button>
           <button onClick={() => setActiveTab('categories')} className={`sidebar-btn ${activeTab === 'categories' ? 'active' : ''}`}><FolderTree size={20} /> Categories</button>
           <button onClick={() => setActiveTab('news')} className={`sidebar-btn ${activeTab === 'news' ? 'active' : ''}`}><Newspaper size={20} /> News Management</button>
           <button onClick={() => setActiveTab('transactions')} className={`sidebar-btn ${activeTab === 'transactions' ? 'active' : ''}`}><CreditCard size={20} /> Transactions</button>
@@ -254,6 +291,16 @@ const AdminDashboard = () => {
             initialData={editingNews}
           />
         )}
+
+        {!loading &&
+          activeTab === 'companies' && (
+            <AdminCompanyApproval
+              companies={pendingCompanies}
+              onApprove={
+                handleApproveCompany
+              }
+            />
+          )}
 
         {/* ĐÃ THÊM: Khớp nối render nội dung component AdminTransaction khi bấm nút */}
         {!loading && activeTab === 'transactions' && <AdminTransaction />}

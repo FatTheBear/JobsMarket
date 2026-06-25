@@ -138,11 +138,18 @@ const candidateController = {
         }
     },
 
-    // Get a candidate public profile by profile ID.
+    // Get a candidate public profile by user ID or profile ID.
     getPublicProfile: async (req, res) => {
         try {
             const profileId = req.params.id;
-            const profile = await CandidateProfileModel.findByProfileId(profileId);
+            
+            // Try to find by user_id first (since frontend navigates using user_id from posts/comments)
+            let profile = await CandidateProfileModel.findByUserId(profileId);
+            
+            // Fallback to finding by profile id (cp.id) for backward compatibility
+            if (!profile) {
+                profile = await CandidateProfileModel.findByProfileId(profileId);
+            }
 
             if (!profile) {
                 return res.status(404).json({ message: "Candidate profile not found!" });
@@ -203,6 +210,48 @@ const candidateController = {
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: "Internal server error!" });
+        }
+    },
+    getPublicCVs: async (req, res) => {
+        try {
+            const profileOrUserId = req.params.id;
+            const connection = await pool.getConnection();
+            
+            // Tìm candidate_id từ profile_id hoặc user_id
+            const [candidateRows] = await connection.execute(
+                'SELECT id FROM candidate_profile WHERE user_id = ? OR id = ?',
+                [profileOrUserId, profileOrUserId]
+            );
+            
+            if (candidateRows.length === 0) {
+                connection.release();
+                return res.status(200).json([]);
+            }
+            
+            const candidateId = candidateRows[0].id;
+            
+            // Lấy tất cả CVs của candidate đó
+            const [cvRows] = await connection.execute(
+                'SELECT id, cv_name as name, file_type as type, file_size as size, file_url as dataUrl, DATE_FORMAT(created_at, "%b %e, %Y") as uploadedAt FROM candidate_cv WHERE candidate_id = ? ORDER BY created_at DESC',
+                [candidateId]
+            );
+            
+            connection.release();
+            
+            // Format response
+            const formattedCVs = cvRows.map(cv => ({
+                id: cv.id,
+                name: cv.name,
+                type: cv.type === 'PDF' ? 'application/pdf' : 'application/msword',
+                size: (cv.size / 1024 / 1024).toFixed(2) + ' MB',
+                uploadedAt: cv.uploadedAt,
+                dataUrl: 'http://localhost:5000' + cv.dataUrl
+            }));
+            
+            return res.status(200).json(formattedCVs);
+        } catch (error) {
+            console.error("Error loading public CV list:", error);
+            return res.status(500).json({ message: "Server error while loading public CV list!" });
         }
     },
     uploadCV: async (req, res) => {
@@ -598,6 +647,44 @@ const candidateController = {
             console.error('Error fetching countries:', error);
             return res.status(500).json({ message: 'Server error while fetching countries!' });
         }
+    }
+};
+exports.applyForJob = async (req, res) => {
+    const { id: userId } = req.user;
+    const { jobId, cvId } = req.body;
+
+    if (!jobId || !cvId) {
+        return res.status(400).json({ message: "Job ID and CV ID are required" });
+    }
+
+    try {
+        const connection = await pool.getConnection();
+
+        try {
+            const [existingApplication] = await connection.execute(
+                'SELECT id FROM application WHERE job_id = ? AND candidate_id = ?',
+                [jobId, userId]
+            );
+
+            if (existingApplication.length > 0) {
+                connection.release();
+                return res.status(409).json({ message: "You have already applied for this job" });
+            }
+
+            await connection.execute(
+                'INSERT INTO application (job_id, candidate_id, cv_id) VALUES (?, ?, ?)',
+                [jobId, userId, cvId]
+            );
+
+            connection.release();
+            return res.status(201).json({ message: "Application submitted successfully" });
+
+        } catch (dbError) {
+            connection.release();
+            return res.status(500).json({ message: "Database query error" });
+        }
+    } catch (error) {
+        return res.status(500).json({ message: "Internal server error" });
     }
 };
 

@@ -1,5 +1,5 @@
 
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './NavBar.css';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
@@ -8,21 +8,24 @@ import axios from 'axios';
 
 
 // 1. Cấu hình Menu cho tất cả các trạng thái (Kể cả Khách chưa đăng nhập)
+const API_URL = 'http://localhost:5000';
 const MENU_CONFIG = {
   guest: [
-    { label: 'Find Jobs', path: '/jobs' },
+    { label: 'Explore', path: '/community' },
     { label: 'Companies', path: '/companies' },
     { label: 'Career Guide', path: '/guide' }
   ],
   candidate: [
-    { label: 'Find Jobs', path: '/jobs' },
+    { label: 'Home', path: '/dashboard' },
+    { label: 'Explore', path: '/community' },
     { label: 'My Applications', path: '/applications' },
     { label: 'Saved', path: '/saved' }
   ],
   company: [
-    { label: 'Dashboard', path: '/dashboard' },
-    { label: 'Post a Job', path: '/company/jobs/create' },
-    { label: 'Candidates', path: '/manage-candidates' }
+    { label: 'Explore', path: '/community' },
+    { label: 'Dashboard', path: '/company/dashboard' },
+    { label: 'Post a Job', path: '/company/post-job' },
+    { label: 'Candidates', path: '/company/applicants' }
   ],
   admin: [
     { label: 'Dashboard', path: '/admin' },
@@ -38,59 +41,93 @@ export default function NavBar() {
     return !!token && token !== "undefined" && token !== "null";
   });
   const [role, setRole] = useState(() => {
-    const rawRole = localStorage.getItem("role");
+    const userObj = JSON.parse(localStorage.getItem("user")) || null;
+    const rawRole = userObj?.role;
     const roleMap = {
-
       HR: "company",
-
       Candidate: "candidate",
-
       Admin: "admin",
-
     };
 
     return roleMap[rawRole] || "guest";
   });
 
   const [userName, setUserName] = useState('User');
-  const [avatarUrl, setAvatarUrl] = useState('/default-avatar.png');
+  const [avatarUrl, setAvatarUrl] = useState('/img/default-avatar.png');
   //const navigate = useNavigate();
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const rawRole = localStorage.getItem('role'); // "HR", "Candidate", "Admin"
+ useEffect(() => {
+    const fetchProfileData = async () => {
+      const token = localStorage.getItem('token');
+      const userObj = JSON.parse(localStorage.getItem('user')) || null;
+      const rawRole = userObj?.role;
 
-    setIsLoggedIn(!!token);
-    const roleMap = { HR: 'company', Candidate: 'candidate', Admin: 'admin' };
-    const currentRole = token ? (roleMap[rawRole] || 'candidate') : 'guest';
-    setRole(currentRole);
+      const hasToken = !!token && token !== 'undefined' && token !== 'null';
+      setIsLoggedIn(hasToken);
+      const roleMap = { HR: 'company', Candidate: 'candidate', Admin: 'admin' };
+      const currentRole = hasToken ? (roleMap[rawRole] || 'candidate') : 'guest';
+      setRole(currentRole);
 
-    if (token) {
-      // CHỈ GỌI API PROFILE NẾU LÀ CANDIDATE
-      if (currentRole === 'candidate') {
-        const fetchProfile = async () => {
-          try {
-            const response = await axios.get('http://localhost:5000/api/candidate/profile', {
+      if (hasToken) {
+        try {
+          let url = '';
+          if (currentRole === 'candidate') {
+            url = `${API_URL}/api/candidate/profile`;
+          } else if (currentRole === 'company') {
+            const userId = localStorage.getItem('userId');
+            url = `${API_URL}/api/company/${userId}`;
+          }
+
+          if (url) {
+            const response = await axios.get(url, {
               headers: { Authorization: `Bearer ${token}` },
             });
             const profile = response.data;
-            setUserName(profile.full_name || 'User');
-            setAvatarUrl(profile.avatar_url || '/default-avatar.png');
-          } catch (err) {
-            console.error('Failed to fetch candidate profile:', err);
+            console.log("NavBar - Profile data received:", {
+              name: profile.name,
+              displayName: profile.display_name,
+              fullName: profile.full_name,
+              companyName: profile.companyName,
+              avatar_url: profile.avatar_url,
+              logo_url: profile.logo_url ? profile.logo_url.substring(0, 50) + "..." : null
+            });
+            
+            setUserName(profile.display_name || profile.full_name || profile.name || profile.companyName || 'User');
+            
+            let avatar = profile.avatar_url || profile.logo_url;
+            if (avatar) avatar = avatar.trim();
+            console.log("NavBar - raw avatar selected:", avatar ? avatar.substring(0, 50) + "..." : null);
+            if (avatar && !avatar.startsWith('http') && !avatar.startsWith('data:image')) {
+              avatar = `${API_URL}${avatar}`;
+            }
+            console.log("NavBar - final avatarUrl to set:", avatar ? avatar.substring(0, 50) + "..." : null);
+            setAvatarUrl(avatar || '/img/default-avatar.png');
+          } else {
+            setUserName(rawRole === 'HR' ? 'Company User' : 'Admin');
           }
-        };
-        fetchProfile();
-      } else {
-        // Nếu là HR hoặc Admin, bạn có thể gọi API khác hoặc set tên mặc định
-        setUserName(rawRole === 'HR' ? 'Company User' : 'Admin');
+        } catch (err) {
+          console.error("Profile fetch failed:", err);
+          if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+            localStorage.clear();
+            setIsLoggedIn(false);
+            setRole('guest');
+            setUserName('User');
+            setAvatarUrl('/img/default-avatar.png');
+          }
+        }
       }
-    }
+    };
+
+    fetchProfileData();
+
+    window.addEventListener('profileUpdated', fetchProfileData);
+    return () => window.removeEventListener('profileUpdated', fetchProfileData);
   }, []);
   
   const menuItems = MENU_CONFIG[role] || [];
+  console.log("NavBar rendering - role:", role, "menuItems:", menuItems);
   const handleLogout = () => {
     localStorage.clear();
     navigate('/');
@@ -128,9 +165,20 @@ export default function NavBar() {
                 src={avatarUrl}
                 alt="Avatar"
                 className="nav-avatar"
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  if (role === 'candidate') {
+                    navigate('/candidate/my-profile');
+                  } else if (role === 'company') {
+                    navigate('/company/profile');
+                  } else if (role === 'admin') {
+                    navigate('/admin');
+                  }
+                }}
                 onError={() => {
-                  if (avatarUrl !== '/default-avatar.png') {
-                    setAvatarUrl('/default-avatar.png');
+                  console.log("NavBar - img load error for avatarUrl:", avatarUrl ? avatarUrl.substring(0, 50) + "..." : null);
+                  if (avatarUrl && !avatarUrl.startsWith('data:image') && avatarUrl !== '/img/default-avatar.png') {
+                    setAvatarUrl('/img/default-avatar.png');
                   }
                 }}
               />
@@ -138,7 +186,15 @@ export default function NavBar() {
               <span
                 className="nav-user-name"
                 title={`Welcome, ${userName}`}
-                onClick={() => navigate('/candidate/my-profile')}
+                onClick={() => {
+                  if (role === 'candidate') {
+                    navigate('/candidate/my-profile');
+                  } else if (role === 'company') {
+                    navigate('/company/profile');
+                  } else if (role === 'admin') {
+                    navigate('/admin');
+                  }
+                }}
                 style={{ cursor: 'pointer' }}
               >
                 {userName}

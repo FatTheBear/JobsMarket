@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useOutletContext, useNavigate } from 'react-router-dom';
+import { useOutletContext, useNavigate, useBlocker } from 'react-router-dom';
 import axios from 'axios';
 import CandidateExperience from './CandidateExperience';
 import CandidateEducation from './CandidateEducation';
@@ -41,7 +41,7 @@ const CandidateLanguages = ({
       return;
     }
 
-    const filtered = allLanguages.filter(lang => 
+    const filtered = allLanguages.filter(lang =>
       lang.toLowerCase().includes(val.toLowerCase())
     );
     setLanguageSuggestions(filtered.slice(0, 10));
@@ -81,16 +81,25 @@ const CandidateLanguages = ({
                 <p className="mb-0">No languages added yet.</p>
               </div>
             ) : (
-              <div className="d-flex flex-column gap-2">
+              <div className="d-flex flex-column gap-3">
                 {languages.map((lang, idx) => (
-                  <div key={lang.id || idx} className="d-flex justify-content-between align-items-center p-2 rounded border bg-light">
-                    <div>
-                      <p className="mb-0 fw-semibold text-dark small">{lang.name}</p>
-                      <span className="text-muted" style={{ fontSize: '0.75rem' }}>{lang.level}</span>
+                  <div key={lang.id || idx} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
+                    <div className="position-absolute top-0 end-0 mt-3 me-3 d-flex gap-2">
+                      <button onClick={() => onOpenModal(lang)} className="btn btn-link text-primary p-0" title="Edit language" style={{ textDecoration: 'none' }}>
+                        <i className="fas fa-pencil-alt text-muted hover-primary" style={{ fontSize: '0.85rem' }}></i>
+                      </button>
+                      <button onClick={() => onDelete(lang.id)} className="btn btn-link text-danger p-0" title="Delete language" style={{ textDecoration: 'none' }}>
+                        <i className="fas fa-trash-alt text-muted hover-danger" style={{ fontSize: '0.85rem' }}></i>
+                      </button>
                     </div>
-                    <div className="d-flex gap-2">
-                      <button onClick={() => onOpenModal(lang)} className="btn btn-link text-primary p-0" title="Edit"><i className="fas fa-pencil-alt text-muted" style={{ fontSize: '0.8rem' }}></i></button>
-                      <button onClick={() => onDelete(lang.id)} className="btn btn-link text-danger p-0" title="Delete"><i className="fas fa-trash-alt text-muted" style={{ fontSize: '0.8rem' }}></i></button>
+                    <h6 className="fw-bold mb-3 text-dark text-hover-primary" style={{ fontSize: '0.95rem', paddingRight: '45px', lineHeight: '1.4' }}>
+                      {lang.name}
+                    </h6>
+                    <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                      <span className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-normal d-inline-flex align-items-center" style={{ fontSize: '0.7rem' }}>
+                        <i className="fas fa-language me-1"></i>
+                        {lang.level}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -100,7 +109,7 @@ const CandidateLanguages = ({
         </div>
       </div>
       {showModal && (
-        <div className="profile-modal-overlay" style={{ zIndex: 1100 }} onClick={onCloseModal}>
+        <div className="profile-modal-overlay" style={{ zIndex: 100000 }} onClick={onCloseModal}>
           <div className="profile-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="profile-modal-header">
               <h5 className="profile-modal-title"><i className="fas fa-language me-2 text-primary"></i>{currentLanguage ? 'Edit Language' : 'Add Language'}</h5>
@@ -110,14 +119,14 @@ const CandidateLanguages = ({
               {modalError && <div className="alert alert-danger py-2 px-3 small border-0" role="alert"><i className="fas fa-exclamation-triangle me-1"></i> {modalError}</div>}
               <div style={{ position: 'relative' }}>
                 <label className="form-label fw-semibold text-secondary small">Language Name <span className="text-danger">*</span></label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  value={languageForm.name} 
-                  onChange={handleLanguageChange} 
+                <input
+                  type="text"
+                  className="form-control"
+                  value={languageForm.name}
+                  onChange={handleLanguageChange}
                   onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                   onFocus={() => { if (languageSuggestions.length > 0) setShowSuggestions(true); }}
-                  placeholder="e.g., English, Vietnamese, Japanese" 
+                  placeholder="e.g., English, Vietnamese, Japanese"
                   autoComplete="off"
                   required
                 />
@@ -180,17 +189,21 @@ const CandidateCertifications = ({
               <p className="mb-0">No certifications added yet.</p>
             </div>
           ) : (
-            <div className="d-flex flex-column gap-2">
+            <div className="d-flex flex-column gap-3">
               {certifications.map((cert, idx) => (
-                <div key={cert.id || idx} className="d-flex justify-content-between align-items-center p-2 rounded border bg-light">
-                  <p className="mb-0 fw-semibold text-dark small text-truncate flex-grow-1" style={{ minWidth: 0 }}>
-                    <i className="fas fa-certificate text-primary me-2" style={{ fontSize: '0.75rem' }}></i>
-                    {cert.name}
-                  </p>
-                  <div className="d-flex gap-1 ms-2">
-                    <button onClick={() => onOpenModal(cert)} className="btn btn-link text-primary p-0" title="Edit"><i className="fas fa-pencil-alt text-muted" style={{ fontSize: '0.8rem' }}></i></button>
-                    <button onClick={() => onDelete(cert.id)} className="btn btn-link text-danger p-0" title="Delete"><i className="fas fa-trash-alt text-muted" style={{ fontSize: '0.8rem' }}></i></button>
+                <div key={cert.id || idx} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
+                  <div className="position-absolute top-0 end-0 mt-3 me-3 d-flex gap-2">
+                    <button onClick={() => onOpenModal(cert)} className="btn btn-link text-primary p-0" title="Edit certification" style={{ textDecoration: 'none' }}>
+                      <i className="fas fa-pencil-alt text-muted hover-primary" style={{ fontSize: '0.85rem' }}></i>
+                    </button>
+                    <button onClick={() => onDelete(cert.id)} className="btn btn-link text-danger p-0" title="Delete certification" style={{ textDecoration: 'none' }}>
+                      <i className="fas fa-trash-alt text-muted hover-danger" style={{ fontSize: '0.85rem' }}></i>
+                    </button>
                   </div>
+                  <h6 className="fw-bold mb-0 text-dark text-hover-primary text-truncate flex-grow-1" style={{ fontSize: '0.95rem', paddingRight: '45px', lineHeight: '1.4', minWidth: 0 }}>
+                    <i className="fas fa-certificate text-primary me-2" style={{ fontSize: '0.85rem' }}></i>
+                    {cert.name}
+                  </h6>
                 </div>
               ))}
             </div>
@@ -199,7 +212,7 @@ const CandidateCertifications = ({
       </div>
     </div>
     {showModal && (
-      <div className="profile-modal-overlay" style={{ zIndex: 1100 }} onClick={onCloseModal}>
+      <div className="profile-modal-overlay" style={{ zIndex: 100000 }} onClick={onCloseModal}>
         <div className="profile-modal-card" onClick={(e) => e.stopPropagation()}>
           <div className="profile-modal-header">
             <h5 className="profile-modal-title"><i className="fas fa-certificate me-2 text-primary"></i>{currentCertification ? 'Edit Certification' : 'Add Certification'}</h5>
@@ -232,7 +245,7 @@ const CandidateAwards = ({
       <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
         <div className="card-body p-4 d-flex flex-column h-100">
           <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
-            <span className="fs-5 fw-bold text-dark">Awards & Achievements</span>
+            <span className="fs-5 fw-bold text-dark">Awards</span>
             <div className="d-flex align-items-center gap-2">
               <button onClick={() => onOpenModal(null)} className="btn btn-sm btn-outline-primary rounded-circle p-0 d-flex align-items-center justify-content-center" style={{ width: '28px', height: '28px' }} title="Add Award">
                 <i className="fas fa-plus" style={{ fontSize: '0.8rem' }}></i>
@@ -246,21 +259,30 @@ const CandidateAwards = ({
               <p className="mb-0">No awards added yet.</p>
             </div>
           ) : (
-            <div className="d-flex flex-column gap-2">
+            <div className="d-flex flex-column gap-3">
               {awards.map((award, idx) => (
-                <div key={award.id || idx} className="d-flex justify-content-between align-items-start p-2.5 rounded border bg-light">
-                  <div className="flex-grow-1 text-truncate" style={{ minWidth: 0 }}>
-                    <p className="mb-0.5 fw-semibold text-dark small text-truncate">
-                      <i className="fas fa-award text-primary me-2" style={{ fontSize: '0.75rem' }}></i>
-                      {award.title}
-                    </p>
-                    <p className="mb-0 text-muted text-truncate" style={{ fontSize: '0.75rem' }}>
-                      {award.issuer} • {award.date}
-                    </p>
+                <div key={award.id || idx} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
+                  <div className="position-absolute top-0 end-0 mt-3 me-3 d-flex gap-2">
+                    <button onClick={() => onOpenModal(award)} className="btn btn-link text-primary p-0" title="Edit award" style={{ textDecoration: 'none' }}>
+                      <i className="fas fa-pencil-alt text-muted hover-primary" style={{ fontSize: '0.85rem' }}></i>
+                    </button>
+                    <button onClick={() => onDelete(award.id)} className="btn btn-link text-danger p-0" title="Delete award" style={{ textDecoration: 'none' }}>
+                      <i className="fas fa-trash-alt text-muted hover-danger" style={{ fontSize: '0.85rem' }}></i>
+                    </button>
                   </div>
-                  <div className="d-flex gap-1 ms-2">
-                    <button onClick={() => onOpenModal(award)} className="btn btn-link text-primary p-0" title="Edit"><i className="fas fa-pencil-alt text-muted" style={{ fontSize: '0.8rem' }}></i></button>
-                    <button onClick={() => onDelete(award.id)} className="btn btn-link text-danger p-0" title="Delete"><i className="fas fa-trash-alt text-muted" style={{ fontSize: '0.8rem' }}></i></button>
+                  <h6 className="fw-bold mb-3 text-dark text-hover-primary text-truncate" style={{ fontSize: '0.95rem', paddingRight: '45px', lineHeight: '1.4' }}>
+                    <i className="fas fa-award text-primary me-2" style={{ fontSize: '0.85rem' }}></i>
+                    {award.title}
+                  </h6>
+                  <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <span className="text-muted small fw-semibold" style={{ fontSize: '0.75rem' }}>
+                      <i className="fas fa-building text-primary me-1.5"></i>
+                      {award.issuer}
+                    </span>
+                    <span className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-normal d-inline-flex align-items-center" style={{ fontSize: '0.7rem' }}>
+                      <i className="far fa-calendar-alt me-1"></i>
+                      {award.date}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -270,7 +292,7 @@ const CandidateAwards = ({
       </div>
     </div>
     {showModal && (
-      <div className="profile-modal-overlay" style={{ zIndex: 1100 }} onClick={onCloseModal}>
+      <div className="profile-modal-overlay" style={{ zIndex: 100000 }} onClick={onCloseModal}>
         <div className="profile-modal-card" onClick={(e) => e.stopPropagation()}>
           <div className="profile-modal-header">
             <h5 className="profile-modal-title"><i className="fas fa-trophy me-2 text-primary"></i>{currentAward ? 'Edit Award' : 'Add Award'}</h5>
@@ -304,6 +326,8 @@ const CandidateAwards = ({
     )}
   </>
 );
+const lettersOnlyRegex = /^[\p{L}\s]*$/u;
+const roleCompanyRegex = /^[\p{L}\s0-9\+#\.\/\-&]*$/u;
 
 const CandidateAccountSettings = () => {
   const {
@@ -321,7 +345,137 @@ const CandidateAccountSettings = () => {
   const navigate = useNavigate();
 
   const [editProfileForm, setEditProfileForm] = useState(null);
+  const [settingsError, setSettingsError] = useState('');
+  const [settingsSuccess, setSettingsSuccess] = useState('');
   const [modalError, setModalError] = useState('');
+
+  // Unsaved changes blocker
+  const [isDirty, setIsDirty] = useState(false);
+  const isDirtyRef = useRef(false);
+
+  useEffect(() => {
+    if (!profileData || !editProfileForm) {
+      setIsDirty(false);
+      isDirtyRef.current = false;
+      return;
+    }
+    const checkIsDirty = () => {
+      const keys = [
+        'fullName', 'phone', 'jobTitle', 'address', 'about', 
+        'birthday', 'nationality', 'portfolio', 'github', 'facebook', 'blog', 'x', 'linkedin'
+      ];
+      for (const k of keys) {
+        const val1 = (profileData[k] || '').toString().trim();
+        const val2 = (editProfileForm[k] || '').toString().trim();
+        if (val1 !== val2) return true;
+      }
+      if (profileData.hidePhone !== editProfileForm.hidePhone) return true;
+      if (editProfileForm.avatarFile) return true;
+      return false;
+    };
+    const dirty = checkIsDirty();
+    setIsDirty(dirty);
+    isDirtyRef.current = dirty;
+  }, [editProfileForm, profileData]);
+
+  // Block router transitions (react-router-dom v7 API)
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => {
+    return isDirtyRef.current && currentLocation.pathname !== nextLocation.pathname;
+  });
+
+  // Block browser unload (F5, close tab)
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isDirtyRef.current) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
+  // Change Password Modal States
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordModalStep, setPasswordModalStep] = useState(1); // 1: Input OTP, 2: Input New Password
+  const [otpCode, setOtpCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordModalError, setPasswordModalError] = useState('');
+  const [passwordModalSuccess, setPasswordModalSuccess] = useState('');
+  const [isRequestingOtp, setIsRequestingOtp] = useState(false);
+  const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
+  const [otpCooldown, setOtpCooldown] = useState(0);
+
+  // New Password masking & toggling states
+  const [displayNewPassword, setDisplayNewPassword] = useState('');
+  const [displayConfirmPassword, setDisplayConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    if (otpCooldown > 0) {
+      const timer = setTimeout(() => setOtpCooldown(otpCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [otpCooldown]);
+
+  const processPasswordInput = (newValue, oldReal, showPassword) => {
+    if (showPassword) {
+      return { real: newValue, display: newValue };
+    }
+    if (!newValue) {
+      return { real: '', display: '' };
+    }
+    let newReal = oldReal;
+    if (newValue.length > oldReal.length) {
+      const diff = newValue.length - oldReal.length;
+      const addedPart = newValue.slice(-diff);
+      newReal = oldReal + addedPart;
+    } else if (newValue.length < oldReal.length) {
+      newReal = oldReal.slice(0, newValue.length);
+    }
+    let newDisplay = '';
+    if (newReal.length > 0) {
+      newDisplay = '•'.repeat(newReal.length - 1) + newReal.slice(-1);
+    }
+    return { real: newReal, display: newDisplay };
+  };
+
+  const handleNewPasswordChange = (e) => {
+    const val = e.target.value;
+    const result = processPasswordInput(val, newPassword, showNewPassword);
+    setNewPassword(result.real);
+    setDisplayNewPassword(result.display);
+  };
+
+  const handleConfirmPasswordChange = (e) => {
+    const val = e.target.value;
+    const result = processPasswordInput(val, confirmPassword, showConfirmPassword);
+    setConfirmPassword(result.real);
+    setDisplayConfirmPassword(result.display);
+  };
+
+  const toggleShowNewPassword = () => {
+    const nextShow = !showNewPassword;
+    setShowNewPassword(nextShow);
+    if (nextShow) {
+      setDisplayNewPassword(newPassword);
+    } else {
+      setDisplayNewPassword('•'.repeat(newPassword.length));
+    }
+  };
+
+  const toggleShowConfirmPassword = () => {
+    const nextShow = !showConfirmPassword;
+    setShowConfirmPassword(nextShow);
+    if (nextShow) {
+      setDisplayConfirmPassword(confirmPassword);
+    } else {
+      setDisplayConfirmPassword('•'.repeat(confirmPassword.length));
+    }
+  };
+
 
   // Experience state
   const [showExperienceModal, setShowExperienceModal] = useState(false);
@@ -365,7 +519,6 @@ const CandidateAccountSettings = () => {
   const [showCountryDrop, setShowCountryDrop] = useState(false);
   const settingsDateInputRef = useRef(null);
 
-  const lettersOnlyRegex = /^[\p{L}\s]*$/u;
   let settingsJobDebounce = null;
 
   useEffect(() => {
@@ -493,14 +646,15 @@ const CandidateAccountSettings = () => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      setModalError("Invalid file type! Only image files (png, jpg, jpeg, gif, webp) are allowed.");
+      setSettingsError("Invalid file type! Only image files (png, jpg, jpeg, gif, webp) are allowed.");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setModalError("Avatar file size must be under 5MB!");
+      setSettingsError("Avatar file size must be under 5MB!");
       return;
     }
+    setSettingsError('');
 
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -513,18 +667,87 @@ const CandidateAccountSettings = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleChangeEmailClick = () => {
-    alert("Change Email Request:\nPlease contact the administrator at support@jobsmarket.com to verify and update your primary email address.");
+
+
+  const handleChangePasswordClick = async () => {
+    if (otpCooldown > 0) return;
+    setSettingsError('');
+    setSettingsSuccess('');
+    setIsRequestingOtp(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('http://localhost:5000/api/auth/change-password/request', {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setOtpCooldown(60);
+      setOtpCode('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setDisplayNewPassword('');
+      setDisplayConfirmPassword('');
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
+      setPasswordModalError('');
+      setPasswordModalSuccess('');
+      setPasswordModalStep(1);
+      setShowPasswordModal(true);
+    } catch (err) {
+      console.error(err);
+      setSettingsError(err.response?.data?.message || "Failed to send OTP code. Please try again.");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } finally {
+      setIsRequestingOtp(false);
+    }
   };
 
-  const handleChangePasswordClick = () => {
-    const newPassword = window.prompt("Enter your new password:");
-    if (newPassword) {
-      if (newPassword.length < 6) {
-        alert("Password must be at least 6 characters long!");
-      } else {
-        alert("Password change request submitted successfully!");
-      }
+  const handleOtpSubmit = (e) => {
+    e.preventDefault();
+    if (!otpCode || otpCode.trim().length !== 6) {
+      setPasswordModalError("OTP code must be 6 digits.");
+      return;
+    }
+    setPasswordModalError('');
+    setPasswordModalStep(2);
+  };
+
+  const handlePasswordConfirmSubmit = async (e) => {
+    e.preventDefault();
+    setPasswordModalError('');
+    setPasswordModalSuccess('');
+
+    if (newPassword !== confirmPassword) {
+      setPasswordModalError("Passwords do not match!");
+      return;
+    }
+
+    const hasLetter = /[a-zA-Z]/.test(newPassword);
+    const hasNumber = /\d/.test(newPassword);
+    if (newPassword.length < 8 || !hasLetter || !hasNumber) {
+      setPasswordModalError("Password must be at least 8 characters long and contain both letters and numbers.");
+      return;
+    }
+
+    setIsSubmittingPassword(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('http://localhost:5000/api/auth/change-password/confirm', {
+        otp: otpCode.trim(),
+        newPassword: newPassword
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setPasswordModalSuccess("Password has been successfully changed!");
+      setTimeout(() => {
+        setShowPasswordModal(false);
+        setSettingsSuccess("Password changed successfully!");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      setPasswordModalError(err.response?.data?.message || "Failed to change password. Please check your OTP code.");
+    } finally {
+      setIsSubmittingPassword(false);
     }
   };
 
@@ -574,12 +797,20 @@ const CandidateAccountSettings = () => {
 
   const handleSaveExperience = (e) => {
     e.preventDefault();
-    if (experienceForm.role && !lettersOnlyRegex.test(experienceForm.role)) {
-      setModalError("Job Title / Role cannot contain numbers or special characters!");
+    if (!experienceForm.role || !experienceForm.role.trim()) {
+      setModalError("Job Title / Role is required!");
       return;
     }
-    if (experienceForm.company && !lettersOnlyRegex.test(experienceForm.company)) {
-      setModalError("Company Name cannot contain numbers or special characters!");
+    if (experienceForm.role && !roleCompanyRegex.test(experienceForm.role)) {
+      setModalError("Job Title / Role contains invalid special characters!");
+      return;
+    }
+    if (!experienceForm.company || !experienceForm.company.trim()) {
+      setModalError("Company Name is required!");
+      return;
+    }
+    if (experienceForm.company && !roleCompanyRegex.test(experienceForm.company)) {
+      setModalError("Company Name contains invalid special characters!");
       return;
     }
     if (!experienceForm.startDate) {
@@ -661,8 +892,16 @@ const CandidateAccountSettings = () => {
 
   const handleSaveEducation = (e) => {
     e.preventDefault();
-    if (educationForm.degree && !lettersOnlyRegex.test(educationForm.degree)) {
-      setModalError("Degree / Field of Study cannot contain numbers or special characters!");
+    if (!educationForm.degree || !educationForm.degree.trim()) {
+      setModalError("Degree / Field of Study is required!");
+      return;
+    }
+    if (educationForm.degree && !roleCompanyRegex.test(educationForm.degree)) {
+      setModalError("Degree / Field of Study contains invalid special characters!");
+      return;
+    }
+    if (!educationForm.school || !educationForm.school.trim()) {
+      setModalError("School / Institute is required!");
       return;
     }
     if (educationForm.school && !lettersOnlyRegex.test(educationForm.school)) {
@@ -729,6 +968,10 @@ const CandidateAccountSettings = () => {
 
   const handleSaveSkill = (e) => {
     e.preventDefault();
+    if (!skillForm.name || !skillForm.name.trim()) {
+      setModalError("Core Skill is required!");
+      return;
+    }
     const skillNameRegex = /^[\p{L}\s0-9\+#\.\/\-&]*$/u;
     if (skillForm.name && !skillNameRegex.test(skillForm.name)) {
       setModalError("Core Skill contains invalid special characters!");
@@ -814,8 +1057,8 @@ const CandidateAccountSettings = () => {
 
   const handleSaveCertification = (e) => {
     e.preventDefault();
-    if (!certificationForm.name.trim()) {
-      setModalError("Please fill out all required fields!");
+    if (!certificationForm.name || !certificationForm.name.trim()) {
+      setModalError("Certification Name is required!");
       return;
     }
     const certNameRegex = /^[\p{L}\s0-9\(\)\-\/&,\.:'\+]*$/u;
@@ -862,8 +1105,16 @@ const CandidateAccountSettings = () => {
 
   const handleSaveAward = (e) => {
     e.preventDefault();
-    if (!awardForm.title.trim() || !awardForm.issuer.trim() || !awardForm.date) {
-      setModalError("Please fill out all required fields!");
+    if (!awardForm.title || !awardForm.title.trim()) {
+      setModalError("Award Title is required!");
+      return;
+    }
+    if (!awardForm.issuer || !awardForm.issuer.trim()) {
+      setModalError("Issuer is required!");
+      return;
+    }
+    if (!awardForm.date) {
+      setModalError("Date Received is required!");
       return;
     }
     const finalAward = {
@@ -896,93 +1147,119 @@ const CandidateAccountSettings = () => {
   const handleSaveProfileSettings = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) return false;
 
     const fullNameCombined = (editProfileForm.fullName || '').trim();
 
     // Validate Full Name
     if (!fullNameCombined) {
-      alert('Full Name is required!');
-      return;
+      setSettingsSuccess('');
+      setSettingsError('Full Name is required!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return false;
     }
     if (!lettersOnlyRegex.test(fullNameCombined)) {
-      alert('Full Name can only contain letters and spaces!');
-      return;
+      setSettingsSuccess('');
+      setSettingsError('Full Name can only contain letters and spaces!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return false;
     }
     // Validate Date of Birth
     if (!editProfileForm.birthday || !editProfileForm.birthday.trim()) {
-      alert('Date of Birth is required!');
-      return;
+      setSettingsSuccess('');
+      setSettingsError('Date of Birth is required!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return false;
     }
     const dobRegex = /^\d{2}\/\d{2}\/\d{4}$/;
     if (!dobRegex.test(editProfileForm.birthday.trim())) {
-      alert('Date of Birth must be in DD/MM/YYYY format!');
-      return;
+      setSettingsSuccess('');
+      setSettingsError('Date of Birth must be in DD/MM/YYYY format!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return false;
     }
     // Validate Phone Number
     if (editProfileForm.phone && editProfileForm.phone.trim() && !/^\d{10}$/.test(editProfileForm.phone.trim())) {
-      alert('Phone Number must be exactly 10 digits!');
-      return;
+      setSettingsSuccess('');
+      setSettingsError('Phone Number must be exactly 10 digits!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return false;
     }
 
     // Validate Job Title (if provided)
     if (editProfileForm.jobTitle && editProfileForm.jobTitle.trim() && !/^[\p{L}\s-]*$/u.test(editProfileForm.jobTitle.trim())) {
-      alert('Job Title can only contain letters, spaces, and hyphens!');
-      return;
+      setSettingsSuccess('');
+      setSettingsError('Job Title can only contain letters, spaces, and hyphens!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return false;
     }
 
     // Validate Nationality (if provided)
     if (editProfileForm.nationality && editProfileForm.nationality.trim() && !lettersOnlyRegex.test(editProfileForm.nationality.trim())) {
-      alert('Nationality can only contain letters and spaces!');
-      return;
+      setSettingsSuccess('');
+      setSettingsError('Nationality can only contain letters and spaces!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return false;
     }
 
     // Validate Portfolio (if provided)
     if (editProfileForm.portfolio && editProfileForm.portfolio.trim()) {
       const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/i;
       if (!urlRegex.test(editProfileForm.portfolio.trim())) {
-        alert('Website / Portfolio must be a valid URL (e.g., https://myportfolio.com)!');
-        return;
+        setSettingsSuccess('');
+        setSettingsError('Website / Portfolio must be a valid URL (e.g., https://myportfolio.com)!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return false;
       }
     }
     // Validate GitHub (if provided)
     if (editProfileForm.github && editProfileForm.github.trim()) {
       const githubRegex = /^(https?:\/\/)?(www\.)?github\.com\/[a-zA-Z0-9_-]+\/?$/i;
       if (!githubRegex.test(editProfileForm.github.trim())) {
-        alert('GitHub link must be a valid profile URL (e.g., https://github.com/username)!');
-        return;
+        setSettingsSuccess('');
+        setSettingsError('GitHub link must be a valid profile URL (e.g., https://github.com/username)!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return false;
       }
     }
     // Validate Facebook (if provided)
     if (editProfileForm.facebook && editProfileForm.facebook.trim()) {
       const facebookRegex = /^(https?:\/\/)?(www\.)?facebook\.com\/[a-zA-Z0-9.-]+\/?$/i;
       if (!facebookRegex.test(editProfileForm.facebook.trim())) {
-        alert('Facebook link must be a valid profile URL (e.g., https://facebook.com/username)!');
-        return;
+        setSettingsSuccess('');
+        setSettingsError('Facebook link must be a valid profile URL (e.g., https://facebook.com/username)!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return false;
       }
     }
     // Validate Blog (if provided)
     if (editProfileForm.blog && editProfileForm.blog.trim()) {
       const urlRegex = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/i;
       if (!urlRegex.test(editProfileForm.blog.trim())) {
-        alert('Blog must be a valid URL (e.g., https://myblog.com)!');
-        return;
+        setSettingsSuccess('');
+        setSettingsError('Blog must be a valid URL (e.g., https://myblog.com)!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return false;
       }
     }
     // Validate X (if provided)
     if (editProfileForm.x && editProfileForm.x.trim()) {
       const xRegex = /^(https?:\/\/)?(www\.)?(twitter\.com|x\.com)\/[a-zA-Z0-9_-]+\/?$/i;
       if (!xRegex.test(editProfileForm.x.trim())) {
-        alert('X link must be a valid profile URL (e.g., https://x.com/username)!');
-        return;
+        setSettingsSuccess('');
+        setSettingsError('X link must be a valid profile URL (e.g., https://x.com/username)!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return false;
       }
     }
     // Validate LinkedIn (if provided)
     if (editProfileForm.linkedin && editProfileForm.linkedin.trim()) {
       const linkedinRegex = /^(https?:\/\/)?(www\.)?linkedin\.com\/(in|company)\/[a-zA-Z0-9_-]+\/?$/i;
       if (!linkedinRegex.test(editProfileForm.linkedin.trim())) {
-        alert('LinkedIn link must be a valid profile URL (e.g., https://linkedin.com/in/username)!');
-        return;
+        setSettingsSuccess('');
+        setSettingsError('LinkedIn link must be a valid profile URL (e.g., https://linkedin.com/in/username)!');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return false;
       }
     }
 
@@ -1000,6 +1277,7 @@ const CandidateAccountSettings = () => {
       formData.append('blog', editProfileForm.blog || '');
       formData.append('x', editProfileForm.x || '');
       formData.append('linkedin', editProfileForm.linkedin || '');
+      formData.append('nationality', editProfileForm.nationality || '');
       const birthdayParts = (editProfileForm.birthday || '').trim().split('/');
       const apiBirthday = birthdayParts.length === 3 ? `${birthdayParts[2]}-${birthdayParts[1]}-${birthdayParts[0]}` : '';
       formData.append('birthday', apiBirthday);
@@ -1007,10 +1285,10 @@ const CandidateAccountSettings = () => {
       formData.append('certifications', JSON.stringify(certifications));
       formData.append('awards', JSON.stringify(awards));
       formData.append('education', JSON.stringify(educations.map(edu => ({
-        school: edu.school, degree: edu.degree, startDate: edu.startDate, gradDate: edu.gradDate
+        school: edu.school, degree: edu.degree, startDate: edu.startDate, gradDate: edu.gradDate, description: edu.description
       }))));
       formData.append('experience', JSON.stringify(workExperiences.map(exp => ({
-        company: exp.company, role: exp.role, startDate: exp.startDate, endDate: exp.endDate
+        company: exp.company, role: exp.role, startDate: exp.startDate, endDate: exp.endDate, description: exp.description
       }))));
       formData.append('skills', JSON.stringify(skills.map(skill => ({ name: skill.name, level: skill.level }))));
 
@@ -1024,6 +1302,7 @@ const CandidateAccountSettings = () => {
           "Content-Type": "multipart/form-data"
         }
       });
+      window.dispatchEvent(new Event('profileUpdated'));
 
       let calculatedAge = '';
       if (editProfileForm.birthday) {
@@ -1059,10 +1338,16 @@ const CandidateAccountSettings = () => {
 
       setProfileData(updatedForm);
       localStorage.setItem('hide_phone_' + editProfileForm.email, editProfileForm.hidePhone ? 'true' : 'false');
-      alert('Account settings saved successfully!');
+      setSettingsError('');
+      setSettingsSuccess('Account settings saved successfully!');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return true;
     } catch (err) {
       console.error("Failed to save profile settings:", err);
-      alert("Error occurred while saving profile settings. Please try again.");
+      setSettingsSuccess('');
+      setSettingsError("Error occurred while saving profile settings. Please try again.");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return false;
     }
   };
 
@@ -1078,9 +1363,45 @@ const CandidateAccountSettings = () => {
         </h5>
       </div>
       <div className="card-body p-4">
-        {modalError && (
+        {settingsError && (
           <div className="alert alert-danger py-2 px-3 small border-0 mb-4" role="alert">
-            <i className="fas fa-exclamation-triangle me-1"></i> {modalError}
+            <i className="fas fa-exclamation-triangle me-1"></i> {settingsError}
+          </div>
+        )}
+        {settingsSuccess && (
+          <div className="alert alert-success py-2 px-3 small border-0 mb-4 animate-fade-in" role="alert">
+            <i className="fas fa-check-circle me-1"></i> {settingsSuccess}
+          </div>
+        )}
+        {blocker.state === 'blocked' && (
+          <div className="alert alert-warning py-3 px-3 small border-0 mb-4 d-flex align-items-center justify-content-between animate-fade-in shadow-sm" role="alert">
+            <div className="d-flex align-items-center">
+              <i className="fas fa-exclamation-triangle me-2 text-warning fs-5"></i>
+              <span>
+                <strong>You have unsaved changes!</strong> Are you sure you want to leave? Your changes will be lost.
+              </span>
+            </div>
+            <div className="d-flex gap-2 ms-3">
+              <button 
+                type="button" 
+                className="btn btn-sm btn-danger py-1 px-3 fw-semibold text-white rounded-pill"
+                onClick={() => blocker.proceed()}
+              >
+                Leave anyway
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-sm btn-success py-1 px-3 fw-semibold text-white rounded-pill"
+                onClick={async () => {
+                  const success = await handleSaveProfileSettings();
+                  if (success) {
+                    blocker.proceed();
+                  }
+                }}
+              >
+                Leave & Save
+              </button>
+            </div>
           </div>
         )}
 
@@ -1239,7 +1560,7 @@ const CandidateAccountSettings = () => {
                   viewBox="0 0 16 16"
                   onClick={handleSettingsCalendarIconClick}
                 >
-                  <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                  <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
                 </svg>
               </div>
             </div>
@@ -1303,7 +1624,10 @@ const CandidateAccountSettings = () => {
 
           {/* Manage Resume sections */}
           <div className="mt-5 pt-4 border-top">
-            <h4 className="fw-bold mb-4 text-dark"><i className="fas fa-tools me-2 text-primary"></i>Manage Resume sections</h4>
+            <h5 className="fw-bold border-bottom pb-2 text-dark">
+              <i className="fas fa-tools me-2 text-primary"></i>Manage Resume
+            </h5>
+
             <div className="row g-4">
               <div className="col-12 col-lg-4 d-flex">
                 <CandidateExperience
@@ -1481,14 +1805,6 @@ const CandidateAccountSettings = () => {
                   disabled
                 />
               </div>
-              <button
-                type="button"
-                className="btn btn-outline-primary rounded-pill px-4 fw-semibold align-self-sm-end"
-                style={{ height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                onClick={handleChangeEmailClick}
-              >
-                Change email
-              </button>
             </div>
 
             {/* Password Row */}
@@ -1507,8 +1823,9 @@ const CandidateAccountSettings = () => {
                 className="btn btn-outline-primary rounded-pill px-4 fw-semibold align-self-sm-end"
                 style={{ height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 onClick={handleChangePasswordClick}
+                disabled={isRequestingOtp || otpCooldown > 0}
               >
-                Change password
+                {isRequestingOtp ? 'Sending OTP...' : otpCooldown > 0 ? `Wait ${otpCooldown}s` : 'Change password'}
               </button>
             </div>
           </div>
@@ -1518,6 +1835,110 @@ const CandidateAccountSettings = () => {
           </div>
         </div>
       </div>
+
+      {showPasswordModal && (
+        <div className="profile-modal-overlay" style={{ zIndex: 100000 }} onClick={() => setShowPasswordModal(false)}>
+          <div className="profile-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '450px' }}>
+            <div className="profile-modal-header">
+              <h5 className="profile-modal-title">
+                <i className="fas fa-lock me-2 text-primary"></i>Change Password
+              </h5>
+              <button type="button" className="profile-modal-close-btn" onClick={() => setShowPasswordModal(false)}>&times;</button>
+            </div>
+            
+            {passwordModalStep === 1 ? (
+              <form onSubmit={handleOtpSubmit} className="profile-modal-body p-4 d-flex flex-column gap-3">
+                <p className="small text-muted mb-1">
+                  We have sent a 6-digit OTP code to your registered email address. Please check your inbox and enter the code below.
+                </p>
+                {passwordModalError && (
+                  <div className="alert alert-danger py-2 px-3 small border-0" role="alert">
+                    <i className="fas fa-exclamation-triangle me-1"></i> {passwordModalError}
+                  </div>
+                )}
+                <div>
+                  <label className="form-label fw-semibold text-secondary small">Enter 6-digit OTP <span className="text-danger">*</span></label>
+                  <input
+                    type="text"
+                    maxLength="6"
+                    className="form-control text-center fw-bold fs-4"
+                    style={{ letterSpacing: '8px' }}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="000000"
+                    required
+                    autoFocus
+                  />
+                </div>
+                <div className="profile-modal-footer mt-3 pt-3 border-top d-flex gap-2 justify-content-end bg-white">
+                  <button type="button" className="btn btn-light border" onClick={() => setShowPasswordModal(false)}>Cancel</button>
+                  <button type="submit" className="btn btn-primary px-4">Next</button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handlePasswordConfirmSubmit} className="profile-modal-body p-4 d-flex flex-column gap-3">
+                {passwordModalError && (
+                  <div className="alert alert-danger py-2 px-3 small border-0" role="alert">
+                    <i className="fas fa-exclamation-triangle me-1"></i> {passwordModalError}
+                  </div>
+                )}
+                {passwordModalSuccess && (
+                  <div className="alert alert-success py-2 px-3 small border-0" role="alert">
+                    <i className="fas fa-check-circle me-1"></i> {passwordModalSuccess}
+                  </div>
+                )}
+                <div>
+                  <label className="form-label fw-semibold text-secondary small">New Password <span className="text-danger">*</span></label>
+                  <div className="position-relative d-flex align-items-center">
+                    <input
+                      type="text"
+                      className="form-control pe-5"
+                      value={displayNewPassword}
+                      onChange={handleNewPasswordChange}
+                      placeholder="At least 8 characters with letters & numbers"
+                      required
+                      autoFocus
+                    />
+                    <span 
+                      className="position-absolute end-0 me-3 cursor-pointer text-muted"
+                      onClick={toggleShowNewPassword}
+                      style={{ zIndex: 10, display: 'flex', alignItems: 'center', height: '100%' }}
+                    >
+                      <i className={`fas ${showNewPassword ? 'fa-eye' : 'fa-eye-slash'}`}></i>
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <label className="form-label fw-semibold text-secondary small">Confirm New Password <span className="text-danger">*</span></label>
+                  <div className="position-relative d-flex align-items-center">
+                    <input
+                      type="text"
+                      className="form-control pe-5"
+                      value={displayConfirmPassword}
+                      onChange={handleConfirmPasswordChange}
+                      placeholder="Repeat new password"
+                      required
+                    />
+                    <span 
+                      className="position-absolute end-0 me-3 cursor-pointer text-muted"
+                      onClick={toggleShowConfirmPassword}
+                      style={{ zIndex: 10, display: 'flex', alignItems: 'center', height: '100%' }}
+                    >
+                      <i className={`fas ${showConfirmPassword ? 'fa-eye' : 'fa-eye-slash'}`}></i>
+                    </span>
+                  </div>
+                </div>
+                <div className="profile-modal-footer mt-3 pt-3 border-top d-flex gap-2 justify-content-end bg-white">
+                  <button type="button" className="btn btn-light border" onClick={() => setPasswordModalStep(1)}>Back</button>
+                  <button type="submit" disabled={isSubmittingPassword} className="btn btn-primary px-4">
+                    {isSubmittingPassword ? 'Saving...' : 'Confirm'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

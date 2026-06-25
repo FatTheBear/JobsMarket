@@ -22,31 +22,27 @@ const CandidatePersonalInfoModal = ({ show, onClose, profileData }) => {
         <div className="profile-modal-body">
           <table className="table table-hover table-borderless mb-0">
             <tbody>
-              <tr>
-                <th scope="row" style={{ width: '35%' }} className="text-secondary fw-semibold">Full Name</th>
-                <td className="text-dark fw-medium">{profileData.fullName}</td>
-              </tr>
-              {profileData.age && (
-                <tr>
-                  <th scope="row" className="text-secondary fw-semibold">Age</th>
-                  <td className="text-dark fw-medium">{profileData.age}</td>
-                </tr>
-              )}
               {profileData.phone && !profileData.hidePhone && (
                 <tr>
-                  <th scope="row" className="text-secondary fw-semibold">Phone</th>
+                  <th scope="row" style={{ width: '35%' }} className="text-secondary fw-semibold">Phone</th>
                   <td className="text-dark fw-medium">{profileData.phone}</td>
                 </tr>
               )}
               {profileData.email && (
                 <tr>
-                  <th scope="row" className="text-secondary fw-semibold">Email</th>
+                  <th scope="row" style={{ width: '35%' }} className="text-secondary fw-semibold">Email</th>
                   <td className="text-dark fw-medium">{profileData.email}</td>
+                </tr>
+              )}
+              {profileData.address && (
+                <tr>
+                  <th scope="row" style={{ width: '35%' }} className="text-secondary fw-semibold">Location</th>
+                  <td className="text-dark fw-medium">{profileData.address}</td>
                 </tr>
               )}
               {profileData.nationality && (
                 <tr>
-                  <th scope="row" className="text-secondary fw-semibold">Nationality</th>
+                  <th scope="row" style={{ width: '35%' }} className="text-secondary fw-semibold">Nationality</th>
                   <td className="text-dark fw-medium">{profileData.nationality}</td>
                 </tr>
               )}

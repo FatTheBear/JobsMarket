@@ -1,11 +1,14 @@
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
+const crypto = require('crypto');
 const pool = require('../config/db');
 const User = require('../models/User');
+const emailService = require('../services/email/emailServices');
+
 
 const authController = {
     register: async (req, res) => {
-        const { email, password, role, company_name, industry_id } = req.body;
+        const { email, password, role } = req.body;
 
         try {
             const existingUser = await User.findByEmail(email);
@@ -20,18 +23,7 @@ const authController = {
             await connection.beginTransaction();
 
             try {
-                let dbRole = 'Candidate';
-                if (role === 'company') {
-                    dbRole = 'HR';
-                } else if (role === 'candidate') {
-                    dbRole = 'Candidate';
-                }
-
-                if (role === 'company' && !company_name) {
-                    throw new Error("company_name is required");
-                }
-
-                // ĐÃ XÓA KHỐI LỆNH KIỂM TRA FULL_NAME Ở ĐÂY
+                const dbRole = 'Candidate';
 
                 const [userResult] = await connection.execute(
                     'INSERT INTO User (email, password_hash, role) VALUES (?, ?, ?)',
@@ -39,9 +31,6 @@ const authController = {
                 );
 
                 const newUserId = userResult.insertId;
-
-                const crypto = require('crypto');
-                const nodemailer = require('nodemailer');
 
                 const otp = crypto.randomInt(100000, 999999).toString();
                 const expiresAt = new Date(Date.now() + 5 * 60000);
@@ -51,70 +40,78 @@ const authController = {
                     [otp, expiresAt, newUserId]
                 );
 
-                if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-                    const transporter = nodemailer.createTransport({
-                        service: 'gmail',
-                        auth: {
-                            user: process.env.EMAIL_USER,
-                            pass: process.env.EMAIL_PASS
-                        }
-                    });
+                await emailService.sendCandidateOTP(email, otp);
 
-                    await transporter.sendMail({
-                        from: process.env.EMAIL_USER,
-                        to: email,
-                        subject: 'Verify your JobsMarket account',
-                        html: `
-<div style="font-family: Arial, sans-serif; background-color: #f6f8fa; padding: 30px; color: #333333; line-height: 1.6;">
-    <div style="max-width: 500px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px; border: 1px solid #e1e4e8; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-        <h2 style="color: #1a73e8; margin-top: 0; font-size: 24px; border-bottom: 1px solid #e1e4e8; padding-bottom: 15px;">JobsMarket Verification</h2>
-        <p style="font-size: 16px;">Hello,</p>
-        <p style="font-size: 16px;">Thank you for signing up for JobsMarket. Please use the following One-Time Password (OTP) to verify your account:</p>
-        
-        <div style="text-align: center; margin: 30px 0; padding: 15px; background-color: #f1f3f4; border-radius: 6px; font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #1a73e8;">
-            ${otp}
-        </div>
-        
-        <p style="font-size: 14px; color: #586069;">This code is valid for <strong>5 minutes</strong>. If you did not request this verification, you can safely ignore this email.</p>
-        <hr style="border: 0; border-top: 1px solid #e1e4e8; margin: 30px 0 20px 0;" />
-        <p style="font-size: 14px; color: #586069; margin: 0;">Best regards,</p>
-        <p style="font-size: 14px; font-weight: bold; color: #333333; margin: 5px 0 0 0;">The JobsMarket Team</p>
-    </div>
-</div>
-`
-                    });
-                } else {
-                    console.log(`\n======================================================`);
-                    console.log(`[LOCAL DEV] Gmail SMTP credentials missing in .env.`);
-                    console.log(`Registered Email: ${email}`);
-                    console.log(`Generated OTP Code: ${otp}`);
-                    console.log(`======================================================\n`);
-                }
-
-                if (role === 'candidate') {
-                    await connection.execute(
-                        
-                        'INSERT INTO Candidate_Profile (user_id) VALUES (?)',
-                        [newUserId]
-                    );
-                }
-                else if (role === 'company') {
-                    await connection.execute(
-                        'INSERT INTO Company (hr_id, industry_id, name) VALUES (?, ?, ?)',
-                        [newUserId, industry_id || null, company_name]
-                    );
-                }
-                else if (role === 'Admin') {
-                    // Admin permission is stored directly on the User table.
-                    console.log(`--- Admin account ID ${newUserId} created successfully ---`);
-                }
-                else {
-                    throw new Error("Invalid role specified!");
-                }
+                const defaultFullName = email.split('@')[0];
+                await connection.execute(
+                    'INSERT INTO Candidate_Profile (user_id, full_name) VALUES (?, ?)',
+                    [newUserId, defaultFullName]
+                );
 
                 await connection.commit();
                 connection.release();
-                return res.status(201).json({ message: "Account registered successfully!" });
+                return res.status(201).json({ message: "Candidate account registered successfully!" });
+
+            } catch (transactionError) {
+                await connection.rollback();
+                connection.release();
+                return res.status(400).json({ message: transactionError.message });
+            }
+        } catch (error) {
+            return res.status(500).json({ message: "Internal server error!" });
+        }
+    },
+
+    registerCompany: async (req, res) => {
+        const { 
+            email, password, hrName, hrPhone, 
+            companyName, companyPhone, location, 
+            taxId, industryId, size, description 
+        } = req.body;
+
+        try {
+            const existingUser = await User.findByEmail(email);
+            if (existingUser) {
+                return res.status(400).json({ message: "Email already exists!" });
+            }
+
+            if (!req.files || !req.files['logo'] || !req.files['businessLicense']) {
+                return res.status(400).json({ message: "Company logo and business license are required." });
+            }
+
+            const logoUrl = req.files['logo'][0].path.replace(/\\/g, '/');
+            const businessLicenseUrl = req.files['businessLicense'][0].path.replace(/\\/g, '/');
+
+            const saltRounds = 10;
+            const passwordHash = await bcrypt.hash(password, saltRounds);
+
+            const connection = await pool.getConnection();
+            await connection.beginTransaction();
+
+            try {
+                const [userResult] = await connection.execute(
+                    'INSERT INTO User (email, password_hash, role, status) VALUES (?, ?, ?, ?)',
+                    [email, passwordHash, 'HR', 'pending']
+                );
+
+                const newUserId = userResult.insertId;
+
+                await connection.execute(
+                    `INSERT INTO Company (
+                        hr_id, industry_id, name, hr_name, hr_phone, company_phone, 
+                        address, tax_id, business_license_url, logo_url, size, description
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [
+                        newUserId, industryId, companyName, hrName, hrPhone, companyPhone, 
+                        location, taxId, businessLicenseUrl, logoUrl, size, description
+                    ]
+                );
+
+                // await emailService.sendCompanyPending(email, hrName, companyName);
+
+                await connection.commit();
+                connection.release();
+                return res.status(201).json({ message: "Company registration submitted and pending approval." });
 
             } catch (transactionError) {
                 await connection.rollback();
@@ -223,8 +220,8 @@ const authController = {
              LEFT JOIN Candidate_Profile cp 
              ON u.id = cp.user_id
 
-             LEFT JOIN Company com 
-             ON u.id = com.hr_id
+             LEFT JOIN Company com ON u.id = com.hr_id
+
 
              WHERE u.email = ?`,
             [email]
@@ -322,13 +319,24 @@ const authController = {
             }
 
             if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-                const transporter = nodemailer.createTransport({
-                    service: 'gmail',
-                    auth: {
-                        user: process.env.EMAIL_USER,
-                        pass: process.env.EMAIL_PASS
-                    }
-                });
+                const transporter = nodemailer.createTransport(
+                    process.env.EMAIL_HOST
+                        ? {
+                              host: process.env.EMAIL_HOST,
+                              port: process.env.EMAIL_PORT || 587,
+                              auth: {
+                                  user: process.env.EMAIL_USER,
+                                  pass: process.env.EMAIL_PASS
+                              }
+                          }
+                        : {
+                              service: 'gmail',
+                              auth: {
+                                  user: process.env.EMAIL_USER,
+                                  pass: process.env.EMAIL_PASS
+                              }
+                          }
+                );
 
                 await transporter.sendMail({
                     from: process.env.EMAIL_USER,
@@ -348,6 +356,108 @@ const authController = {
             return res.status(500).json({
                 message: error.message
             });
+        }
+    },
+    requestChangePassword: async (req, res) => {
+        const userId = req.user.id;
+        try {
+            const [userRows] = await pool.execute('SELECT email, code_expires_at FROM User WHERE id = ?', [userId]);
+            if (userRows.length === 0) {
+                return res.status(404).json({ message: "User not found!" });
+            }
+            const { email, code_expires_at } = userRows[0];
+
+            // Cooldown check (60 seconds)
+            if (code_expires_at) {
+                const expiresTime = new Date(code_expires_at).getTime();
+                const sentTime = expiresTime - 5 * 60000; // OTP expires in 5 minutes, so it was sent 5 minutes before expiresAt
+                const timePassed = Date.now() - sentTime;
+                const cooldown = 60000; // 60 seconds
+                if (timePassed < cooldown) {
+                    const secondsLeft = Math.ceil((cooldown - timePassed) / 1000);
+                    return res.status(429).json({ 
+                        message: `Please wait ${secondsLeft} seconds before requesting a new OTP.` 
+                    });
+                }
+            }
+
+            const otp = crypto.randomInt(100000, 999999).toString();
+            const expiresAt = new Date(Date.now() + 5 * 60000); // 5 minutes
+
+            await pool.execute(
+                'UPDATE User SET verification_code = ?, code_expires_at = ? WHERE id = ?',
+                [otp, expiresAt, userId]
+            );
+
+            await emailService.sendChangePasswordOTP(email, otp);
+
+            return res.status(200).json({ message: "OTP code sent successfully to your email!" });
+
+        } catch (error) {
+            console.error("Request Change Password Error:", error);
+            return res.status(500).json({ message: "Internal server error!", error: error.message });
+        }
+    },
+    confirmChangePassword: async (req, res) => {
+        const { otp, newPassword } = req.body;
+        const userId = req.user.id;
+
+        if (!otp || !newPassword) {
+            return res.status(400).json({ message: "OTP and new password are required!" });
+        }
+
+        // Validate password
+        // Ít nhất 8 ký tự, bắt buộc phải chứa cả chữ cái và chữ số, cho phép ký tự đặc biệt tự do
+        const hasLetter = /[a-zA-Z]/.test(newPassword);
+        const hasNumber = /\d/.test(newPassword);
+        if (newPassword.length < 8 || !hasLetter || !hasNumber) {
+            return res.status(400).json({ 
+                message: "Password must be at least 8 characters long and contain both letters and numbers." 
+            });
+        }
+
+        try {
+            const [userRows] = await pool.execute(
+                'SELECT verification_code, code_expires_at, password_hash FROM User WHERE id = ?', 
+                [userId]
+            );
+            if (userRows.length === 0) {
+                return res.status(404).json({ message: "User not found!" });
+            }
+
+            const user = userRows[0];
+
+            if (!user.verification_code || user.verification_code !== otp) {
+                return res.status(400).json({ message: "Invalid OTP code!" });
+            }
+
+            if (new Date() > new Date(user.code_expires_at)) {
+                return res.status(400).json({ message: "OTP code has expired!" });
+            }
+
+            // Check if the new password is the same as the current password
+            const isSamePassword = await bcrypt.compare(newPassword, user.password_hash);
+            if (isSamePassword) {
+                return res.status(400).json({ 
+                    message: "New password cannot be the same as your current password." 
+                });
+            }
+
+            // Hash new password
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+            // Update user password and clear OTP
+            await pool.execute(
+                'UPDATE User SET password_hash = ?, verification_code = NULL, code_expires_at = NULL WHERE id = ?',
+                [hashedPassword, userId]
+            );
+
+            return res.status(200).json({ message: "Password has been successfully changed!" });
+
+        } catch (error) {
+            console.error("Confirm Change Password Error:", error);
+            return res.status(500).json({ message: "Internal server error!", error: error.message });
         }
     }
 

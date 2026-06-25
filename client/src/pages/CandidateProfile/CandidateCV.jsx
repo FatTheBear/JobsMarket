@@ -4,10 +4,14 @@ import axios from 'axios';
 const CandidateCV = ({ cvList, fetchCVs, setModalError }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [localError, setLocalError] = useState('');
+  const [localSuccess, setLocalSuccess] = useState('');
 
   const processFile = async (file) => {
     if (!file) return;
-    setModalError('');
+    setLocalError('');
+    setLocalSuccess('');
+    if (setModalError) setModalError('');
 
     const allowedTypes = [
       'application/pdf',
@@ -18,13 +22,15 @@ const CandidateCV = ({ cvList, fetchCVs, setModalError }) => {
 
     // Check type
     if (!allowedTypes.includes(file.type) && !['pdf', 'doc', 'docx'].includes(fileExt)) {
-      setModalError("Invalid file type! Only PDF, DOC, or DOCX files are allowed.");
+      setLocalError("Invalid file type! Only PDF, DOC, or DOCX files are allowed.");
+      if (setModalError) setModalError("Invalid file type! Only PDF, DOC, or DOCX files are allowed.");
       return;
     }
 
     // Check size 10MB
     if (file.size > 10 * 1024 * 1024) {
-      setModalError("File size exceeds 10MB! Please upload a smaller document.");
+      setLocalError("File size exceeds 10MB! Please upload a smaller document.");
+      if (setModalError) setModalError("File size exceeds 10MB! Please upload a smaller document.");
       return;
     }
 
@@ -42,14 +48,16 @@ const CandidateCV = ({ cvList, fetchCVs, setModalError }) => {
         }
       });
 
-      alert("🎉 " + response.data.message);
+      setLocalSuccess("🎉 " + response.data.message);
 
       // Load lại danh sách CV ngay lập tức sau khi upload thành công
       if (fetchCVs) await fetchCVs();
 
     } catch (error) {
       console.error(error);
-      setModalError(error.response?.data?.message || "Error uploading CV! Please try again.");
+      const errMsg = error.response?.data?.message || "Error uploading CV! Please try again.";
+      setLocalError(errMsg);
+      if (setModalError) setModalError(errMsg);
     } finally {
       setIsUploading(false);
     }
@@ -81,6 +89,9 @@ const CandidateCV = ({ cvList, fetchCVs, setModalError }) => {
 
   const handleCvDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this CV? This action cannot be undone.")) return;
+    setLocalError('');
+    setLocalSuccess('');
+    if (setModalError) setModalError('');
 
     try {
       const token = localStorage.getItem('token');
@@ -88,19 +99,31 @@ const CandidateCV = ({ cvList, fetchCVs, setModalError }) => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      alert("🗑️ CV deleted successfully!");
+      setLocalSuccess("🗑️ CV deleted successfully!");
 
       // Load lại danh sách
       if (fetchCVs) await fetchCVs();
 
     } catch (error) {
       console.error(error);
-      setModalError(error.response?.data?.message || "Error deleting CV! Please try again.");
+      const errMsg = error.response?.data?.message || "Error deleting CV! Please try again.";
+      setLocalError(errMsg);
+      if (setModalError) setModalError(errMsg);
     }
   };
 
   return (
     <div className="d-flex flex-column gap-4">
+      {localError && (
+        <div className="alert alert-danger py-2 px-3 small border-0 shadow-sm animate-fade-in" role="alert">
+          <i className="fas fa-exclamation-triangle me-2"></i>{localError}
+        </div>
+      )}
+      {localSuccess && (
+        <div className="alert alert-success py-2 px-3 small border-0 shadow-sm animate-fade-in" role="alert">
+          <i className="fas fa-check-circle me-2"></i>{localSuccess}
+        </div>
+      )}
 
       {/* 1. HIỂN THỊ DANH SÁCH CV */}
       {cvList && cvList.length > 0 && (

@@ -98,13 +98,13 @@ const CandidateProfileModel = {
     },
     // 3. Cập nhật thông tin profile
     updateByUserId: async (user_id, updateData) => {
-        const { full_name, display_name, phone, avatar_url, headline, about, years_of_experience, is_public, address, cv_url, education, experience, skills, birthday, portfolio, github, facebook, blog, x, linkedin, languages, certifications, awards } = updateData;
+        const { full_name, display_name, phone, avatar_url, headline, about, years_of_experience, is_public, address, cv_url, education, experience, skills, birthday, portfolio, github, facebook, blog, x, linkedin, languages, certifications, awards, nationality } = updateData;
         const connection = await pool.getConnection();
         try {
             await connection.beginTransaction();
 
             const [profiles] = await connection.execute(
-                'SELECT id FROM Candidate_Profile WHERE user_id = ?',
+                'SELECT id, avatar_url, cv_url FROM Candidate_Profile WHERE user_id = ?',
                 [user_id]
             );
             if (profiles.length === 0) {
@@ -113,6 +113,9 @@ const CandidateProfileModel = {
                 return false;
             }
             const profileId = profiles[0].id;
+            const currentAvatarUrl = profiles[0].avatar_url;
+            const currentCvUrl = profiles[0].cv_url;
+
             // tính số năm kinh nghiệm lưu vào DB
             let calculatedYears = 0;
             if (experience && Array.isArray(experience)) {
@@ -133,19 +136,19 @@ const CandidateProfileModel = {
                  SET full_name = ?, display_name = ?, phone = ?, avatar_url = ?, headline = ?, 
                      about = ?, years_of_experience = ?, is_public = ?, address = ?, cv_url = ?, birthday = ?,
                      portfolio = ?, github = ?, facebook = ?, blog = ?, x = ?, linkedin = ?,
-                     languages = ?, certifications = ?, awards = ?
+                     languages = ?, certifications = ?, awards = ?, nationality = ?
                  WHERE id = ?`,
                 [
                     full_name,
                     display_name || null,
                     phone || null,
-                    avatar_url || null,
+                    avatar_url ? avatar_url : currentAvatarUrl,
                     headline || null,
                     about || null,
                     calculatedYears,
                     is_public !== undefined ? is_public : true,
                     address || null,
-                    cv_url || null,
+                    cv_url ? cv_url : currentCvUrl,
                     birthday || null,
                     portfolio || null,
                     github || null,
@@ -156,6 +159,7 @@ const CandidateProfileModel = {
                     languages || null,
                     certifications || null,
                     awards || null,
+                    nationality || null,
                     profileId
                 ]
             );
@@ -164,8 +168,8 @@ const CandidateProfileModel = {
                 await connection.execute('DELETE FROM Candidate_Education WHERE candidate_id = ?', [profileId]);
                 for (const item of education) {
                     await connection.execute(
-                        'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
-                        [profileId, item.school || '', item.degree || '', item.startDate || item.gradDate || '1970-01', item.gradDate || null]
+                        'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date, description) VALUES (?, ?, ?, ?, ?, ?)',
+                        [profileId, item.school || '', item.degree || '', item.startDate || item.gradDate || '1970-01', item.gradDate || null, item.description || null]
                     );
                 }
             }
@@ -175,8 +179,8 @@ const CandidateProfileModel = {
                 await connection.execute('DELETE FROM Candidate_Experience WHERE candidate_id = ?', [profileId]);
                 for (const item of experience) {
                     await connection.execute(
-                        'INSERT INTO Candidate_Experience (candidate_id, company_name, role, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
-                        [profileId, item.company || '', item.role || '', item.startDate || null, item.endDate || null]
+                        'INSERT INTO Candidate_Experience (candidate_id, company_name, role, start_date, end_date, description) VALUES (?, ?, ?, ?, ?, ?)',
+                        [profileId, item.company || '', item.role || '', item.startDate || null, item.endDate || null, item.description || null]
                     );
                 }
             }
@@ -250,13 +254,14 @@ const CandidateProfileModel = {
 
             const { display_name, phone, avatar_url, headline, address, education, experience, skills, followedCompanyIds, birthday } = onboardingData;
 
-            // Lấy profile id
+            // Lấy profile id và avatar_url hiện tại
             const [profiles] = await connection.execute(
-                'SELECT id FROM Candidate_Profile WHERE user_id = ?',
+                'SELECT id, avatar_url FROM Candidate_Profile WHERE user_id = ?',
                 [user_id]
             );
 
             let profileId;
+            let currentAvatarUrl = null;
             if (profiles.length === 0) {
                 const [insertResult] = await connection.execute(
                     'INSERT INTO Candidate_Profile (user_id, display_name, is_public) VALUES (?, ?, ?)',
@@ -265,6 +270,7 @@ const CandidateProfileModel = {
                 profileId = insertResult.insertId;
             } else {
                 profileId = profiles[0].id;
+                currentAvatarUrl = profiles[0].avatar_url;
             }
 
             // 1. Cập nhật bảng Candidate_Profile (LOẠI BỎ CỘT SKILLS JSON)
@@ -276,7 +282,7 @@ const CandidateProfileModel = {
                     display_name || null,
                     display_name || null,
                     phone || null,
-                    avatar_url || null,
+                    avatar_url ? avatar_url : currentAvatarUrl,
                     headline || null,
                     address || null,
                     birthday || null,
@@ -289,8 +295,8 @@ const CandidateProfileModel = {
             if (education && Array.isArray(education)) {
                 for (const item of education) {
                     await connection.execute(
-                        'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
-                        [profileId, item.school || 'School', item.degree || 'Degree', item.startDate || '2026-01', item.gradDate || null]
+                        'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date, description) VALUES (?, ?, ?, ?, ?, ?)',
+                        [profileId, item.school || 'School', item.degree || 'Degree', item.startDate || '2026-01', item.gradDate || null, item.description || null]
                     );
                 }
             }
@@ -300,8 +306,8 @@ const CandidateProfileModel = {
             if (experience && Array.isArray(experience)) {
                 for (const item of experience) {
                     await connection.execute(
-                        'INSERT INTO Candidate_Experience (candidate_id, company_name, role, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
-                        [profileId, item.company || 'Company', item.role || 'Role', item.startDate || '2026-01', item.endDate || null]
+                        'INSERT INTO Candidate_Experience (candidate_id, company_name, role, start_date, end_date, description) VALUES (?, ?, ?, ?, ?, ?)',
+                        [profileId, item.company || 'Company', item.role || 'Role', item.startDate || '2026-01', item.endDate || null, item.description || null]
                     );
                 }
             }

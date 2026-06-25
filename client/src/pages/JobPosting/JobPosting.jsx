@@ -3,6 +3,7 @@ import './JobPosting.css';
 import IndustrySelector from './IndustrySelector';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
+import { useWallet } from '../../context/WalletContext';
 
 const API_URL = 'http://localhost:5000';
 const LOCATION_API = 'https://provinces.open-api.vn/api';
@@ -43,6 +44,12 @@ const translateLocation = (name) => {
 export default function JobPosting() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
+  const { coins, fetchWalletInfo } = useWallet();
+  const [proPackage, setProPackage] = useState('Free');
+  const [proExpiredAt, setProExpiredAt] = useState(null);
+  const [showPackageModal, setShowPackageModal] = useState(false);
+  const [showCoinsWarningModal, setShowCoinsWarningModal] = useState(false);
+  const [neededCoins, setNeededCoins] = useState(0);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [submittedJobId, setSubmittedJobId] = useState(null); // Track successful post
@@ -104,6 +111,21 @@ export default function JobPosting() {
 
     axios.get(`${API_URL}/api/skills`).then(res => setDbSkills(res.data)).catch(err => console.error(err));
     axios.get(`${API_URL}/api/industries`).then(res => setDbIndustries(res.data)).catch(err => console.error(err));
+
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
+    if (token && userId) {
+      axios.get(`${API_URL}/api/company/${userId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).then(res => {
+        setProPackage(res.data.pro_package || 'Free');
+        setProExpiredAt(res.data.pro_expired_at || null);
+      }).catch(err => console.error("Failed to load company pro status:", err));
+      
+      if (typeof fetchWalletInfo === 'function') {
+        fetchWalletInfo();
+      }
+    }
   }, []);
 
   // Fetch Districts when Province changes
@@ -214,6 +236,8 @@ export default function JobPosting() {
     }
   };
 
+  const isProCurrentlyActive = proExpiredAt && new Date(proExpiredAt) >= new Date();
+
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     
@@ -262,6 +286,35 @@ export default function JobPosting() {
       return;
     }
 
+    if (isProCurrentlyActive) {
+      submitJob('Free');
+    } else {
+      setShowPackageModal(true);
+    }
+  };
+
+  const handleSelectPackage = (type) => {
+    setShowPackageModal(false);
+    if (type === 'Free') {
+      submitJob('Free');
+    } else {
+      const required = type === 'Pro_Day' ? 20 : 500;
+      if (coins < required) {
+        setNeededCoins(required);
+        setShowCoinsWarningModal(true);
+      } else {
+        submitJob(type);
+      }
+    }
+  };
+
+  const handleBuyCoinsRedirect = () => {
+    setShowCoinsWarningModal(false);
+    localStorage.setItem('walletActiveTab', 'topup');
+    navigate('/company/wallet');
+  };
+
+  const submitJob = async (postType) => {
     setLoading(true);
     try {
       const working_hours = {
@@ -293,7 +346,8 @@ export default function JobPosting() {
         province: form.province,
         district: form.district,
         ward: form.ward,
-        exact_address: form.floor_room ? `${form.floor_room}, ${form.exact_address}` : form.exact_address
+        exact_address: form.floor_room ? `${form.floor_room}, ${form.exact_address}` : form.exact_address,
+        post_type: postType
       };
 
       const token = localStorage.getItem('token');
@@ -303,9 +357,12 @@ export default function JobPosting() {
 
       if (res.status === 201 || res.status === 200) {
         showToast(
-          res.data.message,
+          res.data.message || 'Job posted successfully!',
           'success'
         );
+        if (typeof fetchWalletInfo === 'function') {
+          fetchWalletInfo();
+        }
         setTimeout(() => navigate('/company/profile'), 3000);
       }
     } catch (error) {
@@ -379,6 +436,31 @@ export default function JobPosting() {
           <h2 className="jp-page-heading">Post a New Job</h2>
         </div>
       </div>
+
+      {isProCurrentlyActive && (
+        <div className="jp-pro-banner" style={{
+          background: 'linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%)',
+          border: '1px solid #ffeeba',
+          borderRadius: '8px',
+          padding: '15px 20px',
+          marginBottom: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '15px',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+        }}>
+          <span style={{ fontSize: '24px', animation: 'pulse 2s infinite' }}>⚡</span>
+          <div>
+            <h5 style={{ margin: 0, fontWeight: 'bold', color: '#856404' }}>
+              Active Pro Plan ({proPackage === 'Pro_Day' ? 'Pro Day' : 'Pro Month'})
+            </h5>
+            <p style={{ margin: 0, fontSize: '14px', color: '#533f03' }}>
+              You are currently enjoying Pro package benefits. Expired at: <strong>{proExpiredAt ? new Date(proExpiredAt).toLocaleString('en-US') : ''}</strong>. 
+              Limit maximum 2 job posts every 24 hours.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="jp-stepper">
         <div className={`jp-step ${currentStep >= 1 ? 'active' : ''}`}>
@@ -672,6 +754,140 @@ export default function JobPosting() {
           <div className={`toast-modal ${toast.type}`}>
             <h3>{toast.type === 'success' ? 'Success' : 'Error'}</h3>
             <p>{toast.message}</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── PACKAGE SELECTION MODAL ── */}
+      {showPackageModal && (
+        <div className="jp-modal-overlay">
+          <div className="jp-modal-content">
+            <h3 style={{ fontWeight: '800', color: '#111827', marginBottom: '8px', fontSize: '1.8rem' }}>Select Job Posting Plan</h3>
+            <p style={{ color: '#4b5563', marginBottom: '30px', fontSize: '15px' }}>
+              Your current balance: <strong style={{ color: '#d97706', fontSize: '1.2rem' }}>{coins || 0} Coins 🪙</strong>
+            </p>
+            
+            <div className="jp-plans-grid">
+              {/* Free Plan */}
+              <div className="jp-plan-card jp-plan-free">
+                <span className="jp-plan-badge">FREE PLAN</span>
+                <h4 className="jp-plan-title">Free</h4>
+                <div className="jp-plan-price">
+                  0 Coins
+                </div>
+                <ul className="jp-plan-features">
+                  <li>
+                    <i className="fas fa-check-circle"></i>
+                    <span>Max <strong>1 job post / 24 hours</strong></span>
+                  </li>
+                </ul>
+                <button 
+                  onClick={() => handleSelectPackage('Free')}
+                  className="jp-plan-button"
+                >
+                  Select Free
+                </button>
+              </div>
+
+              {/* Pro Day Plan */}
+              <div className="jp-plan-card jp-plan-pro-day">
+                <span className="jp-plan-badge">FEATURED</span>
+                <h4 className="jp-plan-title">Pro Day</h4>
+                <div className="jp-plan-price">
+                  20 Coins <span>/ 24 Hours</span>
+                </div>
+                <ul className="jp-plan-features">
+                  <li className="pro-feature">
+                    <i className="fas fa-check-circle"></i>
+                    <span>Activate Pro features for <strong>24 hours</strong></span>
+                  </li>
+                  <li className="pro-feature">
+                    <i className="fas fa-check-circle"></i>
+                    <span>Max <strong>2 job posts / 24 hours</strong></span>
+                  </li>
+                </ul>
+                <button 
+                  onClick={() => handleSelectPackage('Pro_Day')}
+                  className="jp-plan-button"
+                >
+                  Select Pro Day
+                </button>
+              </div>
+
+              {/* Pro Month Plan */}
+              <div className="jp-plan-card jp-plan-pro-month">
+                <span className="jp-plan-badge">BEST VALUE</span>
+                <h4 className="jp-plan-title">Pro Month</h4>
+                <div className="jp-plan-price">
+                  500 Coins <span>/ 30 Days</span>
+                </div>
+                <ul className="jp-plan-features">
+                  <li className="pro-feature">
+                    <i className="fas fa-check-circle"></i>
+                    <span>Activate Pro features for <strong>30 days</strong></span>
+                  </li>
+                  <li className="pro-feature">
+                    <i className="fas fa-check-circle"></i>
+                    <span>Max <strong>2 job posts every day</strong></span>
+                  </li>
+                  <li className="pro-feature">
+                    <i className="fas fa-check-circle"></i>
+                    <span>Save up to 16% in cost</span>
+                  </li>
+                </ul>
+                <button 
+                  onClick={() => handleSelectPackage('Pro_Month')}
+                  className="jp-plan-button"
+                >
+                  Select Pro Month
+                </button>
+              </div>
+            </div>
+
+            <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'center' }}>
+              <button 
+                type="button" 
+                onClick={() => setShowPackageModal(false)}
+                className="jp-modal-cancel-btn"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── COINS WARNING MODAL ── */}
+      {showCoinsWarningModal && (
+        <div className="jp-modal-overlay">
+          <div className="jp-modal-content jp-modal-warning-content">
+            <div style={{ fontSize: '50px', marginBottom: '15px' }}>🪙</div>
+            <h3 style={{ fontWeight: '800', color: '#dc2626', marginBottom: '12px', fontSize: '1.5rem' }}>Insufficient Balance!</h3>
+            <p style={{ color: '#374151', fontSize: '15px', lineHeight: '1.6' }}>
+              Your account does not have enough coins to purchase this plan (Required: <strong>{neededCoins} Coins</strong>, current balance: <strong>{coins || 0} Coins</strong>).
+            </p>
+            <p style={{ color: '#4b5563', fontSize: '14.5px', marginBottom: '30px' }}>
+              Would you like to recharge coins now to use this featured service?
+            </p>
+            
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+              <button 
+                type="button" 
+                onClick={() => setShowCoinsWarningModal(false)}
+                className="jp-modal-cancel-btn"
+                style={{ flex: 1 }}
+              >
+                Cancel
+              </button>
+              <button 
+                type="button" 
+                onClick={handleBuyCoinsRedirect}
+                className="jp-modal-confirm-btn"
+                style={{ flex: 1 }}
+              >
+                Recharge Now
+              </button>
+            </div>
           </div>
         </div>
       )}

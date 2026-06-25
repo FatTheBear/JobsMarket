@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const CandidateEducation = ({
   educations,
@@ -12,6 +12,102 @@ const CandidateEducation = ({
   onSave,
   modalError
 }) => {
+  const [degreeSuggestions, setDegreeSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const debounceRef = useRef(null);
+
+  const [allSchools, setAllSchools] = useState([]);
+  const [schoolSuggestions, setSchoolSuggestions] = useState([]);
+  const [showSchoolSuggestions, setShowSchoolSuggestions] = useState(false);
+  const [isLoadingSchools, setIsLoadingSchools] = useState(false);
+
+  useEffect(() => {
+    if (!showModal) {
+      setDegreeSuggestions([]);
+      setShowSuggestions(false);
+      setSchoolSuggestions([]);
+      setShowSchoolSuggestions(false);
+      return;
+    }
+
+    const fetchSchools = async () => {
+      if (allSchools.length > 0) return;
+      setIsLoadingSchools(true);
+      try {
+        const res = await fetch('http://universities.hipolabs.com/search?country=Vietnam');
+        if (res.ok) {
+          const data = await res.json();
+          const schoolNames = data.map(item => item.name).sort();
+          setAllSchools(schoolNames);
+        }
+      } catch (e) {
+        console.warn('Failed to fetch Vietnam universities list', e);
+      } finally {
+        setIsLoadingSchools(false);
+      }
+    };
+
+    fetchSchools();
+  }, [showModal, allSchools]);
+
+  const handleDegreeChange = (value) => {
+    setEducationForm({ ...educationForm, degree: value });
+
+    if (!value.trim()) {
+      setDegreeSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const res = await fetch(`http://localhost:5000/api/candidate/suggest-industries?search=${encodeURIComponent(value.trim())}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setDegreeSuggestions(data || []);
+          setShowSuggestions(true);
+        }
+      } catch (e) {
+        console.warn('Degree suggestions fetch failed', e);
+      }
+    }, 300);
+  };
+
+  const selectSuggestion = (val) => {
+    setEducationForm({ ...educationForm, degree: val });
+    setDegreeSuggestions([]);
+    setShowSuggestions(false);
+  };
+
+  const handleSchoolChange = (value) => {
+    setEducationForm({ ...educationForm, school: value });
+
+    if (!value.trim() || allSchools.length === 0) {
+      setSchoolSuggestions([]);
+      setShowSchoolSuggestions(false);
+      return;
+    }
+
+    const query = value.toLowerCase();
+    const filtered = allSchools
+      .filter(name => name.toLowerCase().includes(query))
+      .slice(0, 10);
+    
+    setSchoolSuggestions(filtered);
+    setShowSchoolSuggestions(true);
+  };
+
+  const selectSchoolSuggestion = (val) => {
+    setEducationForm({ ...educationForm, school: val });
+    setSchoolSuggestions([]);
+    setShowSchoolSuggestions(false);
+  };
+
   return (
     <>
       {/* Column 2: Education Section */}
@@ -75,7 +171,7 @@ const CandidateEducation = ({
 
       {/* Education Add/Edit Modal */}
       {showModal && (
-        <div className="profile-modal-overlay" style={{ zIndex: 1100 }} onClick={onCloseModal}>
+        <div className="profile-modal-overlay" style={{ zIndex: 100000 }} onClick={onCloseModal}>
           <div className="profile-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="profile-modal-header">
               <h5 className="profile-modal-title">
@@ -96,28 +192,71 @@ const CandidateEducation = ({
                   <i className="fas fa-exclamation-triangle me-1.5"></i> {modalError}
                 </div>
               )}
-              <div>
-                <label className="form-label fw-semibold text-secondary small">Degree / Field of Study</label>
+              <div style={{ position: 'relative' }}>
+                <label className="form-label fw-semibold text-secondary small">Degree / Field of Study <span className="text-danger">*</span></label>
                 <input
                   type="text"
                   className="form-control"
                   value={educationForm.degree}
-                  onChange={(e) => setEducationForm({ ...educationForm, degree: e.target.value })}
+                  onChange={(e) => handleDegreeChange(e.target.value)}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  onFocus={() => { if (degreeSuggestions.length > 0) setShowSuggestions(true); }}
                   placeholder="e.g. Software Engineering"
+                  autoComplete="off"
                 />
+                {showSuggestions && degreeSuggestions.length > 0 && (
+                  <div className="position-absolute bg-white border rounded shadow-sm w-100" style={{ zIndex: 1200, top: '100%', maxHeight: '200px', overflowY: 'auto' }}>
+                    {degreeSuggestions.map((title, idx) => (
+                      <div
+                        key={idx}
+                        className="px-3 py-2 cursor-pointer"
+                        style={{ fontSize: '0.875rem' }}
+                        onMouseDown={() => selectSuggestion(title)}
+                      >
+                        <i className="fas fa-graduation-cap text-muted me-2" style={{ fontSize: '0.75rem' }}></i>
+                        {title}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div>
-                <label className="form-label fw-semibold text-secondary small">School / Institute</label>
+              <div style={{ position: 'relative' }}>
+                <label className="form-label fw-semibold text-secondary small d-flex justify-content-between align-items-center">
+                  <span>School / Institute <span className="text-danger">*</span></span>
+                  {isLoadingSchools && (
+                    <span className="text-muted" style={{ fontSize: '0.7rem' }}>
+                      <i className="fas fa-spinner fa-spin me-1"></i>Loading schools...
+                    </span>
+                  )}
+                </label>
                 <input
                   type="text"
                   className="form-control"
                   value={educationForm.school}
-                  onChange={(e) => setEducationForm({ ...educationForm, school: e.target.value })}
+                  onChange={(e) => handleSchoolChange(e.target.value)}
+                  onBlur={() => setTimeout(() => setShowSchoolSuggestions(false), 200)}
+                  onFocus={() => { if (schoolSuggestions.length > 0) setShowSchoolSuggestions(true); }}
                   placeholder="e.g. FPT Aptech"
+                  autoComplete="off"
                 />
+                {showSchoolSuggestions && schoolSuggestions.length > 0 && (
+                  <div className="position-absolute bg-white border rounded shadow-sm w-100" style={{ zIndex: 1200, top: '100%', maxHeight: '200px', overflowY: 'auto' }}>
+                    {schoolSuggestions.map((name, idx) => (
+                      <div
+                        key={idx}
+                        className="px-3 py-2 cursor-pointer"
+                        style={{ fontSize: '0.875rem' }}
+                        onMouseDown={() => selectSchoolSuggestion(name)}
+                      >
+                        <i className="fas fa-university text-muted me-2" style={{ fontSize: '0.75rem' }}></i>
+                        {name}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div>
-                <label className="form-label fw-semibold text-secondary small">Graduation Date</label>
+                <label className="form-label fw-semibold text-secondary small">Graduation Date <span className="text-danger">*</span></label>
                 <input
                   type="month"
                   className="form-control"
