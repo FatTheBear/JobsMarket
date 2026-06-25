@@ -62,7 +62,7 @@ exports.updateApplicationStatus = async (req, res) => {
     const { status } = req.body;
     const userId = req.user.id;
 
-    const validStatuses = ['Applied', 'In-Review', 'Interview', 'Hired', 'Rejected'];
+    const validStatuses = ['Applied', 'Reviewing', 'Interviewing', 'Offered', 'Rejected'];
     if (!validStatuses.includes(status)) {
         return res.status(400).json({ message: "Invalid status value" });
     }
@@ -115,9 +115,9 @@ exports.updateApplicationStatus = async (req, res) => {
 
                 // Determine notification title based on status
                 const statusTitleMap = {
-                    'In-Review': '📋 Application In Review',
-                    'Interview': '🎯 Interview Invitation',
-                    'Hired': '🎉 Congratulations! You\'re Hired',
+                    'Reviewing': '📋 Application In Review',
+                    'Interviewing': '🎯 Interview Invitation',
+                    'Offered': '🎉 Congratulations! You\'re Hired',
                     'Rejected': '📝 Application Update',
                     'Applied': '📨 Application Received'
                 };

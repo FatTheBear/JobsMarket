@@ -49,9 +49,9 @@ export default function ViewAppliedCandidates() {
   const getStatusClass = (status) => {
     switch (status) {
       case 'Applied': return 'status-applied';
-      case 'In-Review': return 'status-review';
-      case 'Interview': return 'status-interview';
-      case 'Hired': return 'status-hired';
+      case 'Reviewing': return 'status-review';
+      case 'Interviewing': return 'status-interview';
+      case 'Offered': return 'status-hired';
       case 'Rejected': return 'status-rejected';
       default: return '';
     }
@@ -136,9 +136,9 @@ export default function ViewAppliedCandidates() {
                         onChange={(e) => handleStatusChange(cand.application_id, e.target.value)}
                       >
                         <option value="Applied" className="text-dark">Applied</option>
-                        <option value="In-Review" className="text-dark">In-Review</option>
-                        <option value="Interview" className="text-dark">Interview</option>
-                        <option value="Hired" className="text-dark">Hired</option>
+                        <option value="Reviewing" className="text-dark">In-Review</option>
+                        <option value="Interviewing" className="text-dark">Interview</option>
+                        <option value="Offered" className="text-dark">Hired</option>
                         <option value="Rejected" className="text-dark">Rejected</option>
                       </select>
                     </td>
