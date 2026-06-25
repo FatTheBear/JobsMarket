@@ -29,7 +29,6 @@ import MyApplications from './pages/MyApplications/MyApplications';
 import CommunityFeed from './pages/Community/CommunityFeed';
 import CreatePost from './pages/DashBoard/CompanyDashboard/CreatePost';
 import CompanyWallet from './pages/DashBoard/CompanyDashboard/CompanyWallet';
-
 // Child components for Candidate Profile
 import CandidateMyProfile from './pages/CandidateProfile/CandidateMyProfile';
 import CandidateAccountSettings from './pages/CandidateProfile/CandidateAccountSettings';
@@ -41,6 +40,7 @@ import CompanyRegister from './pages/Authentication/CompanyRegister';
 import RegistrationPending from './pages/Authentication/RegistrationPending';
 import ActivateCompany from './pages/Authentication/ActivateCompany';
 import CompanyJobList from './pages/DashBoard/CompanyDashboard/CompanyJobList';
+
 
 import './App.css';
 

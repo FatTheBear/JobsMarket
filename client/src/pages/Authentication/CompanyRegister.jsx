@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import styles from "./Register.module.css"; 
+import styles from "./Register.module.css";
 
 export default function RegisterCompany() {
   const navigate = useNavigate();
@@ -97,7 +97,7 @@ export default function RegisterCompany() {
         submitData.append(key, formData[key]);
       }
     });
-    
+
     submitData.append("logo", files.logo);
     submitData.append("businessLicense", files.businessLicense);
 
@@ -108,10 +108,8 @@ export default function RegisterCompany() {
         }
       });
 
-      if (response.status === 201) {
-        navigate("/login", {
-          state: { message: "Registration submitted successfully. Please wait for admin approval." }
-        });
+      if (response.status === 200 || response.status === 201) {
+        navigate('/registration-pending');
       }
     } catch (error) {
       if (error.response && error.response.data) {
@@ -234,7 +232,7 @@ export default function RegisterCompany() {
                     {step === 2 && (
                       <>
                         <h5 className="mb-4" style={{ color: '#01796F' }}>2. Detailed Information</h5>
-                        
+
                         <div className="row">
                           <div className="col-md-6 mb-4">
                             <label className="form-label text-muted px-1">Company Logo</label>
@@ -253,7 +251,7 @@ export default function RegisterCompany() {
                           <div className="col-md-12 mb-4">
                             <div className="form-floating">
                               <input type="text" id="taxId" name="taxId" className={`form-control ${styles.formControl}`} placeholder="Tax ID" value={formData.taxId} onChange={handleInputChange} />
-                              <label htmlFor="taxId">Tax ID (Mã số thuế)</label>
+                              <label htmlFor="taxId">Tax ID</label>
                             </div>
                             {errors.taxId && <div className="text-danger small mt-1 px-1">{errors.taxId}</div>}
                           </div>
@@ -284,7 +282,7 @@ export default function RegisterCompany() {
                                 <option value="201-1000">201 - 1000 Employees</option>
                                 <option value="1000+">1000+ Employees</option>
                               </select>
-                              <label htmlFor="size">Company Size</label>
+                              <label htmlFor="size">Company Scale</label>
                             </div>
                             {errors.size && <div className="text-danger small mt-1 px-1">{errors.size}</div>}
                           </div>
@@ -312,7 +310,7 @@ export default function RegisterCompany() {
                             <i>⬅</i> Back
                           </button>
                           <button type="submit" className={`btn btn-success btn-lg px-5 ${styles.gradientCustom4}`}>
-                            Complete Registration
+                            Submit
                           </button>
                         </div>
                       </>

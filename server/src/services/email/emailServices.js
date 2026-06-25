@@ -2,13 +2,24 @@ const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
+const transporter = nodemailer.createTransport(
+    process.env.EMAIL_HOST
+        ? {
+              host: process.env.EMAIL_HOST,
+              port: process.env.EMAIL_PORT || 587,
+              auth: {
+                  user: process.env.EMAIL_USER,
+                  pass: process.env.EMAIL_PASS
+              }
+          }
+        : {
+              service: 'gmail',
+              auth: {
+                  user: process.env.EMAIL_USER,
+                  pass: process.env.EMAIL_PASS
+              }
+          }
+);
 
 const compileTemplate = (templateName, data) => {
     const filePath = path.join(__dirname, 'templates', `${templateName}.html`);
@@ -35,18 +46,18 @@ const sendCandidateOTP = async (email, otpCode) => {
     });
 };
 
-const sendCompanyPending = async (email, hrName, companyName) => {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+// const sendCompanyPending = async (email, hrName, companyName) => {
+//     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
     
-    const html = compileTemplate('company_pending', { hrName, companyName });
+//     const html = compileTemplate('company_pending', { hrName, companyName });
     
-    await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'Company Registration Under Review - JobsMarket',
-        html: html
-    });
-};
+//     await transporter.sendMail({
+//         from: process.env.EMAIL_USER,
+//         to: email,
+//         subject: 'Company Registration Under Review - JobsMarket',
+//         html: html
+//     });
+// };
 
 const sendCompanyActive = async (email, hrName, companyName) => {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
@@ -96,7 +107,7 @@ const sendChangePasswordOTP = async (email, otpCode) => {
 
 module.exports = {
     sendCandidateOTP,
-    sendCompanyPending,
+    // sendCompanyPending,
     sendCompanyActive,
     sendAccountBanned,
     sendChangePasswordOTP
