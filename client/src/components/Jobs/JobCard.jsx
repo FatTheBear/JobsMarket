@@ -148,7 +148,9 @@ export default function JobCard({ job, onClick }) {
             <span className="job-tag tag-location">
               📍 {province
                 ? province.replace(/ Province| City/gi, '').trim()
-                : district || exact_address || 'Updating'}            </span>            <span className="job-tag tag-type">{job_type || 'Full-time'}</span>
+                : district || exact_address || 'Updating'}
+            </span>
+            <span className="job-tag tag-type">{job_type || 'Full-time'}</span>
             {job_level && <span className="job-tag tag-level">{job_level}</span>}
             {experience_req && <span className="job-tag tag-exp">🎓 {experience_req}</span>}
           </div>
@@ -165,13 +167,16 @@ export default function JobCard({ job, onClick }) {
           >
             Apply Now
           </button>
-      <div className="job-card-footer">
-        <div className="job-card-tags">
-          <span className="job-tag tag-salary">{formatSalary()}</span>
-          <span className="job-tag tag-location">{loc || 'Location updating'}</span>
-          <span className="job-tag tag-type">{job_type || 'Full-time'}</span>
+        </div> {/* ĐÃ THÊM THẺ ĐÓNG CHO job-card-right */}
+
+        <div className="job-card-footer">
+          <div className="job-card-tags">
+            <span className="job-tag tag-salary">{formatSalary()}</span>
+            <span className="job-tag tag-location">{loc || 'Location updating'}</span>
+            <span className="job-tag tag-type">{job_type || 'Full-time'}</span>
+          </div>
         </div>
-      </div>
+      </div> {/* ĐÃ THÊM THẺ ĐÓNG CHO job-card-container */}
 
       {/* Apply Modal */}
       {showApplyModal && (

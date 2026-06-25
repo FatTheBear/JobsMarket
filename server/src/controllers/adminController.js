@@ -858,7 +858,7 @@ exports.approveCompany = async (req, res) => {
         const templatePath = path.join(__dirname, '..', 'services', 'email', 'templates', 'company_active.html');
         let htmlContent = fs.readFileSync(templatePath, 'utf8');
 
-const activationLink = `http://localhost:3000/activate-company?code=${activationCode}`;
+        const activationLink = `http://localhost:3000/activate-company?id=${id}&code=${activationCode}`;
 
         htmlContent = htmlContent
           .replace(/{{COMPANY_NAME}}/g, companyName)
@@ -1002,21 +1002,23 @@ exports.getTopIndustries = async (req, res) => {
     }
 };
 exports.activateCompany = async (req, res) => {
-  const { activationCode } = req.body;
+  const { id, activationCode } = req.body;
 
   try {
+    // Tìm chính xác công ty theo ID và MÃ kích hoạt
     const [companies] = await pool.query(
-      `SELECT * FROM Company WHERE activation_code = ?`,
-      [activationCode]
+      `SELECT * FROM Company WHERE id = ? AND activation_code = ? AND status = 'Pending'`,
+      [id, activationCode]
     );
 
     if (companies.length === 0) {
-      return res.status(400).json({ message: "Invalid activation code!" });
+      return res.status(400).json({ message: "Invalid ID or activation code!" });
     }
 
+    // Nếu khớp, kích hoạt ngay
     await pool.query(
       `UPDATE Company SET status = 'Active', activation_code = NULL WHERE id = ?`,
-      [companies[0].id]
+      [id]
     );
 
     return res.status(200).json({ message: "Account activated!" });

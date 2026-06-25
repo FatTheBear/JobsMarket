@@ -4,7 +4,6 @@ import axios from 'axios';
 import styles from './Login.module.css';
 
 export default function ActivateCompany() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
   const urlCode = searchParams.get("code") || "";
@@ -12,6 +11,9 @@ export default function ActivateCompany() {
   const [activationCode, setActivationCode] = useState(urlCode);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get("id"); // Lấy ID từ URL
+  const code = searchParams.get("code"); // Lấy Code từ URL
 
   const handleChange = (e) => {
     setActivationCode(e.target.value.toUpperCase());
