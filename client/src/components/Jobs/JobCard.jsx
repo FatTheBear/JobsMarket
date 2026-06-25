@@ -1,4 +1,3 @@
-<<<<<<< Updated upstream
 import React, { useState } from "react";
 import './JobCard.css';
 import axios from 'axios';
@@ -40,10 +39,6 @@ export default function JobCard({ job, onClick }) {
   const [feedbackMessage, setFeedbackMessage] = useState({ type: "", text: "" });
   const [myCVs, setMyCVs] = useState([]);
   const [isLoadingCVs, setIsLoadingCVs] = useState(false);
-=======
-import React from 'react';
-import './JobCard.module.css';
->>>>>>> Stashed changes
 
   const {
     id: jobId,
@@ -161,7 +156,9 @@ import './JobCard.module.css';
             <span className="job-tag tag-location">
               📍 {province
                 ? province.replace(/ Province| City/gi, '').trim()
-                : district || exact_address || 'Updating'}            </span>            <span className="job-tag tag-type">{job_type || 'Full-time'}</span>
+                : district || exact_address || 'Updating'}
+            </span>
+            <span className="job-tag tag-type">{job_type || 'Full-time'}</span>
             {job_level && <span className="job-tag tag-level">{job_level}</span>}
             {experience_req && <span className="job-tag tag-exp">🎓 {experience_req}</span>}
           </div>
@@ -186,7 +183,7 @@ import './JobCard.module.css';
             </div>
           </div>
         </div>
-      </div>
+      </div> {/* ĐÃ THÊM THẺ ĐÓNG CHO job-card-container */}
 
       {/* Apply Modal */}
       {showApplyModal && (
