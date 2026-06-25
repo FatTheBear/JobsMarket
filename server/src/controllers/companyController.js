@@ -25,6 +25,7 @@ exports.getAppliedCandidates = async (req, res) => {
                     a.id AS application_id,
                     a.status,
                     a.applied_at,
+                    cp.id AS candidate_id,
                     cp.full_name AS candidate_name,
                     cp.avatar_url AS candidate_avatar,
                     j.title AS applied_job,
@@ -38,7 +39,7 @@ exports.getAppliedCandidates = async (req, res) => {
                 LEFT JOIN candidate_skill cs ON cp.id = cs.candidate_id
                 LEFT JOIN skill s ON cs.skill_id = s.id
                 WHERE j.company_id = ?
-                GROUP BY a.id, cp.full_name, cp.avatar_url, j.title, j.job_type, cv.file_url
+                GROUP BY a.id, cp.id, cp.full_name, cp.avatar_url, j.title, j.job_type, cv.file_url
                 ORDER BY a.applied_at DESC
             `, [companyId]);
 
