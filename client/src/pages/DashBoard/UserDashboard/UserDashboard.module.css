@@ -267,7 +267,7 @@
 }
 
 .searchBtn {
-  background: linear-gradient(135deg, #e53935, #c62828);
+  background: linear-gradient(135deg, #01796F, #00c070);
   border: none;
   color: #fff;
   font-size: 14px;
@@ -282,7 +282,7 @@
 }
 
 .searchBtn:hover {
-  background: linear-gradient(135deg, #ef5350, #e53935);
+  background: linear-gradient(135deg, #00ffea, #02c876);
 }
 
 .searchFooter {
@@ -850,4 +850,162 @@
   text-align: center;
   font-size: 12px;
   color: #5a7a9a;
+}
+/* ── JOB SECTION LAYOUT ── */
+.jobSection {
+  background: #f8fafc;
+  padding: 48px 0;
+  min-height: 600px;
+}
+
+.jobSectionInner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+}
+
+/* ── FILTER PANEL (Left sidebar) ── */
+.filterPanel {
+  width: 260px;
+  flex-shrink: 0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  position: sticky;
+  top: 80px;
+}
+
+.filterHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.filterTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filterBadge {
+  background: #01796F;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 99px;
+}
+
+.filterClearBtn {
+  background: none;
+  border: none;
+  font-size: 0.78rem;
+  color: #01796F;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0;
+}
+
+.filterClearBtn:hover {
+  text-decoration: underline;
+}
+
+.filterGroup {
+  margin-bottom: 20px;
+}
+
+.filterGroupLabel {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 0 0 10px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.filterSelect {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #374151;
+  background: #f9fafb;
+  outline: none;
+}
+
+.filterSelect:focus {
+  border-color: #01796F;
+}
+
+.filterCheckLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #4b5563;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.filterCheckLabel input {
+  accent-color: #01796F;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+/* ── JOB LIST PANEL (Right) ── */
+.jobListPanel {
+  flex: 1;
+  min-width: 0;
+}
+
+.jobListHeader {
+  margin-bottom: 18px;
+}
+
+.jobListTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.jobListCount {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+
+.jobListStack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.jobEmpty {
+  text-align: center;
+  padding: 48px;
+  background: #fff;
+  border: 1px dashed #e5e7eb;
+  border-radius: 12px;
+  color: #6b7280;
+  font-size: 0.9rem;
 }
