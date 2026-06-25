@@ -91,7 +91,7 @@ router.post('/', authMiddleware, async (req, res) => {
     let isProCurrentlyActive = currentProExpiredAt && currentProExpiredAt >= new Date();
 
     const { post_type } = req.body; // 'Free', 'Pro_Day', 'Pro_Month'
-    
+
     // Kết nối database transaction để thực hiện trừ coins an toàn nếu nạp gói mới
     const connection = await pool.getConnection();
     try {
@@ -100,14 +100,14 @@ router.post('/', authMiddleware, async (req, res) => {
       if (!isProCurrentlyActive && (post_type === 'Pro_Day' || post_type === 'Pro_Month')) {
         // Cần mua gói Pro mới
         const coinsRequired = post_type === 'Pro_Day' ? 20 : 500;
-        
+
         // Lấy coins hiện tại của User
         const [users] = await connection.execute(
           'SELECT coins FROM User WHERE id = ? FOR UPDATE',
           [user_id]
         );
         const userCoins = users[0]?.coins || 0;
-        
+
         if (userCoins < coinsRequired) {
           await connection.rollback();
           connection.release();
@@ -115,29 +115,29 @@ router.post('/', authMiddleware, async (req, res) => {
             message: `Insufficient coins balance to purchase Pro plan (Required: ${coinsRequired} coins, current balance: ${userCoins} coins).`
           });
         }
-        
+
         // Trừ coins
         await connection.execute(
           'UPDATE User SET coins = coins - ? WHERE id = ?',
           [coinsRequired, user_id]
         );
-        
+
         // Tạo Transaction
         await connection.execute(
           `INSERT INTO Transaction (user_id, amount_fiat, coins, type, payment_method, status, reference_code) 
            VALUES (?, 0, ?, 'spend', 'system', 'completed', ?)`,
           [user_id, coinsRequired, `PRO_SUB_${post_type.toUpperCase()}_${Date.now()}`]
         );
-        
+
         // Kích hoạt gói Pro cho Company
         const durationHours = post_type === 'Pro_Day' ? 24 : (30 * 24);
         const newExpiredAt = new Date(Date.now() + durationHours * 60 * 60 * 1000);
-        
+
         await connection.execute(
           'UPDATE Company SET pro_package = ?, pro_expired_at = ? WHERE id = ?',
           [post_type, newExpiredAt, company_id]
         );
-        
+
         currentProPackage = post_type;
         currentProExpiredAt = newExpiredAt;
         isProCurrentlyActive = true;
@@ -148,9 +148,9 @@ router.post('/', authMiddleware, async (req, res) => {
         'SELECT created_at FROM Job_Posting WHERE hr_id = ? AND created_at >= NOW() - INTERVAL 1 DAY',
         [hr_id]
       );
-      
+
       const recentPostsCount = recentJobs.length;
-      
+
       if (isProCurrentlyActive) {
         if (recentPostsCount >= 2) {
           await connection.rollback();
@@ -346,7 +346,7 @@ router.get('/search', async (req, res) => {
     query += ` ORDER BY jp.created_at DESC`;
 
     const [rows] = await pool.query(query, queryParams);
-    
+
     // In a real app we'd fetch skills per job here, or use GROUP_CONCAT. 
     // For simplicity we will return jobs array directly.
     res.json(rows);
@@ -354,6 +354,27 @@ router.get('/search', async (req, res) => {
     console.error('Error searching jobs:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
+});
+
+router.get('/my-jobs', authMiddleware, async (req, res) => {
+    const hr_id = req.user.id;
+    try {
+        const [rows] = await pool.query(
+            `SELECT 
+                jp.id, jp.title, jp.status, jp.job_type, jp.job_level,
+                jp.salary_min, jp.salary_max, jp.deadline, jp.created_at,
+                jp.view_count, jp.vacancies, jp.province,
+                (SELECT COUNT(*) FROM application a WHERE a.job_id = jp.id) AS applicant_count
+             FROM Job_Posting jp
+             WHERE jp.hr_id = ?
+             ORDER BY jp.created_at DESC`,
+            [hr_id]
+        );
+        res.json(rows);
+    } catch (err) {
+        console.error('Error fetching my jobs:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
 });
 
 // GET /api/jobs/:id - Get a single job posting
@@ -407,6 +428,27 @@ router.get('/:id', async (req, res) => {
   }
 
 });
-
+// PATCH /api/jobs/:id/close — HR tự đóng job của mình
+router.patch('/:id/close', authMiddleware, async (req, res) => {
+    const hr_id = req.user.id;
+    const { id } = req.params;
+    try {
+        const [rows] = await pool.query(
+            'SELECT id FROM Job_Posting WHERE id = ? AND hr_id = ?',
+            [id, hr_id]
+        );
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'Job not found or unauthorized' });
+        }
+        await pool.query(
+            "UPDATE Job_Posting SET status = 'Closed' WHERE id = ?",
+            [id]
+        );
+        res.json({ message: 'Job closed successfully' });
+    } catch (err) {
+        console.error('Error closing job:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
 
 module.exports = router;
