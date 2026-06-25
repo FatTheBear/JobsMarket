@@ -10,6 +10,9 @@ router.use(authMiddleware, adminMiddleware);
 
 // 1. Quản lý chung & thống kê số liệu
 router.get('/dashboard-stats', adminController.getStats);
+router.get('/dashboard-trends', adminController.getDashboardTrends);
+router.get('/top-skills', adminController.getTopSkills);
+router.get('/top-industries', adminController.getTopIndustries);
 router.get('/users', adminController.getUsers);
 router.put('/users/:id/status', adminController.updateUserStatus);
 
