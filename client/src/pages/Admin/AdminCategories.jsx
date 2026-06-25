@@ -70,7 +70,7 @@ const AdminCategories = ({
                   categories.skills.map((skill) => (
                     <tr key={skill.id}>
                       <td>#{skill.id}</td>
-                      <td><strong>{skill.name}</strong></td>
+                      <td><strong>{skill.skill_name}</strong></td>
                       <td>
                         <button 
                           className="action-btn delete" 

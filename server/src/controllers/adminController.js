@@ -203,7 +203,7 @@ exports.updateJobStatus = async (req, res) => {
 // 6. Lấy danh sách kỹ năng
 exports.getSkills = async (req, res) => {
     const [skills] = await db.query(
-        "SELECT id, name FROM skill ORDER BY id DESC"
+        "SELECT id, skill_name FROM skill ORDER BY id DESC"
     );
 
     res.json(skills);
@@ -248,7 +248,7 @@ exports.createSkill = async (req, res) => {
     try {
         if (!name) return res.status(400).json({ message: "Skill name is required" });
         await db.query(
-            "INSERT INTO skill (name) VALUES (?)",
+            "INSERT INTO skill (skill_name) VALUES (?)",
             [name]
         );
         res.json({ message: "Skill added successfully" });
@@ -972,7 +972,7 @@ exports.getTopSkills = async (req, res) => {
             JOIN job_skill js ON s.id = js.skill_id
             JOIN job_posting jp ON js.job_id = jp.id
             WHERE jp.status = 'Approved'
-            GROUP BY s.id, s.skill_name
+GROUP BY s.id, s.skill_name
             ORDER BY count DESC
             LIMIT 8
         `);
