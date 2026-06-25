@@ -38,6 +38,8 @@ import CandidateActivityHistory from './pages/CandidateProfile/CandidateActivity
 import CandidateAppliedJobsPage from './pages/CandidateProfile/CandidateAppliedJobsPage';
 import CandidateManageCVs from './pages/CandidateProfile/CandidateManageCVs';
 import CompanyRegister from './pages/Authentication/CompanyRegister';
+import RegistrationPending from './pages/Authentication/RegistrationPending';
+import ActivateCompany from './pages/Authentication/ActivateCompany';
 
 import './App.css';
 
@@ -63,6 +65,9 @@ const router = createBrowserRouter([
   { path: "/verify-otp", element: <VerifyOTP /> },
   { path: "/setup-profile", element: <SetupProfilePage /> },
   { path: "/terms-of-service", element: <TermsOfService /> },
+  { path: "/registration-pending", element: <RegistrationPending /> },
+  { path: "/activate-company", element: <ActivateCompany /> },
+  
 
   {
     element: <MainLayout />,

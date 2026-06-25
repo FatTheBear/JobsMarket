@@ -28,6 +28,7 @@ export default function JobCard({ job, onClick }) {
 
   const getValidLogo = () => {
     if (imgError || !logo_url) return '/default-company-logo.png';
+    if (logo_url.startsWith('data:image')) return logo_url;
     if (logo_url.startsWith('http')) return logo_url;
     return `${API_URL}${logo_url}`;
   };
@@ -112,20 +113,21 @@ export default function JobCard({ job, onClick }) {
   // 3. Render the UI
   return (
     <div className="job-card-container" onClick={onClick}>
-      {/* Khối trên: Logo + Tên Job + Tên Công ty */}
       <div className="job-card-header">
-        <img
-          src={getValidLogo()}
-          onError={() => setImgError(true)}
-          alt="Company Logo"
-        />
+        <div style={{ width: '56px', height: '56px', flexShrink: 0, overflow: 'hidden', borderRadius: '8px', border: '1px solid #B0C4DE' }}>
+          <img
+            src={getValidLogo()}
+            onError={() => setImgError(true)}
+            alt={company_name || 'Logo'}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        </div>
         <div className="job-card-main-info">
           <h3 className="job-card-title">{title || 'Untitled Job'}</h3>
           <p className="job-card-company">{company_name || 'Company name not provided'}</p>
         </div>
       </div>
 
-      {/* Khối dưới: Lương, Địa điểm, Loại công việc */}
       <div className="job-card-footer">
         <div className="job-card-tags">
           <span className="job-tag tag-salary">{formatSalary()}</span>
