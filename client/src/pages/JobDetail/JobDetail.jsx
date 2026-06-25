@@ -73,7 +73,7 @@ export default function JobDetail() {
         setHasApplied(true);
         saveAppliedJobId(id);
       }
-    } catch {}
+    } catch { }
   };
 
   const handleApplyClick = () => {
@@ -110,12 +110,14 @@ export default function JobDetail() {
       <div className={`jd-toast ${toast.show ? 'show' : ''} ${toast.type}`}>
         {toast.msg}
       </div>
-
+      <button className="jd-back-btn" onClick={() => navigate(-1)}>
+        ← Back
+      </button>
       <div className="job-detail-top-card">
         <div className="job-detail-card-header">
-          <img 
-            src={job.logo_url || '/default-company-logo.png'} 
-            alt="Company Logo" 
+          <img
+            src={job.logo_url || '/default-company-logo.png'}
+            alt="Company Logo"
             className="job-detail-card-logo"
           />
           <div className="job-detail-card-meta">
@@ -123,16 +125,21 @@ export default function JobDetail() {
             <p className="job-detail-card-company">{job.company_name}</p>
             <div className="job-detail-card-badges">
               <span className="jd-badge badge-salary">💰 {formatSalary()}</span>
-              <span className="jd-badge badge-location">📍 {job.loc || 'Location updating'}</span>
-              <span className="jd-badge badge-experience">💼 {job.experience || 'Not specified'}</span>
+              <span className="jd-badge badge-location">
+                📍 {job.province
+                  ? job.province.replace(/ Province| City/gi, '').trim()
+                  : 'Location updating'}
+              </span>              <span className="jd-badge badge-experience">💼 {job.experience || 'Not specified'}</span>
             </div>
           </div>
         </div>
 
         <div className="job-detail-card-action">
-          <p className="job-detail-card-deadline">
-            Deadline: {new Date(job.deadline).toLocaleDateString('en-GB')}
-          </p>
+          {job.deadline && (
+            <p className="job-detail-card-deadline">
+              Deadline: {new Date(job.deadline).toLocaleDateString('en-GB')}
+            </p>
+          )}
           {hasApplied ? (
             <button className="job-detail-card-btn applied" disabled>
               Applied
@@ -150,7 +157,7 @@ export default function JobDetail() {
           <h2 className="job-detail-section-title">Job Description</h2>
           <div className="job-detail-text-block">{job.description}</div>
         </div>
-        
+
         {job.requirements && (
           <div className="job-detail-main-section">
             <h2 className="job-detail-section-title">Requirements</h2>

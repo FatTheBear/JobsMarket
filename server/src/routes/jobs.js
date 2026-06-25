@@ -277,23 +277,28 @@ router.get('/', async (req, res) => {
 
     const [rows] = await pool.query(
       `
-      SELECT 
-        jp.*,
-        c.name AS company_name,
-        c.logo_url
-
-      FROM Job_Posting jp
-
-      LEFT JOIN Company c 
-      ON jp.company_id = c.id
-
-      ORDER BY jp.created_at DESC
-      `
+  SELECT 
+    jp.*,
+    c.name AS company_name,
+    c.logo_url,
+    GROUP_CONCAT(DISTINCT i.id ORDER BY i.id SEPARATOR ',') AS industry_ids,
+    GROUP_CONCAT(DISTINCT i.name ORDER BY i.id SEPARATOR '||') AS industry_names
+  FROM Job_Posting jp
+  LEFT JOIN Company c ON jp.company_id = c.id
+  LEFT JOIN Job_Industry ji ON jp.id = ji.job_id
+  LEFT JOIN Industry i ON ji.industry_id = i.id
+  GROUP BY jp.id
+  ORDER BY jp.created_at DESC
+  `
     );
 
+    const jobs = rows.map(job => ({
+      ...job,
+      industry_ids: job.industry_ids ? job.industry_ids.split(',').map(Number) : [],
+      industry_names: job.industry_names ? job.industry_names.split('||') : [],
+    }));
 
-    res.json(rows);
-
+    res.json(jobs);
 
   } catch (err) {
 
@@ -357,10 +362,10 @@ router.get('/search', async (req, res) => {
 });
 
 router.get('/my-jobs', authMiddleware, async (req, res) => {
-    const hr_id = req.user.id;
-    try {
-        const [rows] = await pool.query(
-            `SELECT 
+  const hr_id = req.user.id;
+  try {
+    const [rows] = await pool.query(
+      `SELECT 
                 jp.id, jp.title, jp.status, jp.job_type, jp.job_level,
                 jp.salary_min, jp.salary_max, jp.deadline, jp.created_at,
                 jp.view_count, jp.vacancies, jp.province,
@@ -368,13 +373,13 @@ router.get('/my-jobs', authMiddleware, async (req, res) => {
              FROM Job_Posting jp
              WHERE jp.hr_id = ?
              ORDER BY jp.created_at DESC`,
-            [hr_id]
-        );
-        res.json(rows);
-    } catch (err) {
-        console.error('Error fetching my jobs:', err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
+      [hr_id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching my jobs:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 // GET /api/jobs/:id - Get a single job posting
@@ -430,25 +435,25 @@ router.get('/:id', async (req, res) => {
 });
 // PATCH /api/jobs/:id/close — HR tự đóng job của mình
 router.patch('/:id/close', authMiddleware, async (req, res) => {
-    const hr_id = req.user.id;
-    const { id } = req.params;
-    try {
-        const [rows] = await pool.query(
-            'SELECT id FROM Job_Posting WHERE id = ? AND hr_id = ?',
-            [id, hr_id]
-        );
-        if (rows.length === 0) {
-            return res.status(404).json({ message: 'Job not found or unauthorized' });
-        }
-        await pool.query(
-            "UPDATE Job_Posting SET status = 'Closed' WHERE id = ?",
-            [id]
-        );
-        res.json({ message: 'Job closed successfully' });
-    } catch (err) {
-        console.error('Error closing job:', err);
-        res.status(500).json({ message: 'Internal server error' });
+  const hr_id = req.user.id;
+  const { id } = req.params;
+  try {
+    const [rows] = await pool.query(
+      'SELECT id FROM Job_Posting WHERE id = ? AND hr_id = ?',
+      [id, hr_id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ message: 'Job not found or unauthorized' });
     }
+    await pool.query(
+      "UPDATE Job_Posting SET status = 'Closed' WHERE id = ?",
+      [id]
+    );
+    res.json({ message: 'Job closed successfully' });
+  } catch (err) {
+    console.error('Error closing job:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
 
 module.exports = router;
