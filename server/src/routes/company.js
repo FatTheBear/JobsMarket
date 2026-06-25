@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../config/db');
 const companyController = require('../controllers/companyController');
 const { authMiddleware } = require('../middleware/authMiddleware');
+const { upload } = require('../middleware/upload');
 
 
 router.get('/applications', authMiddleware, companyController.getAppliedCandidates);
@@ -59,33 +60,34 @@ router.get('/:hr_id', async (req, res) => {
 });
 
 // POST /api/company — Tạo mới thông tin công ty
-router.post('/', async (req, res) => {
+router.post('/', upload.single('logo'), async (req, res) => {
   try {
     const { 
       hr_id, 
       industry_id, 
       name, 
-      logo_url, 
       website, 
       address,
       email,
-      phone,
-      facebook,
-      linkedin,
-      twitter,
-      scale,
-      culture,
-      benefits
+      company_phone,
+      tax_id,
+      size,
+      description
     } = req.body;
 
     if (!hr_id || !industry_id || !name) {
-      return res.status(400).json({ message: 'Missing required information: hr_id, industry_id, name' });
+      return res.status(400).json({ message: 'Missing required information' });
+    }
+
+    let logo_url = req.body.logo_url;
+    if (req.file) {
+      logo_url = `/uploads/${req.file.filename}`;
     }
 
     const [result] = await pool.query(
       `INSERT INTO Company (hr_id, industry_id, name, logo_url, website, address,
-                            email, phone, facebook, linkedin, twitter, scale, culture, benefits)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                            email, company_phone, tax_id, size, description)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         hr_id,
         industry_id,
@@ -94,13 +96,10 @@ router.post('/', async (req, res) => {
         website || null,
         address || null,
         email || null,
-        phone || null,
-        facebook || null,
-        linkedin || null,
-        twitter || null,
-        scale ? JSON.stringify(scale) : null,
-        culture ? JSON.stringify(culture) : null,
-        benefits ? JSON.stringify(benefits) : null
+        company_phone || null,
+        tax_id || null,
+        size || null,
+        description || null
       ]
     );
 
@@ -109,40 +108,38 @@ router.post('/', async (req, res) => {
     if (err.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ message: 'This HR already has a company, use PUT to update' });
     }
-    console.error(err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
-
 // PUT /api/company/:hr_id — Cập nhật thông tin công ty
-router.put('/:hr_id', async (req, res) => {
+router.put('/:hr_id', upload.single('logo'), async (req, res) => {
   try {
     const { hr_id } = req.params;
     const { 
       industry_id, 
       name, 
-      logo_url, 
       website, 
       address,
       email,
-      phone,
-      facebook,
-      linkedin,
-      twitter,
-      scale,
-      culture,
-      benefits
+      company_phone,
+      tax_id,
+      size,
+      description
     } = req.body;
 
     if (!industry_id || !name) {
-      return res.status(400).json({ message: 'Missing required information: industry_id, name' });
+      return res.status(400).json({ message: 'Missing required information' });
+    }
+
+    let logo_url = req.body.logo_url;
+    if (req.file) {
+      logo_url = `/uploads/${req.file.filename}`;
     }
 
     const [result] = await pool.query(
       `UPDATE Company
        SET industry_id = ?, name = ?, logo_url = ?, website = ?, address = ?,
-           email = ?, phone = ?, facebook = ?, linkedin = ?, twitter = ?,
-           scale = ?, culture = ?, benefits = ?
+           email = ?, company_phone = ?, tax_id = ?, size = ?, description = ?
        WHERE hr_id = ?`,
       [
         industry_id,
@@ -151,24 +148,20 @@ router.put('/:hr_id', async (req, res) => {
         website || null,
         address || null,
         email || null,
-        phone || null,
-        facebook || null,
-        linkedin || null,
-        twitter || null,
-        scale ? JSON.stringify(scale) : null,
-        culture ? JSON.stringify(culture) : null,
-        benefits ? JSON.stringify(benefits) : null,
+        company_phone || null,
+        tax_id || null,
+        size || null,
+        description || null,
         hr_id
       ]
     );
 
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Company not found to update' });
+      return res.status(404).json({ message: 'Company not found' });
     }
 
-    res.json({ message: 'Updated successfully' });
+    res.status(200).json({ message: 'Updated successfully', logo_url });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
