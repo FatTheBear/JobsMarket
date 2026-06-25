@@ -159,6 +159,7 @@ export default function JobDetail() {
           </div>
         </div>
 
+
         <div className="job-detail-card-action">
           {job.deadline && (
             <p className="job-detail-card-deadline">

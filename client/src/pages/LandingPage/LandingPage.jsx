@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import FeaturedCompanies from '../FeaturedCompanies/FeaturedCompanies';
+import JoinUsModal from '../JoinUsModal/JoinUsModal';
 import styles from './LandingPage.module.css';
 
 const HOT_JOBS = [
@@ -11,16 +13,7 @@ const HOT_JOBS = [
   { id: 6, title: 'DevOps Engineer', company: 'VinAI', salary: '$1,300 - $2,200', location: 'Hanoi', logo: '🏢', tag: 'Top', isNew: false },
 ];
 
-const TOP_EMPLOYERS = [
-  { name: 'FPT Software', industry: 'IT - Software', iconFile: 'emp_fpt.png', jobs: 120 },
-  { name: 'VNG', industry: 'Technology / Entertainment', iconFile: 'emp_vng.png', jobs: 85 },
-  { name: 'Shopee', industry: 'E-commerce', iconFile: 'emp_shopee.png', jobs: 200 },
-  { name: 'Tiki', industry: 'E-commerce', iconFile: 'emp_tiki.png', jobs: 65 },
-  { name: 'MoMo', industry: 'Finance / Fintech', iconFile: 'emp_momo.png', jobs: 95 },
-  { name: 'VinAI', industry: 'IT - AI', iconFile: 'emp_vinai.png', jobs: 45 },
-  { name: 'Grab', industry: 'Logistics / Technology', iconFile: 'emp_grab.png', jobs: 78 },
-  { name: 'VNPT', industry: 'Telecommunications / IT', iconFile: 'emp_vnpt.png', jobs: 110 },
-];
+
 
 const CATEGORIES = [
   { iconFile: 'it.png', name: 'Information Technology', count: '3,200+' },
@@ -47,6 +40,8 @@ export default function HomePage() {
   const [selectedLocation, setSelectedLocation] = useState('');
   const [activeTab, setActiveTab] = useState(0);
   const [bannerIdx, setBannerIdx] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [joinModalOpen, setJoinModalOpen] = useState(false);
   const bannerTimerRef = useRef(null);
 
   const BANNERS = [
@@ -59,6 +54,9 @@ export default function HomePage() {
     const currentToken = localStorage.getItem("token");
     if (currentToken === "undefined" || currentToken === "null") {
       localStorage.clear();
+      setIsLoggedIn(false);
+    } else if (currentToken) {
+      setIsLoggedIn(true);
     }
 
     bannerTimerRef.current = setInterval(() => {
@@ -67,8 +65,20 @@ export default function HomePage() {
     
     return () => clearInterval(bannerTimerRef.current);
   }, []);
+
+  const handleRequireLogin = (e) => {
+    e?.stopPropagation?.();
+    if (!isLoggedIn) {
+      setJoinModalOpen(true);
+    }
+  };
+
   const handleSearch = () => {
-    navigate('/auth');
+    if (!isLoggedIn) {
+      setJoinModalOpen(true);
+    } else {
+      navigate('/search-jobs');
+    }
   };
 
   return (
@@ -121,7 +131,7 @@ export default function HomePage() {
             </div>
             <div className={styles.searchFooter}>
               <span>📄 Upload your resume to apply faster and get noticed by employers</span>
-              <button className={styles.uploadResumeBtn} onClick={() => navigate('/auth')}>UPLOAD NOW</button>
+              <button className={styles.uploadResumeBtn} onClick={handleRequireLogin}>UPLOAD NOW</button>
             </div>
           </div>
         </div>
@@ -138,35 +148,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ───── TOP EMPLOYERS ───── */}
-      <section className={styles.section}>
-        <div className={styles.container}>
-          <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>TOP EMPLOYERS</h2>
-          </div>
-          <div className={styles.employersGrid}>
-            {TOP_EMPLOYERS.map((emp, i) => (
-              <div key={i} className={styles.employerCard} onClick={() => navigate('/auth')}>
-                <div className={styles.employerCardTop}>
-                  <div className={styles.employerLogo}>
-                    <img src={`/icons/${emp.iconFile}`} alt={emp.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                  </div>
-                  <div className={styles.employerInfo}>
-                    <div className={styles.employerName}>{emp.name}</div>
-                    <div className={styles.employerIndustry}>{emp.industry}</div>
-                  </div>
-                </div>
-                <div className={styles.employerJobs}>
-                  <span style={{ fontSize: '14px' }}>💼</span> {emp.jobs} jobs
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className={styles.viewMore}>
-            <button onClick={() => navigate('/auth')}>View more <span>→</span></button>
-          </div>
-        </div>
-      </section>
+      {/* ───── FEATURED COMPANIES ───── */}
+      <FeaturedCompanies />
+
 
       {/* ───── HOT JOBS ───── */}
       <section className={`${styles.section} ${styles.sectionGray}`}>
@@ -184,7 +168,7 @@ export default function HomePage() {
           </div>
           <div className={styles.jobsGrid}>
             {HOT_JOBS.map(job => (
-              <div key={job.id} className={styles.jobCard} onClick={() => navigate('/auth')}>
+              <div key={job.id} className={styles.jobCard} onClick={handleRequireLogin}>
                 <div className={styles.jobCardLeft}>
                   <div className={styles.jobLogo}>{job.logo}</div>
                   <div className={styles.jobInfo}>
@@ -204,7 +188,7 @@ export default function HomePage() {
             ))}
           </div>
           <div className={styles.viewMore}>
-            <button onClick={() => navigate('/auth')}>View all jobs <span>→</span></button>
+            <button onClick={handleRequireLogin}>View all jobs <span>→</span></button>
           </div>
         </div>
       </section>
@@ -214,11 +198,11 @@ export default function HomePage() {
         <div className={styles.container}>
           <div className={styles.sectionHeaderCol}>
             <h2 className={styles.sectionTitleGreen}>POPULAR INDUSTRIES</h2>
-            <p className={styles.sectionSub}>Looking for a new job? View the job list <span className={styles.linkText} onClick={() => navigate('/auth')}>here</span></p>
+            <p className={styles.sectionSub}>Looking for a new job? View the job list <span className={styles.linkText} onClick={handleRequireLogin}>here</span></p>
           </div>
           <div className={styles.categoriesGrid}>
             {CATEGORIES.map((cat, i) => (
-              <div key={i} className={styles.categoryCard} onClick={() => navigate('/auth')}>
+              <div key={i} className={styles.categoryCard} onClick={handleRequireLogin}>
                 <div className={styles.categoryIcon}>
                   <img src={`/icons/${cat.iconFile}`} alt={cat.name} style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
                 </div>
@@ -254,6 +238,7 @@ export default function HomePage() {
         </div>
       </section>
 
+
       {/* ───── CTA FOR EMPLOYER ───── */}
       <section className={styles.ctaSection}>
         <div className={styles.container}>
@@ -266,8 +251,8 @@ export default function HomePage() {
               </div>
             </div>
             <div className={styles.ctaButtons}>
-              <button className={styles.ctaBtnPrimary} onClick={() => navigate('/auth')}>Post a Job</button>
-              <button className={styles.ctaBtnSecondary} onClick={() => navigate('/auth')}>Find Candidates</button>
+              <button className={styles.ctaBtnPrimary} onClick={handleRequireLogin}>Post a Job</button>
+              <button className={styles.ctaBtnSecondary} onClick={handleRequireLogin}>Find Candidates</button>
             </div>
           </div>
         </div>
@@ -283,21 +268,21 @@ export default function HomePage() {
             </div>
             <div className={styles.footerLinks}>
               <h4>Job Seekers</h4>
-              <a onClick={() => navigate('/auth')}>Find Jobs</a>
-              <a onClick={() => navigate('/auth')}>Create Profile</a>
-              <a onClick={() => navigate('/auth')}>Job Alerts</a>
+              <a onClick={handleRequireLogin}>Find Jobs</a>
+              <a onClick={handleRequireLogin}>Create Profile</a>
+              <a onClick={handleRequireLogin}>Job Alerts</a>
             </div>
             <div className={styles.footerLinks}>
               <h4>Employers</h4>
-              <a onClick={() => navigate('/auth')}>Post a Job</a>
-              <a onClick={() => navigate('/auth')}>Find Candidates</a>
-              <a onClick={() => navigate('/auth')}>Products & Services</a>
+              <a onClick={handleRequireLogin}>Post a Job</a>
+              <a onClick={handleRequireLogin}>Find Candidates</a>
+              <a onClick={handleRequireLogin}>Products & Services</a>
             </div>
             <div className={styles.footerLinks}>
               <h4>About Us</h4>
-              <a onClick={() => navigate('/auth')}>About</a>
-              <a onClick={() => navigate('/auth')}>Contact</a>
-              <a onClick={() => navigate('/auth')}>Terms of Service</a>
+              <a onClick={handleRequireLogin}>About</a>
+              <a onClick={handleRequireLogin}>Contact</a>
+              <a onClick={handleRequireLogin}>Terms of Service</a>
             </div>
           </div>
           <div className={styles.footerBottom}>
@@ -305,6 +290,9 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Join Us Modal */}
+      <JoinUsModal isOpen={joinModalOpen} onClose={() => setJoinModalOpen(false)} />
     </div>
   );
 }
