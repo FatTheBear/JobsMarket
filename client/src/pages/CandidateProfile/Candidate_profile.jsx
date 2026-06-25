@@ -213,7 +213,8 @@ const CandidateProfile = () => {
               school: e.school || 'School / Institute',
               duration: durationText,
               startDate: e.startDate,
-              gradDate: e.gradDate
+              gradDate: e.gradDate,
+              description: e.description || ''
             };
           }));
         }
@@ -244,7 +245,8 @@ const CandidateProfile = () => {
               company: e.company || 'Company Name',
               duration: durationText,
               startDate: e.startDate,
-              endDate: e.endDate
+              endDate: e.endDate,
+              description: e.description || ''
             };
           }));
         }
@@ -295,7 +297,7 @@ const CandidateProfile = () => {
               user_id: p.user_id,
               author: p.author_name || profile.full_name || 'Candidate',
               avatar: p.author_avatar || profile.avatar_url || defaultFacebookAvatar,
-              time: p.created_at ? new Date(p.created_at).toLocaleDateString() : 'Just now',
+              time: p.created_at ? new Date(p.created_at).toLocaleDateString('vi-VN') : 'Just now',
               content: p.content,
               mediaList: p.mediaList || [],
               likes: p.likes_count || 0,
@@ -367,12 +369,23 @@ const CandidateProfile = () => {
       formData.append('phone', profileData.phone || '');
       formData.append('headline', profileData.jobTitle || '');
       formData.append('address', profileData.address || '');
+      formData.append('about', profileData.about || '');
+      formData.append('nationality', profileData.nationality || '');
+      formData.append('portfolio', profileData.portfolio || '');
+      formData.append('github', profileData.github || '');
+      formData.append('facebook', profileData.facebook || '');
+      formData.append('blog', profileData.blog || '');
+      formData.append('x', profileData.x || '');
+      formData.append('linkedin', profileData.linkedin || '');
+
+      const birthdayParts = (profileData.birthday || '').trim().split('/');
+      const apiBirthday = birthdayParts.length === 3 ? `${birthdayParts[2]}-${birthdayParts[1]}-${birthdayParts[0]}` : '';
+      formData.append('birthday', apiBirthday);
 
       const currentEdu = overrideData.educations || educations;
       const currentExp = overrideData.workExperiences || workExperiences;
       const currentSkills = overrideData.skills || skills;
 
-      formData.append('about', profileData.about || '');
       formData.append('education', JSON.stringify(currentEdu.map(edu => ({
         school: edu.school, degree: edu.degree, startDate: edu.startDate, gradDate: edu.gradDate, description: edu.description
       }))));

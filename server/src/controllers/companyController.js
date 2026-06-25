@@ -28,7 +28,7 @@ exports.getAppliedCandidates = async (req, res) => {
                     cp.full_name AS candidate_name,
                     cp.avatar_url AS candidate_avatar,
                     j.title AS applied_job,
-                    j.employment_type,
+                    j.job_type AS employment_type,
                     cv.file_url AS cv_url,
                     GROUP_CONCAT(s.skill_name SEPARATOR ', ') AS skills
                 FROM application a
@@ -38,7 +38,7 @@ exports.getAppliedCandidates = async (req, res) => {
                 LEFT JOIN candidate_skill cs ON cp.id = cs.candidate_id
                 LEFT JOIN skill s ON cs.skill_id = s.id
                 WHERE j.company_id = ?
-                GROUP BY a.id, cp.full_name, cp.avatar_url, j.title, j.employment_type, cv.file_url
+                GROUP BY a.id, cp.full_name, cp.avatar_url, j.title, j.job_type, cv.file_url
                 ORDER BY a.applied_at DESC
             `, [companyId]);
 
@@ -98,6 +98,36 @@ exports.updateApplicationStatus = async (req, res) => {
                 'UPDATE application SET status = ? WHERE id = ?',
                 [status, id]
             );
+
+            // Query candidate user_id, job title, and company name for notification
+            const [appDetails] = await connection.execute(`
+                SELECT cp.user_id, j.title AS job_title, c.name AS company_name
+                FROM application a
+                JOIN Candidate_Profile cp ON a.candidate_id = cp.id
+                JOIN Job_Posting j ON a.job_id = j.id
+                JOIN Company c ON j.company_id = c.id
+                WHERE a.id = ?
+            `, [id]);
+
+            if (appDetails.length > 0) {
+                const { user_id: candidateUserId, job_title, company_name } = appDetails[0];
+
+                // Determine notification title based on status
+                const statusTitleMap = {
+                    'In-Review': '📋 Application In Review',
+                    'Interview': '🎯 Interview Invitation',
+                    'Hired': '🎉 Congratulations! You\'re Hired',
+                    'Rejected': '📝 Application Update',
+                    'Applied': '📨 Application Received'
+                };
+                const notiTitle = statusTitleMap[status] || '📨 Application Status Updated';
+                const notiContent = `Your application for "${job_title}" at ${company_name} has been updated to: ${status}.`;
+
+                await connection.execute(
+                    'INSERT INTO Notification (user_id, title, content) VALUES (?, ?, ?)',
+                    [candidateUserId, notiTitle, notiContent]
+                );
+            }
 
             connection.release();
             return res.status(200).json({ message: "Status updated successfully", status });

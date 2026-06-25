@@ -25,7 +25,7 @@ const compileTemplate = (templateName, data) => {
 const sendCandidateOTP = async (email, otpCode) => {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
     
-    const html = compileTemplate('otp_candidate', { otp: otpCode });
+    const html = compileTemplate('otp_verify', { otp: otpCode });
     
     await transporter.sendMail({
         from: process.env.EMAIL_USER,
@@ -64,7 +64,7 @@ const sendCompanyActive = async (email, hrName, companyName) => {
 const sendAccountBanned = async (email, userName, reason) => {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
     
-    const html = compileTemplate('account_banned', { userName, reason });
+    const html = compileTemplate('user_banned', { userName, reason });
     
     await transporter.sendMail({
         from: process.env.EMAIL_USER,
@@ -74,9 +74,30 @@ const sendAccountBanned = async (email, userName, reason) => {
     });
 };
 
+const sendChangePasswordOTP = async (email, otpCode) => {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+    
+    await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Change Password OTP - JobsMarket',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #e1e4e8; border-radius: 8px;">
+                <h2 style="color: #01796F; border-bottom: 1px solid #e1e4e8; padding-bottom: 10px;">Change Password Request</h2>
+                <p>You requested to change your password. Use the following One-Time Password (OTP) to proceed:</p>
+                <div style="text-align: center; margin: 20px 0; padding: 10px; background-color: #f1f3f4; border-radius: 6px; font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #01796F;">
+                    ${otpCode}
+                </div>
+                <p style="color: #586069; font-size: 13px;">This code is valid for 5 minutes. If you did not request a password change, please ignore this email.</p>
+            </div>
+        `
+    });
+};
+
 module.exports = {
     sendCandidateOTP,
     sendCompanyPending,
     sendCompanyActive,
-    sendAccountBanned
+    sendAccountBanned,
+    sendChangePasswordOTP
 };

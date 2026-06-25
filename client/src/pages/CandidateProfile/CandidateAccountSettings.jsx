@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useOutletContext, useNavigate } from 'react-router-dom';
+import { useOutletContext, useNavigate, useBlocker } from 'react-router-dom';
 import axios from 'axios';
 import CandidateExperience from './CandidateExperience';
 import CandidateEducation from './CandidateEducation';
@@ -349,6 +349,134 @@ const CandidateAccountSettings = () => {
   const [settingsSuccess, setSettingsSuccess] = useState('');
   const [modalError, setModalError] = useState('');
 
+  // Unsaved changes blocker
+  const [isDirty, setIsDirty] = useState(false);
+  const isDirtyRef = useRef(false);
+
+  useEffect(() => {
+    if (!profileData || !editProfileForm) {
+      setIsDirty(false);
+      isDirtyRef.current = false;
+      return;
+    }
+    const checkIsDirty = () => {
+      const keys = [
+        'fullName', 'phone', 'jobTitle', 'address', 'about', 
+        'birthday', 'nationality', 'portfolio', 'github', 'facebook', 'blog', 'x', 'linkedin'
+      ];
+      for (const k of keys) {
+        const val1 = (profileData[k] || '').toString().trim();
+        const val2 = (editProfileForm[k] || '').toString().trim();
+        if (val1 !== val2) return true;
+      }
+      if (profileData.hidePhone !== editProfileForm.hidePhone) return true;
+      if (editProfileForm.avatarFile) return true;
+      return false;
+    };
+    const dirty = checkIsDirty();
+    setIsDirty(dirty);
+    isDirtyRef.current = dirty;
+  }, [editProfileForm, profileData]);
+
+  // Block router transitions (react-router-dom v7 API)
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => {
+    return isDirtyRef.current && currentLocation.pathname !== nextLocation.pathname;
+  });
+
+  // Block browser unload (F5, close tab)
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isDirtyRef.current) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
+  // Change Password Modal States
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordModalStep, setPasswordModalStep] = useState(1); // 1: Input OTP, 2: Input New Password
+  const [otpCode, setOtpCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordModalError, setPasswordModalError] = useState('');
+  const [passwordModalSuccess, setPasswordModalSuccess] = useState('');
+  const [isRequestingOtp, setIsRequestingOtp] = useState(false);
+  const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
+  const [otpCooldown, setOtpCooldown] = useState(0);
+
+  // New Password masking & toggling states
+  const [displayNewPassword, setDisplayNewPassword] = useState('');
+  const [displayConfirmPassword, setDisplayConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    if (otpCooldown > 0) {
+      const timer = setTimeout(() => setOtpCooldown(otpCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [otpCooldown]);
+
+  const processPasswordInput = (newValue, oldReal, showPassword) => {
+    if (showPassword) {
+      return { real: newValue, display: newValue };
+    }
+    if (!newValue) {
+      return { real: '', display: '' };
+    }
+    let newReal = oldReal;
+    if (newValue.length > oldReal.length) {
+      const diff = newValue.length - oldReal.length;
+      const addedPart = newValue.slice(-diff);
+      newReal = oldReal + addedPart;
+    } else if (newValue.length < oldReal.length) {
+      newReal = oldReal.slice(0, newValue.length);
+    }
+    let newDisplay = '';
+    if (newReal.length > 0) {
+      newDisplay = '•'.repeat(newReal.length - 1) + newReal.slice(-1);
+    }
+    return { real: newReal, display: newDisplay };
+  };
+
+  const handleNewPasswordChange = (e) => {
+    const val = e.target.value;
+    const result = processPasswordInput(val, newPassword, showNewPassword);
+    setNewPassword(result.real);
+    setDisplayNewPassword(result.display);
+  };
+
+  const handleConfirmPasswordChange = (e) => {
+    const val = e.target.value;
+    const result = processPasswordInput(val, confirmPassword, showConfirmPassword);
+    setConfirmPassword(result.real);
+    setDisplayConfirmPassword(result.display);
+  };
+
+  const toggleShowNewPassword = () => {
+    const nextShow = !showNewPassword;
+    setShowNewPassword(nextShow);
+    if (nextShow) {
+      setDisplayNewPassword(newPassword);
+    } else {
+      setDisplayNewPassword('•'.repeat(newPassword.length));
+    }
+  };
+
+  const toggleShowConfirmPassword = () => {
+    const nextShow = !showConfirmPassword;
+    setShowConfirmPassword(nextShow);
+    if (nextShow) {
+      setDisplayConfirmPassword(confirmPassword);
+    } else {
+      setDisplayConfirmPassword('•'.repeat(confirmPassword.length));
+    }
+  };
+
+
   // Experience state
   const [showExperienceModal, setShowExperienceModal] = useState(false);
   const [currentExperience, setCurrentExperience] = useState(null);
@@ -539,24 +667,87 @@ const CandidateAccountSettings = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleChangeEmailClick = () => {
+
+
+  const handleChangePasswordClick = async () => {
+    if (otpCooldown > 0) return;
     setSettingsError('');
-    setSettingsSuccess("Change Email Request: Please contact the administrator at support@jobsmarket.com to verify and update your primary email address.");
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setSettingsSuccess('');
+    setIsRequestingOtp(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('http://localhost:5000/api/auth/change-password/request', {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setOtpCooldown(60);
+      setOtpCode('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setDisplayNewPassword('');
+      setDisplayConfirmPassword('');
+      setShowNewPassword(false);
+      setShowConfirmPassword(false);
+      setPasswordModalError('');
+      setPasswordModalSuccess('');
+      setPasswordModalStep(1);
+      setShowPasswordModal(true);
+    } catch (err) {
+      console.error(err);
+      setSettingsError(err.response?.data?.message || "Failed to send OTP code. Please try again.");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } finally {
+      setIsRequestingOtp(false);
+    }
   };
 
-  const handleChangePasswordClick = () => {
-    const newPassword = window.prompt("Enter your new password:");
-    if (newPassword) {
-      if (newPassword.length < 6) {
-        setSettingsSuccess('');
-        setSettingsError("Password must be at least 6 characters long!");
+  const handleOtpSubmit = (e) => {
+    e.preventDefault();
+    if (!otpCode || otpCode.trim().length !== 6) {
+      setPasswordModalError("OTP code must be 6 digits.");
+      return;
+    }
+    setPasswordModalError('');
+    setPasswordModalStep(2);
+  };
+
+  const handlePasswordConfirmSubmit = async (e) => {
+    e.preventDefault();
+    setPasswordModalError('');
+    setPasswordModalSuccess('');
+
+    if (newPassword !== confirmPassword) {
+      setPasswordModalError("Passwords do not match!");
+      return;
+    }
+
+    const hasLetter = /[a-zA-Z]/.test(newPassword);
+    const hasNumber = /\d/.test(newPassword);
+    if (newPassword.length < 8 || !hasLetter || !hasNumber) {
+      setPasswordModalError("Password must be at least 8 characters long and contain both letters and numbers.");
+      return;
+    }
+
+    setIsSubmittingPassword(true);
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('http://localhost:5000/api/auth/change-password/confirm', {
+        otp: otpCode.trim(),
+        newPassword: newPassword
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      setPasswordModalSuccess("Password has been successfully changed!");
+      setTimeout(() => {
+        setShowPasswordModal(false);
+        setSettingsSuccess("Password changed successfully!");
         window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        setSettingsError('');
-        setSettingsSuccess("Password change request submitted successfully!");
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
+      }, 1500);
+    } catch (err) {
+      console.error(err);
+      setPasswordModalError(err.response?.data?.message || "Failed to change password. Please check your OTP code.");
+    } finally {
+      setIsSubmittingPassword(false);
     }
   };
 
@@ -956,7 +1147,7 @@ const CandidateAccountSettings = () => {
   const handleSaveProfileSettings = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) return false;
 
     const fullNameCombined = (editProfileForm.fullName || '').trim();
 
@@ -965,34 +1156,34 @@ const CandidateAccountSettings = () => {
       setSettingsSuccess('');
       setSettingsError('Full Name is required!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
+      return false;
     }
     if (!lettersOnlyRegex.test(fullNameCombined)) {
       setSettingsSuccess('');
       setSettingsError('Full Name can only contain letters and spaces!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
+      return false;
     }
     // Validate Date of Birth
     if (!editProfileForm.birthday || !editProfileForm.birthday.trim()) {
       setSettingsSuccess('');
       setSettingsError('Date of Birth is required!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
+      return false;
     }
     const dobRegex = /^\d{2}\/\d{2}\/\d{4}$/;
     if (!dobRegex.test(editProfileForm.birthday.trim())) {
       setSettingsSuccess('');
       setSettingsError('Date of Birth must be in DD/MM/YYYY format!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
+      return false;
     }
     // Validate Phone Number
     if (editProfileForm.phone && editProfileForm.phone.trim() && !/^\d{10}$/.test(editProfileForm.phone.trim())) {
       setSettingsSuccess('');
       setSettingsError('Phone Number must be exactly 10 digits!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
+      return false;
     }
 
     // Validate Job Title (if provided)
@@ -1000,7 +1191,7 @@ const CandidateAccountSettings = () => {
       setSettingsSuccess('');
       setSettingsError('Job Title can only contain letters, spaces, and hyphens!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
+      return false;
     }
 
     // Validate Nationality (if provided)
@@ -1008,7 +1199,7 @@ const CandidateAccountSettings = () => {
       setSettingsSuccess('');
       setSettingsError('Nationality can only contain letters and spaces!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
+      return false;
     }
 
     // Validate Portfolio (if provided)
@@ -1018,7 +1209,7 @@ const CandidateAccountSettings = () => {
         setSettingsSuccess('');
         setSettingsError('Website / Portfolio must be a valid URL (e.g., https://myportfolio.com)!');
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
+        return false;
       }
     }
     // Validate GitHub (if provided)
@@ -1028,7 +1219,7 @@ const CandidateAccountSettings = () => {
         setSettingsSuccess('');
         setSettingsError('GitHub link must be a valid profile URL (e.g., https://github.com/username)!');
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
+        return false;
       }
     }
     // Validate Facebook (if provided)
@@ -1038,7 +1229,7 @@ const CandidateAccountSettings = () => {
         setSettingsSuccess('');
         setSettingsError('Facebook link must be a valid profile URL (e.g., https://facebook.com/username)!');
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
+        return false;
       }
     }
     // Validate Blog (if provided)
@@ -1048,7 +1239,7 @@ const CandidateAccountSettings = () => {
         setSettingsSuccess('');
         setSettingsError('Blog must be a valid URL (e.g., https://myblog.com)!');
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
+        return false;
       }
     }
     // Validate X (if provided)
@@ -1058,7 +1249,7 @@ const CandidateAccountSettings = () => {
         setSettingsSuccess('');
         setSettingsError('X link must be a valid profile URL (e.g., https://x.com/username)!');
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
+        return false;
       }
     }
     // Validate LinkedIn (if provided)
@@ -1068,7 +1259,7 @@ const CandidateAccountSettings = () => {
         setSettingsSuccess('');
         setSettingsError('LinkedIn link must be a valid profile URL (e.g., https://linkedin.com/in/username)!');
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
+        return false;
       }
     }
 
@@ -1094,10 +1285,10 @@ const CandidateAccountSettings = () => {
       formData.append('certifications', JSON.stringify(certifications));
       formData.append('awards', JSON.stringify(awards));
       formData.append('education', JSON.stringify(educations.map(edu => ({
-        school: edu.school, degree: edu.degree, startDate: edu.startDate, gradDate: edu.gradDate
+        school: edu.school, degree: edu.degree, startDate: edu.startDate, gradDate: edu.gradDate, description: edu.description
       }))));
       formData.append('experience', JSON.stringify(workExperiences.map(exp => ({
-        company: exp.company, role: exp.role, startDate: exp.startDate, endDate: exp.endDate
+        company: exp.company, role: exp.role, startDate: exp.startDate, endDate: exp.endDate, description: exp.description
       }))));
       formData.append('skills', JSON.stringify(skills.map(skill => ({ name: skill.name, level: skill.level }))));
 
@@ -1150,11 +1341,13 @@ const CandidateAccountSettings = () => {
       setSettingsError('');
       setSettingsSuccess('Account settings saved successfully!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      return true;
     } catch (err) {
       console.error("Failed to save profile settings:", err);
       setSettingsSuccess('');
       setSettingsError("Error occurred while saving profile settings. Please try again.");
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      return false;
     }
   };
 
@@ -1178,6 +1371,37 @@ const CandidateAccountSettings = () => {
         {settingsSuccess && (
           <div className="alert alert-success py-2 px-3 small border-0 mb-4 animate-fade-in" role="alert">
             <i className="fas fa-check-circle me-1"></i> {settingsSuccess}
+          </div>
+        )}
+        {blocker.state === 'blocked' && (
+          <div className="alert alert-warning py-3 px-3 small border-0 mb-4 d-flex align-items-center justify-content-between animate-fade-in shadow-sm" role="alert">
+            <div className="d-flex align-items-center">
+              <i className="fas fa-exclamation-triangle me-2 text-warning fs-5"></i>
+              <span>
+                <strong>You have unsaved changes!</strong> Are you sure you want to leave? Your changes will be lost.
+              </span>
+            </div>
+            <div className="d-flex gap-2 ms-3">
+              <button 
+                type="button" 
+                className="btn btn-sm btn-danger py-1 px-3 fw-semibold text-white rounded-pill"
+                onClick={() => blocker.proceed()}
+              >
+                Leave anyway
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-sm btn-success py-1 px-3 fw-semibold text-white rounded-pill"
+                onClick={async () => {
+                  const success = await handleSaveProfileSettings();
+                  if (success) {
+                    blocker.proceed();
+                  }
+                }}
+              >
+                Leave & Save
+              </button>
+            </div>
           </div>
         )}
 
@@ -1581,14 +1805,6 @@ const CandidateAccountSettings = () => {
                   disabled
                 />
               </div>
-              <button
-                type="button"
-                className="btn btn-outline-primary rounded-pill px-4 fw-semibold align-self-sm-end"
-                style={{ height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                onClick={handleChangeEmailClick}
-              >
-                Change email
-              </button>
             </div>
 
             {/* Password Row */}
@@ -1607,8 +1823,9 @@ const CandidateAccountSettings = () => {
                 className="btn btn-outline-primary rounded-pill px-4 fw-semibold align-self-sm-end"
                 style={{ height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 onClick={handleChangePasswordClick}
+                disabled={isRequestingOtp || otpCooldown > 0}
               >
-                Change password
+                {isRequestingOtp ? 'Sending OTP...' : otpCooldown > 0 ? `Wait ${otpCooldown}s` : 'Change password'}
               </button>
             </div>
           </div>
@@ -1618,6 +1835,110 @@ const CandidateAccountSettings = () => {
           </div>
         </div>
       </div>
+
+      {showPasswordModal && (
+        <div className="profile-modal-overlay" style={{ zIndex: 100000 }} onClick={() => setShowPasswordModal(false)}>
+          <div className="profile-modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '450px' }}>
+            <div className="profile-modal-header">
+              <h5 className="profile-modal-title">
+                <i className="fas fa-lock me-2 text-primary"></i>Change Password
+              </h5>
+              <button type="button" className="profile-modal-close-btn" onClick={() => setShowPasswordModal(false)}>&times;</button>
+            </div>
+            
+            {passwordModalStep === 1 ? (
+              <form onSubmit={handleOtpSubmit} className="profile-modal-body p-4 d-flex flex-column gap-3">
+                <p className="small text-muted mb-1">
+                  We have sent a 6-digit OTP code to your registered email address. Please check your inbox and enter the code below.
+                </p>
+                {passwordModalError && (
+                  <div className="alert alert-danger py-2 px-3 small border-0" role="alert">
+                    <i className="fas fa-exclamation-triangle me-1"></i> {passwordModalError}
+                  </div>
+                )}
+                <div>
+                  <label className="form-label fw-semibold text-secondary small">Enter 6-digit OTP <span className="text-danger">*</span></label>
+                  <input
+                    type="text"
+                    maxLength="6"
+                    className="form-control text-center fw-bold fs-4"
+                    style={{ letterSpacing: '8px' }}
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="000000"
+                    required
+                    autoFocus
+                  />
+                </div>
+                <div className="profile-modal-footer mt-3 pt-3 border-top d-flex gap-2 justify-content-end bg-white">
+                  <button type="button" className="btn btn-light border" onClick={() => setShowPasswordModal(false)}>Cancel</button>
+                  <button type="submit" className="btn btn-primary px-4">Next</button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handlePasswordConfirmSubmit} className="profile-modal-body p-4 d-flex flex-column gap-3">
+                {passwordModalError && (
+                  <div className="alert alert-danger py-2 px-3 small border-0" role="alert">
+                    <i className="fas fa-exclamation-triangle me-1"></i> {passwordModalError}
+                  </div>
+                )}
+                {passwordModalSuccess && (
+                  <div className="alert alert-success py-2 px-3 small border-0" role="alert">
+                    <i className="fas fa-check-circle me-1"></i> {passwordModalSuccess}
+                  </div>
+                )}
+                <div>
+                  <label className="form-label fw-semibold text-secondary small">New Password <span className="text-danger">*</span></label>
+                  <div className="position-relative d-flex align-items-center">
+                    <input
+                      type="text"
+                      className="form-control pe-5"
+                      value={displayNewPassword}
+                      onChange={handleNewPasswordChange}
+                      placeholder="At least 8 characters with letters & numbers"
+                      required
+                      autoFocus
+                    />
+                    <span 
+                      className="position-absolute end-0 me-3 cursor-pointer text-muted"
+                      onClick={toggleShowNewPassword}
+                      style={{ zIndex: 10, display: 'flex', alignItems: 'center', height: '100%' }}
+                    >
+                      <i className={`fas ${showNewPassword ? 'fa-eye' : 'fa-eye-slash'}`}></i>
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <label className="form-label fw-semibold text-secondary small">Confirm New Password <span className="text-danger">*</span></label>
+                  <div className="position-relative d-flex align-items-center">
+                    <input
+                      type="text"
+                      className="form-control pe-5"
+                      value={displayConfirmPassword}
+                      onChange={handleConfirmPasswordChange}
+                      placeholder="Repeat new password"
+                      required
+                    />
+                    <span 
+                      className="position-absolute end-0 me-3 cursor-pointer text-muted"
+                      onClick={toggleShowConfirmPassword}
+                      style={{ zIndex: 10, display: 'flex', alignItems: 'center', height: '100%' }}
+                    >
+                      <i className={`fas ${showConfirmPassword ? 'fa-eye' : 'fa-eye-slash'}`}></i>
+                    </span>
+                  </div>
+                </div>
+                <div className="profile-modal-footer mt-3 pt-3 border-top d-flex gap-2 justify-content-end bg-white">
+                  <button type="button" className="btn btn-light border" onClick={() => setPasswordModalStep(1)}>Back</button>
+                  <button type="submit" disabled={isSubmittingPassword} className="btn btn-primary px-4">
+                    {isSubmittingPassword ? 'Saving...' : 'Confirm'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

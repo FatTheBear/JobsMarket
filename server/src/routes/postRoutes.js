@@ -395,6 +395,36 @@ router.delete('/comments/:commentId', authMiddleware, async (req, res) => {
   }
 });
 
+// PUT /api/posts/comments/:commentId - Edit a comment
+router.put('/comments/:commentId', authMiddleware, async (req, res) => {
+  try {
+    const { commentId } = req.params;
+    const { content } = req.body;
+    const userId = req.user.id;
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({ message: 'Comment content is required' });
+    }
+
+    // Check comment ownership
+    const [comments] = await pool.query('SELECT user_id FROM Post_Comment WHERE id = ?', [commentId]);
+    if (comments.length === 0) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    if (comments[0].user_id !== userId) {
+      return res.status(403).json({ message: 'Unauthorized. You can only edit your own comments.' });
+    }
+
+    await pool.query('UPDATE Post_Comment SET content = ? WHERE id = ?', [content.trim(), commentId]);
+    res.json({ message: 'Comment updated successfully', content: content.trim() });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+
 // POST /api/posts - Create a new post
 router.post('/', authMiddleware, uploadMiddleware, async (req, res) => {
   const connection = await pool.getConnection();

@@ -34,6 +34,18 @@ const CandidatePersonalInfoModal = ({ show, onClose, profileData }) => {
                   <td className="text-dark fw-medium">{profileData.email}</td>
                 </tr>
               )}
+              {profileData.address && (
+                <tr>
+                  <th scope="row" style={{ width: '35%' }} className="text-secondary fw-semibold">Location</th>
+                  <td className="text-dark fw-medium">{profileData.address}</td>
+                </tr>
+              )}
+              {profileData.nationality && (
+                <tr>
+                  <th scope="row" style={{ width: '35%' }} className="text-secondary fw-semibold">Nationality</th>
+                  <td className="text-dark fw-medium">{profileData.nationality}</td>
+                </tr>
+              )}
               {profileData.portfolio && (
                 <tr>
                   <th scope="row" className="text-secondary fw-semibold">Website</th>

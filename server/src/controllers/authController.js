@@ -1,9 +1,10 @@
 const bcrypt = require('bcrypt');
 const jwt = require("jsonwebtoken");
+const crypto = require('crypto');
 const pool = require('../config/db');
 const User = require('../models/User');
-const crypto = require('crypto');
 const emailService = require('../services/email/emailServices');
+
 
 const authController = {
     register: async (req, res) => {
@@ -41,9 +42,10 @@ const authController = {
 
                 await emailService.sendCandidateOTP(email, otp);
 
+                const defaultFullName = email.split('@')[0];
                 await connection.execute(
-                    'INSERT INTO Candidate_Profile (user_id) VALUES (?)',
-                    [newUserId]
+                    'INSERT INTO Candidate_Profile (user_id, full_name) VALUES (?, ?)',
+                    [newUserId, defaultFullName]
                 );
 
                 await connection.commit();
@@ -343,6 +345,108 @@ const authController = {
             return res.status(500).json({
                 message: error.message
             });
+        }
+    },
+    requestChangePassword: async (req, res) => {
+        const userId = req.user.id;
+        try {
+            const [userRows] = await pool.execute('SELECT email, code_expires_at FROM User WHERE id = ?', [userId]);
+            if (userRows.length === 0) {
+                return res.status(404).json({ message: "User not found!" });
+            }
+            const { email, code_expires_at } = userRows[0];
+
+            // Cooldown check (60 seconds)
+            if (code_expires_at) {
+                const expiresTime = new Date(code_expires_at).getTime();
+                const sentTime = expiresTime - 5 * 60000; // OTP expires in 5 minutes, so it was sent 5 minutes before expiresAt
+                const timePassed = Date.now() - sentTime;
+                const cooldown = 60000; // 60 seconds
+                if (timePassed < cooldown) {
+                    const secondsLeft = Math.ceil((cooldown - timePassed) / 1000);
+                    return res.status(429).json({ 
+                        message: `Please wait ${secondsLeft} seconds before requesting a new OTP.` 
+                    });
+                }
+            }
+
+            const otp = crypto.randomInt(100000, 999999).toString();
+            const expiresAt = new Date(Date.now() + 5 * 60000); // 5 minutes
+
+            await pool.execute(
+                'UPDATE User SET verification_code = ?, code_expires_at = ? WHERE id = ?',
+                [otp, expiresAt, userId]
+            );
+
+            await emailService.sendChangePasswordOTP(email, otp);
+
+            return res.status(200).json({ message: "OTP code sent successfully to your email!" });
+
+        } catch (error) {
+            console.error("Request Change Password Error:", error);
+            return res.status(500).json({ message: "Internal server error!", error: error.message });
+        }
+    },
+    confirmChangePassword: async (req, res) => {
+        const { otp, newPassword } = req.body;
+        const userId = req.user.id;
+
+        if (!otp || !newPassword) {
+            return res.status(400).json({ message: "OTP and new password are required!" });
+        }
+
+        // Validate password
+        // Ít nhất 8 ký tự, bắt buộc phải chứa cả chữ cái và chữ số, cho phép ký tự đặc biệt tự do
+        const hasLetter = /[a-zA-Z]/.test(newPassword);
+        const hasNumber = /\d/.test(newPassword);
+        if (newPassword.length < 8 || !hasLetter || !hasNumber) {
+            return res.status(400).json({ 
+                message: "Password must be at least 8 characters long and contain both letters and numbers." 
+            });
+        }
+
+        try {
+            const [userRows] = await pool.execute(
+                'SELECT verification_code, code_expires_at, password_hash FROM User WHERE id = ?', 
+                [userId]
+            );
+            if (userRows.length === 0) {
+                return res.status(404).json({ message: "User not found!" });
+            }
+
+            const user = userRows[0];
+
+            if (!user.verification_code || user.verification_code !== otp) {
+                return res.status(400).json({ message: "Invalid OTP code!" });
+            }
+
+            if (new Date() > new Date(user.code_expires_at)) {
+                return res.status(400).json({ message: "OTP code has expired!" });
+            }
+
+            // Check if the new password is the same as the current password
+            const isSamePassword = await bcrypt.compare(newPassword, user.password_hash);
+            if (isSamePassword) {
+                return res.status(400).json({ 
+                    message: "New password cannot be the same as your current password." 
+                });
+            }
+
+            // Hash new password
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+            // Update user password and clear OTP
+            await pool.execute(
+                'UPDATE User SET password_hash = ?, verification_code = NULL, code_expires_at = NULL WHERE id = ?',
+                [hashedPassword, userId]
+            );
+
+            return res.status(200).json({ message: "Password has been successfully changed!" });
+
+        } catch (error) {
+            console.error("Confirm Change Password Error:", error);
+            return res.status(500).json({ message: "Internal server error!", error: error.message });
         }
     }
 

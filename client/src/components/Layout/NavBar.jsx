@@ -21,9 +21,10 @@ const MENU_CONFIG = {
     { label: 'Saved', path: '/saved' }
   ],
   company: [
-    { label: 'Dashboard', path: '/dashboard' },
-    { label: 'Post a Job', path: '/company/jobs/create' },
-    { label: 'Candidates', path: '/manage-candidates' }
+    { label: 'Explore', path: '/community' },
+    { label: 'Dashboard', path: '/company/dashboard' },
+    { label: 'Post a Job', path: '/company/post-job' },
+    { label: 'Candidates', path: '/company/applicants' }
   ],
   admin: [
     { label: 'Dashboard', path: '/admin' },
@@ -39,15 +40,12 @@ export default function NavBar() {
     return !!token && token !== "undefined" && token !== "null";
   });
   const [role, setRole] = useState(() => {
-    const rawRole = localStorage.getItem("role");
+    const userObj = JSON.parse(localStorage.getItem("user")) || null;
+    const rawRole = userObj?.role;
     const roleMap = {
-
       HR: "company",
-
       Candidate: "candidate",
-
       Admin: "admin",
-
     };
 
     return roleMap[rawRole] || "guest";
@@ -62,7 +60,8 @@ export default function NavBar() {
  useEffect(() => {
     const fetchProfileData = async () => {
       const token = localStorage.getItem('token');
-      const rawRole = localStorage.getItem('role');
+      const userObj = JSON.parse(localStorage.getItem('user')) || null;
+      const rawRole = userObj?.role;
 
       const hasToken = !!token && token !== 'undefined' && token !== 'null';
       setIsLoggedIn(hasToken);
@@ -76,7 +75,8 @@ export default function NavBar() {
           if (currentRole === 'candidate') {
             url = `${API_URL}/api/candidate/profile`;
           } else if (currentRole === 'company') {
-            url = `${API_URL}/api/company/profile`;
+            const userId = localStorage.getItem('userId');
+            url = `${API_URL}/api/company/${userId}`;
           }
 
           if (url) {
@@ -84,13 +84,24 @@ export default function NavBar() {
               headers: { Authorization: `Bearer ${token}` },
             });
             const profile = response.data;
+            console.log("NavBar - Profile data received:", {
+              name: profile.name,
+              displayName: profile.display_name,
+              fullName: profile.full_name,
+              companyName: profile.companyName,
+              avatar_url: profile.avatar_url,
+              logo_url: profile.logo_url ? profile.logo_url.substring(0, 50) + "..." : null
+            });
             
             setUserName(profile.display_name || profile.full_name || profile.name || profile.companyName || 'User');
             
             let avatar = profile.avatar_url || profile.logo_url;
-            if (avatar && !avatar.startsWith('http')) {
+            if (avatar) avatar = avatar.trim();
+            console.log("NavBar - raw avatar selected:", avatar ? avatar.substring(0, 50) + "..." : null);
+            if (avatar && !avatar.startsWith('http') && !avatar.startsWith('data:image')) {
               avatar = `${API_URL}${avatar}`;
             }
+            console.log("NavBar - final avatarUrl to set:", avatar ? avatar.substring(0, 50) + "..." : null);
             setAvatarUrl(avatar || '/img/default-avatar.png');
           } else {
             setUserName(rawRole === 'HR' ? 'Company User' : 'Admin');
@@ -115,6 +126,7 @@ export default function NavBar() {
   }, []);
   
   const menuItems = MENU_CONFIG[role] || [];
+  console.log("NavBar rendering - role:", role, "menuItems:", menuItems);
   const handleLogout = () => {
     localStorage.clear();
     navigate('/');
@@ -152,8 +164,19 @@ export default function NavBar() {
                 src={avatarUrl}
                 alt="Avatar"
                 className="nav-avatar"
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  if (role === 'candidate') {
+                    navigate('/candidate/my-profile');
+                  } else if (role === 'company') {
+                    navigate('/company/profile');
+                  } else if (role === 'admin') {
+                    navigate('/admin');
+                  }
+                }}
                 onError={() => {
-                  if (avatarUrl !== '/img/default-avatar.png') {
+                  console.log("NavBar - img load error for avatarUrl:", avatarUrl ? avatarUrl.substring(0, 50) + "..." : null);
+                  if (avatarUrl && !avatarUrl.startsWith('data:image') && avatarUrl !== '/img/default-avatar.png') {
                     setAvatarUrl('/img/default-avatar.png');
                   }
                 }}
@@ -162,7 +185,15 @@ export default function NavBar() {
               <span
                 className="nav-user-name"
                 title={`Welcome, ${userName}`}
-                onClick={() => navigate('/candidate/my-profile')}
+                onClick={() => {
+                  if (role === 'candidate') {
+                    navigate('/candidate/my-profile');
+                  } else if (role === 'company') {
+                    navigate('/company/profile');
+                  } else if (role === 'admin') {
+                    navigate('/admin');
+                  }
+                }}
                 style={{ cursor: 'pointer' }}
               >
                 {userName}
