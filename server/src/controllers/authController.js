@@ -107,7 +107,7 @@ const authController = {
                     ]
                 );
 
-                await emailService.sendCompanyPending(email, hrName, companyName);
+                // await emailService.sendCompanyPending(email, hrName, companyName);
 
                 await connection.commit();
                 connection.release();

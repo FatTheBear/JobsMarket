@@ -35,18 +35,18 @@ const sendCandidateOTP = async (email, otpCode) => {
     });
 };
 
-const sendCompanyPending = async (email, hrName, companyName) => {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+// const sendCompanyPending = async (email, hrName, companyName) => {
+//     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
     
-    const html = compileTemplate('company_pending', { hrName, companyName });
+//     const html = compileTemplate('company_pending', { hrName, companyName });
     
-    await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'Company Registration Under Review - JobsMarket',
-        html: html
-    });
-};
+//     await transporter.sendMail({
+//         from: process.env.EMAIL_USER,
+//         to: email,
+//         subject: 'Company Registration Under Review - JobsMarket',
+//         html: html
+//     });
+// };
 
 const sendCompanyActive = async (email, hrName, companyName) => {
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
@@ -96,7 +96,7 @@ const sendChangePasswordOTP = async (email, otpCode) => {
 
 module.exports = {
     sendCandidateOTP,
-    sendCompanyPending,
+    // sendCompanyPending,
     sendCompanyActive,
     sendAccountBanned,
     sendChangePasswordOTP

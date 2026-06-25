@@ -58,6 +58,7 @@ export default function JobCard({ job, onClick }) {
 
   const getValidLogo = () => {
     if (imgError || !logo_url) return '/default-company-logo.png';
+    if (logo_url.startsWith('data:image')) return logo_url;
     if (logo_url.startsWith('http')) return logo_url;
     return `${API_URL}${logo_url}`;
   };
@@ -164,6 +165,11 @@ export default function JobCard({ job, onClick }) {
           >
             Apply Now
           </button>
+      <div className="job-card-footer">
+        <div className="job-card-tags">
+          <span className="job-tag tag-salary">{formatSalary()}</span>
+          <span className="job-tag tag-location">{loc || 'Location updating'}</span>
+          <span className="job-tag tag-type">{job_type || 'Full-time'}</span>
         </div>
       </div>
 

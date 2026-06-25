@@ -2,6 +2,10 @@ const db = require('../config/db');
 const CoinExchangeFeeModel = require('../models/CoinExchangeFee');
 const pool = require('../config/db');
 const email = require('../services/email/emailServices');
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
+const fs = require('fs');
+const path = require('path');
 
 // 1. Lấy dữ liệu tổng quan (Đồng bộ chuẩn db.query)
 exports.getStats = async (req, res) => {
@@ -696,45 +700,45 @@ exports.getPublicNewsById = async (req, res) => {
     }
 };
 
-exports.approveCompany = async (req, res) => {
-    const { id } = req.params;
+// exports.approveCompany = async (req, res) => {
+//     const { id } = req.params;
 
-    try {
-        const connection = await db.getConnection();
-        try {
-            const [rows] = await connection.execute(
-                `SELECT u.email, c.hr_name, c.name AS company_name 
-                 FROM User u 
-                 JOIN Company c ON u.id = c.hr_id 
-                 WHERE u.id = ? AND u.role = 'HR'`,
-                [id]
-            );
+//     try {
+//         const connection = await db.getConnection();
+//         try {
+//             const [rows] = await connection.execute(
+//                 `SELECT u.email, c.hr_name, c.name AS company_name 
+//                  FROM User u 
+//                  JOIN Company c ON u.id = c.hr_id 
+//                  WHERE u.id = ? AND u.role = 'HR'`,
+//                 [id]
+//             );
 
-            if (rows.length === 0) {
-                connection.release();
-                return res.status(404).json({ message: "Company account not found" });
-            }
+//             if (rows.length === 0) {
+//                 connection.release();
+//                 return res.status(404).json({ message: "Company account not found" });
+//             }
 
-            const { email, hr_name, company_name } = rows[0];
+//             const { email, hr_name, company_name } = rows[0];
 
-            await connection.execute(
-                'UPDATE User SET status = ? WHERE id = ?',
-                ['Active', id]
-            );
+//             await connection.execute(
+//                 'UPDATE User SET status = ? WHERE id = ?',
+//                 ['Active', id]
+//             );
 
-            await emailService.sendCompanyActive(email, hr_name, company_name);
+//             await emailService.sendCompanyActive(email, hr_name, company_name);
 
-            connection.release();
-            return res.status(200).json({ message: "Company approved successfully!" });
+//             connection.release();
+//             return res.status(200).json({ message: "Company approved successfully!" });
 
-        } catch (dbError) {
-            connection.release();
-            return res.status(500).json({ message: "Database error" });
-        }
-    } catch (error) {
-        return res.status(500).json({ message: "Internal server error" });
-    }
-};
+//         } catch (dbError) {
+//             connection.release();
+//             return res.status(500).json({ message: "Database error" });
+//         }
+//     } catch (error) {
+//         return res.status(500).json({ message: "Internal server error" });
+//     }
+// };
 
 exports.banAccount = async (req, res) => {
     const { id } = req.params;
@@ -789,40 +793,91 @@ exports.banAccount = async (req, res) => {
 
 
 exports.getPendingCompanies = async (req, res) => {
-    try {
-        const [rows] = await db.query(`
-            SELECT
-                u.id,
-                u.email,
-                u.status,
-
-                c.name,
-                c.hr_name,
-                c.hr_phone,
-                c.company_phone,
-                c.tax_id,
-                c.address,
-                c.business_license_url,
-                c.logo_url,
-                c.size
-
-            FROM User u
-            JOIN Company c
-                ON u.id = c.hr_id
-
-            WHERE u.role = 'HR'
-            AND LOWER(u.status) = 'pending'
-        `);
-
-        res.json(rows);
-
-    } catch (error) {
-        res.status(500).json({
-            message: error.message
-        });
-    }
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        id AS company_id,
+        hr_id,
+        name AS company_name,
+        email AS company_email,
+        company_phone,
+        tax_id,
+        size,
+        description,
+        business_license_url,
+        status,
+        created_at
+      FROM Company
+      WHERE status = 'Pending'
+      ORDER BY created_at DESC
+    `);
+    
+    return res.status(200).json(rows);
+  } catch (error) {
+    // THÊM DÒNG NÀY ĐỂ BẮT ĐÚNG LỖI CỘT NÀO
+    console.error("GET PENDING COMPANIES ERROR:", error); 
+    return res.status(500).json({ message: "Internal server error", error: error.message });
+  }
 };
 
+exports.approveCompany = async (req, res) => {
+  const { id } = req.params;
+  const activationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+
+  try {
+    const [companyData] = await pool.query(
+      `SELECT name, email FROM Company WHERE id = ? AND status = 'Pending'`,
+      [id]
+    );
+
+    if (companyData.length === 0) {
+      return res.status(404).json({ message: "Company not found or already processed" });
+    }
+
+    const companyEmail = companyData[0].email;
+    const companyName = companyData[0].name;
+
+    await pool.query(
+      `UPDATE Company 
+       SET status = 'Approved', activation_code = ? 
+       WHERE id = ?`,
+      [activationCode, id]
+    );
+
+    const templatePath = path.join(__dirname, '..', 'templates', 'company_active.html');
+    let htmlContent = fs.readFileSync(templatePath, 'utf8');
+
+    const activationLink = `http://localhost:3000/activate-company?code=${activationCode}&id=${id}`;
+
+    htmlContent = htmlContent
+      .replace(/{{COMPANY_NAME}}/g, companyName)
+      .replace(/{{ACTIVATION_CODE}}/g, activationCode)
+      .replace(/{{ACTIVATION_LINK}}/g, activationLink);
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    const mailOptions = {
+      from: '"JobsMarket Team" <jobsmarket33@gmail.com>',
+      to: companyEmail,
+      subject: 'Your Company Account Has Been Approved!',
+      html: htmlContent
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({ message: "Company approved successfully", activationCode });
+  } catch (error) {
+    console.error("APPROVE COMPANY ERROR:", error);
+    return res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
 // GET /admin/dashboard-trends?period=7d|30d|12m
 exports.getDashboardTrends = async (req, res) => {
     try {
@@ -904,7 +959,6 @@ GROUP BY s.id, s.skill_name
     }
 };
 
-// GET /admin/top-industries
 exports.getTopIndustries = async (req, res) => {
     try {
         const [rows] = await db.query(`
@@ -922,4 +976,29 @@ exports.getTopIndustries = async (req, res) => {
         console.error('GET TOP INDUSTRIES ERROR:', error);
         res.status(500).json({ message: error.message });
     }
+};
+exports.activateCompany = async (req, res) => {
+  const { id, activationCode } = req.body;
+
+  try {
+    // Tìm công ty xem mã có khớp không
+    const [companies] = await pool.query(
+      `SELECT * FROM Company WHERE id = ? AND activation_code = ?`,
+      [id, activationCode]
+    );
+
+    if (companies.length === 0) {
+      return res.status(400).json({ message: "Invalid activation code!" });
+    }
+
+    
+    await pool.query(
+      `UPDATE Company SET status = 'Active', activation_code = NULL WHERE id = ?`,
+      [id]
+    );
+
+    return res.status(200).json({ message: "Account activated!" });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error" });
+  }
 };

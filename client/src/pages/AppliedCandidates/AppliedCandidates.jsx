@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import './AppliedCandidates.css';
 
@@ -48,9 +49,9 @@ export default function ViewAppliedCandidates() {
   const getStatusClass = (status) => {
     switch (status) {
       case 'Applied': return 'status-applied';
-      case 'In-Review': return 'status-review';
-      case 'Interview': return 'status-interview';
-      case 'Hired': return 'status-hired';
+      case 'Reviewing': return 'status-review';
+      case 'Interviewing': return 'status-interview';
+      case 'Offered': return 'status-hired';
       case 'Rejected': return 'status-rejected';
       default: return '';
     }
@@ -88,12 +89,16 @@ export default function ViewAppliedCandidates() {
                     
                     <td className="px-4">
                       <div className="d-flex align-items-center gap-3">
-                        <img 
-                          src={cand.candidate_avatar ? `${API_URL}${cand.candidate_avatar}` : '/default-avatar.png'} 
-                          alt="avatar" 
-                          className="rounded-circle object-fit-cover avatar-border"
-                        />
-                        <span className="fw-semibold text-dark">{cand.candidate_name}</span>
+                        <Link to={`/candidate/${cand.candidate_id}`}>
+                          <img 
+                            src={cand.candidate_avatar ? (cand.candidate_avatar.startsWith('http') ? cand.candidate_avatar : `${API_URL}${cand.candidate_avatar}`) : '/default-avatar.png'} 
+                            alt="avatar" 
+                            className="rounded-circle object-fit-cover avatar-border"
+                          />
+                        </Link>
+                        <Link to={`/candidate/${cand.candidate_id}`} className="fw-semibold text-decoration-none text-primary hover-underline">
+                          {cand.candidate_name}
+                        </Link>
                       </div>
                     </td>
 
@@ -131,9 +136,9 @@ export default function ViewAppliedCandidates() {
                         onChange={(e) => handleStatusChange(cand.application_id, e.target.value)}
                       >
                         <option value="Applied" className="text-dark">Applied</option>
-                        <option value="In-Review" className="text-dark">In-Review</option>
-                        <option value="Interview" className="text-dark">Interview</option>
-                        <option value="Hired" className="text-dark">Hired</option>
+                        <option value="Reviewing" className="text-dark">In-Review</option>
+                        <option value="Interviewing" className="text-dark">Interview</option>
+                        <option value="Offered" className="text-dark">Hired</option>
                         <option value="Rejected" className="text-dark">Rejected</option>
                       </select>
                     </td>

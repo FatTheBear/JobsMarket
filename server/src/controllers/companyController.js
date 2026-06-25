@@ -25,6 +25,7 @@ exports.getAppliedCandidates = async (req, res) => {
                     a.id AS application_id,
                     a.status,
                     a.applied_at,
+                    cp.id AS candidate_id,
                     cp.full_name AS candidate_name,
                     cp.avatar_url AS candidate_avatar,
                     j.title AS applied_job,
@@ -38,7 +39,7 @@ exports.getAppliedCandidates = async (req, res) => {
                 LEFT JOIN candidate_skill cs ON cp.id = cs.candidate_id
                 LEFT JOIN skill s ON cs.skill_id = s.id
                 WHERE j.company_id = ?
-                GROUP BY a.id, cp.full_name, cp.avatar_url, j.title, j.job_type, cv.file_url
+                GROUP BY a.id, cp.id, cp.full_name, cp.avatar_url, j.title, j.job_type, cv.file_url
                 ORDER BY a.applied_at DESC
             `, [companyId]);
 
@@ -61,7 +62,7 @@ exports.updateApplicationStatus = async (req, res) => {
     const { status } = req.body;
     const userId = req.user.id;
 
-    const validStatuses = ['Applied', 'In-Review', 'Interview', 'Hired', 'Rejected'];
+    const validStatuses = ['Applied', 'Reviewing', 'Interviewing', 'Offered', 'Rejected'];
     if (!validStatuses.includes(status)) {
         return res.status(400).json({ message: "Invalid status value" });
     }
@@ -114,9 +115,9 @@ exports.updateApplicationStatus = async (req, res) => {
 
                 // Determine notification title based on status
                 const statusTitleMap = {
-                    'In-Review': '📋 Application In Review',
-                    'Interview': '🎯 Interview Invitation',
-                    'Hired': '🎉 Congratulations! You\'re Hired',
+                    'Reviewing': '📋 Application In Review',
+                    'Interviewing': '🎯 Interview Invitation',
+                    'Offered': '🎉 Congratulations! You\'re Hired',
                     'Rejected': '📝 Application Update',
                     'Applied': '📨 Application Received'
                 };

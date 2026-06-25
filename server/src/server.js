@@ -45,6 +45,7 @@ const applicationRoutes = require('./routes/applicationRoutes');
 const industryRoutes = require('./routes/industryRoutes');
 const newsController = require('./controllers/adminController');
 const postRoutes = require('./routes/postRoutes');
+// const companyRoutes = require('./routes/companyRoutes');
 
 
 app.use('/api/company', companyRoutes);
