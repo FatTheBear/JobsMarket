@@ -37,7 +37,7 @@ export default function AdminCompanyApproval() {
             });
 
             setCompanies(companies.filter(c => c.company_id !== companyId));
-            showToast(`Approved! Activation code for ${companyName}: ${response.data.activation_code}`, "success");
+            showToast(`Approved! Activation code for ${companyName}: ${response.data.activationCode}`, "success");
         } catch (error) {
             showToast(error.response?.data?.message || "Failed to approve company.", "error");
         } finally {

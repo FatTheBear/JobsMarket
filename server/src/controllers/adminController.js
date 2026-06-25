@@ -3,6 +3,9 @@ const CoinExchangeFeeModel = require('../models/CoinExchangeFee');
 const pool = require('../config/db');
 const email = require('../services/email/emailServices');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
+const fs = require('fs');
+const path = require('path');
 
 // 1. Lấy dữ liệu tổng quan (Đồng bộ chuẩn db.query)
 exports.getStats = async (req, res) => {
@@ -811,7 +814,9 @@ exports.getPendingCompanies = async (req, res) => {
     
     return res.status(200).json(rows);
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+    // THÊM DÒNG NÀY ĐỂ BẮT ĐÚNG LỖI CỘT NÀO
+    console.error("GET PENDING COMPANIES ERROR:", error); 
+    return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
 
@@ -820,18 +825,59 @@ exports.approveCompany = async (req, res) => {
   const activationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
 
   try {
-    const [result] = await pool.query(
+    const [companyData] = await pool.query(
+      `SELECT name, email FROM Company WHERE id = ? AND status = 'Pending'`,
+      [id]
+    );
+
+    if (companyData.length === 0) {
+      return res.status(404).json({ message: "Company not found or already processed" });
+    }
+
+    const companyEmail = companyData[0].email;
+    const companyName = companyData[0].name;
+
+    await pool.query(
       `UPDATE Company 
        SET status = 'Approved', activation_code = ? 
-       WHERE id = ? AND status = 'Pending'`,
+       WHERE id = ?`,
       [activationCode, id]
     );
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Company not found or already processed" });
-    }
-};
+    const templatePath = path.join(__dirname, '..', 'templates', 'company_active.html');
+    let htmlContent = fs.readFileSync(templatePath, 'utf8');
 
+    const activationLink = `http://localhost:3000/activate-company?code=${activationCode}&id=${id}`;
+
+    htmlContent = htmlContent
+      .replace(/{{COMPANY_NAME}}/g, companyName)
+      .replace(/{{ACTIVATION_CODE}}/g, activationCode)
+      .replace(/{{ACTIVATION_LINK}}/g, activationLink);
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT,
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    const mailOptions = {
+      from: '"JobsMarket Team" <jobsmarket33@gmail.com>',
+      to: companyEmail,
+      subject: 'Your Company Account Has Been Approved!',
+      html: htmlContent
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({ message: "Company approved successfully", activationCode });
+  } catch (error) {
+    console.error("APPROVE COMPANY ERROR:", error);
+    return res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
 // GET /admin/dashboard-trends?period=7d|30d|12m
 exports.getDashboardTrends = async (req, res) => {
     try {
@@ -897,12 +943,12 @@ exports.getDashboardTrends = async (req, res) => {
 exports.getTopSkills = async (req, res) => {
     try {
         const [rows] = await db.query(`
-            SELECT s.name, COUNT(js.job_id) AS count
+            SELECT s.skill_name AS name, COUNT(js.job_id) AS count
             FROM skill s
             JOIN job_skill js ON s.id = js.skill_id
             JOIN job_posting jp ON js.job_id = jp.id
             WHERE jp.status = 'Approved'
-            GROUP BY s.id, s.name
+            GROUP BY s.id, s.skill_name
             ORDER BY count DESC
             LIMIT 8
         `);
@@ -913,7 +959,6 @@ exports.getTopSkills = async (req, res) => {
     }
 };
 
-// GET /admin/top-industries
 exports.getTopIndustries = async (req, res) => {
     try {
         const [rows] = await db.query(`
@@ -931,41 +976,29 @@ exports.getTopIndustries = async (req, res) => {
         console.error('GET TOP INDUSTRIES ERROR:', error);
         res.status(500).json({ message: error.message });
     }
+};
+exports.activateCompany = async (req, res) => {
+  const { id, activationCode } = req.body;
 
-    const [companyData] = await pool.query(
-      `SELECT name, email FROM Company WHERE id = ?`, 
+  try {
+    // Tìm công ty xem mã có khớp không
+    const [companies] = await pool.query(
+      `SELECT * FROM Company WHERE id = ? AND activation_code = ?`,
+      [id, activationCode]
+    );
+
+    if (companies.length === 0) {
+      return res.status(400).json({ message: "Invalid activation code!" });
+    }
+
+    
+    await pool.query(
+      `UPDATE Company SET status = 'Active', activation_code = NULL WHERE id = ?`,
       [id]
     );
-    
-    const companyName = companyData[0].name;
-    const companyEmail = companyData[0].email;
 
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
-    const templatePath = path.join(__dirname, '../templates/company_active.html');
-    let htmlTemplate = fs.readFileSync(templatePath, 'utf8');
-
-    htmlTemplate = htmlTemplate.replace(/{{COMPANY_NAME}}/g, companyName);
-    htmlTemplate = htmlTemplate.replace(/{{ACTIVATION_CODE}}/g, activationCode);
-
-    await transporter.sendMail({
-      from: `"JobsMarket Admin" <${process.env.EMAIL_USER}>`,
-      to: companyEmail,
-      subject: "Your Company Account has been Approved!",
-      html: htmlTemplate
-    });
-
-    return res.status(200).json({ 
-      message: "Company approved successfully", 
-      activation_code: activationCode 
-    });
+    return res.status(200).json({ message: "Account activated!" });
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({ message: "Server error" });
   }
 };
