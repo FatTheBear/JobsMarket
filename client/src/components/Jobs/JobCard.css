@@ -81,3 +81,68 @@
 .tag-salary { background-color: #e0e7ff; color: #3730a3; }
 .tag-location { background-color: #f3f4f6; color: #4b5563; } 
 .tag-type { background-color: #fef3c7; color: #92400e; }
+
+.job-card-container {
+  background-color: #ffffff;
+  border: 1px solid #B0C4DE; 
+  border-radius: 12px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.job-card-container:hover {
+  box-shadow: 0 10px 20px rgba(1, 121, 111, 0.1); 
+  border-color: #01796F;
+  transform: translateY(-4px);
+}
+
+.job-card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #01796F; 
+  margin: 0;
+  line-height: 1.4;
+}
+
+.job-card-company {
+  font-size: 0.9rem;
+  color: #556b2f;
+  font-weight: 500;
+  margin: 0;
+}
+
+.job-card-footer {
+  margin-top: auto;
+  padding-top: 20px;
+}
+
+.job-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.job-tag {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.tag-salary { 
+  background-color: #e6f2f0; 
+  color: #01796F; 
+}
+.tag-location { 
+  background-color: #f0f4f8; 
+  color: #4a6984; 
+}
+.tag-type { 
+  background-color: #f4f7f6; 
+  color: #333333; 
+  border: 1px solid #B0C4DE;
+}

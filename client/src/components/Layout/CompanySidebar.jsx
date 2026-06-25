@@ -1,11 +1,12 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import './CompanySidebar.css';
 
 export default function CompanySidebar() {
-  // Lấy URL hiện tại để biết tab nào đang được chọn (active)
+  // Use the current URL to determine the active tab.
   const location = useLocation();
 
-  // Biến tạm để giả lập số lượng (bạn có thể thay bằng props sau)
+  // Temporary count placeholder, can be replaced with props later.
   const APPLICANTS_DATA = [];
 
   return (
@@ -18,7 +19,10 @@ export default function CompanySidebar() {
       </div>
       <Link
         to="/company/dashboard"
-        className={`jp-menu-item ${location.pathname === "/company/dashboard" ? "active" : ""
+        className={`jp-menu-item ${location.pathname === "/company" ||
+            location.pathname === "/company/dashboard"
+            ? "active"
+            : ""
           }`}
       >
         Dashboard
@@ -36,6 +40,13 @@ export default function CompanySidebar() {
           className={`jp-menu-item ${location.pathname.includes('/post-job') ? 'active' : ''}`}
         >
           Post a New Job
+        </Link>
+
+        <Link
+          to="/company/create-post"
+          className={`jp-menu-item ${location.pathname.includes('/create-post') ? 'active' : ''}`}
+        >
+          Community Post
         </Link>
       </div>
 
@@ -67,6 +78,16 @@ export default function CompanySidebar() {
 
         <Link to="/company/search" className="jp-menu-item">
           Search Candidates
+        </Link>
+      </div>
+      
+      <div className="jp-menu-group">
+        <div className="jp-menu-title">ACCOUNT & WALLET</div>
+        <Link 
+          to="/company/wallet" 
+          className={`jp-menu-item ${location.pathname.includes('/wallet') ? 'active' : ''}`}
+        >
+          My Wallet
         </Link>
       </div>
 

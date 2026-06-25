@@ -116,7 +116,7 @@ const CandidateAppliedJobs = ({ show, onClose }) => {
                             <i className="fas fa-briefcase me-1"></i> {app.companyName}
                           </div>
                           <div className="text-muted small">
-                            <i className="far fa-clock me-1"></i> Applied on: {new Date(app.appliedAt).toLocaleDateString('vi-VN')}
+                            <i className="far fa-clock me-1"></i> Applied on: {new Date(app.appliedAt).toLocaleDateString('en-US')}
                           </div>
                         </div>
                       </div>
@@ -124,7 +124,7 @@ const CandidateAppliedJobs = ({ show, onClose }) => {
                       {/* CV Info & Status */}
                       <div className="d-flex flex-column align-items-md-end gap-2" style={{ minWidth: '150px' }}>
                         <div>{getStatusBadge(app.status)}</div>
-                        <div className="d-flex align-items-center gap-1 mt-2 text-primary small" title="CV đã dùng để ứng tuyển">
+                        <div className="d-flex align-items-center gap-1 mt-2 text-primary small" title="CV used for this application">
                           <i className="far fa-file-alt"></i>
                           <span className="text-truncate d-inline-block" style={{ maxWidth: '120px' }}>{app.cvName}</span>
                         </div>

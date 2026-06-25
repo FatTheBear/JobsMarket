@@ -26,7 +26,6 @@ export default function JobDetail() {
   const [loading, setLoading] = useState(true);
   const [showApplyModal, setShowApplyModal] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
-
   const [toast, setToast] = useState({ show: false, msg: '', type: '' });
 
   const showToast = (msg, type) => {
@@ -50,7 +49,7 @@ export default function JobDetail() {
       const res = await axios.get(`${API_URL}/api/jobs/${id}`);
       setJob(res.data);
     } catch (err) {
-      showToast('Không thể tải thông tin công việc', 'error');
+      showToast('Failed to load job information', 'error');
     } finally {
       setLoading(false);
     }
@@ -61,10 +60,8 @@ export default function JobDetail() {
       setHasApplied(true);
       return;
     }
-
     const token = localStorage.getItem('token');
     if (!token) return;
-
     try {
       const res = await axios.get(`${API_URL}/api/candidate/applications`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -76,94 +73,90 @@ export default function JobDetail() {
         setHasApplied(true);
         saveAppliedJobId(id);
       }
-    } catch {
-      // Bỏ qua — user chưa đăng nhập hoặc chưa có profile
-    }
+    } catch {}
   };
 
   const handleApplyClick = () => {
     const userStr = localStorage.getItem('user');
     if (!userStr) {
-      showToast('Vui lòng đăng nhập để ứng tuyển', 'error');
+      showToast('Please login to apply', 'error');
       setTimeout(() => navigate('/login'), 2000);
       return;
     }
     setShowApplyModal(true);
   };
 
-  if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Đang tải...</div>;
-  if (!job) return <div style={{ padding: '50px', textAlign: 'center' }}>Không tìm thấy công việc</div>;
+  const formatSalary = () => {
+    if (job.job_type && job.job_type.toLowerCase().includes('intern')) {
+      return 'Internship';
+    }
+    if (!job.salary_min && !job.salary_max) {
+      return 'Negotiable';
+    }
+    if (job.salary_min && job.salary_max) {
+      return `$${Number(job.salary_min).toLocaleString('en-US')} - $${Number(job.salary_max).toLocaleString('en-US')}`;
+    }
+    if (job.salary_min) {
+      return `From $${Number(job.salary_min).toLocaleString('en-US')}`;
+    }
+    return `Up to $${Number(job.salary_max).toLocaleString('en-US')}`;
+  };
+
+  if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Loading...</div>;
+  if (!job) return <div style={{ padding: '50px', textAlign: 'center' }}>Job not found</div>;
 
   return (
-    <div className="job-detail-container">
+    <div className="job-detail-page-container">
       <div className={`jd-toast ${toast.show ? 'show' : ''} ${toast.type}`}>
         {toast.msg}
       </div>
 
-      <div className="job-header-card">
-        <div className="job-header-inner">
-          <div className="job-header-info">
-            <h1>{job.title}</h1>
-            <div className="company-name">{job.company_name}</div>
-            <div className="job-meta">
-              <div className="job-meta-item">
-                <span>💰</span>
-                {(job.salary_min && job.salary_max)
-                  ? `${(job.salary_min / 1000000).toLocaleString('vi-VN')} - ${(job.salary_max / 1000000).toLocaleString('vi-VN')} triệu VNĐ`
-                  : (job.salary_min
-                    ? `Từ ${(job.salary_min / 1000000).toLocaleString('vi-VN')} triệu VNĐ`
-                    : (job.salary_max
-                      ? `Đến ${(job.salary_max / 1000000).toLocaleString('vi-VN')} triệu VNĐ`
-                      : 'Thỏa thuận'))
-                }
-              </div>
-              <div className="job-meta-item">
-                <span>📍</span> {job.company_address || 'Hồ Chí Minh'}
-              </div>
-              <div className="job-meta-item">
-                <span>⏳</span> Hạn nộp: {new Date(job.deadline).toLocaleDateString('vi-VN')}
-              </div>
+      <div className="job-detail-top-card">
+        <div className="job-detail-card-header">
+          <img 
+            src={job.logo_url || '/default-company-logo.png'} 
+            alt="Company Logo" 
+            className="job-detail-card-logo"
+          />
+          <div className="job-detail-card-meta">
+            <h1 className="job-detail-card-title">{job.title}</h1>
+            <p className="job-detail-card-company">{job.company_name}</p>
+            <div className="job-detail-card-badges">
+              <span className="jd-badge badge-salary">💰 {formatSalary()}</span>
+              <span className="jd-badge badge-location">📍 {job.loc || 'Location updating'}</span>
+              <span className="jd-badge badge-experience">💼 {job.experience || 'Not specified'}</span>
             </div>
           </div>
+        </div>
+
+        <div className="job-detail-card-action">
+          <p className="job-detail-card-deadline">
+            Deadline: {new Date(job.deadline).toLocaleDateString('en-GB')}
+          </p>
           {hasApplied ? (
-            <button className="apply-btn applied" disabled>
-              ✓ Đã ứng tuyển
+            <button className="job-detail-card-btn applied" disabled>
+              Applied
             </button>
           ) : (
-            <button className="apply-btn" onClick={handleApplyClick}>
-              Ứng tuyển ngay
+            <button className="job-detail-card-btn" onClick={handleApplyClick}>
+              Apply Now
             </button>
           )}
         </div>
       </div>
 
-      <div className="job-content-grid">
-        <div className="job-main-col">
-          <div className="job-section">
-            <h2>Mô tả công việc</h2>
-            <p>{job.description}</p>
-          </div>
-          <div className="job-section">
-            <h2>Yêu cầu ứng viên</h2>
-            <p>{job.requirements}</p>
-          </div>
+      <div className="job-detail-bottom-content">
+        <div className="job-detail-main-section">
+          <h2 className="job-detail-section-title">Job Description</h2>
+          <div className="job-detail-text-block">{job.description}</div>
         </div>
-
-        <div className="job-side-col">
-          <div className="company-card">
-            {job.logo_url ? (
-              <img src={job.logo_url} alt="Company Logo" className="company-logo" />
-            ) : (
-              <div className="company-logo-placeholder">🏢</div>
-            )}
-            <h3>{job.company_name}</h3>
-            {job.company_website && (
-              <a href={job.company_website} target="_blank" rel="noreferrer" className="company-website-btn">
-                Website công ty
-              </a>
-            )}
+        
+        {job.requirements && (
+          <div className="job-detail-main-section">
+            <h2 className="job-detail-section-title">Requirements</h2>
+            <div className="job-detail-text-block">{job.requirements}</div>
           </div>
-        </div>
+        )}
       </div>
 
       {showApplyModal && (
@@ -178,7 +171,7 @@ export default function JobDetail() {
             showToast(msg, 'success');
           }}
           onError={(msg) => {
-            if (msg.includes('đã ứng tuyển')) {
+            if (msg.includes('already applied') || msg.includes('đã ứng tuyển')) {
               setHasApplied(true);
               saveAppliedJobId(id);
             }

@@ -72,7 +72,19 @@ export function WalletProvider({ children }) {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
+    
+    const userStr = localStorage.getItem('user');
+    let userRole = '';
+    if (userStr) {
+      try {
+        const userObj = JSON.parse(userStr);
+        userRole = userObj.role; 
+      } catch (e) {
+        console.error("parse user data error");
+      }
+    }
+
+    if (token && userRole === 'Company') {
       fetchWalletInfo();
       fetchTransactions();
       fetchCoinFees();

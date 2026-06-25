@@ -117,13 +117,6 @@ export default function CandidateDashboard() {
         </div>
       </section>
 
-      {/* ───── AVAILABLE JOB POSTINGS ───── */}
-      <section className={`${styles.section} ${styles.sectionGray}`} style={{ padding: '60px 0' }}>
-        <div className={styles.container}>
-          <div className={styles.sectionHeader} style={{ marginBottom: '40px' }}>
-            <h2 className={styles.sectionTitle}>RECOMMENDED FOR YOU</h2>
-          </div>
-
           <section className={`${styles.section} ${styles.sectionGray}`} style={{ padding: '60px 0' }}>
             <div className={styles.container}>
               <div className={styles.sectionHeader} style={{ marginBottom: '40px' }}>
@@ -131,22 +124,24 @@ export default function CandidateDashboard() {
               </div>
 
               {/* Job Postings Grid */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '25px',
+            alignItems: 'stretch'
+          }}>
                 {jobs.map(job => (
                   <JobCard
                     key={job.id}
                     job={job}
-                    onApply={() => {
-                      setSelectedJob(job);
-                      setShowApplyModal(true);
-                    }}
+                    onClick={() => navigate(`/jobs/${job.id}`)}
                   />
                 ))}
               </div>
             </div>
           </section>
-        </div>
-      </section>
+ 
+     
 
       <ApplyJobModal
         show={showApplyModal}

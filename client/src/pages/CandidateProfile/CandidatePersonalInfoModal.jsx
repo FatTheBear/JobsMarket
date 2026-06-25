@@ -22,34 +22,46 @@ const CandidatePersonalInfoModal = ({ show, onClose, profileData }) => {
         <div className="profile-modal-body">
           <table className="table table-hover table-borderless mb-0">
             <tbody>
-              <tr>
-                <th scope="row" style={{ width: '35%' }} className="text-secondary fw-semibold">Full Name</th>
-                <td className="text-dark fw-medium">{profileData.fullName}</td>
-              </tr>
               {profileData.phone && !profileData.hidePhone && (
                 <tr>
-                  <th scope="row" className="text-secondary fw-semibold">Phone</th>
+                  <th scope="row" style={{ width: '35%' }} className="text-secondary fw-semibold">Phone</th>
                   <td className="text-dark fw-medium">{profileData.phone}</td>
                 </tr>
               )}
               {profileData.email && (
                 <tr>
-                  <th scope="row" className="text-secondary fw-semibold">Email</th>
+                  <th scope="row" style={{ width: '35%' }} className="text-secondary fw-semibold">Email</th>
                   <td className="text-dark fw-medium">{profileData.email}</td>
+                </tr>
+              )}
+              {profileData.address && (
+                <tr>
+                  <th scope="row" style={{ width: '35%' }} className="text-secondary fw-semibold">Location</th>
+                  <td className="text-dark fw-medium">{profileData.address}</td>
                 </tr>
               )}
               {profileData.nationality && (
                 <tr>
-                  <th scope="row" className="text-secondary fw-semibold">Nationality</th>
+                  <th scope="row" style={{ width: '35%' }} className="text-secondary fw-semibold">Nationality</th>
                   <td className="text-dark fw-medium">{profileData.nationality}</td>
                 </tr>
               )}
               {profileData.portfolio && (
                 <tr>
-                  <th scope="row" className="text-secondary fw-semibold">Portfolio</th>
+                  <th scope="row" className="text-secondary fw-semibold">Website</th>
                   <td className="text-dark fw-medium">
                     <a href={profileData.portfolio} target="_blank" rel="noopener noreferrer">
                       {profileData.portfolio}
+                    </a>
+                  </td>
+                </tr>
+              )}
+              {profileData.blog && (
+                <tr>
+                  <th scope="row" className="text-secondary fw-semibold">Blog</th>
+                  <td className="text-dark fw-medium">
+                    <a href={profileData.blog} target="_blank" rel="noopener noreferrer">
+                      {profileData.blog}
                     </a>
                   </td>
                 </tr>
@@ -70,6 +82,26 @@ const CandidatePersonalInfoModal = ({ show, onClose, profileData }) => {
                   <td className="text-dark fw-medium">
                     <a href={profileData.facebook} target="_blank" rel="noopener noreferrer">
                       {profileData.facebook}
+                    </a>
+                  </td>
+                </tr>
+              )}
+              {profileData.x && (
+                <tr>
+                  <th scope="row" className="text-secondary fw-semibold">X (Twitter)</th>
+                  <td className="text-dark fw-medium">
+                    <a href={profileData.x} target="_blank" rel="noopener noreferrer">
+                      {profileData.x}
+                    </a>
+                  </td>
+                </tr>
+              )}
+              {profileData.linkedin && (
+                <tr>
+                  <th scope="row" className="text-secondary fw-semibold">LinkedIn</th>
+                  <td className="text-dark fw-medium">
+                    <a href={profileData.linkedin} target="_blank" rel="noopener noreferrer">
+                      {profileData.linkedin}
                     </a>
                   </td>
                 </tr>

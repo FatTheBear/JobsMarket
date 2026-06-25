@@ -94,44 +94,6 @@ async function runMigration() {
         `);
         console.log('Successfully created Company_Follower table.');
 
-        // 4. Drop legacy skill tables
-        // try {
-        //     console.log('Dropping legacy skill tables (Job_Skill, Candidate_Skill, Skill)...');
-        //     await pool.query('SET FOREIGN_KEY_CHECKS = 0;');
-        //     await pool.query('DROP TABLE IF EXISTS `Job_Skill`;');
-        //     await pool.query('DROP TABLE IF EXISTS `Candidate_Skill`;');
-        //     await pool.query('DROP TABLE IF EXISTS `Skill`;');
-        //     await pool.query('SET FOREIGN_KEY_CHECKS = 1;');
-        //     console.log('Successfully dropped legacy skill tables.');
-        // } catch (err) {
-        //     throw err;
-        // }
-
-        // 5. Add abbreviated columns to Job_Posting
-        // try {
-        //     console.log('Adding new fields to Job_Posting...');
-        //     await pool.query(`
-        //         ALTER TABLE \`Job_Posting\`
-        //         ADD COLUMN \`req_skills\` JSON DEFAULT NULL,
-        //         ADD COLUMN \`benf\` TEXT DEFAULT NULL,
-        //         ADD COLUMN \`loc\` VARCHAR(255) DEFAULT NULL,
-        //         ADD COLUMN \`work_hrs\` VARCHAR(100) DEFAULT NULL,
-        //         ADD COLUMN \`deg_req\` VARCHAR(255) DEFAULT NULL,
-        //         ADD COLUMN \`exp_yrs\` VARCHAR(50) DEFAULT NULL,
-        //         ADD COLUMN \`age_req\` VARCHAR(50) DEFAULT NULL,
-        //         ADD COLUMN \`lang_req\` VARCHAR(100) DEFAULT NULL,
-        //         ADD COLUMN \`emp_phone\` VARCHAR(20) DEFAULT NULL,
-        //         ADD COLUMN \`emp_email\` VARCHAR(100) DEFAULT NULL
-        //     `);
-        //     console.log('Successfully added new fields to Job_Posting.');
-        // } catch (err) {
-        //     if (err.code === 'ER_DUP_FIELDNAME') {
-        //         console.log('New fields already exist in Job_Posting.');
-        //     } else {
-        //         throw err;
-        //     }
-        // }
-
         // 6. Add cand_skills to Candidate_Profile
         try {
             console.log('Adding cand_skills column to Candidate_Profile...');
@@ -201,7 +163,6 @@ async function runMigration() {
                     const parsed = typeof profile.education === 'string' ? JSON.parse(profile.education) : profile.education;
                     if (Array.isArray(parsed)) {
                         for (const item of parsed) {
-                            // Check if it looks like an education or experience item
                             const isEdu = item.school || item.degree;
                             const isExp = item.company || item.role;
 
@@ -216,7 +177,6 @@ async function runMigration() {
                                     [profile.id, item.company || 'Company', item.role || 'Role', item.startDate || '2026-01', item.endDate || null]
                                 );
                             } else {
-                                // Fallback default to Education
                                 await pool.query(
                                     'INSERT INTO Candidate_Education (candidate_id, school_name, degree, start_date, end_date) VALUES (?, ?, ?, ?, ?)',
                                     [profile.id, item.school || 'School', item.degree || 'Degree', item.startDate || '2026-01', item.gradDate || null]
@@ -249,7 +209,6 @@ async function runMigration() {
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
             `);
 
-            // Insert default package if not exists
             const [existingFees] = await pool.query('SELECT * FROM \`Coin_Exchange_Fee\` WHERE \`is_default\` = TRUE');
             if (existingFees.length === 0) {
                 await pool.query(`
@@ -258,24 +217,6 @@ async function runMigration() {
                 `);
                 console.log('Successfully inserted default Coin_Exchange_Fee package.');
             }
-
-            // Add columns to Transaction table
-            // try {
-            //     await pool.query(`
-            //         ALTER TABLE \`Transaction\`
-            //         ADD COLUMN \`paypal_order_id\` VARCHAR(255) DEFAULT NULL AFTER \`reference_code\`,
-            //         ADD COLUMN \`fee_id\` INT DEFAULT NULL AFTER \`paypal_order_id\`,
-            //         ADD CONSTRAINT \`fk_tx_fee\` FOREIGN KEY (\`fee_id\`) REFERENCES \`Coin_Exchange_Fee\`(\`id\`) ON DELETE SET NULL;
-            //     `);
-            //     console.log('Successfully added paypal_order_id and fee_id to Transaction table.');
-            // } catch (err) {
-            //     if (err.code === 'ER_DUP_FIELDNAME') {
-            //         console.log('paypal_order_id and fee_id columns already exist in Transaction table.');
-            //     } else {
-            //         throw err;
-            //     }
-            // }
-
         } catch (error) {
             console.error('Error creating Coin_Exchange_Fee or updating Transaction table:', error);
         }
@@ -285,18 +226,14 @@ async function runMigration() {
         console.error('Migration failed:', error);
     }
 
-
-
     console.log('--- Starting DB Structure Update Migration ---');
 
-    // 1. DROP REDUNDANT COLUMNS IN JOB_POSTING TABLE
-    // Wrapped in isolated try-catch blocks so the script won't crash if the column is already dropped.
     try {
         console.log('Dropping req_skills column from job_posting...');
         await pool.query('ALTER TABLE `job_posting` DROP COLUMN `req_skills`');
         console.log('-> Successfully dropped req_skills column.');
     } catch (err) {
-        if (err.errno === 1091) { // MySQL Error Code for: Column doesn't exist
+        if (err.errno === 1091) {
             console.log('-> Column req_skills was already dropped.');
         } else {
             console.error('Error dropping req_skills column:', err.message);
@@ -327,10 +264,8 @@ async function runMigration() {
         }
     }
 
-
     // 2. CREATE SKILL ECOSYSTEM TABLES
     try {
-        // Create Skill table (Dictionary)
         console.log('Creating skill table...');
         await pool.query(`
             CREATE TABLE IF NOT EXISTS \`skill\` (
@@ -342,7 +277,6 @@ async function runMigration() {
         `);
         console.log('-> skill table is ready.');
 
-        // Create job_skill junction table
         console.log('Creating job_skill table...');
         await pool.query(`
             CREATE TABLE IF NOT EXISTS \`job_skill\` (
@@ -355,7 +289,6 @@ async function runMigration() {
         `);
         console.log('-> job_skill table is ready.');
 
-        // Tạo bảng candidate_skill
         console.log('Creating candidate_skill table...');
         await pool.query(`
             CREATE TABLE IF NOT EXISTS \`candidate_skill\` (
@@ -369,27 +302,331 @@ async function runMigration() {
         `);
         console.log('-> candidate_skill table is ready.');
 
-        console.log('Adding user_id to Company table...');
-
         await pool.query(`
-            ALTER TABLE \`Company\`
-            ADD COLUMN IF NOT EXISTS \`user_id\` INT(11),
-            ADD CONSTRAINT \`fk_company_user\`
-            FOREIGN KEY (\`user_id\`) REFERENCES \`User\`(\`id\`)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE;
+            ALTER TABLE \`Job_Posting\`
+            ADD COLUMN IF NOT EXISTS \`metadata\` JSON;
         `);
+        console.log('-> metadata column in Job_Posting is ready.');
 
-        console.log('-> user_id column in Company is ready.');
+        // 3. INTEGRATED MIGRATIONS FROM OLD FILES & NEW NATIONALITY COLUMN
+
+        try {
+            console.log('Adding birthday column to Candidate_Profile...');
+            await pool.query("ALTER TABLE `Candidate_Profile` ADD COLUMN `birthday` DATE DEFAULT NULL");
+            console.log('Successfully added birthday column to Candidate_Profile.');
+        } catch (err) {
+            if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+                console.log('Birthday column already exists in Candidate_Profile.');
+            } else {
+                throw err;
+            }
+        }
+
+        const moreProfileCols = [
+            { name: 'languages', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `languages` TEXT DEFAULT NULL' },
+            { name: 'certifications', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `certifications` TEXT DEFAULT NULL' },
+            { name: 'awards', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `awards` TEXT DEFAULT NULL' }
+        ];
+        for (const col of moreProfileCols) {
+            try {
+                console.log(`Adding ${col.name} column to Candidate_Profile...`);
+                await pool.query(col.sql);
+                console.log(`Successfully added ${col.name} column to Candidate_Profile.`);
+            } catch (err) {
+                if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+                    console.log(`${col.name} column already exists in Candidate_Profile.`);
+                } else {
+                    throw err;
+                }
+            }
+        }
+
+        const socialCols = [
+            { name: 'portfolio', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `portfolio` VARCHAR(255) DEFAULT NULL' },
+            { name: 'github', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `github` VARCHAR(255) DEFAULT NULL' },
+            { name: 'facebook', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `facebook` VARCHAR(255) DEFAULT NULL' },
+            { name: 'blog', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `blog` VARCHAR(255) DEFAULT NULL' },
+            { name: 'x', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `x` VARCHAR(255) DEFAULT NULL' },
+            { name: 'linkedin', sql: 'ALTER TABLE `Candidate_Profile` ADD COLUMN `linkedin` VARCHAR(255) DEFAULT NULL' }
+        ];
+        for (const col of socialCols) {
+            try {
+                console.log(`Adding ${col.name} column to Candidate_Profile...`);
+                await pool.query(col.sql);
+                console.log(`Successfully added ${col.name} column to Candidate_Profile.`);
+            } catch (err) {
+                if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+                    console.log(`${col.name} column already exists in Candidate_Profile.`);
+                } else {
+                    throw err;
+                }
+            }
+        }
+
+        try {
+            console.log('Adding nationality column to Candidate_Profile...');
+            await pool.query("ALTER TABLE `Candidate_Profile` ADD COLUMN `nationality` VARCHAR(100) DEFAULT NULL");
+            console.log('Successfully added nationality column to Candidate_Profile.');
+        } catch (err) {
+            if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+                console.log('Nationality column already exists in Candidate_Profile.');
+            } else {
+                throw err;
+            }
+        }
+
+        // 3e. Create Saved_Candidate table
+        try {
+            console.log('Creating Saved_Candidate table...');
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS \`Saved_Candidate\` (
+                    \`hr_id\` INT NOT NULL,
+                    \`candidate_id\` INT NOT NULL,
+                    \`saved_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (\`hr_id\`, \`candidate_id\`),
+                    CONSTRAINT \`fk_savedcand_hr\` FOREIGN KEY (\`hr_id\`) REFERENCES \`User\` (\`id\`) ON DELETE CASCADE ON UPDATE CASCADE,
+                    CONSTRAINT \`fk_savedcand_profile\` FOREIGN KEY (\`candidate_id\`) REFERENCES \`Candidate_Profile\` (\`id\`) ON DELETE CASCADE ON UPDATE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            `);
+            console.log('Successfully created Saved_Candidate table.');
+        } catch (err) {
+            console.error('Error creating Saved_Candidate table:', err.message);
+        }
+
+        // 3f. Create Community_Post, Post_Like, and Post_Comment tables
+        try {
+            console.log('Creating Community_Post table...');
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS \`Community_Post\` (
+                    \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                    \`user_id\` INT NOT NULL,
+                    \`content\` TEXT DEFAULT NULL,
+                    \`media_url\` VARCHAR(255) DEFAULT NULL,
+                    \`media_type\` VARCHAR(50) DEFAULT NULL,
+                    \`parent_post_id\` INT DEFAULT NULL,
+                    \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    \`updated_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    FOREIGN KEY (\`user_id\`) REFERENCES \`User\`(\`id\`) ON DELETE CASCADE,
+                    FOREIGN KEY (\`parent_post_id\`) REFERENCES \`Community_Post\`(\`id\`) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            `);
+            console.log('Successfully created Community_Post table.');
+
+            console.log('Creating Post_Like table...');
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS \`Post_Like\` (
+                    \`post_id\` INT NOT NULL,
+                    \`user_id\` INT NOT NULL,
+                    \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (\`post_id\`, \`user_id\`),
+                    FOREIGN KEY (\`post_id\`) REFERENCES \`Community_Post\`(\`id\`) ON DELETE CASCADE,
+                    FOREIGN KEY (\`user_id\`) REFERENCES \`User\`(\`id\`) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            `);
+            console.log('Successfully created Post_Like table.');
+
+            console.log('Creating Post_Comment table...');
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS \`Post_Comment\` (
+                    \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                    \`post_id\` INT NOT NULL,
+                    \`user_id\` INT NOT NULL,
+                    \`content\` TEXT NOT NULL,
+                    \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (\`post_id\`) REFERENCES \`Community_Post\`(\`id\`) ON DELETE CASCADE,
+                    FOREIGN KEY (\`user_id\`) REFERENCES \`User\`(\`id\`) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            `);
+            console.log('Successfully created Post_Comment table.');
+
+            console.log('Creating Post_Media table...');
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS \`Post_Media\` (
+                    \`id\` INT AUTO_INCREMENT PRIMARY KEY,
+                    \`post_id\` INT NOT NULL,
+                    \`media_url\` VARCHAR(255) NOT NULL,
+                    \`media_type\` VARCHAR(50) NOT NULL,
+                    \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (\`post_id\`) REFERENCES \`Community_Post\`(\`id\`) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            `);
+            console.log('Successfully created Post_Media table.');
+
+            console.log('Creating Comment_Like table...');
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS \`Comment_Like\` (
+                    \`comment_id\` INT NOT NULL,
+                    \`user_id\` INT NOT NULL,
+                    \`created_at\` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (\`comment_id\`, \`user_id\`),
+                    FOREIGN KEY (\`comment_id\`) REFERENCES \`Post_Comment\`(\`id\`) ON DELETE CASCADE,
+                    FOREIGN KEY (\`user_id\`) REFERENCES \`User\`(\`id\`) ON DELETE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            `);
+            console.log('Successfully created Comment_Like table.');
+
+            try {
+                console.log('Adding parent_comment_id to Post_Comment...');
+                await pool.query(`
+                    ALTER TABLE \`Post_Comment\` 
+                    ADD COLUMN \`parent_comment_id\` INT DEFAULT NULL,
+                    ADD FOREIGN KEY (\`parent_comment_id\`) REFERENCES \`Post_Comment\`(\`id\`) ON DELETE CASCADE
+                `);
+                console.log('Successfully added parent_comment_id to Post_Comment.');
+            } catch (err) {
+                if (err.code === 'ER_DUP_FIELDNAME' || err.code === 'ER_FK_DUP_NAME' || err.code === 'ER_DUP_KEY') {
+                    console.log('parent_comment_id column or key already exists in Post_Comment.');
+                }
+            }
+        } catch (err) {
+            console.error('Error creating community post tables:', err.message);
+        }
+
+        // Create Job_Industry table
+        try {
+            console.log('Creating Job_Industry table...');
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS \`Job_Industry\` (
+                    \`job_id\` INT NOT NULL,
+                    \`industry_id\` INT NOT NULL,
+                    PRIMARY KEY (\`job_id\`, \`industry_id\`),
+                    CONSTRAINT \`fk_job_industry_job\` FOREIGN KEY (\`job_id\`) REFERENCES \`Job_Posting\` (\`id\`) ON DELETE CASCADE ON UPDATE CASCADE,
+                    CONSTRAINT \`fk_job_industry_industry\` FOREIGN KEY (\`industry_id\`) REFERENCES \`Industry\` (\`id\`) ON DELETE CASCADE ON UPDATE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            `);
+            console.log('Successfully created Job_Industry table.');
+        } catch (err) {
+            console.error('\n[CRITICAL ERROR] Failed to create Job_Industry table:', err.message);
+            throw err;
+        }
+
+        // Updating Job_Skill schema
+        try {
+            console.log('Updating Job_Skill schema...');
+            try {
+                await pool.query("ALTER TABLE `Job_Skill` ADD COLUMN `min_level` VARCHAR(50) DEFAULT 'Beginner'");
+                console.log('Added column min_level.');
+            } catch (err) {
+                if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+                    console.log('Column min_level already exists.');
+                } else {
+                    throw err;
+                }
+            }
+
+            try {
+                await pool.query("ALTER TABLE `Job_Skill` ADD COLUMN `min_years` INT DEFAULT 0");
+                console.log('Added column min_years.');
+            } catch (err) {
+                if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+                    console.log('Column min_years already exists.');
+                } else {
+                    throw err;
+                }
+            }
+            console.log('Job_Skill update completed.');
+        } catch (dbError) {
+            console.error('\n[CRITICAL ERROR] Schema update failed:', dbError.message);
+            process.exit(1);
+        }
+
+        // Upgrade Company table structure
+        try {
+            console.log('Modifying Company table columns...');
+            await pool.query("ALTER TABLE `Company` MODIFY COLUMN `logo_url` LONGTEXT DEFAULT NULL");
+            console.log('Successfully modified logo_url column to LONGTEXT.');
+            
+            const companyCols = [
+                { name: 'email', sql: "ALTER TABLE `Company` ADD COLUMN `email` VARCHAR(255) DEFAULT NULL" },
+                { name: 'phone', sql: "ALTER TABLE `Company` ADD COLUMN `phone` VARCHAR(20) DEFAULT NULL" },
+                { name: 'facebook', sql: "ALTER TABLE `Company` ADD COLUMN `facebook` VARCHAR(255) DEFAULT NULL" },
+                { name: 'linkedin', sql: "ALTER TABLE `Company` ADD COLUMN `linkedin` VARCHAR(255) DEFAULT NULL" },
+                { name: 'twitter', sql: "ALTER TABLE `Company` ADD COLUMN `twitter` VARCHAR(255) DEFAULT NULL" },
+                { name: 'scale', sql: "ALTER TABLE `Company` ADD COLUMN `scale` JSON DEFAULT NULL" },
+                { name: 'culture', sql: "ALTER TABLE `Company` ADD COLUMN `culture` JSON DEFAULT NULL" },
+                { name: 'benefits', sql: "ALTER TABLE `Company` ADD COLUMN `benefits` JSON DEFAULT NULL" }
+            ];
+            for (const col of companyCols) {
+                try {
+                    console.log(`Adding ${col.name} column to Company...`);
+                    await pool.query(col.sql);
+                    console.log(`Successfully added ${col.name} column to Company.`);
+                } catch (err) {
+                    if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+                        console.log(`${col.name} column already exists in Company.`);
+                    } else {
+                        throw err;
+                    }
+                }
+            }
+            console.log('Successfully completed Company structure migration.');
+        } catch (err) {
+            console.error('Error modifying Company table columns:', err.message);
+        }
+
+        // Altering Company table to add new registration fields
+        try {
+            console.log('Altering Company table to add new registration fields...');
+            const regCols = [
+                { name: 'hr_name', sql: "ALTER TABLE `Company` ADD COLUMN `hr_name` VARCHAR(255) DEFAULT NULL" },
+                { name: 'hr_phone', sql: "ALTER TABLE `Company` ADD COLUMN `hr_phone` VARCHAR(50) DEFAULT NULL" },
+                { name: 'company_phone', sql: "ALTER TABLE `Company` ADD COLUMN `company_phone` VARCHAR(50) DEFAULT NULL" },
+                { name: 'tax_id', sql: "ALTER TABLE `Company` ADD COLUMN `tax_id` VARCHAR(100) DEFAULT NULL" },
+                { name: 'business_license_url', sql: "ALTER TABLE `Company` ADD COLUMN `business_license_url` VARCHAR(255) DEFAULT NULL" },
+                { name: 'size', sql: "ALTER TABLE `Company` ADD COLUMN `size` VARCHAR(50) DEFAULT NULL" },
+                { name: 'description', sql: "ALTER TABLE `Company` ADD COLUMN `description` TEXT DEFAULT NULL" }
+            ];
+            for (const col of regCols) {
+                try {
+                    console.log(`Adding ${col.name} column to Company...`);
+                    await pool.query(col.sql);
+                    console.log(`Successfully added ${col.name} column to Company.`);
+                } catch (err) {
+                    if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+                        console.log(`${col.name} column already exists in Company.`);
+                    } else {
+                        throw err;
+                    }
+                }
+            }
+            console.log('Successfully completed Company registration fields migration.');
+        } catch (err) {
+            console.error('\n[CRITICAL ERROR] Failed to alter Company table:', err.message);
+            throw err;
+        }
+
+        // Altering Company table to add pro package columns
+        try {
+            console.log('Altering Company table to add pro package columns...');
+            const proCols = [
+                { name: 'pro_package', sql: "ALTER TABLE `Company` ADD COLUMN `pro_package` ENUM('Free', 'Pro_Day', 'Pro_Month') DEFAULT 'Free'" },
+                { name: 'pro_expired_at', sql: "ALTER TABLE `Company` ADD COLUMN `pro_expired_at` DATETIME DEFAULT NULL" }
+            ];
+            for (const col of proCols) {
+                try {
+                    console.log(`Adding ${col.name} column to Company...`);
+                    await pool.query(col.sql);
+                    console.log(`Successfully added ${col.name} column to Company.`);
+                } catch (err) {
+                    if (err.code === 'ER_DUP_FIELDNAME' || err.errno === 1060) {
+                        console.log(`${col.name} column already exists in Company.`);
+                    } else {
+                        throw err;
+                    }
+                }
+            }
+            console.log('Successfully completed Company pro package columns migration.');
+        } catch (err) {
+            console.error('\n[CRITICAL ERROR] Failed to alter Company table for pro packages:', err.message);
+            throw err;
+        }
 
     } catch (dbError) {
         console.error('\n[CRITICAL ERROR] Table creation failed:', dbError.message);
-        process.exit(1); // Exit process with failure code
-
+        process.exit(1);
     }
     await pool.end();
     console.log('Database connection closed.');
 }
-
 
 runMigration();

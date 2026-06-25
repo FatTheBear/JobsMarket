@@ -11,6 +11,7 @@ export default function VerifyOTP() {
   const userFullName = location.state?.full_name || '';
   const navigate = useNavigate();
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   
 
   const handleChange = (e) => {
@@ -23,6 +24,7 @@ export default function VerifyOTP() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+        setSuccess("");
 
         if (!userEmail) {
             setError("Missing email. Please register again.");
@@ -65,6 +67,8 @@ export default function VerifyOTP() {
 
   const handleResendOTP = async () => {
      try {
+            setError("");
+            setSuccess("");
             if (!userEmail) {
                 setError("Missing email");
                 return;
@@ -75,7 +79,7 @@ export default function VerifyOTP() {
                 { email: userEmail }
             );
 
-            alert("OTP resent successfully!");
+            setSuccess("OTP resent successfully!");
         } catch (error) {
             setError(error.response?.data?.message || "Resend failed");
         }
@@ -99,6 +103,17 @@ export default function VerifyOTP() {
                     Verify Email
                   </h2>
                   
+                  {error && (
+                    <div className="alert alert-danger py-2 px-3 small border-0 mb-4 text-center" role="alert">
+                      <i className="fas fa-exclamation-triangle me-1"></i> {error}
+                    </div>
+                  )}
+                  {success && (
+                    <div className="alert alert-success py-2 px-3 small border-0 mb-4 text-center animate-fade-in" role="alert">
+                      <i className="fas fa-check-circle me-1"></i> {success}
+                    </div>
+                  )}
+
                   <p className="text-center mb-5">
                     Please enter the 6-digit OTP sent to your email.
                   </p>
