@@ -149,7 +149,7 @@ export const adminApi = {
     const res = await API.delete(`/admin/notifications/${id}`);
     return res.data;
 
-    
+
   },
   getPendingCompanies: async () => {
     const res = await API.get('/admin/pending-companies');
@@ -158,6 +158,24 @@ export const adminApi = {
 
   approveCompany: async (id) => {
     const res = await API.patch(`/admin/company/${id}/approve`);
+    return res.data;
+  },
+
+ getTrends: async (period = '30d', year, month) => {
+    const params = new URLSearchParams({ period });
+    if (year) params.append('year', year);
+    if (month) params.append('month', month);
+    const res = await API.get(`/admin/dashboard-trends?${params.toString()}`);
+    return res.data;
+},
+
+  getTopSkills: async () => {
+    const res = await API.get('/admin/top-skills');
+    return res.data;
+  },
+
+  getTopIndustries: async () => {
+    const res = await API.get('/admin/top-industries');
     return res.data;
   },
 };

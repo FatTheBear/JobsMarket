@@ -198,12 +198,11 @@ exports.updateJobStatus = async (req, res) => {
 
 // 6. Lấy danh sách kỹ năng
 exports.getSkills = async (req, res) => {
-    try {
-        const [skills] = await db.query("SELECT id, skill_name AS name FROM `skill` ORDER BY id DESC");
-        res.json(skills);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+    const [skills] = await db.query(
+        "SELECT id, name FROM skill ORDER BY id DESC"
+    );
+
+    res.json(skills);
 };
 
 // 7. Lấy danh sách ngành nghề
@@ -244,7 +243,10 @@ exports.createSkill = async (req, res) => {
     const { name } = req.body;
     try {
         if (!name) return res.status(400).json({ message: "Skill name is required" });
-        await db.query("INSERT INTO `skill` (skill_name) VALUES (?)", [name]);
+        await db.query(
+            "INSERT INTO skill (name) VALUES (?)",
+            [name]
+        );
         res.json({ message: "Skill added successfully" });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -818,5 +820,106 @@ exports.getPendingCompanies = async (req, res) => {
         res.status(500).json({
             message: error.message
         });
+    }
+};
+
+// GET /admin/dashboard-trends?period=7d|30d|12m
+exports.getDashboardTrends = async (req, res) => {
+    try {
+        const { period = '30d', year, month } = req.query;
+
+        const selectedYear = parseInt(year) || new Date().getFullYear();
+        const selectedMonth = parseInt(month) || new Date().getMonth() + 1;
+
+        let groupFormat, dateFilter, labelFormat;
+
+        if (period === '7d') {
+            groupFormat = '%Y-%m-%d';
+            labelFormat = '%d/%m';
+            dateFilter = 'DATE(created_at) >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)';
+        } else if (period === '12m') {
+            groupFormat = '%Y-%m';
+            labelFormat = '%m/%Y';
+            dateFilter = `YEAR(created_at) = ${selectedYear}`;
+        } else {
+            // 30d — theo tháng + năm được chọn
+            groupFormat = '%Y-%m-%d';
+            labelFormat = '%d/%m';
+            dateFilter = `YEAR(created_at) = ${selectedYear} AND MONTH(created_at) = ${selectedMonth}`;
+        }
+
+        const [jobTrends] = await db.query(`
+            SELECT DATE_FORMAT(created_at, '${groupFormat}') AS period,
+                   DATE_FORMAT(created_at, '${labelFormat}') AS label,
+                   COUNT(*) AS count
+            FROM job_posting
+            WHERE ${dateFilter}
+            GROUP BY period, label ORDER BY period ASC
+        `);
+
+        const appDateFilter = dateFilter.replace(/created_at/g, 'applied_at');
+        const [appTrends] = await db.query(`
+            SELECT DATE_FORMAT(applied_at, '${groupFormat}') AS period,
+                   DATE_FORMAT(applied_at, '${labelFormat}') AS label,
+                   COUNT(*) AS count
+            FROM application
+            WHERE ${appDateFilter}
+            GROUP BY period, label ORDER BY period ASC
+        `);
+
+        const [revenueTrends] = await db.query(`
+            SELECT DATE_FORMAT(created_at, '${groupFormat}') AS period,
+                   DATE_FORMAT(created_at, '${labelFormat}') AS label,
+                   COALESCE(SUM(amount_fiat), 0) AS total
+            FROM transaction
+            WHERE status = 'completed' AND type = 'deposit'
+            AND ${dateFilter}
+            GROUP BY period, label ORDER BY period ASC
+        `);
+
+        res.json({ jobTrends, appTrends, revenueTrends });
+    } catch (error) {
+        console.error('GET TRENDS ERROR:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// GET /admin/top-skills
+exports.getTopSkills = async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT s.name, COUNT(js.job_id) AS count
+            FROM skill s
+            JOIN job_skill js ON s.id = js.skill_id
+            JOIN job_posting jp ON js.job_id = jp.id
+            WHERE jp.status = 'Approved'
+            GROUP BY s.id, s.name
+            ORDER BY count DESC
+            LIMIT 8
+        `);
+        res.json(rows);
+    } catch (error) {
+        console.error('GET TOP SKILLS ERROR:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// GET /admin/top-industries
+exports.getTopIndustries = async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT i.name, COUNT(ji.job_id) AS count
+            FROM industry i
+            JOIN job_industry ji ON i.id = ji.industry_id
+            JOIN job_posting jp ON ji.job_id = jp.id
+            WHERE jp.status = 'Approved'
+            GROUP BY i.id, i.name
+            ORDER BY count DESC
+            LIMIT 8
+        `);
+        res.json(rows);
+    } catch (error) {
+        console.error('GET TOP INDUSTRIES ERROR:', error);
+        res.status(500).json({ message: error.message });
     }
 };
