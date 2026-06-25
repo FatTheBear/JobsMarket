@@ -2,13 +2,24 @@ const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
 
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
+const transporter = nodemailer.createTransport(
+    process.env.EMAIL_HOST
+        ? {
+              host: process.env.EMAIL_HOST,
+              port: process.env.EMAIL_PORT || 587,
+              auth: {
+                  user: process.env.EMAIL_USER,
+                  pass: process.env.EMAIL_PASS
+              }
+          }
+        : {
+              service: 'gmail',
+              auth: {
+                  user: process.env.EMAIL_USER,
+                  pass: process.env.EMAIL_PASS
+              }
+          }
+);
 
 const compileTemplate = (templateName, data) => {
     const filePath = path.join(__dirname, 'templates', `${templateName}.html`);

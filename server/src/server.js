@@ -76,6 +76,7 @@ app.get("/", (req, res) => {
 // Thêm route lấy danh sách tin tức công khai
 app.get('/api/public/news', newsController.getPublicNews); 
 
+
 // Giữ nguyên route lấy chi tiết
 app.get('/api/public/news/:id', newsController.getPublicNewsById);
 

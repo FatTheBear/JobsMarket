@@ -7,11 +7,8 @@ export default function ActivateCompany() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
-  // Hứng dữ liệu từ trên thanh URL xuống
   const urlCode = searchParams.get("code") || "";
-  const companyId = searchParams.get("id") || "";
 
-  // Set sẵn mã code vào ô input nếu trên URL có
   const [activationCode, setActivationCode] = useState(urlCode);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -25,11 +22,6 @@ export default function ActivateCompany() {
     setError("");
     setSuccess("");
 
-    if (!companyId) {
-      setError("Company ID missing. Please access this page via the exact link in your email.");
-      return;
-    }
-
     if (!activationCode) {
       setError("Please enter your activation code.");
       return;
@@ -37,15 +29,13 @@ export default function ActivateCompany() {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/auth/activate-company',
+       'http://localhost:5000/api/auth/activate-company',
         {
-          id: companyId,
           activationCode: activationCode.trim()
         }
       );
 
       if (response.status === 200) {
-        // Lưu token và update role để Navbar nhận diện
         if (response.data.token) {
             localStorage.setItem('token', response.data.token);
             localStorage.setItem('role', 'Company');
@@ -55,7 +45,7 @@ export default function ActivateCompany() {
         setSuccess("Account activated successfully! Redirecting...");
         
         setTimeout(() => {
-          navigate("/company-profile"); // Dẫn về trang profile/dashboard
+          navigate("/company-profile");
         }, 1500);
       }
     } catch (error) {

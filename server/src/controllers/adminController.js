@@ -819,14 +819,16 @@ exports.getPendingCompanies = async (req, res) => {
     return res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
-
 exports.approveCompany = async (req, res) => {
   const { id } = req.params;
   const activationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
 
   try {
     const [companyData] = await pool.query(
-      `SELECT name, email FROM Company WHERE id = ? AND status = 'Pending'`,
+      `SELECT c.name, u.email 
+       FROM Company c
+       JOIN User u ON c.hr_id = u.id
+       WHERE c.id = ? AND c.status = 'Pending'`,
       [id]
     );
 
@@ -837,6 +839,7 @@ exports.approveCompany = async (req, res) => {
     const companyEmail = companyData[0].email;
     const companyName = companyData[0].name;
 
+    // 1. Update Database
     await pool.query(
       `UPDATE Company 
        SET status = 'Approved', activation_code = ? 
@@ -844,35 +847,56 @@ exports.approveCompany = async (req, res) => {
       [activationCode, id]
     );
 
-    const templatePath = path.join(__dirname, '..', 'templates', 'company_active.html');
-    let htmlContent = fs.readFileSync(templatePath, 'utf8');
+    // 2. Log activation details for debugging/testing
+    console.log(`\nSUCCESS: Company approved - ${companyName}`);
+    console.log(`ACTIVATION CODE: ${activationCode}`);
+    console.log(`SENDING TO EMAIL: ${companyEmail || 'NOT FOUND IN DB'}\n`);
 
-    const activationLink = `http://localhost:3000/activate-company?code=${activationCode}&id=${id}`;
+    // 3. Handle Email Sending Fallback
+    if (companyEmail) {
+      try {
+        const templatePath = path.join(__dirname, '..', 'services', 'email', 'templates', 'company_active.html');
+        let htmlContent = fs.readFileSync(templatePath, 'utf8');
 
-    htmlContent = htmlContent
-      .replace(/{{COMPANY_NAME}}/g, companyName)
-      .replace(/{{ACTIVATION_CODE}}/g, activationCode)
-      .replace(/{{ACTIVATION_LINK}}/g, activationLink);
+const activationLink = `http://localhost:3000/activate-company?code=${activationCode}`;
 
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST,
-      port: process.env.EMAIL_PORT,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        htmlContent = htmlContent
+          .replace(/{{COMPANY_NAME}}/g, companyName)
+          .replace(/{{ACTIVATION_CODE}}/g, activationCode)
+          .replace(/{{ACTIVATION_LINK}}/g, activationLink);
+
+        const transporter = nodemailer.createTransport({
+          host: process.env.EMAIL_HOST,
+          port: process.env.EMAIL_PORT,
+          secure: false, // Required false for port 587, true for port 465
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+          }
+        });
+
+        const mailOptions = {
+          from: '"JobsMarket Team" <jobsmarket33@gmail.com>',
+          to: companyEmail,
+          subject: 'Your Company Account Has Been Approved!',
+          html: htmlContent
+        };
+
+        // Attempt to send email
+        await transporter.sendMail(mailOptions);
+        console.log("Email sent successfully!");
+
+      } catch (mailError) {
+        // Fallback: Log error but do not crash the API if SMTP fails
+        console.error("Mail Error (Company was still approved in DB):", mailError.message);
       }
-    });
+    } else {
+      console.warn("Warning: Skipped email sending because no email was found in the database.");
+    }
 
-    const mailOptions = {
-      from: '"JobsMarket Team" <jobsmarket33@gmail.com>',
-      to: companyEmail,
-      subject: 'Your Company Account Has Been Approved!',
-      html: htmlContent
-    };
-
-    await transporter.sendMail(mailOptions);
-
+    // 4. Return success response to Frontend
     return res.status(200).json({ message: "Company approved successfully", activationCode });
+
   } catch (error) {
     console.error("APPROVE COMPANY ERROR:", error);
     return res.status(500).json({ message: "Internal Server Error", error: error.message });
@@ -978,23 +1002,21 @@ exports.getTopIndustries = async (req, res) => {
     }
 };
 exports.activateCompany = async (req, res) => {
-  const { id, activationCode } = req.body;
+  const { activationCode } = req.body;
 
   try {
-    // Tìm công ty xem mã có khớp không
     const [companies] = await pool.query(
-      `SELECT * FROM Company WHERE id = ? AND activation_code = ?`,
-      [id, activationCode]
+      `SELECT * FROM Company WHERE activation_code = ?`,
+      [activationCode]
     );
 
     if (companies.length === 0) {
       return res.status(400).json({ message: "Invalid activation code!" });
     }
 
-    
     await pool.query(
       `UPDATE Company SET status = 'Active', activation_code = NULL WHERE id = ?`,
-      [id]
+      [companies[0].id]
     );
 
     return res.status(200).json({ message: "Account activated!" });

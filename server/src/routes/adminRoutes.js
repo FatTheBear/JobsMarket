@@ -60,6 +60,6 @@ router.patch('/users/:id/ban', adminController.banAccount);
 
 router.get('/companies/pending', authMiddleware, adminController.getPendingCompanies);
 router.patch('/companies/:id/approve', authMiddleware, adminController.approveCompany);
-router.post('/activate-company', adminController.activateCompany);
+// router.post('/activate-company', adminController.activateCompany);
 
 module.exports = router;
