@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import styles from './Login.module.css';
 
 export default function ActivateCompany() {
-  const [activationCode, setActivationCode] = useState('');
-  const location = useLocation();
-  const userEmail = location.state?.email || '';
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  
+  // Hứng dữ liệu từ trên thanh URL xuống
+  const urlCode = searchParams.get("code") || "";
+  const companyId = searchParams.get("id") || "";
+
+  // Set sẵn mã code vào ô input nếu trên URL có
+  const [activationCode, setActivationCode] = useState(urlCode);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -20,8 +25,8 @@ export default function ActivateCompany() {
     setError("");
     setSuccess("");
 
-    if (!userEmail) {
-      setError("Email context missing. Please access this page via the link in your email.");
+    if (!companyId) {
+      setError("Company ID missing. Please access this page via the exact link in your email.");
       return;
     }
 
@@ -34,21 +39,27 @@ export default function ActivateCompany() {
       const response = await axios.post(
         'http://localhost:5000/api/auth/activate-company',
         {
-          email: userEmail,
-          code: activationCode.trim()
+          id: companyId,
+          activationCode: activationCode.trim()
         }
       );
 
       if (response.status === 200) {
-        localStorage.setItem('token', response.data.token);
+        // Lưu token và update role để Navbar nhận diện
+        if (response.data.token) {
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('role', 'Company');
+            window.dispatchEvent(new Event("storage"));
+        }
+        
         setSuccess("Account activated successfully! Redirecting...");
         
         setTimeout(() => {
-          navigate("/company-profile");
+          navigate("/company-profile"); // Dẫn về trang profile/dashboard
         }, 1500);
       }
     } catch (error) {
-      setError(error.response?.data?.message || "Activation failed. Invalid code.");
+      setError(error.response?.data?.message || "Activation failed. Invalid or expired code.");
     }
   };
 
@@ -81,7 +92,7 @@ export default function ActivateCompany() {
                   )}
 
                   <p className="text-center mb-5 text-muted">
-                    Please enter the activation code sent to <strong className="text-dark">{userEmail || 'your email'}</strong> by our administrators.
+                    Please enter the activation code sent to your email by our administrators.
                   </p>
 
                   <form onSubmit={handleSubmit}>
@@ -95,6 +106,7 @@ export default function ActivateCompany() {
                         className={`form-control form-control-lg ${styles.formControl} text-center fw-bold letter-spacing-2`}
                         placeholder="e.g., ACT-123456"
                         autoComplete="off"
+                        maxLength={6}
                       />
                       <label className="form-label" htmlFor="activationInput">
                         Activation Code
