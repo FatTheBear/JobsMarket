@@ -424,9 +424,9 @@ const CandidateProfile = () => {
 
   return (
     <section className="profile-section">
-      <div className="container py-5">
-        {/* Navigation back & Dropdown */}
-        <div className="mb-4 d-flex justify-content-between align-items-center">
+      <div className="container py-4">
+        {/* Navigation back */}
+        <div className="mb-4">
           <button
             onClick={() => navigate('/dashboard')}
             className="btn btn-link text-secondary text-decoration-none d-inline-flex align-items-center gap-2 fw-semibold p-0"
@@ -434,75 +434,76 @@ const CandidateProfile = () => {
           >
             <i className="fas fa-chevron-left" style={{ fontSize: '0.8rem' }}></i> Back to dashboard
           </button>
+        </div>
 
-          {/* Right Dropdown menu instead of Sidebar */}
-          <div className="profile-menu-dropdown">
-            <button
-              type="button"
-              className="dropdown-toggle-custom"
-              onClick={() => setShowDropdown(!showDropdown)}
-            >
-              <i className="far fa-user-circle"></i>
-              <span>{getPageTitle()}</span>
-              <i className={`fas fa-chevron-${showDropdown ? 'up' : 'down'}`}></i>
-            </button>
-            {showDropdown && (
-              <div className="dropdown-menu dropdown-menu-right show dropdown-menu-custom position-absolute end-0 mt-2" style={{ zIndex: 1000, minWidth: '220px' }}>
+        <div className="row g-4">
+          {/* Left Navigation Sidebar */}
+          <div className="col-12 col-md-4 col-lg-3">
+            <div className="profile-sidebar-card shadow-sm border-0">
+              <div className="profile-sidebar-header text-center p-4 border-bottom">
+                <img
+                  src={profileData.avatar || defaultFacebookAvatar}
+                  alt="avatar"
+                  className="rounded-circle border border-2 shadow-sm mb-3"
+                  style={{ width: '90px', height: '90px', objectFit: 'cover' }}
+                />
+                <h5 className="fw-bold mb-1 text-dark" style={{ fontSize: '1.1rem' }}>
+                  {profileData.displayName || 'Candidate Name'}
+                </h5>
+                <p className="text-muted small mb-0" style={{ fontSize: '0.85rem' }}>
+                  {profileData.jobTitle || 'Job Seeker'}
+                </p>
+              </div>
+
+              <div className="profile-sidebar-menu p-3">
                 <NavLink
                   to="/candidate/my-profile"
                   end
-                  className={({ isActive }) => `dropdown-item dropdown-item-custom w-100 text-start ${isActive ? 'active' : ''}`}
-                  onClick={() => setShowDropdown(false)}
+                  className={({ isActive }) => `sidebar-nav-link ${isActive ? 'active' : ''}`}
                 >
-                  <i className="far fa-user-circle me-2"></i> My Profile
+                  <i className="far fa-user-circle me-3"></i> My Profile
                 </NavLink>
                 <NavLink
                   to="/candidate/my-profile/account-settings"
-                  className={({ isActive }) => `dropdown-item dropdown-item-custom w-100 text-start ${isActive ? 'active' : ''}`}
-                  onClick={() => setShowDropdown(false)}
+                  className={({ isActive }) => `sidebar-nav-link ${isActive ? 'active' : ''}`}
                 >
-                  <i className="fas fa-sliders-h me-2"></i> Account Settings
+                  <i className="fas fa-sliders-h me-3"></i> Account Settings
                 </NavLink>
                 <NavLink
                   to="/candidate/my-profile/activity-history"
-                  className={({ isActive }) => `dropdown-item dropdown-item-custom w-100 text-start ${isActive ? 'active' : ''}`}
-                  onClick={() => setShowDropdown(false)}
+                  className={({ isActive }) => `sidebar-nav-link ${isActive ? 'active' : ''}`}
                 >
-                  <i className="fas fa-history me-2"></i> Activity History
+                  <i className="fas fa-history me-3"></i> Activity History
                 </NavLink>
                 <NavLink
                   to="/candidate/my-profile/notifications"
-                  className={({ isActive }) => `dropdown-item dropdown-item-custom w-100 text-start ${isActive ? 'active' : ''}`}
-                  onClick={() => setShowDropdown(false)}
+                  className={({ isActive }) => `sidebar-nav-link ${isActive ? 'active' : ''}`}
                 >
-                  <i className="far fa-bell me-2"></i> Notifications
+                  <i className="far fa-bell me-3"></i> Notifications
                   {notifications.filter(n => !n.is_read).length > 0 && (
-                    <span className="badge rounded-pill bg-danger ms-2">
+                    <span className="badge rounded-pill bg-danger ms-auto">
                       {notifications.filter(n => !n.is_read).length}
                     </span>
                   )}
                 </NavLink>
                 <NavLink
                   to="/candidate/my-profile/applied-jobs"
-                  className={({ isActive }) => `dropdown-item dropdown-item-custom w-100 text-start ${isActive ? 'active' : ''}`}
-                  onClick={() => setShowDropdown(false)}
+                  className={({ isActive }) => `sidebar-nav-link ${isActive ? 'active' : ''}`}
                 >
-                  <i className="fas fa-briefcase me-2"></i> Applied Jobs
+                  <i className="fas fa-briefcase me-3"></i> Applied Jobs
                 </NavLink>
                 <NavLink
                   to="/candidate/my-profile/manage-cvs"
-                  className={({ isActive }) => `dropdown-item dropdown-item-custom w-100 text-start ${isActive ? 'active' : ''}`}
-                  onClick={() => setShowDropdown(false)}
+                  className={({ isActive }) => `sidebar-nav-link ${isActive ? 'active' : ''}`}
                 >
-                  <i className="far fa-file-pdf me-2"></i> Manage CVs
+                  <i className="far fa-file-pdf me-3"></i> Manage CVs
                 </NavLink>
               </div>
-            )}
+            </div>
           </div>
-        </div>
 
-        <div className="row">
-          <div className="col-12">
+          {/* Right Main Content */}
+          <div className="col-12 col-md-8 col-lg-9">
             <Outlet
               context={{
                 profileData,

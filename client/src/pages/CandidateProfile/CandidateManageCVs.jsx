@@ -137,7 +137,7 @@ const CandidateManageCVs = () => {
       </div>
 
       {/* Body */}
-      <div className="card-body p-4 d-flex flex-column gap-4">
+      <div className="card-body p-4 d-flex flex-column gap-4 scrollable-manage-cvs" style={{ height: '70vh', overflowY: 'auto' }}>
         {localError && (
           <div className="alert alert-danger py-2 px-3 small border-0 shadow-sm" role="alert">
             <i className="fas fa-exclamation-triangle me-2"></i>{localError}

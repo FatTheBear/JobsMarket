@@ -436,7 +436,7 @@ exports.deleteNews = async (req, res) => {
 exports.getTransactions = async (req, res) => {
     try {
         const query = `
-            SELECT t.*, u.email, u.bank_name, u.bank_account_number, u.bank_account_name 
+            SELECT t.*, u.email 
             FROM \`Transaction\` t
             JOIN \`User\` u ON t.user_id = u.id
             ORDER BY t.created_at DESC
