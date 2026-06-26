@@ -27,7 +27,8 @@
 .profile-section {
   background-color: var(--color-light-bg);
   color: var(--color-dark-gray);
-  font-family: 'Outfit', 'Segoe UI', Arial, sans-serif;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  min-height: 100vh;
 }
 
 .avatar-img {
@@ -126,8 +127,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 100000 !important; /* Đè lên thanh NavBar có z-index: 99999 */
-  padding: 20px;               /* Tránh việc modal bị chạm sát mép trên/dưới màn hình */
+  z-index: 100000 !important;
+  /* Đè lên thanh NavBar có z-index: 99999 */
+  padding: 20px;
+  /* Tránh việc modal bị chạm sát mép trên/dưới màn hình */
   box-sizing: border-box;
   animation: fadeIn 0.25s ease-out;
 }
@@ -137,7 +140,8 @@
   border-radius: 16px;
   width: 90%;
   max-width: 500px;
-  max-height: calc(100vh - 40px); /* Giới hạn chiều cao an toàn thích ứng với padding của overlay */
+  max-height: calc(100vh - 40px);
+  /* Giới hạn chiều cao an toàn thích ứng với padding của overlay */
   display: flex;
   flex-direction: column;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
@@ -1275,13 +1279,15 @@
 
 /* Custom styling for post card borders and shadow hover effect */
 .candidate-post-card {
-  border: 1.5px solid #cbd5e1 !important; /* Prominent slate border */
+  border: 1.5px solid #cbd5e1 !important;
+  /* Prominent slate border */
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
   transition: all 0.25s ease-in-out;
 }
 
 .candidate-post-card:hover {
-  border-color: var(--color-slate-blue) !important; /* Highlights brand color on hover */
+  border-color: var(--color-slate-blue) !important;
+  /* Highlights brand color on hover */
   box-shadow: 0 6px 16px rgba(109, 129, 150, 0.2);
   transform: translateY(-1.5px);
 }
@@ -1297,25 +1303,380 @@
 }
 
 /* Scrollbar styling for comments */
-.comments-drawer > div::-webkit-scrollbar {
+.comments-drawer>div::-webkit-scrollbar {
   width: 5px;
 }
 
-.comments-drawer > div::-webkit-scrollbar-track {
+.comments-drawer>div::-webkit-scrollbar-track {
   background: #f1f5f9;
   border-radius: 10px;
 }
 
-.comments-drawer > div::-webkit-scrollbar-thumb {
+.comments-drawer>div::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 10px;
 }
 
-.comments-drawer > div::-webkit-scrollbar-thumb:hover {
+.comments-drawer>div::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
 
 @keyframes slideDownFade {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── New Layout Sidebar & My Profile Details ── */
+
+.profile-sidebar-card {
+  background-color: var(--color-card-bg);
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  position: sticky;
+  top: 90px;
+}
+
+.profile-sidebar-header {
+  background-color: #ffffff;
+}
+
+.profile-sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-nav-link {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  color: #475569;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.sidebar-nav-link i {
+  width: 20px;
+  font-size: 1.1rem;
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+.sidebar-nav-link:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.sidebar-nav-link:hover i {
+  color: #0f172a;
+}
+
+.sidebar-nav-link.active {
+  background-color: #01796F;
+  color: #ffffff;
+}
+
+.sidebar-nav-link.active i {
+  color: #ffffff;
+}
+
+/* My Profile Redesign */
+.profile-details-banner {
+  height: 180px;
+  background: linear-gradient(135deg, #a7f3d0 0%, #01796F 100%);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  position: relative;
+}
+
+.profile-header-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.profile-avatar-container {
+  height: 64px;
+  position: relative;
+  z-index: 10;
+}
+
+.profile-avatar-circle {
+  width: 120px;
+  height: 120px;
+  margin-top: -64px;
+  border-radius: 50%;
+  border: 4px solid #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  object-fit: cover;
+  background-color: #ffffff;
+  position: relative;
+  z-index: 10;
+}
+
+.profile-header-info {
+  padding: 0 30px 30px 30px;
+  padding-top: 20px;
+}
+
+.badge-verified-profile {
+  background-color: #d1fae5;
+  color: #065f46;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 50px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-verified-profile i {
+  font-size: 0.85rem;
+}
+
+.profile-details-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.profile-details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 20px;
+}
+
+@media (max-width: 992px) {
+  .profile-details-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .profile-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.detail-grid-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.detail-item-icon {
+  background-color: #f1f5f9;
+  color: #475569;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  flex-shrink: 0;
+}
+
+.detail-item-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-item-label {
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.detail-item-value {
+  font-size: 0.92rem;
+  color: #0f172a;
+  font-weight: 600;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge-verified-small {
+  background-color: #d1fae5;
+  color: #065f46;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* 2-Factor Authentication Card */
+.two-factor-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.two-factor-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .two-factor-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .two-factor-content .btn {
+    width: 100%;
+    margin-top: 10px;
+  }
+}
+
+.two-factor-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.two-factor-icon-wrapper {
+  background-color: #d1fae5;
+  color: #059669;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+/* Access History Card */
+.access-history-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.access-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+.access-history-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* Custom switch toggle styling */
+.custom-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.custom-switch-input {
+  display: none;
+}
+
+.custom-switch-slider {
+  width: 40px;
+  height: 20px;
+  background-color: #cbd5e1;
+  border-radius: 20px;
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.custom-switch-slider::before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s ease;
+}
+
+.custom-switch-input:checked+.custom-switch-slider {
+  background-color: #059669;
+}
+
+.custom-switch-input:checked+.custom-switch-slider::before {
+  transform: translateX(20px);
+}
+
+@media (min-width: 768px) {
+  .border-start-md {
+    border-left: 1px solid var(--color-border) !important;
+    padding-left: 24px !important;
+  }
+}
+
+.profile-main-container-card {
+  background-color: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+.resume-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Custom scrollbar for resume cards */
+.resume-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+.resume-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+.resume-scroll-container::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+.resume-scroll-container::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.2);
 }

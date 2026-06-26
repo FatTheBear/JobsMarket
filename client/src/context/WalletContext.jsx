@@ -84,7 +84,7 @@ export function WalletProvider({ children }) {
       }
     }
 
-    if (token && userRole === 'Company') {
+    if (token && (userRole === 'Company' || userRole === 'HR' || userRole === 'Candidate')) {
       fetchWalletInfo();
       fetchTransactions();
       fetchCoinFees();

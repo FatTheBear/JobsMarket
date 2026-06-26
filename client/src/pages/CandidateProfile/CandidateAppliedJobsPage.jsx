@@ -56,7 +56,7 @@ const CandidateAppliedJobsPage = () => {
       </div>
 
       {/* Body */}
-      <div className="card-body p-4">
+      <div className="card-body p-4 scrollable-applied-jobs" style={{ height: '70vh', overflowY: 'auto' }}>
         {error && (
           <div className="alert alert-danger py-2 px-3 small border-0 shadow-sm" role="alert">
             <i className="fas fa-exclamation-triangle me-2"></i>{error}

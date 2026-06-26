@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import RechargeCoins from './RechargeCoins';
 import { useWallet } from '../../context/WalletContext';
 import axios from 'axios';
@@ -7,10 +7,17 @@ export default function CandidateWallet({
   show,
   onClose
 }) {
-  const { coins, transactions, fetchWalletInfo } = useWallet();
+  const { coins, transactions, fetchWalletInfo, fetchTransactions } = useWallet();
   const [activeWalletTab, setActiveWalletTab] = useState('history'); // tabs: 'history', 'topup', or 'bank'
   const [walletMessage, setWalletMessage] = useState(null);
   const [pendingAction, setPendingAction] = useState(null);
+
+  useEffect(() => {
+    if (show) {
+      fetchWalletInfo();
+      fetchTransactions();
+    }
+  }, [show]);
 
   const showMessage = (text, type = 'success') => {
     setWalletMessage({ text, type });
