@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useModal } from "./useModal";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 
 
@@ -241,7 +243,18 @@ const CreateNewsModal = ({ onClose, onCreate, categories = [], initialData, onCr
                     {/* Content */}
                     <div style={s.field}>
                         <label style={s.label}>Content</label>
-                        <textarea name="content" value={form.content} onChange={handleChange} placeholder="Full article content..." style={{ ...s.textarea, minHeight: 100 }} />
+
+                        <ReactQuill
+                            theme="snow"
+                            value={form.content}
+                            onChange={(value) =>
+                                setForm(prev => ({
+                                    ...prev,
+                                    content: value
+                                }))
+                            }
+                            style={{ minHeight: 250 }}
+                        />
                     </div>
 
                     {/* Status + Date */}
