@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import './JobCard.css';
 import axios from 'axios';
 
@@ -40,15 +40,36 @@ export default function JobCard({ job, onClick }) {
   const [myCVs, setMyCVs] = useState([]);
   const [isLoadingCVs, setIsLoadingCVs] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
+
+  const saveAppliedJobId = (jobId) => {
+    try {
+      const ids = JSON.parse(localStorage.getItem('appliedJobIds') || '[]');
+      const numId = Number(jobId);
+      if (!ids.includes(numId)) {
+        localStorage.setItem('appliedJobIds', JSON.stringify([...ids, numId]));
+      }
+    } catch (err) {
+      console.error('Failed to save applied job id:', err);
+    }
+  };
 
   useEffect(() => {
-    const stored = localStorage.getItem(FAVORITE_JOBS_STORAGE_KEY);
-    if (!stored) return;
+    const storedFav = localStorage.getItem(FAVORITE_JOBS_STORAGE_KEY);
+    if (storedFav) {
+      try {
+        const favorites = JSON.parse(storedFav);
+        setIsSaved(Array.isArray(favorites) && favorites.some(item => item.id === job.id));
+      } catch (err) {
+        console.error('Failed to parse favorite jobs from localStorage:', err);
+      }
+    }
+
     try {
-      const favorites = JSON.parse(stored);
-      setIsSaved(Array.isArray(favorites) && favorites.some(item => item.id === job.id));
+      const appliedIds = JSON.parse(localStorage.getItem('appliedJobIds') || '[]');
+      setHasApplied(Array.isArray(appliedIds) && appliedIds.includes(Number(job.id)));
     } catch (err) {
-      console.error('Failed to parse favorite jobs from localStorage:', err);
+      console.error('Failed to parse applied job ids from localStorage:', err);
     }
   }, [job.id]);
 
@@ -101,11 +122,11 @@ export default function JobCard({ job, onClick }) {
     setIsLoadingCVs(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/candidate/cvs`, {
+      const response = await axios.get(`${API_URL}/api/candidate/my-cvs`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMyCVs(response.data);
-    } catch (error) {
+    } catch {
       setFeedbackMessage({ type: "danger", text: "Could not load your CVs. Please try again." });
     } finally {
       setIsLoadingCVs(false);
@@ -114,6 +135,9 @@ export default function JobCard({ job, onClick }) {
 
   const handleOpenApplyModal = (e) => {
     e.stopPropagation();
+    if (hasApplied) {
+      return;
+    }
     setShowApplyModal(true);
     setFeedbackMessage({ type: "", text: "" });
     setSelectedCvId("");
@@ -161,12 +185,14 @@ export default function JobCard({ job, onClick }) {
     if (!selectedCvId) return setFeedbackMessage({ type: "danger", text: "Please select a CV to apply." });
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(`${API_URL}/api/candidate/apply`, { jobId, cvId: selectedCvId }, {
+        const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_URL}/api/candidate/apply`, { job_id: jobId, cv_id: selectedCvId }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.status === 201) {
         setFeedbackMessage({ type: "success", text: "Application submitted successfully!" });
+        setHasApplied(true);
+        saveAppliedJobId(jobId);
         setTimeout(() => {
           setShowApplyModal(false);
           setSelectedCvId("");
@@ -174,9 +200,14 @@ export default function JobCard({ job, onClick }) {
         }, 2000);
       }
     } catch (error) {
+      const message = error.response?.data?.message || "Connection error! Please try again.";
+      if (message.includes('already applied')) {
+        setHasApplied(true);
+        saveAppliedJobId(jobId);
+      }
       setFeedbackMessage({
         type: "danger",
-        text: error.response?.data?.message || "Connection error! Please try again."
+        text: message
       });
     } finally {
       setIsSubmitting(false);
@@ -218,10 +249,11 @@ export default function JobCard({ job, onClick }) {
           )}
           <div className="job-card-actions">
             <button
-              className="job-card-apply-btn"
+              className={`job-card-apply-btn${hasApplied ? ' applied' : ''}`}
               onClick={handleOpenApplyModal}
+              disabled={hasApplied}
             >
-              Apply Now
+              {hasApplied ? 'Applied' : 'Apply Now'}
             </button>
             <button
               className={`job-card-save-btn ${isSaved ? 'saved' : ''}`}
@@ -271,8 +303,8 @@ export default function JobCard({ job, onClick }) {
                         checked={selectedCvId === cv.id}
                         onChange={() => setSelectedCvId(cv.id)}
                       />
-                      <span>{cv.cv_name}</span>
-                      <span className="apply-cv-type">{cv.file_type}</span>
+                      <span>{cv.name || cv.cv_name || 'CV document'}</span>
+                      <span className="apply-cv-type">{cv.type || cv.file_type || 'Unknown format'}</span>
                     </label>
                   ))}
                 </div>
