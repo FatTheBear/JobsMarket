@@ -12,8 +12,14 @@ import './Admin.css';
 import CreateNewsModal from './CreateNewsModal';
 import AdminNotifications from "./AdminNotifications";
 import AdminCompanyApproval from "./AdminCompanyApproval";
+import { ModalProvider } from './ModalProvider';
+import { useModal } from './useModal';
+import NewsDetailModal from './NewsDetailModal';
 
-const AdminDashboard = () => {
+// ─── Inner component dùng được hook useModal ───────────────────────────────
+const AdminDashboardInner = () => {
+  const { showAlert, showConfirm } = useModal();
+
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
@@ -25,6 +31,8 @@ const AdminDashboard = () => {
   const [newsCategories, setNewsCategories] = useState([]);
   const [editingNews, setEditingNews] = useState(null);
   const [pendingCompanies, setPendingCompanies] = useState([]);
+  const [viewingNews, setViewingNews] = useState(null);
+
 
   // Đóng gói hàm fetch danh mục ra ngoài để dùng tái sử dụng khi Add/Delete
   const fetchCategoriesData = async () => {
@@ -53,7 +61,7 @@ const AdminDashboard = () => {
         setLoading(false);
         return;
       }
-      
+
       setLoading(true);
       try {
         if (activeTab === 'overview') {
@@ -89,18 +97,18 @@ const AdminDashboard = () => {
       await adminApi.createSkill(name);
       await fetchCategoriesData();
     } catch (err) {
-      alert("Cannot add skill. Please try again.");
+      await showAlert("Cannot add skill. Please try again.", "error");
     }
   };
 
   const handleDeleteSkill = async (id) => {
-    if (window.confirm("Are you sure you want to delete this skill?")) {
-      try {
-        await adminApi.deleteSkill(id);
-        await fetchCategoriesData();
-      } catch (err) {
-        alert("Error deleting skill!");
-      }
+    const confirmed = await showConfirm("Are you sure you want to delete this skill?");
+    if (!confirmed) return;
+    try {
+      await adminApi.deleteSkill(id);
+      await fetchCategoriesData();
+    } catch (err) {
+      await showAlert("Error deleting skill!", "error");
     }
   };
 
@@ -109,31 +117,31 @@ const AdminDashboard = () => {
       await adminApi.createIndustry(name);
       await fetchCategoriesData();
     } catch (err) {
-      alert("Cannot add industry. Please try again.");
+      await showAlert("Cannot add industry. Please try again.", "error");
     }
   };
 
   const handleDeleteIndustry = async (id) => {
-    if (window.confirm("Are you sure you want to delete this industry?")) {
-      try {
-        await adminApi.deleteIndustry(id);
-        await fetchCategoriesData();
-      } catch (err) {
-        alert("Error deleting industry!");
-      }
+    const confirmed = await showConfirm("Are you sure you want to delete this industry?");
+    if (!confirmed) return;
+    try {
+      await adminApi.deleteIndustry(id);
+      await fetchCategoriesData();
+    } catch (err) {
+      await showAlert("Error deleting industry!", "error");
     }
   };
 
   const handleToggleUserStatus = async (id, currentStatus) => {
     const nextStatus = currentStatus === 'Banned' ? 'Active' : 'Banned';
-    if (window.confirm(`Are you sure you want to change status to ${nextStatus}?`)) {
-      try {
-        await adminApi.updateUserStatus(id, nextStatus);
-        const data = await adminApi.getUsers();
-        setUsers(data.data || data);
-      } catch (err) {
-        alert("Error updating user status!");
-      }
+    const confirmed = await showConfirm(`Are you sure you want to change status to ${nextStatus}?`);
+    if (!confirmed) return;
+    try {
+      await adminApi.updateUserStatus(id, nextStatus);
+      const data = await adminApi.getUsers();
+      setUsers(data.data || data);
+    } catch (err) {
+      await showAlert("Error updating user status!", "error");
     }
   };
 
@@ -145,7 +153,7 @@ const AdminDashboard = () => {
       const statsRes = await adminApi.getStats();
       setStats(statsRes.data ? statsRes.data : statsRes);
     } catch (err) {
-      alert("Error processing job status!");
+      await showAlert("Error processing job status!", "error");
     }
   };
 
@@ -163,10 +171,11 @@ const AdminDashboard = () => {
       await adminApi.createNews(data);
       await fetchNewsData();
     } catch (err) {
-      alert("Error creating article");
+      await showAlert("Error creating article", "error");
     }
   };
-  //edit news
+
+  // edit news
   const handleEditNews = (news) => {
     setEditingNews(news);
   };
@@ -178,22 +187,23 @@ const AdminDashboard = () => {
       await fetchNewsData();
       setEditingNews(null);
     } catch (err) {
-      alert("Error updating article");
+      await showAlert("Error updating article", "error");
     }
   };
 
   const handleDeleteNews = async (id) => {
-    const confirmed = window.confirm("Are you sure you want to delete this article?");
+    const confirmed = await showConfirm("Are you sure you want to delete this article?");
     if (!confirmed) return;
     try {
       await adminApi.deleteNews(id);
       await fetchNewsData();
-      alert("Article deleted successfully!");
+      await showAlert("Article deleted successfully!", "success");
     } catch (err) {
       console.error(err);
-      alert("Error deleting article");
+      await showAlert("Error deleting article", "error");
     }
   };
+
   const fetchNewsCategories = async () => {
     try {
       const res = await adminApi.getNewsCategories();
@@ -202,35 +212,24 @@ const AdminDashboard = () => {
       console.error(err);
     }
   };
-  const handleApproveCompany = async (
-    companyId
-  ) => {
-    const confirmed = window.confirm(
-      "Approve this company?"
-    );
 
+  const handleApproveCompany = async (companyId) => {
+    const confirmed = await showConfirm("Approve this company?");
     if (!confirmed) return;
 
     try {
-      await adminApi.approveCompany(
-        companyId
-      );
-
-      const res =
-        await adminApi.getPendingCompanies();
-
-      setPendingCompanies(
-        res.data || res
-      );
-
-      alert(
-        "Company approved successfully!"
-      );
+      await adminApi.approveCompany(companyId);
+      const res = await adminApi.getPendingCompanies();
+      setPendingCompanies(res.data || res);
+      await showAlert("Company approved successfully!", "success");
     } catch (error) {
-      alert(
-        "Failed to approve company"
-      );
+      await showAlert("Failed to approve company", "error");
     }
+  };
+
+  const handleViewNews = (news) => {
+    console.log("VIEW NEWS DATA:", news);
+    setViewingNews(news);
   };
 
   return (
@@ -272,6 +271,7 @@ const AdminDashboard = () => {
             onCreate={() => setShowCreateModal(true)}
             onEdit={handleEditNews}
             onDelete={handleDeleteNews}
+            onView={handleViewNews}
           />
         )}
 
@@ -280,6 +280,13 @@ const AdminDashboard = () => {
             onClose={() => setShowCreateModal(false)}
             onCreate={handleCreateNews}
             categories={newsCategories}
+            onCreateCategory={async (name) => {
+        const result = await adminApi.createNewsCategory(name);
+        // Refresh lại danh sách categories
+        const updated = await adminApi.getNewsCategories();
+         setNewsCategories(updated); 
+        return result; // { id, name }
+    }}
           />
         )}
 
@@ -289,27 +296,41 @@ const AdminDashboard = () => {
             onCreate={(data) => handleUpdateNews(editingNews.id, data)}
             categories={newsCategories}
             initialData={editingNews}
+             onCreateCategory={async (name) => {
+            const result = await adminApi.createNewsCategory(name);
+            const updated = await adminApi.getNewsCategories();
+            setNewsCategories(updated);
+            return result;
+        }}
           />
         )}
 
-        {!loading &&
-          activeTab === 'companies' && (
-            <AdminCompanyApproval
-              companies={pendingCompanies}
-              onApprove={
-                handleApproveCompany
-              }
-            />
-          )}
+        {!loading && activeTab === 'companies' && (
+          <AdminCompanyApproval
+            companies={pendingCompanies}
+            onApprove={handleApproveCompany}
+          />
+        )}
 
-        {/* ĐÃ THÊM: Khớp nối render nội dung component AdminTransaction khi bấm nút */}
+        {viewingNews && (
+          <NewsDetailModal
+            news={viewingNews}
+            onClose={() => setViewingNews(null)}
+          />
+        )}
+
         {!loading && activeTab === 'transactions' && <AdminTransaction />}
         {!loading && activeTab === 'coin-fees' && <AdminCoinFees />}
       </div>
     </div>
-
-
   );
 };
+
+// ─── Wrapper bọc Provider bên ngoài ───────────────────────────────────────
+const AdminDashboard = () => (
+  <ModalProvider>
+    <AdminDashboardInner />
+  </ModalProvider>
+);
 
 export default AdminDashboard;

@@ -64,8 +64,31 @@ const uploadCompany = multer({
     limits: { fileSize: 15 * 1024 * 1024 }
 });
 
+const newsUploadDir = path.join(__dirname, '../../uploads/news');
+if (!fs.existsSync(newsUploadDir)) {
+    fs.mkdirSync(newsUploadDir, { recursive: true });
+}
+
+const newsStorage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, newsUploadDir),
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'news-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const uploadNews = multer({
+    storage: newsStorage,
+    fileFilter: fileFilter,
+    limits: { fileSize: 10 * 1024 * 1024 }
+});
+
+module.exports = { upload, uploadAvatar: upload, uploadCompany, uploadNews };
+
 module.exports = {
     upload,
     uploadAvatar: upload,
-    uploadCompany
+    uploadCompany,
+    uploadNews
 };
+
