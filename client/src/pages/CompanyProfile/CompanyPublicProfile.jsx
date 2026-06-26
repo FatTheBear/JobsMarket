@@ -323,7 +323,7 @@ export default function CompanyPublicProfile() {
           <div className="col-12 col-lg-4">
             <div className="card border-0 shadow-sm p-4 text-center" style={{ borderRadius: '12px', background: '#fff' }}>
               <img
-                src={company.logo_url || '/default-company-logo.png'}
+                src={company.logo_url || '/img/default-avatar.png'}
                 alt="company logo"
                 className="rounded-3 border mx-auto mb-3"
                 style={{ width: '120px', height: '120px', objectFit: 'cover' }}

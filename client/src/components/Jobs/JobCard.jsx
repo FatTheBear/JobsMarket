@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import './JobCard.css';
 import axios from 'axios';
 
-
+const FAVORITE_JOBS_STORAGE_KEY = 'candidate_favorite_jobs';
 
 const removeAccents = (str) => {
   if (!str) return '';
@@ -39,6 +39,18 @@ export default function JobCard({ job, onClick }) {
   const [feedbackMessage, setFeedbackMessage] = useState({ type: "", text: "" });
   const [myCVs, setMyCVs] = useState([]);
   const [isLoadingCVs, setIsLoadingCVs] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(FAVORITE_JOBS_STORAGE_KEY);
+    if (!stored) return;
+    try {
+      const favorites = JSON.parse(stored);
+      setIsSaved(Array.isArray(favorites) && favorites.some(item => item.id === job.id));
+    } catch (err) {
+      console.error('Failed to parse favorite jobs from localStorage:', err);
+    }
+  }, [job.id]);
 
   const {
     id: jobId,
@@ -57,7 +69,7 @@ export default function JobCard({ job, onClick }) {
   } = job;
 
   const getValidLogo = () => {
-    if (imgError || !logo_url) return '/default-company-logo.png';
+    if (imgError || !logo_url) return '/img/default-avatar.png';
     if (logo_url.startsWith('data:image')) return logo_url;
     if (logo_url.startsWith('http')) return logo_url;
     return `${API_URL}${logo_url}`;
@@ -106,6 +118,41 @@ export default function JobCard({ job, onClick }) {
     setFeedbackMessage({ type: "", text: "" });
     setSelectedCvId("");
     fetchMyCVs();
+  };
+
+  const toggleSaveJob = (e) => {
+    e.stopPropagation();
+    try {
+      const stored = localStorage.getItem(FAVORITE_JOBS_STORAGE_KEY);
+      const favorites = stored ? JSON.parse(stored) : [];
+      const existingIndex = favorites.findIndex(item => item.id === job.id);
+
+      let updatedFavorites;
+      if (existingIndex >= 0) {
+        updatedFavorites = favorites.filter(item => item.id !== job.id);
+      } else {
+        const favoriteJob = {
+          id: job.id,
+          title: job.title,
+          company_name: job.company_name,
+          logo_url: job.logo_url,
+          job_type: job.job_type,
+          salary_min: job.salary_min,
+          salary_max: job.salary_max,
+          province: job.province,
+          district: job.district,
+          exact_address: job.exact_address,
+          saved_at: new Date().toISOString()
+        };
+        updatedFavorites = [...favorites, favoriteJob];
+      }
+
+      localStorage.setItem(FAVORITE_JOBS_STORAGE_KEY, JSON.stringify(updatedFavorites));
+      setIsSaved(existingIndex < 0);
+      window.dispatchEvent(new Event('favoriteJobsUpdated'));
+    } catch (err) {
+      console.error('Failed to save job preference:', err);
+    }
   };
 
   const handleApplySubmit = async (e) => {
@@ -169,12 +216,21 @@ export default function JobCard({ job, onClick }) {
           {formatDeadline() && (
             <p className="job-card-deadline">Deadline: {formatDeadline()}</p>
           )}
-          <button
-            className="job-card-apply-btn"
-            onClick={handleOpenApplyModal}
-          >
-            Apply Now
-          </button>
+          <div className="job-card-actions">
+            <button
+              className="job-card-apply-btn"
+              onClick={handleOpenApplyModal}
+            >
+              Apply Now
+            </button>
+            <button
+              className={`job-card-save-btn ${isSaved ? 'saved' : ''}`}
+              onClick={toggleSaveJob}
+              type="button"
+            >
+              {isSaved ? 'Saved' : 'Save'}
+            </button>
+          </div>
           <div className="job-card-footer">
             <div className="job-card-tags">
               <span className="job-tag tag-salary">{formatSalary()}</span>
