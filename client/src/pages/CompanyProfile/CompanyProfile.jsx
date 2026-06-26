@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import styles from './CompanyProfile.module.css';
 const API_URL = 'http://localhost:5000';
 
+// Keep industry names in English by default; no translation map.
+
 const getHrId = () => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -25,7 +27,7 @@ const getHrId = () => {
 const EMPLOYEE_OPTIONS = ['Under 10', '10 - 50', '50 - 100', '100 - 300', '300 - 500', '500 - 1000', 'Over 1000'];
 const BRANCH_OPTIONS = ['1', '2 - 5', '5 - 10', '10 - 20', 'Over 20'];
 const AGE_OPTIONS = ['Under 22', '22 - 25', '25 - 30', '30 - 35', 'Over 35'];
-const TABS = ['Overview', 'Structure', 'Images', 'Other'];
+const TABS = ['Overview', 'Structure', 'Other'];
 
 export default function CompanyProfile() {
 const navigate = useNavigate();
@@ -34,9 +36,21 @@ const navigate = useNavigate();
   const [isEdit, setIsEdit] = useState(false);
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [logoPreview, setLogoPreview] = useState(null);
+  const [coverPreview, setCoverPreview] = useState(null);
   const fileInputRef = useRef();
+  const coverInputRef = useRef();
   const [industries, setIndustries] = useState([]);
   const [errors, setErrors] = useState({});
+
+  const [originalName, setOriginalName] = useState('');
+  const [originalAddress, setOriginalAddress] = useState('');
+  const [nameLocked, setNameLocked] = useState(false);
+  const [addressLocked, setAddressLocked] = useState(false);
+
+  // Change password flow
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpCooldownMs, setOtpCooldownMs] = useState(0);
+  const [changePwd, setChangePwd] = useState({ otp: '', newPassword: '', confirmPassword: '' });
 
   const [form, setForm] = useState({
     name: '',
@@ -97,7 +111,32 @@ const navigate = useNavigate();
           size: data.size || '',
           description: data.description || ''
         }));
-        if (data.logo_url) setLogoPreview(`${API_URL}${data.logo_url}`);
+        setOriginalName(data.name || '');
+        setOriginalAddress(data.address || '');
+        const hrIdKey = getHrId();
+        const nameFlag = localStorage.getItem(`company_name_changed_hr_${hrIdKey}`) === '1';
+        const addrFlag = localStorage.getItem(`company_address_changed_hr_${hrIdKey}`) === '1';
+        setNameLocked(!!nameFlag);
+        setAddressLocked(!!addrFlag);
+        if (data.logo_url) {
+          const raw = data.logo_url;
+          // If stored as absolute URL or data URI, use directly. Otherwise prepend API_URL and ensure leading slash.
+          if (raw.startsWith('http') || raw.startsWith('data:')) {
+            setLogoPreview(raw);
+          } else {
+            const path = raw.startsWith('/') ? raw : `/${raw}`;
+            setLogoPreview(`${API_URL}${path}`);
+          }
+        }
+        if (data.cover_image_url) {
+          const raw = data.cover_image_url;
+          if (raw.startsWith('http') || raw.startsWith('data:')) {
+            setCoverPreview(raw);
+          } else {
+            const path = raw.startsWith('/') ? raw : `/${raw}`;
+            setCoverPreview(`${API_URL}${path}`);
+          }
+        }
         setIsEdit(true);
       }
     } catch { 
@@ -126,6 +165,22 @@ const navigate = useNavigate();
     reader.onloadend = () => {
       setLogoPreview(reader.result);
     };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCoverChange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showToast('Only image files accepted for cover', 'error');
+      return;
+    }
+
+    setForm(prev => ({ ...prev, coverFile: file }));
+
+    const reader = new FileReader();
+    reader.onloadend = () => setCoverPreview(reader.result);
     reader.readAsDataURL(file);
   };
 
@@ -168,9 +223,8 @@ const navigate = useNavigate();
       submitData.append('size', form.size);
       submitData.append('description', form.description);
 
-      if (form.logoFile) {
-        submitData.append('logo', form.logoFile);
-      }
+      if (form.logoFile) submitData.append('logo', form.logoFile);
+      if (form.coverFile) submitData.append('cover_image', form.coverFile);
 
       const method = isEdit ? 'PUT' : 'POST';
       const url = isEdit ? `${API_URL}/api/company/${hrId}` : `${API_URL}/api/company`;
@@ -190,7 +244,46 @@ const navigate = useNavigate();
       if (res.ok) {
         showToast(isEdit ? 'Profile updated successfully!' : 'Company profile created!', 'success');
         setIsEdit(true);
+        // If name/address changed, lock edits once
+        const hrIdKey = getHrId();
+        if (form.name && form.name !== originalName) {
+          localStorage.setItem(`company_name_changed_hr_${hrIdKey}`, '1');
+          setNameLocked(true);
+        }
+        if (form.address && form.address !== originalAddress) {
+          localStorage.setItem(`company_address_changed_hr_${hrIdKey}`, '1');
+          setAddressLocked(true);
+        }
+        console.log('CompanyProfile - dispatching profileUpdated');
         window.dispatchEvent(new Event('profileUpdated'));
+        // Also dispatch the new avatar so NavBar can update immediately
+        try {
+          let newAvatar = null;
+          if (form.logoFile && logoPreview) {
+            newAvatar = logoPreview;
+          } else if (data && data.logo_url) {
+            const raw = data.logo_url;
+            if (raw.startsWith('http') || raw.startsWith('data:')) newAvatar = raw;
+            else newAvatar = `${API_URL}${raw.startsWith('/') ? raw : `/${raw}`}`;
+          }
+          console.log('CompanyProfile - logoPreview:', logoPreview ? (logoPreview.substring ? logoPreview.substring(0,100) : logoPreview) : null, 'data.logo_url:', data?.logo_url, 'computed newAvatar:', newAvatar ? (newAvatar.substring ? newAvatar.substring(0,200) : newAvatar) : null);
+          if (newAvatar) {
+            // add cache-buster to force reload in navbar
+            let dispatchedAvatar = newAvatar;
+            try {
+              if (dispatchedAvatar.startsWith('http')) {
+                const sep = dispatchedAvatar.includes('?') ? '&' : '?';
+                dispatchedAvatar = `${dispatchedAvatar}${sep}_cb=${Date.now()}`;
+              }
+            } catch (e) {}
+            console.log('CompanyProfile - dispatching profileUpdatedWithAvatar ->', dispatchedAvatar.substring ? dispatchedAvatar.substring(0,200) : dispatchedAvatar);
+            window.dispatchEvent(new CustomEvent('profileUpdatedWithAvatar', { detail: { avatar: dispatchedAvatar } }));
+          } else {
+            console.log('CompanyProfile - no avatar to dispatch');
+          }
+        } catch (e) {
+          console.error('CompanyProfile - avatar dispatch error', e);
+        }
       } else {
         showToast(data.message || 'An error occurred', 'error');
       }
@@ -198,6 +291,67 @@ const navigate = useNavigate();
       showToast('Cannot connect to server. Please try again.', 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Password change flows
+  const handleSendOtp = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      setOtpCooldownMs(60000);
+      setOtpSent(true);
+      const res = await fetch(`${API_URL}/api/auth/change-password/request`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        showToast(data.message || 'Cannot send OTP', 'error');
+        setOtpSent(false);
+        setOtpCooldownMs(0);
+        return;
+      }
+      showToast('OTP sent to your email', 'success');
+      // start cooldown timer
+      const interval = setInterval(() => {
+        setOtpCooldownMs(prev => {
+          if (prev <= 1000) { clearInterval(interval); return 0; }
+          return prev - 1000;
+        });
+      }, 1000);
+    } catch (err) {
+      showToast('Error sending OTP', 'error');
+      setOtpSent(false);
+      setOtpCooldownMs(0);
+    }
+  };
+
+  const handleConfirmPassword = async () => {
+    if (!changePwd.otp || !changePwd.newPassword || !changePwd.confirmPassword) {
+      showToast('Please fill all fields', 'error');
+      return;
+    }
+    if (changePwd.newPassword !== changePwd.confirmPassword) {
+      showToast('Passwords do not match', 'error');
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`${API_URL}/api/auth/change-password/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ otp: changePwd.otp, newPassword: changePwd.newPassword })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(data.message || 'Password updated', 'success');
+        setChangePwd({ otp: '', newPassword: '', confirmPassword: '' });
+        setOtpSent(false);
+      } else {
+        showToast(data.message || 'Error', 'error');
+      }
+    } catch (err) {
+      showToast('Cannot connect to server', 'error');
     }
   };
 
@@ -227,30 +381,46 @@ return (
 
           {activeTab === 0 && (
             <div className={styles.tabContent}>
+              {/* Preview header similar to public company profile (cover, logo, name, industry) */}
+              {/* removed preview header - reverted to simpler Images card */}
               <div className={styles.card}>
-                <div className={styles.cardHeader}>Company Logo</div>
+                <div className={styles.cardHeader}>Company Images</div>
                 <div className={styles.cardBody}>
-                  <div className={styles.logoRow}>
-                    <div className={styles.logoPreview}>
-                      {logoPreview
-                        ? <img src={logoPreview} alt="Logo" />
-                        : <div className={styles.logoPlaceholder}>LOGO</div>}
+                  { (logoPreview || coverPreview) ? (
+                    <div className={styles.logoRow}>
+                      <div className={styles.coverPreview}>
+                        {coverPreview ? <img src={coverPreview} alt="Cover" /> : null}
+                      </div>
+                      <div className={styles.logoPreview}>
+                        {logoPreview ? <img src={logoPreview} alt="Logo" /> : null}
+                      </div>
+                      <div className={styles.logoActions}>
+                        <p className={styles.logoHint}>Formats: JPG, PNG, GIF, WEBP · Max 5MB</p>
+                        <div className={styles.logoButtons}>
+                          <input ref={coverInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleCoverChange} />
+                          <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleLogoChange} />
+                          <button type="button" className={styles.btnSecondary} onClick={() => fileInputRef.current.click()}>Select Logo</button>
+                          <button type="button" className={styles.btnSecondary} onClick={() => coverInputRef.current.click()}>Select Cover</button>
+                          {logoPreview && (
+                            <button type="button" className={styles.btnDanger} onClick={() => { setLogoPreview(null); setForm(p => ({ ...p, logoFile: null, logo_url: '' })); }}>Remove Logo</button>
+                          )}
+                          {coverPreview && (
+                            <button type="button" className={styles.btnDanger} onClick={() => { setCoverPreview(null); setForm(p => ({ ...p, coverFile: null, cover_image_url: '' })); }}>Remove Cover</button>
+                          )}
+                        </div>
+                      </div>
                     </div>
+                  ) : (
                     <div className={styles.logoActions}>
                       <p className={styles.logoHint}>Formats: JPG, PNG, GIF, WEBP · Max 5MB</p>
                       <div className={styles.logoButtons}>
+                        <input ref={coverInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleCoverChange} />
                         <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleLogoChange} />
-                        <button type="button" className={styles.btnSecondary} onClick={() => fileInputRef.current.click()}>
-                          Select Image
-                        </button>
-                        {logoPreview && (
-                          <button type="button" className={styles.btnDanger} onClick={() => { setLogoPreview(null); setForm(p => ({ ...p, logoFile: null, logo_url: '' })); }}>
-                            Remove
-                          </button>
-                        )}
+                        <button type="button" className={styles.btnSecondary} onClick={() => fileInputRef.current.click()}>Select Logo</button>
+                        <button type="button" className={styles.btnSecondary} onClick={() => coverInputRef.current.click()}>Select Cover</button>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -260,7 +430,7 @@ return (
                   <div className={styles.formRow}>
                     <div className={styles.formGroup}>
                       <label className={styles.label}>Company Name <span className={styles.req}>*</span></label>
-                      <input className={`${styles.input} ${errors.name ? styles.hasError : ''}`} name="name" value={form.name} onChange={handleFormChange} placeholder="Company Ltd." />
+                      <input className={`${styles.input} ${errors.name ? styles.hasError : ''}`} name="name" value={form.name} onChange={handleFormChange} placeholder="Company Ltd." disabled={nameLocked} />
                       {errors.name && <span className={styles.errorText}>{errors.name}</span>}
                     </div>
                     <div className={styles.formGroup}>
@@ -295,9 +465,39 @@ return (
                   <div className={styles.formRow}>
                     <div className={styles.formGroupFull}>
                       <label className={styles.label}>Headquarters Address</label>
-                      <textarea className={styles.textarea} name="address" value={form.address} onChange={handleFormChange} placeholder="Full company address..." rows={3} />
+                      <textarea className={styles.textarea} name="address" value={form.address} onChange={handleFormChange} placeholder="Full company address..." rows={3} disabled={addressLocked} />
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 2 && (
+            <div className={styles.tabContent}>
+              <div className={styles.card}>
+                <div className={styles.cardHeader}>Account & Security</div>
+                <div className={styles.cardBody}>
+                  <div className={styles.formRow}>
+                    <div className={styles.formGroupFull}>
+                      <label className={styles.label}>Change Password</label>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        <button type="button" className={styles.btnSecondary} onClick={handleSendOtp} disabled={otpCooldownMs > 0}>
+                          {otpCooldownMs > 0 ? `Wait ${Math.ceil(otpCooldownMs/1000)}s` : 'Send OTP'}
+                        </button>
+                        <span style={{ color: '#666' }}>{otpSent ? 'OTP sent — check your email' : ''}</span>
+                      </div>
+                      <div style={{ marginTop: 12 }}>
+                        <input className={styles.input} placeholder="OTP code" value={changePwd.otp} onChange={e => setChangePwd(p => ({ ...p, otp: e.target.value }))} />
+                        <input className={styles.input} placeholder="New password" type="password" value={changePwd.newPassword} onChange={e => setChangePwd(p => ({ ...p, newPassword: e.target.value }))} />
+                        <input className={styles.input} placeholder="Confirm new password" type="password" value={changePwd.confirmPassword} onChange={e => setChangePwd(p => ({ ...p, confirmPassword: e.target.value }))} />
+                        <div style={{ marginTop: 8 }}>
+                          <button type="button" className={styles.btnSave} onClick={handleConfirmPassword}>Update Password</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -330,6 +530,8 @@ return (
               </div>
             </div>
           )}
+
+          {/* Images shown in Overview tab */}
 
           <div className={styles.formActions}>
             <button type="button" className={styles.btnCancel} onClick={fetchCompany} disabled={loading}>
