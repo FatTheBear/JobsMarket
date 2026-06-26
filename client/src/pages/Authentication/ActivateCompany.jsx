@@ -5,13 +5,13 @@ import styles from './Login.module.css';
 
 export default function ActivateCompany() {
   const navigate = useNavigate();
-  
-  const urlCode = searchParams.get("code") || "";
+  const [searchParams] = useSearchParams();
+  // const urlCode = searchParams.get("code") || "";
 
   const [activationCode, setActivationCode] = useState(urlCode);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [searchParams] = useSearchParams();
+  
   const id = searchParams.get("id"); // Lấy ID từ URL
   const code = searchParams.get("code"); // Lấy Code từ URL
 
@@ -47,7 +47,7 @@ export default function ActivateCompany() {
         setSuccess("Account activated successfully! Redirecting...");
         
         setTimeout(() => {
-          navigate("/company-profile");
+          navigate("/profile");
         }, 1500);
       }
     } catch (error) {

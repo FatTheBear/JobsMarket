@@ -858,7 +858,7 @@ exports.approveCompany = async (req, res) => {
         const templatePath = path.join(__dirname, '..', 'services', 'email', 'templates', 'company_active.html');
         let htmlContent = fs.readFileSync(templatePath, 'utf8');
 
-        const activationLink = `http://localhost:3000/activate-company?id=${id}&code=${activationCode}`;
+        const activationLink = `http://localhost:5173/activate-company?id=${id}&code=${activationCode}`;
 
         htmlContent = htmlContent
           .replace(/{{COMPANY_NAME}}/g, companyName)
