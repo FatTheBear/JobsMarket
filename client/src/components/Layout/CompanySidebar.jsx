@@ -28,6 +28,13 @@ export default function CompanySidebar() {
         Dashboard
       </Link>
 
+      <Link
+        to="/company/profile"
+        className={`jp-menu-item ${location.pathname === "/company/profile" || location.pathname.includes('/company/profile') ? 'active' : ''}`}
+      >
+        Company Profile
+      </Link>
+
       <div className="jp-menu-group">
         <div className="jp-menu-title">JOB MANAGEMENT</div>
 

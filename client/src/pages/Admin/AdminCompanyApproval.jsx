@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useModal } from './useModal'; // Đảm bảo đường dẫn này đúng
 
 export default function AdminCompanyApproval() {
+    const { showAlert, showConfirm } = useModal();
     const [companies, setCompanies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [actionId, setActionId] = useState(null);
@@ -21,14 +23,16 @@ export default function AdminCompanyApproval() {
             });
             setCompanies(response.data);
         } catch (error) {
-            showToast("Failed to load pending companies.", "error");
+            await showAlert("Failed to load pending companies.", "error");
         } finally {
             setLoading(false);
         }
     };
 
     const handleApprove = async (companyId, companyName) => {
-        if (!window.confirm(`Are you sure you want to approve ${companyName}?`)) return;
+        // Thay thế confirm bằng modal
+        const confirmed = await showConfirm(`Are you sure you want to approve ${companyName}?`);
+        if (!confirmed) return;
 
         setActionId(companyId);
         try {
@@ -38,17 +42,13 @@ export default function AdminCompanyApproval() {
             });
 
             setCompanies(companies.filter(c => c.company_id !== companyId));
-            showToast(`Approved! Activation code for ${companyName}: ${response.data.activationCode}`, "success");
+            // Thông báo thành công với modal
+            await showAlert(`Approved! Activation code for ${companyName}: ${response.data.activationCode}`, "success");
         } catch (error) {
-            showToast(error.response?.data?.message || "Failed to approve company.", "error");
+            await showAlert(error.response?.data?.message || "Failed to approve company.", "error");
         } finally {
             setActionId(null);
         }
-    };
-
-    const showToast = (message, type) => {
-        setToast({ show: true, message, type });
-        setTimeout(() => setToast({ show: false, message: "", type: "" }), 6000);
     };
 
     if (loading) {
@@ -57,28 +57,6 @@ export default function AdminCompanyApproval() {
 
     return (
         <div>
-            {toast.show && (
-                <div style={{
-                    padding: "15px",
-                    marginBottom: "20px",
-                    borderRadius: "8px",
-                    backgroundColor: toast.type === "success" ? "#d4edda" : "#f8d7da",
-                    color: toast.type === "success" ? "#155724" : "#721c24",
-                    border: `1px solid ${toast.type === "success" ? "#c3e6cb" : "#f5c6cb"}`,
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center"
-                }}>
-                    <strong>{toast.message}</strong>
-                    <button 
-                        onClick={() => setToast({ show: false, message: "", type: "" })}
-                        style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: "16px" }}
-                    >
-                        ✖
-                    </button>
-                </div>
-            )}
-
             <h1 className="admin-title">
                 Company Approval
             </h1>

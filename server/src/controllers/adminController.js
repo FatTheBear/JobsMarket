@@ -224,21 +224,29 @@ exports.getNews = async (req, res) => {
     try {
         const [newsList] = await db.query(`
             SELECT
-                n.*,
+                n.id,
+                n.title,
+                n.slug,
+                n.thumbnail_url,
+                n.short_description,
+                n.content,
+                n.status,
+                n.is_featured,
+                n.view_count,
+                n.published_at,
+                n.created_at,
+                n.admin_id,
+                n.category_id,
                 nc.name AS category_name
             FROM news n
-            LEFT JOIN news_category nc
-                ON n.category_id = nc.id
+            LEFT JOIN news_category nc ON n.category_id = nc.id
             ORDER BY n.created_at DESC
         `);
 
         res.json(newsList);
-
     } catch (error) {
         console.error("NEWS ERROR:", error);
-        res.status(500).json({
-            message: error.message
-        });
+        res.status(500).json({ message: error.message });
     }
 };
 
@@ -295,8 +303,9 @@ exports.createNews = async (req, res) => {
             });
         }
 
+        // createNews
         const thumbnail_url = req.file
-            ? `/uploads/${req.file.filename}`
+            ? `/uploads/news/${req.file.filename}`
             : "";
 
         const [result] = await db.query(
@@ -375,10 +384,10 @@ exports.updateNews = async (req, res) => {
         }
 
         // 3. fix thumbnail không bị xoá khi update
-        const finalThumbnail =
-            req.file
-                ? `/uploads/${req.file.filename}`
-                : thumbnail_url || null;
+        // updateNews
+        const finalThumbnail = req.file
+            ? `/uploads/news/${req.file.filename}`
+            : thumbnail_url || null;
 
         await db.query(
             `UPDATE news SET
@@ -793,8 +802,8 @@ exports.banAccount = async (req, res) => {
 
 
 exports.getPendingCompanies = async (req, res) => {
-  try {
-    const [rows] = await pool.query(`
+    try {
+        const [rows] = await pool.query(`
       SELECT 
         id AS company_id,
         hr_id,
@@ -811,96 +820,96 @@ exports.getPendingCompanies = async (req, res) => {
       WHERE status = 'Pending'
       ORDER BY created_at DESC
     `);
-    
-    return res.status(200).json(rows);
-  } catch (error) {
-    // THÊM DÒNG NÀY ĐỂ BẮT ĐÚNG LỖI CỘT NÀO
-    console.error("GET PENDING COMPANIES ERROR:", error); 
-    return res.status(500).json({ message: "Internal server error", error: error.message });
-  }
+
+        return res.status(200).json(rows);
+    } catch (error) {
+        // THÊM DÒNG NÀY ĐỂ BẮT ĐÚNG LỖI CỘT NÀO
+        console.error("GET PENDING COMPANIES ERROR:", error);
+        return res.status(500).json({ message: "Internal server error", error: error.message });
+    }
 };
 exports.approveCompany = async (req, res) => {
-  const { id } = req.params;
-  const activationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+    const { id } = req.params;
+    const activationCode = crypto.randomBytes(3).toString('hex').toUpperCase();
 
-  try {
-    const [companyData] = await pool.query(
-      `SELECT c.name, u.email 
+    try {
+        const [companyData] = await pool.query(
+            `SELECT c.name, u.email 
        FROM Company c
        JOIN user u ON c.hr_id = u.id
        WHERE c.id = ? AND c.status = 'Pending'`,
-      [id]
-    );
+            [id]
+        );
 
-    if (companyData.length === 0) {
-      return res.status(404).json({ message: "Company not found or already processed" });
-    }
+        if (companyData.length === 0) {
+            return res.status(404).json({ message: "Company not found or already processed" });
+        }
 
-    const companyEmail = companyData[0].email;
-    const companyName = companyData[0].name;
+        const companyEmail = companyData[0].email;
+        const companyName = companyData[0].name;
 
-    // 1. Update Database
-    await pool.query(
-      `UPDATE Company 
+        // 1. Update Database
+        await pool.query(
+            `UPDATE Company 
        SET status = 'Approved', activation_code = ? 
        WHERE id = ?`,
-      [activationCode, id]
-    );
+            [activationCode, id]
+        );
 
-    // 2. Log activation details for debugging/testing
-    console.log(`\nSUCCESS: Company approved - ${companyName}`);
-    console.log(`ACTIVATION CODE: ${activationCode}`);
-    console.log(`SENDING TO EMAIL: ${companyEmail || 'NOT FOUND IN DB'}\n`);
+        // 2. Log activation details for debugging/testing
+        console.log(`\nSUCCESS: Company approved - ${companyName}`);
+        console.log(`ACTIVATION CODE: ${activationCode}`);
+        console.log(`SENDING TO EMAIL: ${companyEmail || 'NOT FOUND IN DB'}\n`);
 
-    // 3. Handle Email Sending Fallback
-    if (companyEmail) {
-      try {
-        const templatePath = path.join(__dirname, '..', 'services', 'email', 'templates', 'company_active.html');
-        let htmlContent = fs.readFileSync(templatePath, 'utf8');
+        // 3. Handle Email Sending Fallback
+        if (companyEmail) {
+            try {
+                const templatePath = path.join(__dirname, '..', 'services', 'email', 'templates', 'company_active.html');
+                let htmlContent = fs.readFileSync(templatePath, 'utf8');
 
-        const activationLink = `http://localhost:5173/activate-company?id=${id}&code=${activationCode}`;
+                const activationLink = `http://localhost:5173/activate-company?id=${id}&code=${activationCode}`;
 
-        htmlContent = htmlContent
-          .replace(/{{COMPANY_NAME}}/g, companyName)
-          .replace(/{{ACTIVATION_CODE}}/g, activationCode)
-          .replace(/{{ACTIVATION_LINK}}/g, activationLink);
+                htmlContent = htmlContent
+                    .replace(/{{COMPANY_NAME}}/g, companyName)
+                    .replace(/{{ACTIVATION_CODE}}/g, activationCode)
+                    .replace(/{{ACTIVATION_LINK}}/g, activationLink);
 
-        const transporter = nodemailer.createTransport({
-          host: process.env.EMAIL_HOST,
-          port: process.env.EMAIL_PORT,
-          secure: false, // Required false for port 587, true for port 465
-          auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-          }
-        });
+                const transporter = nodemailer.createTransport({
+                    host: process.env.EMAIL_HOST,
+                    port: process.env.EMAIL_PORT,
+                    secure: false, // Required false for port 587, true for port 465
+                    auth: {
+                        user: process.env.EMAIL_USER,
+                        pass: process.env.EMAIL_PASS
+                    }
+                });
 
-        const mailOptions = {
-          from: '"JobsMarket Team" <jobsmarket33@gmail.com>',
-          to: companyEmail,
-          subject: 'Your Company Account Has Been Approved!',
-          html: htmlContent
-        };
+                const mailOptions = {
+                    from: '"JobsMarket Team" <jobsmarket33@gmail.com>',
+                    to: companyEmail,
+                    subject: 'Your Company Account Has Been Approved!',
+                    html: htmlContent
+                };
 
-        // Attempt to send email
-        await transporter.sendMail(mailOptions);
-        console.log("Email sent successfully!");
+                // Attempt to send email
+                await transporter.sendMail(mailOptions);
+                console.log("Email sent successfully!");
 
-      } catch (mailError) {
-        // Fallback: Log error but do not crash the API if SMTP fails
-        console.error("Mail Error (Company was still approved in DB):", mailError.message);
-      }
-    } else {
-      console.warn("Warning: Skipped email sending because no email was found in the database.");
+            } catch (mailError) {
+                // Fallback: Log error but do not crash the API if SMTP fails
+                console.error("Mail Error (Company was still approved in DB):", mailError.message);
+            }
+        } else {
+            console.warn("Warning: Skipped email sending because no email was found in the database.");
+        }
+
+        // 4. Return success response to Frontend
+        return res.status(200).json({ message: "Company approved successfully", activationCode });
+
+    } catch (error) {
+        console.error("APPROVE COMPANY ERROR:", error);
+        return res.status(500).json({ message: "Internal Server Error", error: error.message });
     }
-
-    // 4. Return success response to Frontend
-    return res.status(200).json({ message: "Company approved successfully", activationCode });
-
-  } catch (error) {
-    console.error("APPROVE COMPANY ERROR:", error);
-    return res.status(500).json({ message: "Internal Server Error", error: error.message });
-  }
 };
 // GET /admin/dashboard-trends?period=7d|30d|12m
 exports.getDashboardTrends = async (req, res) => {
@@ -1012,9 +1021,9 @@ exports.activateCompany = async (req, res) => {
       [id, activationCode]
     );
 
-    if (companies.length === 0) {
-      return res.status(400).json({ message: "Invalid ID or activation code!" });
-    }
+        if (companies.length === 0) {
+            return res.status(400).json({ message: "Invalid ID or activation code!" });
+        }
 
     // Nếu khớp, kích hoạt ngay
     await pool.query(

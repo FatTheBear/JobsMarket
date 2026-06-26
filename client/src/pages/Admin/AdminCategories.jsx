@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import './Admin.css'; 
+import './Admin.css';
+import { useModal } from './useModal';
 
 const AdminCategories = ({ 
   categories, 
@@ -10,37 +11,34 @@ const AdminCategories = ({
   onDeleteSkill, 
   onDeleteIndustry 
 }) => {
+  const { showAlert } = useModal();
   const [newSkill, setNewSkill] = useState('');
   const [newIndustry, setNewIndustry] = useState('');
 
   const submitSkill = async () => {
-    if (!newSkill.trim()) return alert("Please enter a skill name!");
+    if (!newSkill.trim()) return showAlert("Please enter a skill name!", "warning");
     await onAddSkill(newSkill.trim());
-    setNewSkill(''); // Xóa chữ trong ô input sau khi thêm thành công
+    setNewSkill('');
   };
 
   const submitIndustry = async () => {
-    if (!newIndustry.trim()) return alert("Please enter an industry name!");
+    if (!newIndustry.trim()) return showAlert("Please enter an industry name!", "warning");
     await onAddIndustry(newIndustry.trim());
-    setNewIndustry(''); // Xóa chữ trong ô input sau khi thêm thành công
+    setNewIndustry('');
   };
 
   return (
     <div>
-      {/* HEADER: Tiêu đề và nút làm mới dữ liệu */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <h1 className="admin-title">System Categories</h1>
         <button className="admin-btn-primary" style={{ background: '#5a5a5a' }} onClick={onRefresh}>Refresh Data</button>
       </div>
 
-      {/* BỐ CỤC CHIA ĐÔI: Skills bên trái, Industries bên phải */}
       <div className="categories-grid">
         
         {/* KHỐI QUẢN LÝ SKILLS */}
         <div>
           <h3 style={{ marginBottom: '12px', color: '#01796F' }}>Skills List</h3>
-          
-          {/* Ô nhập và nút thêm Skill */}
           <div className="admin-input-group">
             <input 
               type="text" 
@@ -55,7 +53,6 @@ const AdminCategories = ({
             </button>
           </div>
 
-          {/* Bảng hiển thị danh sách Skills */}
           <div className="table-container">
             <table className="admin-table">
               <thead>
@@ -95,8 +92,6 @@ const AdminCategories = ({
         {/* KHỐI QUẢN LÝ INDUSTRIES */}
         <div>
           <h3 style={{ marginBottom: '12px', color: '#01796F' }}>Industries List</h3>
-          
-          {/* Ô nhập và nút thêm Industry */}
           <div className="admin-input-group">
             <input 
               type="text" 
@@ -111,7 +106,6 @@ const AdminCategories = ({
             </button>
           </div>
 
-          {/* Bảng hiển thị danh sách Industries */}
           <div className="table-container">
             <table className="admin-table">
               <thead>

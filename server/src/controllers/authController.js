@@ -79,8 +79,12 @@ const authController = {
                 return res.status(400).json({ message: "Company logo and business license are required." });
             }
 
-            const logoUrl = req.files['logo'][0].path.replace(/\\/g, '/');
-            const businessLicenseUrl = req.files['businessLicense'][0].path.replace(/\\/g, '/');
+            // Normalize stored paths so frontend can reliably prefix API_URL
+            // Multer for company registration stores files in uploads/companies with a generated filename
+            const logoFilename = req.files['logo'][0].filename;
+            const businessLicenseFilename = req.files['businessLicense'][0].filename;
+            const logoUrl = `/uploads/companies/${logoFilename}`;
+            const businessLicenseUrl = `/uploads/companies/${businessLicenseFilename}`;
 
             const saltRounds = 10;
             const passwordHash = await bcrypt.hash(password, saltRounds);
