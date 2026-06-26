@@ -112,7 +112,7 @@ const CandidateEducation = ({
     <>
       {/* Column 2: Education Section */}
       <div className="w-100">
-        <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
+        <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column" style={{ height: '380px' }}>
           <div className="card-body p-4 d-flex flex-column h-100">
             <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
               <div className="d-flex align-items-center gap-2">
@@ -131,7 +131,7 @@ const CandidateEducation = ({
               </div>
             </div>
 
-            <div className="d-flex flex-column gap-3">
+            <div className="d-flex flex-column gap-3 resume-scroll-container">
               {educations.length === 0 ? (
                 <div className="text-center py-5 text-muted small">
                   <i className="fas fa-graduation-cap fs-3 mb-2 text-muted opacity-50"></i>
@@ -148,9 +148,18 @@ const CandidateEducation = ({
                         <i className="fas fa-trash-alt text-muted hover-danger" style={{ fontSize: '0.85rem' }}></i>
                       </button>
                     </div>
-                    <h6 className="fw-bold mb-3 text-dark text-hover-primary" style={{ fontSize: '0.95rem', paddingRight: '45px', lineHeight: '1.4' }}>
-                      {edu.degree}
-                    </h6>
+                    {(() => {
+                      let displayDegree = edu.degree || '';
+                      if (displayDegree.includes(' - ')) {
+                        const parts = displayDegree.split(/\s*[-–—]\s*/);
+                        displayDegree = parts[1]?.trim() || displayDegree;
+                      }
+                      return (
+                        <h6 className="fw-bold mb-3 text-dark text-hover-primary" style={{ fontSize: '0.95rem', paddingRight: '45px', lineHeight: '1.4' }}>
+                          {displayDegree}
+                        </h6>
+                      );
+                    })()}
                     <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
                       <span className="text-muted small fw-semibold" style={{ fontSize: '0.75rem' }}>
                         <i className="fas fa-university text-primary me-1.5"></i>
@@ -192,6 +201,7 @@ const CandidateEducation = ({
                   <i className="fas fa-exclamation-triangle me-1.5"></i> {modalError}
                 </div>
               )}
+
               <div style={{ position: 'relative' }}>
                 <label className="form-label fw-semibold text-secondary small">Degree / Field of Study <span className="text-danger">*</span></label>
                 <input
@@ -300,7 +310,16 @@ export const CandidateEducationManager = ({ educations, onOpenModal, onDelete })
         {educations.map((edu) => (
           <div key={edu.id} className="d-flex justify-content-between align-items-center p-2.5 rounded border bg-light">
             <div>
-              <p className="fw-bold mb-0 text-dark small">{edu.degree}</p>
+              {(() => {
+                let displayDegree = edu.degree || '';
+                if (displayDegree.includes(' - ')) {
+                  const parts = displayDegree.split(/\s*[-–—]\s*/);
+                  displayDegree = parts[1]?.trim() || displayDegree;
+                }
+                return (
+                  <p className="fw-bold mb-0 text-dark small">{displayDegree}</p>
+                );
+              })()}
               <p className="mb-0 text-muted small">{edu.school} • {edu.duration}</p>
             </div>
             <div className="d-flex gap-1">

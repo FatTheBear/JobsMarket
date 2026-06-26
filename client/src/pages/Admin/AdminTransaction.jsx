@@ -81,11 +81,6 @@ const AdminTransaction = () => {
                                 <td>{tx.id}</td>
                                 <td>
                                     <strong>{tx.email}</strong>
-                                    {tx.bank_name && (
-                                        <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
-                                            {tx.bank_name} - {tx.bank_account_number} ({tx.bank_account_name})
-                                        </div>
-                                    )}
                                 </td>
                                 <td style={{ color: '#34d399', fontWeight: 'bold' }}>
                                     {Number(tx.amount_fiat).toLocaleString()}đ

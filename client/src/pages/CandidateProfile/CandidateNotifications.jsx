@@ -64,7 +64,7 @@ const CandidateNotifications = () => {
         )}
       </div>
 
-      <div className="card-body p-4 scrollable-notifications" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+      <div className="card-body p-4 scrollable-notifications" style={{ height: '70vh', overflowY: 'auto' }}>
         {loadingNotis ? (
           <div className="text-center py-5">
             <div className="spinner-border text-primary" role="status">

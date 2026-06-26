@@ -16,11 +16,12 @@ export default function ActivateCompany() {
   const handleChange = (e) => {
     setActivationCode(e.target.value.toUpperCase());
   };
-
+console.log("Frontend đang gửi đi - ID:", id, "Code:", activationCode);
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
+
 
     if (!activationCode) {
       setError("Please enter your activation code.");
@@ -31,7 +32,9 @@ export default function ActivateCompany() {
       const response = await axios.post(
        'http://localhost:5000/api/auth/activate-company',
         {
-          activationCode: activationCode.trim()
+          // activationCode: activationCode.trim()
+          id, //
+          activationCode
         }
       );
 
@@ -45,7 +48,7 @@ export default function ActivateCompany() {
         setSuccess("Account activated successfully! Redirecting...");
         
         setTimeout(() => {
-          navigate("/company-profile");
+          navigate("/profile");
         }, 1500);
       }
     } catch (error) {

@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWallet } from '../../../context/WalletContext';
 import RechargeCoins from '../../CandidateProfile/RechargeCoins';
 
 const CompanyWallet = () => {
-  const { coins, transactions } = useWallet();
+  const { coins, transactions, fetchWalletInfo, fetchTransactions } = useWallet();
+  
+  useEffect(() => {
+    fetchWalletInfo();
+    fetchTransactions();
+  }, []);
+
   const [activeWalletTab, setActiveWalletTab] = useState(() => {
     const saved = localStorage.getItem('walletActiveTab');
     if (saved) {
