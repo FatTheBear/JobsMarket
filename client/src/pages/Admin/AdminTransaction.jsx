@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useModal } from './useModal'; // Cần trỏ đúng đường dẫn đến file useModal
 
 const AdminTransaction = () => {
+    const { showAlert, showConfirm } = useModal();
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const fetchTransactions = async () => {
         try {
             const token = localStorage.getItem('token');
-            // Cấu hình endpoint của nhóm
             const res = await axios.get('http://localhost:5000/api/admin/transactions', {
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -23,7 +24,6 @@ const AdminTransaction = () => {
     useEffect(() => {
         fetchTransactions();
         
-        // Polling: Tự động cập nhật danh sách mỗi 5 giây
         const interval = setInterval(() => {
             fetchTransactions();
         }, 5000);
@@ -32,8 +32,11 @@ const AdminTransaction = () => {
     }, []);
 
     const handleUpdateStatus = async (id, newStatus) => {
-        const actionText = newStatus === 'completed' ? 'APPROVE' : 'REJECT';
-        if (!window.confirm(`Are you sure you want to ${actionText} this transaction?`)) return;
+        const actionText = newStatus === 'completed' ? 'Approve' : 'Reject';
+        
+        // Sử dụng modal thay vì window.confirm
+        const confirmed = await showConfirm(`Are you sure you want to ${actionText.toLowerCase()} this transaction?`);
+        if (!confirmed) return;
         
         try {
             const token = localStorage.getItem('token');
@@ -41,10 +44,13 @@ const AdminTransaction = () => {
                 { status: newStatus },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            alert("Transaction processed successfully!");
-            fetchTransactions(); // Tải lại danh sách sau khi update thành công
+            
+            // Sử dụng modal thông báo thành công
+            await showAlert("Transaction processed successfully!", "success");
+            fetchTransactions(); 
         } catch (error) {
-            alert(error.response?.data?.message || "An error occurred!");
+            // Sử dụng modal thông báo lỗi
+            await showAlert(error.response?.data?.message || "An error occurred!", "error");
         }
     };
 
@@ -54,10 +60,8 @@ const AdminTransaction = () => {
 
     return (
         <div>
-            
             <h2 className="admin-title" style={{ color: '#01796F' }}>Manage Coin Transactions</h2>
             
-        
             <div className="table-container">
                 <table className="admin-table">
                     <thead>
@@ -93,7 +97,6 @@ const AdminTransaction = () => {
                                     {tx.reference_code || 'N/A'}
                                 </td>
                                 <td>
-                                    
                                     <span className={`status-badge ${
                                         tx.status === 'completed' ? 'approved' : 
                                         tx.status === 'failed' ? 'rejected' : 'pending'
@@ -105,7 +108,6 @@ const AdminTransaction = () => {
                                 <td>
                                     {tx.status === 'pending' ? (
                                         <div className="btn-group">
-                                            
                                             <button 
                                                 onClick={() => handleUpdateStatus(tx.id, 'completed')} 
                                                 className="btn-approve"

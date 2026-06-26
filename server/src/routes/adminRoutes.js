@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const adminController = require("../controllers/adminController.js");
-const { upload ,uploadAvatar, uploadCompany } = require('../middleware/upload');
+const { upload, uploadAvatar, uploadCompany, uploadNews } = require('../middleware/upload');
 const { authMiddleware, adminMiddleware } = require('../middleware/authMiddleware');
 
 // Áp dụng middleware kiểm tra quyền Admin cho toàn bộ route admin
@@ -24,6 +24,7 @@ router.get('/skills', adminController.getSkills);
 router.get('/industries', adminController.getIndustries);
 router.get('/news', adminController.getNews);
 router.get('/news-categories', adminController.getNewsCategories);
+router.post('/news-categories', adminController.createNewsCategory);
 
 // 4. Thêm mới danh mục dữ liệu nhanh
 router.post('/skills', adminController.createSkill);
@@ -33,8 +34,8 @@ router.post('/industries', adminController.createIndustry);
 router.delete('/industries/:id', adminController.deleteIndustry);
 
 
-router.post("/news",uploadAvatar.single("thumbnail"),adminController.createNews);
-router.put('/news/:id', uploadAvatar.single("thumbnail"), adminController.updateNews);
+router.post("/news", uploadNews.single("thumbnail"), adminController.createNews);
+router.put('/news/:id', uploadNews.single("thumbnail"), adminController.updateNews);
 router.delete('/news/:id', adminController.deleteNews);
 
 
