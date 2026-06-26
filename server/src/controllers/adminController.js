@@ -47,9 +47,11 @@ exports.getStats = async (req, res) => {
 
         const [companyStats] =
             await db.query(`
-        SELECT COUNT(*) totalCompanies
+        SELECT
+          COUNT(*) totalCompanies,
+          COUNT(CASE WHEN status = 'Pending' THEN 1 END) pendingCompanies
         FROM company
-      `);
+    `);
 
         const [newsStats] =
             await db.query(`
@@ -124,6 +126,7 @@ exports.getStats = async (req, res) => {
             rejectedApplicationCount: applicationStats[0].rejectedApplicationCount,
 
             totalCompanies: companyStats[0].totalCompanies,
+            pendingCompanies: companyStats[0].pendingCompanies,
             totalNews: newsStats[0].totalNews,
             totalCVs: cvStats[0].totalCVs,
             totalSkills: skillStats[0].totalSkills,
@@ -1043,20 +1046,20 @@ exports.createNewsCategory = async (req, res) => {
             return res.status(400).json({ message: "Category name is required" });
         }
         const [existing] = await db.query(
-            "SELECT id FROM news_category WHERE name = ?", 
+            "SELECT id FROM news_category WHERE name = ?",
             [name.trim()]
         );
         if (existing.length > 0) {
             return res.status(409).json({ message: "Category already exists" });
         }
         const [result] = await db.query(
-            "INSERT INTO news_category (name) VALUES (?)", 
+            "INSERT INTO news_category (name) VALUES (?)",
             [name.trim()]
         );
-        res.status(201).json({ 
-            success: true, 
-            id: result.insertId, 
-            name: name.trim() 
+        res.status(201).json({
+            success: true,
+            id: result.insertId,
+            name: name.trim()
         });
     } catch (error) {
         console.error("CREATE NEWS CATEGORY ERROR:", error);
