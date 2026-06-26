@@ -827,7 +827,7 @@ exports.approveCompany = async (req, res) => {
     const [companyData] = await pool.query(
       `SELECT c.name, u.email 
        FROM Company c
-       JOIN User u ON c.hr_id = u.id
+       JOIN user u ON c.hr_id = u.id
        WHERE c.id = ? AND c.status = 'Pending'`,
       [id]
     );
@@ -1003,11 +1003,12 @@ exports.getTopIndustries = async (req, res) => {
 };
 exports.activateCompany = async (req, res) => {
   const { id, activationCode } = req.body;
+  console.log("Backend nhận được - ID:", id, "Code:", activationCode); // <--- LOG ĐÂY
 
   try {
     // Tìm chính xác công ty theo ID và MÃ kích hoạt
     const [companies] = await pool.query(
-      `SELECT * FROM Company WHERE id = ? AND activation_code = ? AND status = 'Pending'`,
+      `SELECT * FROM Company WHERE id = ? AND activation_code = ? AND status = 'Approved'`,
       [id, activationCode]
     );
 
@@ -1020,9 +1021,19 @@ exports.activateCompany = async (req, res) => {
       `UPDATE Company SET status = 'Active', activation_code = NULL WHERE id = ?`,
       [id]
     );
+    const [companyData] = await pool.query(`SELECT hr_id FROM Company WHERE id = ?`, [id]);
+    
+    if (companyData.length > 0 && companyData[0].hr_id) {
+        // Cập nhật trạng thái của HR thành Active
+        await pool.query(
+            `UPDATE user SET status = 'Active' WHERE id = ?`, 
+            [companyData[0].hr_id]
+        );
+    }
 
     return res.status(200).json({ message: "Account activated!" });
   } catch (error) {
+    console.error("error raising:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };

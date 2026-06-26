@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import './JobCard.css';
 import axios from 'axios';
 
-
+const FAVORITE_JOBS_STORAGE_KEY = 'candidate_favorite_jobs';
 
 const removeAccents = (str) => {
   if (!str) return '';
@@ -39,6 +39,39 @@ export default function JobCard({ job, onClick }) {
   const [feedbackMessage, setFeedbackMessage] = useState({ type: "", text: "" });
   const [myCVs, setMyCVs] = useState([]);
   const [isLoadingCVs, setIsLoadingCVs] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
+
+  const saveAppliedJobId = (jobId) => {
+    try {
+      const ids = JSON.parse(localStorage.getItem('appliedJobIds') || '[]');
+      const numId = Number(jobId);
+      if (!ids.includes(numId)) {
+        localStorage.setItem('appliedJobIds', JSON.stringify([...ids, numId]));
+      }
+    } catch (err) {
+      console.error('Failed to save applied job id:', err);
+    }
+  };
+
+  useEffect(() => {
+    const storedFav = localStorage.getItem(FAVORITE_JOBS_STORAGE_KEY);
+    if (storedFav) {
+      try {
+        const favorites = JSON.parse(storedFav);
+        setIsSaved(Array.isArray(favorites) && favorites.some(item => item.id === job.id));
+      } catch (err) {
+        console.error('Failed to parse favorite jobs from localStorage:', err);
+      }
+    }
+
+    try {
+      const appliedIds = JSON.parse(localStorage.getItem('appliedJobIds') || '[]');
+      setHasApplied(Array.isArray(appliedIds) && appliedIds.includes(Number(job.id)));
+    } catch (err) {
+      console.error('Failed to parse applied job ids from localStorage:', err);
+    }
+  }, [job.id]);
 
   const {
     id: jobId,
@@ -57,7 +90,7 @@ export default function JobCard({ job, onClick }) {
   } = job;
 
   const getValidLogo = () => {
-    if (imgError || !logo_url) return '/default-company-logo.png';
+    if (imgError || !logo_url) return '/img/default-avatar.png';
     if (logo_url.startsWith('data:image')) return logo_url;
     if (logo_url.startsWith('http')) return logo_url;
     return `${API_URL}${logo_url}`;
@@ -89,11 +122,11 @@ export default function JobCard({ job, onClick }) {
     setIsLoadingCVs(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/candidate/cvs`, {
+      const response = await axios.get(`${API_URL}/api/candidate/my-cvs`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMyCVs(response.data);
-    } catch (error) {
+    } catch {
       setFeedbackMessage({ type: "danger", text: "Could not load your CVs. Please try again." });
     } finally {
       setIsLoadingCVs(false);
@@ -102,10 +135,48 @@ export default function JobCard({ job, onClick }) {
 
   const handleOpenApplyModal = (e) => {
     e.stopPropagation();
+    if (hasApplied) {
+      return;
+    }
     setShowApplyModal(true);
     setFeedbackMessage({ type: "", text: "" });
     setSelectedCvId("");
     fetchMyCVs();
+  };
+
+  const toggleSaveJob = (e) => {
+    e.stopPropagation();
+    try {
+      const stored = localStorage.getItem(FAVORITE_JOBS_STORAGE_KEY);
+      const favorites = stored ? JSON.parse(stored) : [];
+      const existingIndex = favorites.findIndex(item => item.id === job.id);
+
+      let updatedFavorites;
+      if (existingIndex >= 0) {
+        updatedFavorites = favorites.filter(item => item.id !== job.id);
+      } else {
+        const favoriteJob = {
+          id: job.id,
+          title: job.title,
+          company_name: job.company_name,
+          logo_url: job.logo_url,
+          job_type: job.job_type,
+          salary_min: job.salary_min,
+          salary_max: job.salary_max,
+          province: job.province,
+          district: job.district,
+          exact_address: job.exact_address,
+          saved_at: new Date().toISOString()
+        };
+        updatedFavorites = [...favorites, favoriteJob];
+      }
+
+      localStorage.setItem(FAVORITE_JOBS_STORAGE_KEY, JSON.stringify(updatedFavorites));
+      setIsSaved(existingIndex < 0);
+      window.dispatchEvent(new Event('favoriteJobsUpdated'));
+    } catch (err) {
+      console.error('Failed to save job preference:', err);
+    }
   };
 
   const handleApplySubmit = async (e) => {
@@ -114,12 +185,14 @@ export default function JobCard({ job, onClick }) {
     if (!selectedCvId) return setFeedbackMessage({ type: "danger", text: "Please select a CV to apply." });
     setIsSubmitting(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(`${API_URL}/api/candidate/apply`, { jobId, cvId: selectedCvId }, {
+        const token = localStorage.getItem('token');
+      const response = await axios.post(`${API_URL}/api/candidate/apply`, { job_id: jobId, cv_id: selectedCvId }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.status === 201) {
         setFeedbackMessage({ type: "success", text: "Application submitted successfully!" });
+        setHasApplied(true);
+        saveAppliedJobId(jobId);
         setTimeout(() => {
           setShowApplyModal(false);
           setSelectedCvId("");
@@ -127,9 +200,14 @@ export default function JobCard({ job, onClick }) {
         }, 2000);
       }
     } catch (error) {
+      const message = error.response?.data?.message || "Connection error! Please try again.";
+      if (message.includes('already applied')) {
+        setHasApplied(true);
+        saveAppliedJobId(jobId);
+      }
       setFeedbackMessage({
         type: "danger",
-        text: error.response?.data?.message || "Connection error! Please try again."
+        text: message
       });
     } finally {
       setIsSubmitting(false);
@@ -169,12 +247,22 @@ export default function JobCard({ job, onClick }) {
           {formatDeadline() && (
             <p className="job-card-deadline">Deadline: {formatDeadline()}</p>
           )}
-          <button
-            className="job-card-apply-btn"
-            onClick={handleOpenApplyModal}
-          >
-            Apply Now
-          </button>
+          <div className="job-card-actions">
+            <button
+              className={`job-card-apply-btn${hasApplied ? ' applied' : ''}`}
+              onClick={handleOpenApplyModal}
+              disabled={hasApplied}
+            >
+              {hasApplied ? 'Applied' : 'Apply Now'}
+            </button>
+            <button
+              className={`job-card-save-btn ${isSaved ? 'saved' : ''}`}
+              onClick={toggleSaveJob}
+              type="button"
+            >
+              {isSaved ? 'Saved' : 'Save'}
+            </button>
+          </div>
           <div className="job-card-footer">
             <div className="job-card-tags">
               <span className="job-tag tag-salary">{formatSalary()}</span>
@@ -215,8 +303,8 @@ export default function JobCard({ job, onClick }) {
                         checked={selectedCvId === cv.id}
                         onChange={() => setSelectedCvId(cv.id)}
                       />
-                      <span>{cv.cv_name}</span>
-                      <span className="apply-cv-type">{cv.file_type}</span>
+                      <span>{cv.name || cv.cv_name || 'CV document'}</span>
+                      <span className="apply-cv-type">{cv.type || cv.file_type || 'Unknown format'}</span>
                     </label>
                   ))}
                 </div>

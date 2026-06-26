@@ -417,6 +417,7 @@ const CandidateProfile = () => {
     if (path.endsWith('/account-settings')) return 'Account Settings';
     if (path.endsWith('/notifications')) return 'Notifications';
     if (path.endsWith('/activity-history')) return 'Activity History';
+    if (path.endsWith('/saved-jobs')) return 'Saved Jobs';
     if (path.endsWith('/applied-jobs')) return 'Applied Jobs';
     if (path.endsWith('/manage-cvs')) return 'Manage CVs';
     return 'My Profile';
@@ -485,6 +486,13 @@ const CandidateProfile = () => {
                       {notifications.filter(n => !n.is_read).length}
                     </span>
                   )}
+                </NavLink>
+                <NavLink
+                  to="/candidate/my-profile/saved-jobs"
+                  className={({ isActive }) => `dropdown-item dropdown-item-custom w-100 text-start ${isActive ? 'active' : ''}`}
+                  onClick={() => setShowDropdown(false)}
+                >
+                  <i className="fas fa-bookmark me-2"></i> Saved Jobs
                 </NavLink>
                 <NavLink
                   to="/candidate/my-profile/applied-jobs"

@@ -34,6 +34,7 @@ import CandidateMyProfile from './pages/CandidateProfile/CandidateMyProfile';
 import CandidateAccountSettings from './pages/CandidateProfile/CandidateAccountSettings';
 import CandidateNotifications from './pages/CandidateProfile/CandidateNotifications';
 import CandidateActivityHistory from './pages/CandidateProfile/CandidateActivityHistory';
+import CandidateSavedJobs from './pages/CandidateProfile/CandidateSavedJobs';
 import CandidateAppliedJobsPage from './pages/CandidateProfile/CandidateAppliedJobsPage';
 import CandidateManageCVs from './pages/CandidateProfile/CandidateManageCVs';
 import CompanyRegister from './pages/Authentication/CompanyRegister';
@@ -96,6 +97,7 @@ const router = createBrowserRouter([
           { path: "account-settings", element: <CandidateAccountSettings /> },
           { path: "notifications", element: <CandidateNotifications /> },
           { path: "activity-history", element: <CandidateActivityHistory /> },
+          { path: "saved-jobs", element: <CandidateSavedJobs /> },
           { path: "applied-jobs", element: <CandidateAppliedJobsPage /> },
           { path: "manage-cvs", element: <CandidateManageCVs /> }
         ]
