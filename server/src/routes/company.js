@@ -60,7 +60,8 @@ router.get('/:hr_id', async (req, res) => {
 });
 
 // POST /api/company — Tạo mới thông tin công ty
-router.post('/', upload.single('logo'), async (req, res) => {
+// Accept both `logo` and `cover_image` files (optional)
+router.post('/', upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'cover_image', maxCount: 1 }]), async (req, res) => {
   try {
     const { 
       hr_id, 
@@ -80,19 +81,24 @@ router.post('/', upload.single('logo'), async (req, res) => {
     }
 
     let logo_url = req.body.logo_url;
-    if (req.file) {
-      logo_url = `/uploads/${req.file.filename}`;
+    let cover_image_url = req.body.cover_image_url;
+    if (req.files && req.files['logo'] && req.files['logo'][0]) {
+      logo_url = `/uploads/avatars/${req.files['logo'][0].filename}`;
+    }
+    if (req.files && req.files['cover_image'] && req.files['cover_image'][0]) {
+      cover_image_url = `/uploads/avatars/${req.files['cover_image'][0].filename}`;
     }
 
     const [result] = await pool.query(
-      `INSERT INTO Company (hr_id, industry_id, name, logo_url, website, address,
+      `INSERT INTO Company (hr_id, industry_id, name, logo_url, cover_image_url, website, address,
                             email, company_phone, tax_id, size, description)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         hr_id,
         industry_id,
         name,
         logo_url || null,
+        cover_image_url || null,
         website || null,
         address || null,
         email || null,
@@ -112,7 +118,7 @@ router.post('/', upload.single('logo'), async (req, res) => {
   }
 });
 // PUT /api/company/:hr_id — Cập nhật thông tin công ty
-router.put('/:hr_id', upload.single('logo'), async (req, res) => {
+router.put('/:hr_id', upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'cover_image', maxCount: 1 }]), async (req, res) => {
   try {
     const { hr_id } = req.params;
     const { 
@@ -132,19 +138,24 @@ router.put('/:hr_id', upload.single('logo'), async (req, res) => {
     }
 
     let logo_url = req.body.logo_url;
-    if (req.file) {
-      logo_url = `/uploads/${req.file.filename}`;
+    let cover_image_url = req.body.cover_image_url;
+    if (req.files && req.files['logo'] && req.files['logo'][0]) {
+      logo_url = `/uploads/avatars/${req.files['logo'][0].filename}`;
+    }
+    if (req.files && req.files['cover_image'] && req.files['cover_image'][0]) {
+      cover_image_url = `/uploads/avatars/${req.files['cover_image'][0].filename}`;
     }
 
     const [result] = await pool.query(
       `UPDATE Company
-       SET industry_id = ?, name = ?, logo_url = ?, website = ?, address = ?,
+       SET industry_id = ?, name = ?, logo_url = ?, cover_image_url = ?, website = ?, address = ?,
            email = ?, company_phone = ?, tax_id = ?, size = ?, description = ?
        WHERE hr_id = ?`,
       [
         industry_id,
         name,
         logo_url || null,
+        cover_image_url || null,
         website || null,
         address || null,
         email || null,
