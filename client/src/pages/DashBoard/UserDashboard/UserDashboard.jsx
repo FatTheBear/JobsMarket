@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styles from './UserDashboard.module.css';
 import axios from 'axios';
 import JobCard from '../../../components/Jobs/JobCard';
+import FeaturedCompanies from '../../FeaturedCompanies/FeaturedCompanies';
 
 const LOCATION_API = 'https://provinces.open-api.vn/api';
 
@@ -322,6 +323,9 @@ export default function CandidateDashboard() {
           </div>
         </div>
       </section>
+
+      {/* ───── FEATURED COMPANIES ───── */}
+      <FeaturedCompanies />
 
       {/* ── FOOTER ── */}
       <footer className={styles.footer}>

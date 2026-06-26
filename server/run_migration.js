@@ -660,6 +660,23 @@ async function runMigration() {
         }
 
 
+        // Add company_bio and cover_image_url to Company table for public profiles
+        console.log('Adding company_bio and cover_image_url columns to Company table...');
+        try {
+            await pool.query(`
+                ALTER TABLE \`Company\`
+                ADD COLUMN IF NOT EXISTS \`company_bio\` TEXT DEFAULT NULL COMMENT 'Company description/biography',
+                ADD COLUMN IF NOT EXISTS \`cover_image_url\` VARCHAR(255) DEFAULT NULL COMMENT 'Company cover image URL'
+            `);
+            console.log('-> company_bio and cover_image_url columns added to Company table.');
+        } catch (err) {
+            if (err.code === 'ER_DUP_FIELDNAME') {
+                console.log('-> company_bio and cover_image_url columns already exist in Company table.');
+            } else {
+                throw err;
+            }
+        }
+
     } catch (dbError) {
         console.error('\n[CRITICAL ERROR] Table creation failed:', dbError.message);
         process.exit(1);

@@ -77,6 +77,14 @@ export default function JobCard({ job, onClick }) {
     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
+  const loc = province
+    ? translateLocation(province)
+    : district
+      ? translateLocation(district)
+      : exact_address
+        ? removeAccents(exact_address)
+        : '';
+
   const fetchMyCVs = async () => {
     setIsLoadingCVs(true);
     try {
@@ -167,13 +175,12 @@ export default function JobCard({ job, onClick }) {
           >
             Apply Now
           </button>
-        </div> {/* ĐÃ THÊM THẺ ĐÓNG CHO job-card-right */}
-
-        <div className="job-card-footer">
-          <div className="job-card-tags">
-            <span className="job-tag tag-salary">{formatSalary()}</span>
-            <span className="job-tag tag-location">{loc || 'Location updating'}</span>
-            <span className="job-tag tag-type">{job_type || 'Full-time'}</span>
+          <div className="job-card-footer">
+            <div className="job-card-tags">
+              <span className="job-tag tag-salary">{formatSalary()}</span>
+              <span className="job-tag tag-location">{loc || 'Location updating'}</span>
+              <span className="job-tag tag-type">{job_type || 'Full-time'}</span>
+            </div>
           </div>
         </div>
       </div> {/* ĐÃ THÊM THẺ ĐÓNG CHO job-card-container */}

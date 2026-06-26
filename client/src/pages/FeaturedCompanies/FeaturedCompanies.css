@@ -1,0 +1,278 @@
+.fc-section {
+  width: 100%;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 50px 20px;
+  margin: 40px 0;
+}
+
+.fc-header {
+  max-width: 1200px;
+  margin: 0 auto 40px;
+  text-align: center;
+}
+
+.fc-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+}
+
+.fc-subtitle {
+  font-size: 16px;
+  color: #6c757d;
+  margin: 0;
+}
+
+/* Companies Grid */
+.fc-companies-grid {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+/* Company Card */
+.fc-company-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.fc-company-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #007bff, #0056b3);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+}
+
+.fc-company-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-8px);
+}
+
+.fc-company-card:hover::before {
+  transform: translateX(0);
+}
+
+/* Logo Container */
+.fc-logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+  height: 100px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  align-items: center;
+  overflow: hidden;
+}
+
+.fc-company-logo {
+  max-width: 90px;
+  max-height: 90px;
+  object-fit: contain;
+}
+
+/* Company Details */
+.fc-company-details {
+  flex: 1;
+  margin-bottom: 16px;
+}
+
+.fc-company-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+}
+
+.fc-industry-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  background-color: #e7f3ff;
+  color: #0056b3;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  border: 1px solid #b3d9ff;
+}
+
+.fc-company-bio {
+  font-size: 14px;
+  color: #6c757d;
+  line-height: 1.6;
+  margin: 0 0 12px 0;
+  min-height: 40px;
+}
+
+/* Job Count Badge */
+.fc-job-count {
+  margin: 12px 0;
+}
+
+.fc-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  background-color: #fff3cd;
+  color: #856404;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #ffc107;
+}
+
+/* Website Link */
+.fc-website-link {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 6px 12px;
+  background-color: transparent;
+  color: #007bff;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.fc-website-link:hover {
+  background-color: #e7f3ff;
+}
+
+/* View Profile Button */
+.fc-view-profile-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.fc-view-profile-btn:hover {
+  background: linear-gradient(135deg, #0056b3, #003d82);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 86, 179, 0.3);
+}
+
+/* Loading & Empty States */
+.fc-loading,
+.fc-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+  font-size: 16px;
+}
+
+/* Footer */
+.fc-footer {
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.fc-view-all-btn {
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #28a745, #1e7e34);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.fc-view-all-btn:hover {
+  background: linear-gradient(135deg, #1e7e34, #155724);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(40, 167, 69, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .fc-section {
+    padding: 30px 16px;
+    margin: 20px 0;
+  }
+
+  .fc-title {
+    font-size: 24px;
+  }
+
+  .fc-subtitle {
+    font-size: 14px;
+  }
+
+  .fc-companies-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+  }
+
+  .fc-company-card {
+    padding: 16px;
+  }
+
+  .fc-logo-container {
+    height: 80px;
+    margin-bottom: 16px;
+  }
+
+  .fc-company-logo {
+    max-width: 70px;
+    max-height: 70px;
+  }
+
+  .fc-company-name {
+    font-size: 16px;
+  }
+
+  .fc-company-bio {
+    font-size: 13px;
+  }
+
+  .fc-view-profile-btn {
+    font-size: 13px;
+    padding: 10px;
+  }
+
+  .fc-view-all-btn {
+    font-size: 14px;
+    padding: 12px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .fc-companies-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fc-title {
+    font-size: 20px;
+  }
+
+  .fc-company-card {
+    padding: 12px;
+  }
+}
