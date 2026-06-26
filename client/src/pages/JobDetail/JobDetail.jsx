@@ -144,7 +144,7 @@ export default function JobDetail() {
       <div className="job-detail-top-card">
         <div className="job-detail-card-header">
           <img
-            src={job.logo_url || '/default-company-logo.png'}
+            src={job.logo_url || '/img/default-avatar.png'}
             alt="Company Logo"
             className="job-detail-card-logo"
           />

@@ -69,7 +69,7 @@ export default function FeaturedCompanies() {
             {/* Logo Section */}
             <div className="fc-logo-container">
               <img
-                src={company.logo_url || '/default-company-logo.png'}
+                src={company.logo_url || '/img/default-avatar.png'}
                 alt={company.name}
                 className="fc-company-logo"
               />
