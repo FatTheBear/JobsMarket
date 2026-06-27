@@ -3,7 +3,9 @@ import './JobPosting.css';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import { useWallet } from '../../context/WalletContext';
-
+import { IndustrySkill } from './IndustrySkill';
+import { AutoComplete } from './AutoComplete';
+import IndustrySelector from './IndustrySelector';
 const API_URL = 'http://localhost:5000';
 const LOCATION_API = 'https://provinces.open-api.vn/api';
 
@@ -120,7 +122,7 @@ export default function JobPosting() {
         setProPackage(res.data.pro_package || 'Free');
         setProExpiredAt(res.data.pro_expired_at || null);
       }).catch(err => console.error("Failed to load company pro status:", err));
-      
+
       if (typeof fetchWalletInfo === 'function') {
         fetchWalletInfo();
       }
@@ -208,7 +210,7 @@ export default function JobPosting() {
 
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
-    
+
     let newErrors = {};
 
     // Validate Job Title
@@ -243,7 +245,7 @@ export default function JobPosting() {
       newErrors.exact_address = "Please enter a specific location.";
     }
 
-    // Validate Industries
+   
     if (form.selected_industries.length === 0) {
       newErrors.industries = "Please select at least one industry.";
     }
@@ -398,291 +400,307 @@ export default function JobPosting() {
       {/* ── MAIN FORM (hidden after submit) ── */}
       {!submittedJobId && (
         <div>
-      <div className="jp-header-row">
-        <div>
-          <div className="jp-breadcrumb">Dashboard / Post a New Job</div>
-          <h2 className="jp-page-heading">Post a New Job</h2>
-        </div>
-      </div>
-
-      {isProCurrentlyActive && (
-        <div className="jp-pro-banner" style={{
-          background: 'linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%)',
-          border: '1px solid #ffeeba',
-          borderRadius: '8px',
-          padding: '15px 20px',
-          marginBottom: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '15px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
-        }}>
-          <span style={{ fontSize: '24px', animation: 'pulse 2s infinite' }}>⚡</span>
-          <div>
-            <h5 style={{ margin: 0, fontWeight: 'bold', color: '#856404' }}>
-              Active Pro Plan ({proPackage === 'Pro_Day' ? 'Pro Day' : 'Pro Month'})
-            </h5>
-            <p style={{ margin: 0, fontSize: '14px', color: '#533f03' }}>
-              You are currently enjoying Pro package benefits. Expired at: <strong>{proExpiredAt ? new Date(proExpiredAt).toLocaleString('en-US') : ''}</strong>. 
-              Limit maximum 2 job posts every 24 hours.
-            </p>
-          </div>
-        </div>
-      )}
-
-      <div className="jp-stepper">
-        <div className="jp-step active">
-          <div className="jp-step-number">1</div>
-          <div className="jp-step-text">Detailed Information</div>
-        </div>
-        <div className="jp-step">
-          <div className="jp-step-number">2</div>
-          <div className="jp-step-text">Activation Info</div>
-        </div>
-      </div>
-
-      <div className="jp-warning-banner">
-        Note: Fields marked with <span>*</span> are required
-      </div>
-
-      <div className="jp-form-container">
-        {/* BASIC INFORMATION */}
-        <section className="jp-card">
-          <div className="jp-card-title">Basic Information</div>
-          <div className="jp-card-body">
-            <div className="jp-field">
-              <label>Job Title <span>*</span></label>
-              <input type="text" name="title" value={form.title} onChange={handleChange} placeholder="e.g. Data Engineer" className={errors.title ? 'has-error' : ''} />
-              {errors.title && <span className="jp-error-text">{errors.title}</span>}
+          <div className="jp-header-row">
+            <div>
+              <div className="jp-breadcrumb">Dashboard / Post a New Job</div>
+              <h2 className="jp-page-heading">Post a New Job</h2>
             </div>
+          </div>
 
-            <div className="jp-row jp-row-two">
-              <div className="jp-field">
-                <label>Years of Experience <span>*</span></label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '44px' }}>
-                  <select name="experience_req" value={form.experience_req} onChange={handleChange} disabled={form.experience_req === 'Not Required'}>
-                    <option value="Not Required">Not Required</option>
-                    <option value="Under 1 year">Under 1 year</option>
-                    <option value="1 - 3 years">1 - 3 years</option>
-                    <option value="3 - 5 years">3 - 5 years</option>
-                    <option value="Over 5 years">Over 5 years</option>
-                  </select>
-                  <label className="jp-toggle-label">
-                    <input type="checkbox" checked={form.experience_req === 'Not Required'} onChange={(e) => setForm(f => ({ ...f, experience_req: e.target.checked ? 'Not Required' : '1 - 3 years' }))} />
-                    Not Required
-                  </label>
-                </div>
+          {isProCurrentlyActive && (
+            <div className="jp-pro-banner" style={{
+              background: 'linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%)',
+              border: '1px solid #ffeeba',
+              borderRadius: '8px',
+              padding: '15px 20px',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '15px',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+            }}>
+              <span style={{ fontSize: '24px', animation: 'pulse 2s infinite' }}>⚡</span>
+              <div>
+                <h5 style={{ margin: 0, fontWeight: 'bold', color: '#856404' }}>
+                  Active Pro Plan ({proPackage === 'Pro_Day' ? 'Pro Day' : 'Pro Month'})
+                </h5>
+                <p style={{ margin: 0, fontSize: '14px', color: '#533f03' }}>
+                  You are currently enjoying Pro package benefits. Expired at: <strong>{proExpiredAt ? new Date(proExpiredAt).toLocaleString('en-US') : ''}</strong>.
+                  Limit maximum 2 job posts every 24 hours.
+                </p>
               </div>
+            </div>
+          )}
 
-              <div className="jp-field">
-                <label>Salary (USD $) <span>*</span></label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '44px' }}>
-                  <label className="jp-toggle-label">
-                    <input type="checkbox" checked={form.salary_type === 'negotiable'} onChange={(e) => setForm(f => ({ ...f, salary_type: e.target.checked ? 'negotiable' : 'specific' }))} />
-                    Negotiable
-                  </label>
-                  {form.salary_type === 'specific' && (
-                    <div className="jp-salary-inputs">
-                      <input type="number" name="salary_min" value={form.salary_min} onChange={handleChange} placeholder="From ($)" min="0" className={errors.salary ? 'has-error' : ''} />
-                      <span>-</span>
-                      <input type="number" name="salary_max" value={form.salary_max} onChange={handleChange} placeholder="To ($)" min="0" className={errors.salary ? 'has-error' : ''} />
+          <div className="jp-stepper">
+            <div className="jp-step active">
+              <div className="jp-step-number">1</div>
+              <div className="jp-step-text">Detailed Information</div>
+            </div>
+            <div className="jp-step">
+              <div className="jp-step-number">2</div>
+              <div className="jp-step-text">Activation Info</div>
+            </div>
+          </div>
+
+          <div className="jp-warning-banner">
+            Note: Fields marked with <span>*</span> are required
+          </div>
+
+          <div className="jp-form-container">
+            {/* PHẦN 1: BASIC INFORMATION */}
+            <section className="jp-card">
+              <div className="jp-card-title">Basic Information</div>
+              <div className="jp-card-body">
+                <div className="jp-field">
+                  <label>Job Title <span>*</span></label>
+                  <AutoComplete
+                    value={form.title}
+                    onChange={(newTitle) => setForm(f => ({ ...f, title: newTitle }))}
+                    hasError={!!errors.title}
+                  />
+                </div>
+
+                <div className="jp-row jp-row-two">
+                  <div className="jp-field">
+                    <label>Years of Experience <span>*</span></label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '44px' }}>
+                      <select name="experience_req" value={form.experience_req} onChange={handleChange} disabled={form.experience_req === 'Not Required'}>
+                        <option value="Not Required">Not Required</option>
+                        <option value="Under 1 year">Under 1 year</option>
+                        <option value="1 - 3 years">1 - 3 years</option>
+                        <option value="3 - 5 years">3 - 5 years</option>
+                        <option value="Over 5 years">Over 5 years</option>
+                      </select>
+                      <label className="jp-toggle-label">
+                        <input type="checkbox" checked={form.experience_req === 'Not Required'} onChange={(e) => setForm(f => ({ ...f, experience_req: e.target.checked ? 'Not Required' : '1 - 3 years' }))} />
+                        Not Required
+                      </label>
                     </div>
-                  )}
-                </div>
-                {errors.salary && <span className="jp-error-text">{errors.salary}</span>}
-              </div>
-            </div>
+                  </div>
 
-            <div className="jp-field">
-              <label>Work Location <span>*</span></label>
-              <div className="jp-location-grid">
-                <div>
-                  <label className="jp-sub-label">Floor / Room</label>
-                  <input type="text" name="floor_room" value={form.floor_room} onChange={handleChange} placeholder="Floor/Room" />
+                  <div className="jp-field">
+                    <label>Salary (USD $) <span>*</span></label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '44px' }}>
+                      <label className="jp-toggle-label">
+                        <input type="checkbox" checked={form.salary_type === 'negotiable'} onChange={(e) => setForm(f => ({ ...f, salary_type: e.target.checked ? 'negotiable' : 'specific' }))} />
+                        Negotiable
+                      </label>
+                      {form.salary_type === 'specific' && (
+                        <div className="jp-salary-inputs">
+                          <input type="number" name="salary_min" value={form.salary_min} onChange={handleChange} placeholder="From ($)" min="0" className={errors.salary ? 'has-error' : ''} />
+                          <span>-</span>
+                          <input type="number" name="salary_max" value={form.salary_max} onChange={handleChange} placeholder="To ($)" min="0" className={errors.salary ? 'has-error' : ''} />
+                        </div>
+                      )}
+                    </div>
+                    {errors.salary && <span className="jp-error-text">{errors.salary}</span>}
+                  </div>
                 </div>
-                <div>
-                  <label className="jp-sub-label">Specific Location <span>*</span></label>
-                  <input type="text" name="exact_address" value={form.exact_address} onChange={handleChange} placeholder="e.g. 123 Main St" className={errors.exact_address ? 'has-error' : ''} />
-                  {errors.exact_address && <span className="jp-error-text">{errors.exact_address}</span>}
+
+                <div className="jp-field">
+                  <label>Work Location <span>*</span></label>
+                  <div className="jp-location-grid">
+                    <div>
+                      <label className="jp-sub-label">Floor / Room</label>
+                      <input type="text" name="floor_room" value={form.floor_room} onChange={handleChange} placeholder="Floor/Room" />
+                    </div>
+                    <div>
+                      <label className="jp-sub-label">Specific Location <span>*</span></label>
+                      <input type="text" name="exact_address" value={form.exact_address} onChange={handleChange} placeholder="e.g. 123 Main St" className={errors.exact_address ? 'has-error' : ''} />
+                      {errors.exact_address && <span className="jp-error-text">{errors.exact_address}</span>}
+                    </div>
+                    <div>
+                      <label className="jp-sub-label">Province / City <span>*</span></label>
+                      <select onChange={handleProvinceChange} value={form.province_code} className={errors.province ? 'has-error' : ''}>
+                        <option value="">Select</option>
+                        {provinces.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
+                      </select>
+                      {errors.province && <span className="jp-error-text">{errors.province}</span>}
+                    </div>
+                    {form.province_code && (
+                      <div>
+                        <label className="jp-sub-label">District <span>*</span></label>
+                        <select onChange={handleDistrictChange} value={form.district_code} className={errors.district ? 'has-error' : ''}>
+                          <option value="">Select</option>
+                          {districts.map(d => <option key={d.code} value={d.code}>{d.name}</option>)}
+                        </select>
+                        {errors.district && <span className="jp-error-text">{errors.district}</span>}
+                      </div>
+                    )}
+                    {form.district_code && (
+                      <div>
+                        <label className="jp-sub-label">Ward <span>*</span></label>
+                        <select onChange={handleWardChange} value={form.ward}>
+                          <option value="">Select Ward</option>
+                          {wards.map(w => <option key={w.code} value={w.name}>{w.name}</option>)}
+                        </select>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <label className="jp-sub-label">Province / City <span>*</span></label>
-                  <select onChange={handleProvinceChange} value={form.province_code} className={errors.province ? 'has-error' : ''}>
-                    <option value="">Select</option>
-                    {provinces.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
+
+                <div className="jp-field mt-10">
+                  <label>Working Hours <span>*</span></label>
+                  <label className="jp-sub-label">Working Hour Type</label>
+                  <select name="working_hour_type" value={form.working_hour_type} onChange={handleChange} style={{ width: '300px' }}>
+                    <option value="Office hours (Off Sat, Sun)">Office hours (Off Sat, Sun)</option>
+                    <option value="Shift work">Shift work</option>
+                    <option value="Flexible">Flexible</option>
                   </select>
-                  {errors.province && <span className="jp-error-text">{errors.province}</span>}
+
+                  <div className="jp-days-toggles">
+                    {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(day => (
+                      <label key={day} className={`jp-day-btn ${form.working_days[day] ? 'active' : ''}`}>
+                        <input type="checkbox" name={`day_${day}`} checked={form.working_days[day]} onChange={handleChange} style={{ display: 'none' }} />
+                        {day.charAt(0).toUpperCase() + day.slice(1)}
+                      </label>
+                    ))}
+
+                    <div className="jp-time-inputs">
+                      <span>From:</span>
+                      <input type="time" name="start_time" value={form.start_time} onChange={handleChange} />
+                      <span>To:</span>
+                      <input type="time" name="end_time" value={form.end_time} onChange={handleChange} />
+                    </div>
+
+                    <button type="button" className="jp-btn-outline jp-add-slot">+ Add time slot</button>
+                  </div>
+
+                  <label className="jp-sub-label">Working time note</label>
+                  <input type="text" name="working_time_note" value={form.working_time_note} onChange={handleChange} placeholder="e.g. Lunch break 12:00 - 13:00" />
                 </div>
-                {form.province_code && (
-                  <div>
-                    <label className="jp-sub-label">District <span>*</span></label>
-                    <select onChange={handleDistrictChange} value={form.district_code} className={errors.district ? 'has-error' : ''}>
-                      <option value="">Select</option>
-                      {districts.map(d => <option key={d.code} value={d.code}>{d.name}</option>)}
-                    </select>
-                    {errors.district && <span className="jp-error-text">{errors.district}</span>}
-                  </div>
-                )}
-                {form.district_code && (
-                  <div>
-                    <label className="jp-sub-label">Ward <span>*</span></label>
-                    <select onChange={handleWardChange} value={form.ward}>
-                      <option value="">Select Ward</option>
-                      {wards.map(w => <option key={w.code} value={w.name}>{w.name}</option>)}
-                    </select>
-                  </div>
-                )}
               </div>
-            </div>
+            </section>
 
-            <div className="jp-field mt-10">
-              <label>Working Hours <span>*</span></label>
-              <label className="jp-sub-label">Working Hour Type</label>
-              <select name="working_hour_type" value={form.working_hour_type} onChange={handleChange} style={{ width: '300px' }}>
-                <option value="Office hours (Off Sat, Sun)">Office hours (Off Sat, Sun)</option>
-                <option value="Shift work">Shift work</option>
-                <option value="Flexible">Flexible</option>
-              </select>
-
-              <div className="jp-days-toggles">
-                {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(day => (
-                  <label key={day} className={`jp-day-btn ${form.working_days[day] ? 'active' : ''}`}>
-                    <input type="checkbox" name={`day_${day}`} checked={form.working_days[day]} onChange={handleChange} style={{ display: 'none' }} />
-                    {day.charAt(0).toUpperCase() + day.slice(1)}
-                  </label>
-                ))}
-
-                <div className="jp-time-inputs">
-                  <span>From:</span>
-                  <input type="time" name="start_time" value={form.start_time} onChange={handleChange} />
-                  <span>To:</span>
-                  <input type="time" name="end_time" value={form.end_time} onChange={handleChange} />
+            {/* PHẦN 2: DETAILED INFORMATION (PHẦN BỊ MẤT ĐÃ ĐƯỢC KHÔI PHỤC) */}
+            <section className="jp-card mt-20">
+              <div className="jp-card-title">Detailed Information</div>
+              <div className="jp-card-body">
+                <div className="jp-field">
+                  <label>Job Description <span>*</span></label>
+                  <textarea 
+                    name="job_description" 
+                    value={form.job_description} 
+                    onChange={handleChange} 
+                    placeholder="Describe the daily responsibilities, tasks, and scope of work..." 
+                    rows="6"
+                    className={errors.job_description ? 'has-error' : ''}
+                  ></textarea>
+                  {errors.job_description && <span className="jp-error-text">{errors.job_description}</span>}
                 </div>
 
-                <button type="button" className="jp-btn-outline jp-add-slot">+ Add time slot</button>
+                <div className="jp-field">
+                  <label>Job Requirements <span>*</span></label>
+                  <textarea 
+                    name="job_requirements" 
+                    value={form.job_requirements} 
+                    onChange={handleChange} 
+                    placeholder="List the required skills, qualifications, and experience..." 
+                    rows="6"
+                    className={errors.job_requirements ? 'has-error' : ''}
+                  ></textarea>
+                  {errors.job_requirements && <span className="jp-error-text">{errors.job_requirements}</span>}
+                </div>
+                
+                <div className="jp-field">
+                  <label>Benefits & Perks</label>
+                  <textarea 
+                    name="benefits" 
+                    value={form.benefits} 
+                    onChange={handleChange} 
+                    placeholder="What benefits will the employee receive? (e.g., Insurance, Bonus, 13th-month salary...)" 
+                    rows="4"
+                  ></textarea>
+                </div>
               </div>
+            </section>
 
-              <label className="jp-sub-label">Working time note</label>
-              <input type="text" name="working_time_note" value={form.working_time_note} onChange={handleChange} placeholder="e.g. Lunch break 12:00 - 13:00" />
+            {/* PHẦN 3: ADDITIONAL INFORMATION */}
+            <section className="jp-card mt-20">
+              <div className="jp-card-title">Additional Information</div>
+              <div className="jp-card-body">
+
+                <IndustrySelector
+                  onChange={(selectedIds) => setForm({ ...form, selected_industries: selectedIds })}
+                />
+                {errors.industries && (
+                  <span className="jp-error-text" style={{ display: 'block', color: 'red', marginTop: '-10px', marginBottom: '15px' }}>
+                    {errors.industries}
+                  </span>
+                )}
+
+                <IndustrySkill
+                  selectedIndustryIds={form.selected_industries}
+                  selectedSkillIds={form.selected_skills}
+                  onChange={(field, value) => setForm({ ...form, [field]: value })}
+                />
+
+                <div className="jp-field mt-10">
+                  <label>Job Nature <span>*</span></label>
+                  <select name="job_type" value={form.job_type} onChange={handleChange} style={{ width: '200px' }}>
+                    <option value="Full-time">Full-time</option>
+                    <option value="Part-time">Part-time</option>
+                    <option value="Freelance">Freelance</option>
+                  </select>
+                </div>
+
+                <div className="jp-row jp-row-three mt-10">
+                  <div className="jp-field">
+                    <label>Minimum Education <span>*</span></label>
+                    <select name="education_level" value={form.education_level} onChange={handleChange}>
+                      {EDUCATION_LEVELS.map(level => <option key={level} value={level}>{level}</option>)}
+                    </select>
+                  </div>
+                  <div className="jp-field">
+                    <label>Job Level <span>*</span></label>
+                    <select name="job_level" value={form.job_level} onChange={handleChange}>
+                      {JOB_LEVELS.map(level => <option key={level} value={level}>{level}</option>)}
+                    </select>
+                  </div>
+                  <div className="jp-field">
+                    <label>Number of Vacancies</label>
+                    <input type="number" name="vacancies" value={form.vacancies} onChange={handleChange} min="1" />
+                  </div>
+                </div>
+
+                <div className="jp-row jp-row-three mt-10">
+                  <div className="jp-field">
+                    <label>Gender Requirement</label>
+                    <select name="gender_req" value={form.gender_req} onChange={handleChange}>
+                      <option value="Any">Any</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                    </select>
+                  </div>
+                  <div className="jp-field">
+                    <label>Age Requirement</label>
+                    <input type="text" name="age_req" value={form.age_req} onChange={handleChange} placeholder="e.g. 20-30" />
+                  </div>
+                  <div className="jp-field">
+                    <label>Language Requirement</label>
+                    <select name="language_req" value={form.language_req} onChange={handleChange}>
+                      {LANGUAGES.map(lang => <option key={lang} value={lang}>{lang}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="jp-field mt-10">
+                  <label>Application Deadline</label>
+                  <input type="date" name="deadline" value={form.deadline} onChange={handleChange} min={todayStr()} style={{ width: '200px' }} />
+                </div>
+
+              </div>
+            </section>
+
+            <div className="jp-actions mt-20" style={{ borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
+              <button type="button" className="jp-btn jp-btn-cancel" onClick={() => navigate(-1)}>Cancel</button>
+              <button type="button" className="jp-btn jp-btn-primary" onClick={handleSubmit} disabled={loading}>
+                {loading ? "Processing..." : "Continue & Post Job"}
+              </button>
             </div>
           </div>
-        </section>
-
-        {/* ADDITIONAL INFORMATION */}
-        <section className="jp-card mt-20">
-          <div className="jp-card-title">Additional Information</div>
-          <div className="jp-card-body">
-            
-            <div className={`jp-field ${errors.industries ? 'has-error' : ''}`}>
-              <label>Industry <span>*</span></label>
-              <div className="jp-skills-container">
-                {form.selected_industries.map(id => {
-                  const ind = dbIndustries.find(i => i.id === id);
-                  return ind ? (
-                    <span key={id} className="jp-skill-tag selected" onClick={() => toggleIndustry(id)}>
-                      {ind.name} ✕
-                    </span>
-                  ) : null;
-                })}
-              </div>
-              <label className="jp-sub-label">Suggested industries (Click to select)</label>
-              <div className="jp-skills-container">
-                {dbIndustries.filter(i => !form.selected_industries.includes(i.id)).map(ind => (
-                  <span key={ind.id} className="jp-skill-tag" onClick={() => toggleIndustry(ind.id)}>
-                    {ind.name} +
-                  </span>
-                ))}
-              </div>
-              {errors.industries && <span className="jp-error-text">{errors.industries}</span>}
-            </div>
-
-            <div className="jp-field">
-              <label>Professional Skills</label>
-              <div className="jp-skills-container">
-                {form.selected_skills.map(id => {
-                  const s = dbSkills.find(i => i.id === id);
-                  return s ? (
-                    <span key={id} className="jp-skill-tag selected" onClick={() => toggleSkill(id)}>
-                      {s.name} ✕
-                    </span>
-                  ) : null;
-                })}
-              </div>
-              <label className="jp-sub-label">Suggested skills (Click to select)</label>
-              <div className="jp-skills-container">
-                {dbSkills.filter(s => !form.selected_skills.includes(s.id)).map(s => (
-                  <span key={s.id} className="jp-skill-tag" onClick={() => toggleSkill(s.id)}>
-                    {s.name} +
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="jp-field">
-              <label>Job Nature <span>*</span></label>
-              <select name="job_type" value={form.job_type} onChange={handleChange} style={{ width: '200px' }}>
-                <option value="Full-time">Full-time</option>
-                <option value="Part-time">Part-time</option>
-                <option value="Freelance">Freelance</option>
-              </select>
-            </div>
-
-            <div className="jp-row jp-row-three">
-              <div className="jp-field">
-                <label>Minimum Education <span>*</span></label>
-                <select name="education_level" value={form.education_level} onChange={handleChange}>
-                  {EDUCATION_LEVELS.map(level => <option key={level} value={level}>{level}</option>)}
-                </select>
-              </div>
-              <div className="jp-field">
-                <label>Job Level <span>*</span></label>
-                <select name="job_level" value={form.job_level} onChange={handleChange}>
-                  {JOB_LEVELS.map(level => <option key={level} value={level}>{level}</option>)}
-                </select>
-              </div>
-              <div className="jp-field">
-                <label>Number of Vacancies</label>
-                <input type="number" name="vacancies" value={form.vacancies} onChange={handleChange} min="1" />
-              </div>
-            </div>
-
-            <div className="jp-row jp-row-three">
-              <div className="jp-field">
-                <label>Gender Requirement</label>
-                <select name="gender_req" value={form.gender_req} onChange={handleChange}>
-                  <option value="Any">Any</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                </select>
-              </div>
-              <div className="jp-field">
-                <label>Age Requirement</label>
-                <input type="text" name="age_req" value={form.age_req} onChange={handleChange} placeholder="e.g. 20-30" />
-              </div>
-              <div className="jp-field">
-                <label>Language Requirement</label>
-                <select name="language_req" value={form.language_req} onChange={handleChange}>
-                  {LANGUAGES.map(lang => <option key={lang} value={lang}>{lang}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <div className="jp-field">
-              <label>Application Deadline</label>
-              <input type="date" name="deadline" value={form.deadline} onChange={handleChange} min={todayStr()} style={{ width: '200px' }} />
-            </div>
-
-          </div>
-        </section>
-
-        <div className="jp-actions mt-20" style={{ borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
-          <button type="button" className="jp-btn jp-btn-cancel" onClick={() => navigate(-1)}>Cancel</button>
-          <button type="button" className="jp-btn jp-btn-primary" onClick={handleSubmit} disabled={loading}>
-            {loading ? "Processing..." : "Continue & Post Job"}
-          </button>
         </div>
-      </div>
-      </div>
       )}
 
       {toast.show && (
@@ -702,7 +720,7 @@ export default function JobPosting() {
             <p style={{ color: '#4b5563', marginBottom: '30px', fontSize: '15px' }}>
               Your current balance: <strong style={{ color: '#d97706', fontSize: '1.2rem' }}>{coins || 0} Coins 🪙</strong>
             </p>
-            
+
             <div className="jp-plans-grid">
               {/* Free Plan */}
               <div className="jp-plan-card jp-plan-free">
@@ -717,7 +735,7 @@ export default function JobPosting() {
                     <span>Max <strong>1 job post / 24 hours</strong></span>
                   </li>
                 </ul>
-                <button 
+                <button
                   onClick={() => handleSelectPackage('Free')}
                   className="jp-plan-button"
                 >
@@ -742,7 +760,7 @@ export default function JobPosting() {
                     <span>Max <strong>2 job posts / 24 hours</strong></span>
                   </li>
                 </ul>
-                <button 
+                <button
                   onClick={() => handleSelectPackage('Pro_Day')}
                   className="jp-plan-button"
                 >
@@ -771,7 +789,7 @@ export default function JobPosting() {
                     <span>Save up to 16% in cost</span>
                   </li>
                 </ul>
-                <button 
+                <button
                   onClick={() => handleSelectPackage('Pro_Month')}
                   className="jp-plan-button"
                 >
@@ -781,8 +799,8 @@ export default function JobPosting() {
             </div>
 
             <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'center' }}>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setShowPackageModal(false)}
                 className="jp-modal-cancel-btn"
               >
@@ -805,18 +823,18 @@ export default function JobPosting() {
             <p style={{ color: '#4b5563', fontSize: '14.5px', marginBottom: '30px' }}>
               Would you like to recharge coins now to use this featured service?
             </p>
-            
+
             <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => setShowCoinsWarningModal(false)}
                 className="jp-modal-cancel-btn"
                 style={{ flex: 1 }}
               >
                 Cancel
               </button>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={handleBuyCoinsRedirect}
                 className="jp-modal-confirm-btn"
                 style={{ flex: 1 }}

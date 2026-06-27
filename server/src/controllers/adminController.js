@@ -132,7 +132,7 @@ exports.getStats = async (req, res) => {
             totalSkills: skillStats[0].totalSkills,
 
             totalIndustries: industryStats[0].totalIndustries,
-            industriesCount: industryStats[0].totalIndustries,
+            industryCount: industryStats[0].totalIndustries,
 
             pendingTransactions: transactionStats[0].pendingTransactions,
             totalRevenue: transactionStats[0].totalRevenue
@@ -1009,7 +1009,7 @@ exports.getTopIndustries = async (req, res) => {
         `);
         res.json(rows);
     } catch (error) {
-        console.error('GET TOP INDUSTRIES ERROR:', error);
+        console.error('GET TOP INDUSTRY ERROR:', error);
         res.status(500).json({ message: error.message });
     }
 };

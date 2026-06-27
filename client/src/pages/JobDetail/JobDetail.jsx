@@ -132,6 +132,14 @@ export default function JobDetail() {
 
   if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Loading...</div>;
   if (!job) return <div style={{ padding: '50px', textAlign: 'center' }}>Job not found</div>;
+  let jobMeta = {};
+  if (job && job.metadata) {
+    try {
+      jobMeta = typeof job.metadata === 'string' ? JSON.parse(job.metadata) : job.metadata;
+    } catch (e) {
+      console.error("Error parsing job metadata:", e);
+    }
+  }
 
   return (
     <div className="job-detail-page-container">
@@ -167,7 +175,7 @@ export default function JobDetail() {
             </p>
           )}
           {hasApplied ? (
-            <button className="job-detail-card-btn onClick={handleApplyJob} applied" disabled>
+            <button className="job-detail-card-btn applied" disabled>
               Applied
             </button>
           ) : (
@@ -179,17 +187,113 @@ export default function JobDetail() {
       </div>
 
       <div className="job-detail-bottom-content">
-        <div className="job-detail-main-section">
-          <h2 className="job-detail-section-title">Job Description</h2>
-          <div className="job-detail-text-block">{job.description}</div>
+        <div className="job-detail-main-section" style={{ marginBottom: '32px' }}>
+          <h2 className="job-detail-section-title" style={{ color: '#1f2937', fontSize: '20px', borderBottom: '2px solid #01796F', display: 'inline-block', paddingBottom: '8px', marginBottom: '16px' }}>
+            Job Description
+          </h2>
+          <div 
+            className="job-detail-text-block" 
+            style={{ whiteSpace: 'pre-line', lineHeight: '1.8', color: '#4b5563', fontSize: '16px' }}
+          >
+            {job.description || "Information is being updated."}
+          </div>
         </div>
 
         {job.requirements && (
-          <div className="job-detail-main-section">
-            <h2 className="job-detail-section-title">Requirements</h2>
-            <div className="job-detail-text-block">{job.requirements}</div>
+          <div className="job-detail-main-section" style={{ marginBottom: '32px' }}>
+            <h2 className="job-detail-section-title" style={{ color: '#1f2937', fontSize: '20px', borderBottom: '2px solid #01796F', display: 'inline-block', paddingBottom: '8px', marginBottom: '16px' }}>
+              Job Requirements
+            </h2>
+            <div 
+              className="job-detail-text-block" 
+              style={{ whiteSpace: 'pre-line', lineHeight: '1.8', color: '#4b5563', fontSize: '16px' }}
+            >
+              {job.requirements}
+            </div>
           </div>
         )}
+        {job.company_description && (
+          <div className="job-detail-main-section company-info-section" style={{ marginTop: '40px', borderTop: '1px solid #eaeaea', paddingTop: '30px' }}>
+            <h2 className="job-detail-section-title">About the Company</h2>
+            <div style={{ backgroundColor: '#f9fafb', padding: '24px', borderRadius: '8px', marginTop: '16px' }}>
+              <h3 style={{ margin: '0 0 16px 0', color: '#1f2937', fontSize: '20px' }}>{job.company_name}</h3>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                {job.company_size && (
+                  <div>
+                    <span style={{ color: '#6b7280', fontSize: '14px', display: 'block' }}>Company Size</span>
+                    <strong style={{ color: '#374151' }}>{job.company_size} Employees</strong>
+                  </div>
+                )}
+                {job.company_website && (
+                  <div>
+                    <span style={{ color: '#6b7280', fontSize: '14px', display: 'block' }}>Website</span>
+                    <a href={job.company_website} target="_blank" rel="noopener noreferrer" style={{ color: '#01796F', fontWeight: 'bold', textDecoration: 'none' }}>
+                      Visit Website ↗
+                    </a>
+                  </div>
+                )}
+                {job.company_address && (
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <span style={{ color: '#6b7280', fontSize: '14px', display: 'block' }}>Headquarters</span>
+                    <strong style={{ color: '#374151' }}>{job.company_address}</strong>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ color: '#4b5563', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                {job.company_description}
+              </div>
+            </div>
+          </div>
+        )}
+        <div className="job-detail-main-section" style={{ marginTop: '25px', backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+        <h2 className="job-detail-section-title" style={{ fontSize: '18px', marginBottom: '15px', color: '#333' }}>Job Information Details</h2>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+          {jobMeta.job_level && (
+            <div style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>
+              <span style={{ color: '#6b7280', fontSize: '14px', display: 'block' }}>Job Level</span>
+              <strong style={{ color: '#374151' }}>{jobMeta.job_level}</strong>
+            </div>
+          )}
+          
+          {jobMeta.vacancies && (
+            <div style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>
+              <span style={{ color: '#6b7280', fontSize: '14px', display: 'block' }}>Number of Vacancies</span>
+              <strong style={{ color: '#374151' }}>{jobMeta.vacancies} positions</strong>
+            </div>
+          )}
+
+          {job.lang_req && (
+            <div style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>
+              <span style={{ color: '#6b7280', fontSize: '14px', display: 'block' }}>Language Requirement</span>
+              <strong style={{ color: '#374151' }}>{job.lang_req}</strong>
+            </div>
+          )}
+
+          {jobMeta.gender_req && (
+            <div style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>
+              <span style={{ color: '#6b7280', fontSize: '14px', display: 'block' }}>Gender Requirement</span>
+              <strong style={{ color: '#374151' }}>{jobMeta.gender_req}</strong>
+            </div>
+          )}
+
+          {job.age_req && (
+            <div style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>
+              <span style={{ color: '#6b7280', fontSize: '14px', display: 'block' }}>Age Requirement</span>
+              <strong style={{ color: '#374151' }}>{job.age_req}</strong>
+            </div>
+          )}
+
+          {job.exp_yrs && (
+            <div style={{ padding: '10px', borderBottom: '1px solid #f3f4f6' }}>
+              <span style={{ color: '#6b7280', fontSize: '14px', display: 'block' }}>Experience</span>
+              <strong style={{ color: '#374151' }}>{job.exp_yrs}</strong>
+            </div>
+          )}
+        </div>
+      </div>
       </div>
 
       {showApplyModal && (

@@ -366,6 +366,40 @@ router.post('/:id/follow', authMiddleware, async (req, res) => {
   }
 });
 
+router.get('/search-titles', async (req, res) => {
+    try {
+        const { q } = req.query;
+
+        if (!q || q.trim().length === 0) {
+            return res.status(200).json({
+                success: true,
+                data: []
+            });
+        }
+
+        const searchQuery = `%${q.trim()}%`;
+        const query = `
+            SELECT title 
+            FROM job_title_dictionary 
+            WHERE title LIKE ? 
+            ORDER BY title ASC 
+            LIMIT 10
+        `;
+        
+        const [rows] = await db.query(query, [searchQuery]);
+        
+        res.status(200).json({
+            success: true,
+            data: rows.map(row => row.title)
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Internal Server Error'
+        });
+    }
+});
+
 
 
 

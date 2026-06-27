@@ -24,7 +24,7 @@ router.get('/skills', adminController.getSkills);
 router.get('/industries', adminController.getIndustries);
 router.get('/news', adminController.getNews);
 router.get('/news-categories', adminController.getNewsCategories);
-router.post('/news-categories', adminController.createNewsCategory);
+// router.post('/news-categories', adminController.createNewsCategory);
 
 // 4. Thêm mới danh mục dữ liệu nhanh
 router.post('/skills', adminController.createSkill);

@@ -15,6 +15,7 @@ export default function AdminCompanyApproval() {
         fetchPendingCompanies();
     }, []);
 
+    
     const fetchPendingCompanies = async () => {
         try {
             const token = localStorage.getItem("token");
@@ -57,6 +58,28 @@ export default function AdminCompanyApproval() {
 
     return (
         <div>
+            {toast.show && (
+                <div style={{
+                    padding: "15px",
+                    marginBottom: "20px",
+                    borderRadius: "8px",
+                    backgroundColor: toast.type === "success" ? "#d4edda" : "#f8d7da",
+                    color: toast.type === "success" ? "#155724" : "#721c24",
+                    border: `1px solid ${toast.type === "success" ? "#c3e6cb" : "#f5c6cb"}`,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
+                }}>
+                    <strong>{toast.message}</strong>
+                    <button 
+                        onClick={() => setToast({ show: false, message: "", type: "" })}
+                        style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: "16px" }}
+                    >
+                        ✖
+                    </button>
+                </div>
+            )}
+
             <h1 className="admin-title">
                 Company Approval
             </h1>
