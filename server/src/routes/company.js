@@ -37,6 +37,44 @@ router.get("/dashboard/applications", async (req, res) => {
   }
 });
 
+// GET /api/company/dashboard/stats — Thống kê tổng quan cho company đang đăng nhập
+router.get('/dashboard/stats', authMiddleware, async (req, res) => {
+  try {
+    const hr_id = req.user.id;
+
+    // Lấy company theo hr_id
+    const [companies] = await pool.query('SELECT id FROM Company WHERE hr_id = ?', [hr_id]);
+    if (companies.length === 0) {
+      return res.status(404).json({ message: 'Company not found' });
+    }
+    const companyId = companies[0].id;
+
+    // Đếm số job + tổng lượt xem
+    const [jobRows] = await pool.query(
+      `SELECT COUNT(*) AS jobs, COALESCE(SUM(view_count), 0) AS views
+   FROM Job_Posting WHERE company_id = ? AND status = 'Approved'`,
+      [companyId]
+    );
+
+    // Đếm số đơn ứng tuyển vào các job của company
+    const [appRows] = await pool.query(
+      `SELECT COUNT(*) AS applications
+       FROM Application a
+       JOIN Job_Posting jp ON a.job_id = jp.id
+       WHERE jp.company_id = ?`,
+      [companyId]
+    );
+
+    res.json({
+      jobs: jobRows[0].jobs,
+      applications: appRows[0].applications,
+      views: jobRows[0].views
+    });
+  } catch (err) {
+    console.error('GET COMPANY STATS ERROR:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
 
 // GET /api/company/:hr_id — Lấy thông tin công ty theo hr_id
 router.get('/:hr_id', async (req, res) => {
@@ -63,11 +101,11 @@ router.get('/:hr_id', async (req, res) => {
 // Accept both `logo` and `cover_image` files (optional)
 router.post('/', upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'cover_image', maxCount: 1 }]), async (req, res) => {
   try {
-    const { 
-      hr_id, 
-      industry_id, 
-      name, 
-      website, 
+    const {
+      hr_id,
+      industry_id,
+      name,
+      website,
       address,
       email,
       company_phone,
@@ -121,10 +159,10 @@ router.post('/', upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'cover_im
 router.put('/:hr_id', upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'cover_image', maxCount: 1 }]), async (req, res) => {
   try {
     const { hr_id } = req.params;
-    const { 
-      industry_id, 
-      name, 
-      website, 
+    const {
+      industry_id,
+      name,
+      website,
       address,
       email,
       company_phone,
@@ -181,10 +219,10 @@ router.put('/:hr_id', upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'cov
 router.post('/:hr_id/saved-candidates/:candidate_id', async (req, res) => {
   try {
     const { hr_id, candidate_id } = req.params;
-    
+
     // Check if already saved
     const [existing] = await pool.query('SELECT * FROM Saved_Candidate WHERE hr_id = ? AND candidate_id = ?', [hr_id, candidate_id]);
-    
+
     if (existing.length > 0) {
       // Unsave
       await pool.query('DELETE FROM Saved_Candidate WHERE hr_id = ? AND candidate_id = ?', [hr_id, candidate_id]);
@@ -327,6 +365,8 @@ router.post('/:id/follow', authMiddleware, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+
+
 
 
 module.exports = router;

@@ -83,7 +83,6 @@ const uploadNews = multer({
     limits: { fileSize: 10 * 1024 * 1024 }
 });
 
-module.exports = { upload, uploadAvatar: upload, uploadCompany, uploadNews };
 
 module.exports = {
     upload,
