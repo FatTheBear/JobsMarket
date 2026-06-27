@@ -24,7 +24,7 @@ const AdminDashboardInner = () => {
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [pendingJobs, setPendingJobs] = useState([]);
-  const [categories, setCategories] = useState({ skills: [], industries: [] });
+  const [categories, setCategories] = useState({ skills: [], industry: [] });
   const [newsList, setNewsList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -37,13 +37,13 @@ const AdminDashboardInner = () => {
   // Đóng gói hàm fetch danh mục ra ngoài để dùng tái sử dụng khi Add/Delete
   const fetchCategoriesData = async () => {
     try {
-      const [skillsData, industriesData] = await Promise.all([
+      const [skillsData, industryData] = await Promise.all([
         adminApi.getSkills(),
         adminApi.getIndustries()
       ]);
       setCategories({
         skills: Array.isArray(skillsData) ? skillsData : [],
-        industries: Array.isArray(industriesData) ? industriesData : []
+        industry: Array.isArray(industriesData) ? industryData : []
       });
     } catch (catErr) {
       console.error("Error fetching categories:", catErr);
