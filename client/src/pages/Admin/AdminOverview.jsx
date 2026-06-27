@@ -154,7 +154,7 @@ export default function AdminOverview({ stats, onNavigate }) {
     return () => { cancelled = true; };
   }, [period, selectedYear, selectedMonth]);
 
-  // Fetch top skills + industries một lần
+ 
   useEffect(() => {
     adminApi.getTopSkills()
       .then(setTopSkills)
@@ -162,7 +162,7 @@ export default function AdminOverview({ stats, onNavigate }) {
 
     adminApi.getTopIndustries()
       .then(setTopIndustries)
-      .catch(err => console.error('Top industries error:', err));
+      .catch(err => console.error('Top industry error:', err));
   }, []);
 
   if (!stats) return <p style={{ color: '#64748b', padding: 20 }}>Loading data...</p>;
@@ -396,14 +396,13 @@ export default function AdminOverview({ stats, onNavigate }) {
               <span style={{ color: '#01796F', fontWeight: 600 }}>{stats.approvedJobs || 0} jobs</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#64748b' }}>
-              <span>Total Industries</span>
+              <span>Total Industry</span>
               <span style={{ color: '#01796F', fontWeight: 600 }}>{stats.industriesCount || 0} categories</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── ROW 3: Top Skills + Top Industries ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
 
         {/* Top Skills */}
@@ -436,9 +435,9 @@ export default function AdminOverview({ stats, onNavigate }) {
           }
         </div>
 
-        {/* Top Industries */}
+       
         <div className="table-container" style={{ padding: 20 }}>
-          <SectionTitle>Top Industries</SectionTitle>
+          <SectionTitle>Top Industry</SectionTitle>
           {topIndustries.length === 0
             ? <p style={{ color: '#94a3b8', fontSize: 13 }}>No data available</p>
             : (

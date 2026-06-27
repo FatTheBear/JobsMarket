@@ -89,7 +89,6 @@ const AdminCategories = ({
           </div>
         </div>
 
-        {/* KHỐI QUẢN LÝ INDUSTRIES */}
         <div>
           <h3 style={{ marginBottom: '12px', color: '#01796F' }}>Industries List</h3>
           <div className="admin-input-group">
@@ -134,7 +133,7 @@ const AdminCategories = ({
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="3" style={{ textAlign: 'center', color: '#94a3b8' }}>No industries found.</td>
+                    <td colSpan="3" style={{ textAlign: 'center', color: '#94a3b8' }}>No industry found.</td>
                   </tr>
                 )}
               </tbody>

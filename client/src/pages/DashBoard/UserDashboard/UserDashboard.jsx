@@ -2,44 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './UserDashboard.module.css';
 import axios from 'axios';
+import ApplyJobModal from './ApplyJobModal';
 import JobCard from '../../../components/Jobs/JobCard';
-import FeaturedCompanies from '../../FeaturedCompanies/FeaturedCompanies';
 
-const LOCATION_API = 'https://provinces.open-api.vn/api';
-
-const removeAccents = (str) => {
-  if (!str) return '';
-  return str
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/đ/g, 'd')
-    .replace(/Đ/g, 'D');
-};
-
-const translateLocation = (name) => {
-  if (!name) return '';
-  const prefixes = [
-    'Thành phố ', 'Tỉnh ', 'Quận ', 'Huyện ',
-    'Thị xã ', 'Phường ', 'Xã ', 'Thị trấn '
-  ];
-  let result = name;
-  for (const prefix of prefixes) {
-    if (result.startsWith(prefix)) {
-      result = result.slice(prefix.length);
-      break;
-    }
-  }
-  return removeAccents(result);
-};
-
-const JOB_TYPES = ['Full-time', 'Part-time', 'Freelance'];
-const EXPERIENCE_LEVELS = ['Not Required', 'Under 1 year', '1 - 3 years', '3 - 5 years', 'Over 5 years'];
-const SALARY_RANGES = ['Negotiable', 'Under 10M', '10M - 20M', 'Over 20M'];
-
-const INDUSTRY_BANNERS = [
-  { bg: 'linear-gradient(135deg, #1e3a6e 0%, #2563ab 60%, #1e5c8b 100%)', title: 'Information Technology', sub: 'Explore top tech roles: Software Engineering, Data Science, AI, and more.' },
-  { bg: 'linear-gradient(135deg, #0f2d5e 0%, #c0392b 100%)', title: 'Finance & Banking', sub: 'Accelerate your career in Investment, Accounting, and Financial Analysis.' },
-  { bg: 'linear-gradient(135deg, #1a4731 0%, #27ae60 100%)', title: 'Marketing & PR', sub: 'Unleash your creativity in Digital Marketing, Public Relations, and Brand Management.' },
+const LOCATIONS = [
+  'Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Binh Duong', 'Dong Nai', 'Can Tho'
 ];
 
 export default function CandidateDashboard() {
@@ -49,16 +16,23 @@ export default function CandidateDashboard() {
   const [bannerIdx, setBannerIdx] = useState(0);
   const bannerTimerRef = useRef(null);
   const [jobs, setJobs] = useState([]);
-
-  // Advanced filter states
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [selectedJob, setSelectedJob] = useState(null);
   const [selectedJobTypes, setSelectedJobTypes] = useState([]);
   const [selectedExperience, setSelectedExperience] = useState([]);
-  const [selectedSalary, setSelectedSalary] = useState('');
+  const [selectedSalary, setSelectedSalary] = useState(''); 
+  const [selectedLevel, setSelectedLevel] = useState([]);
   const [filterLocation, setFilterLocation] = useState('');
-  const [provinces, setProvinces] = useState([]);
-  const [industries, setIndustries] = useState([]);
-  const [skillKeyword, setSkillKeyword] = useState('');
   const [selectedIndustries, setSelectedIndustries] = useState([]);
+  const [skillKeyword, setSkillKeyword] = useState('');
+  const [provinces, setProvinces] = useState([]);
+
+  // Đổi Banner thành Danh mục các ngành nghề
+  const INDUSTRY_BANNERS = [
+    { bg: 'linear-gradient(135deg, #1e3a6e 0%, #2563ab 60%, #1e5c8b 100%)', title: 'Information Technology', sub: 'Explore top tech roles: Software Engineering, Data Science, AI, and more.' },
+    { bg: 'linear-gradient(135deg, #0f2d5e 0%, #c0392b 100%)', title: 'Finance & Banking', sub: 'Accelerate your career in Investment, Accounting, and Financial Analysis.' },
+    { bg: 'linear-gradient(135deg, #1a4731 0%, #27ae60 100%)', title: 'Marketing & PR', sub: 'Unleash your creativity in Digital Marketing, Public Relations, and Brand Management.' },
+  ];
 
   useEffect(() => {
     bannerTimerRef.current = setInterval(() => {
@@ -67,16 +41,10 @@ export default function CandidateDashboard() {
     return () => clearInterval(bannerTimerRef.current);
   }, []);
 
-  useEffect(() => {
-    axios.get(`${LOCATION_API}/?depth=1`).then(res => {
-      const names = res.data.map(p => translateLocation(p.name)).sort();
-      setProvinces(names);
-    }).catch(err => console.error('Failed to load provinces:', err));
-  }, []);
-  useEffect(() => {
-    axios.get('http://localhost:5000/api/industries').then(res => setIndustries(res.data));
-    axios.get('http://localhost:5000/api/skills').then(res => setSkills(res.data));
-  }, []);
+  const handleLogout = () => {
+    // Thêm logic xóa token/localStorage ở đây
+    navigate('/');
+  };
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -132,7 +100,7 @@ export default function CandidateDashboard() {
   return (
     <div className={styles.page}>
 
-      {/* ── BANNER ── */}
+      {/* ───── INDUSTRY BANNER SLIDER ───── */}
       <section className={styles.banner} style={{ background: INDUSTRY_BANNERS[bannerIdx].bg }}>
         <div className={styles.bannerOverlay} />
         <div className={styles.bannerContent}>
@@ -141,6 +109,7 @@ export default function CandidateDashboard() {
             <p className={styles.bannerSub}>{INDUSTRY_BANNERS[bannerIdx].sub}</p>
           </div>
 
+          {/* Search Box */}
           <div className={styles.searchBox}>
             <div className={styles.searchBoxTitle}>
               <h2>Find jobs that match your skills & passion</h2>
@@ -177,7 +146,8 @@ export default function CandidateDashboard() {
           </div>
         </div>
 
-        {/* <div className={styles.bannerDots}>
+        {/* Banner dots */}
+        <div className={styles.bannerDots}>
           {INDUSTRY_BANNERS.map((_, i) => (
             <button
               key={i}
@@ -185,133 +155,23 @@ export default function CandidateDashboard() {
               onClick={() => setBannerIdx(i)}
             />
           ))}
-        </div> */}
+        </div>
       </section>
 
-      {/* ── JOB SECTION: Filter Left + List Right ── */}
-      <section className={styles.jobSection}>
-        <div className={styles.jobSectionInner}>
-
-          {/* LEFT: Filter Panel */}
-          <aside className={styles.filterPanel}>
-            <div className={styles.filterHeader}>
-              <span className={styles.filterTitle}>
-                🎚 Advanced Filters
-                {activeFilterCount > 0 && (
-                  <span className={styles.filterBadge}>{activeFilterCount}</span>
-                )}
-              </span>
-              {activeFilterCount > 0 && (
-                <button className={styles.filterClearBtn} onClick={clearAllFilters}>Clear all</button>
-              )}
-            </div>
-
-            {/* Location filter */}
-            <div className={styles.filterGroup}>
-              <p className={styles.filterGroupLabel}>📍 Location</p>
-              <select
-                className={styles.filterSelect}
-                value={filterLocation}
-                onChange={e => setFilterLocation(e.target.value)}
-              >
-                <option value="">All locations</option>
-                {provinces.map(loc => (
-                  <option key={loc} value={loc}>{loc}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Job Type */}
-            <div className={styles.filterGroup}>
-              <p className={styles.filterGroupLabel}>💼 Job Type</p>
-              {JOB_TYPES.map(type => (
-                <label key={type} className={styles.filterCheckLabel}>
-                  <input
-                    type="checkbox"
-                    checked={selectedJobTypes.includes(type)}
-                    onChange={() => toggleCheckbox(type, selectedJobTypes, setSelectedJobTypes)}
-                  />
-                  {type}
-                </label>
-              ))}
-            </div>
-
-            {/* Experience */}
-            <div className={styles.filterGroup}>
-              <p className={styles.filterGroupLabel}>🎓 Experience</p>
-              {EXPERIENCE_LEVELS.map(exp => (
-                <label key={exp} className={styles.filterCheckLabel}>
-                  <input
-                    type="checkbox"
-                    checked={selectedExperience.includes(exp)}
-                    onChange={() => toggleCheckbox(exp, selectedExperience, setSelectedExperience)}
-                  />
-                  {exp}
-                </label>
-              ))}
-            </div>
-
-            {/* Salary */}
-            <div className={styles.filterGroup}>
-              <p className={styles.filterGroupLabel}>💰 Salary Range</p>
-              {SALARY_RANGES.map(range => (
-                <label key={range} className={styles.filterCheckLabel}>
-                  <input
-                    type="radio"
-                    name="salary"
-                    checked={selectedSalary === range}
-                    onChange={() => setSelectedSalary(range)}
-                  />
-                  {range}
-                </label>
-              ))}
-            </div>
-            {/* Industry */}
-            <div className={styles.filterGroup}>
-              <p className={styles.filterGroupLabel}>🏢 Industry</p>
-              {industries.map(ind => (
-                <label key={ind.id} className={styles.filterCheckLabel}>
-                  <input
-                    type="checkbox"
-                    checked={selectedIndustries.includes(ind.id)}
-                    onChange={() => toggleCheckbox(ind.id, selectedIndustries, setSelectedIndustries)}
-                  />
-                  {ind.name}
-                </label>
-              ))}
-            </div>
-
-            {/* Skills */}
-            <div className={styles.filterGroup}>
-              <p className={styles.filterGroupLabel}>⚡ Skills / Requirements</p>
-              <input
-                className={styles.filterSelect}
-                type="text"
-                placeholder="e.g. ReactJS, MySQL..."
-                value={skillKeyword}
-                onChange={e => setSkillKeyword(e.target.value)}
-              />
-            </div>
-          </aside>
-
-
-          {/* RIGHT: Job List */}
-          <div className={styles.jobListPanel}>
-            <div className={styles.jobListHeader}>
-              <h2 className={styles.jobListTitle}>
-                Recommended for you
-                <span className={styles.jobListCount}>{filteredJobs.length} jobs</span>
-              </h2>
-            </div>
-
-            {filteredJobs.length === 0 ? (
-              <div className={styles.jobEmpty}>
-                <p>No jobs match your current filters.</p>
-                <button className={styles.filterClearBtn} onClick={clearAllFilters}>Reset filters</button>
+          <section className={`${styles.section} ${styles.sectionGray}`} style={{ padding: '60px 0' }}>
+            <div className={styles.container}>
+              <div className={styles.sectionHeader} style={{ marginBottom: '40px' }}>
+                <h2 className={styles.sectionTitle}>RECOMMENDED FOR YOU</h2>
               </div>
-            ) : (
-              <div className={styles.jobListStack}>
-                {filteredJobs.map(job => (
+
+              {/* Job Postings Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '25px',
+            alignItems: 'stretch'
+          }}>
+                {jobs.map(job => (
                   <JobCard
                     key={job.id}
                     job={job}
@@ -319,15 +179,19 @@ export default function CandidateDashboard() {
                   />
                 ))}
               </div>
-            )}
-          </div>
-        </div>
-      </section>
+            </div>
+          </section>
+ 
+     
 
-      {/* ───── FEATURED COMPANIES ───── */}
-      <FeaturedCompanies />
+      <ApplyJobModal
+        show={showApplyModal}
+        onClose={() => { setShowApplyModal(false); setSelectedJob(null); }}
+        job={selectedJob}
+        onApplySuccess={() => alert('Apply successful! The employer will contact you soon.')}
+      />
 
-      {/* ── FOOTER ── */}
+      {/* ───── FOOTER ───── */}
       <footer className={styles.footer}>
         <div className={styles.container}>
           <div className={styles.footerBottom} style={{ textAlign: 'center', paddingTop: '20px' }}>
