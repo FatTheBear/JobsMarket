@@ -313,6 +313,19 @@ INSERT INTO `company_follower` (`candidate_id`, `company_id`, `followed_at`) VAL
 -- --------------------------------------------------------
 
 --
+-- Cấu trúc bảng cho bảng `industry_category`
+--
+
+CREATE TABLE IF NOT EXISTS `industry_category` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Cấu trúc bảng cho bảng `industry`
 --
 
@@ -331,6 +344,14 @@ INSERT INTO `industry` (`id`, `name`) VALUES
 (5, 'Healthcare'),
 (1, 'IT'),
 (3, 'Marketing');
+
+ALTER TABLE `industry`
+  ADD COLUMN IF NOT EXISTS `category_id` int(11) DEFAULT NULL,
+  ADD INDEX IF NOT EXISTS `idx_industry_category_id` (`category_id`);
+
+ALTER TABLE `industry`
+  ADD CONSTRAINT `fk_industry_category`
+    FOREIGN KEY (`category_id`) REFERENCES `industry_category`(`id`) ON DELETE CASCADE;
 
 -- --------------------------------------------------------
 
@@ -366,6 +387,7 @@ CREATE TABLE `job_posting` (
   `salary_min` int(11) DEFAULT NULL,
   `salary_max` int(11) DEFAULT NULL,
   `job_type` enum('Full-time','Part-time','Freelance') DEFAULT NULL,
+  `job_level` varchar(100) DEFAULT NULL,
   `status` enum('Pending','Approved','Rejected','Closed') DEFAULT 'Pending',
   `view_count` int(11) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -567,6 +589,14 @@ INSERT INTO `skill` (`id`, `skill_name`) VALUES
 (0, 'Django'),
 (0, 'Word Office'),
 (0, 'Exel');
+
+CREATE TABLE IF NOT EXISTS `industry_skill` (
+  `industry_id` int(11) NOT NULL,
+  `skill_id` int(11) NOT NULL,
+  PRIMARY KEY (`industry_id`,`skill_id`),
+  CONSTRAINT `fk_industry_skill_industry` FOREIGN KEY (`industry_id`) REFERENCES `industry`(`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_industry_skill_skill` FOREIGN KEY (`skill_id`) REFERENCES `skill`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
