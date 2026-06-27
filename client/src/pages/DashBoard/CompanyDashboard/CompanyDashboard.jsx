@@ -57,6 +57,24 @@ export default function CompanyDashboard() {
       .catch((err) => console.error("Error fetching news:", err));
   }, []);
 
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+  fetch("http://localhost:5000/api/company/dashboard/stats", {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data && typeof data.jobs !== "undefined") {
+        setStats({
+          jobs: data.jobs || 0,
+          applications: data.applications || 0,
+          views: data.views || 0
+        });
+      }
+    })
+    .catch(err => console.error("Error fetching stats:", err));
+}, []);
+
 
 
   const chartData = {
