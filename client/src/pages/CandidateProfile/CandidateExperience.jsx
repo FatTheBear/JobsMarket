@@ -53,7 +53,7 @@ const CandidateExperience = ({
     <>
       {/* Column 1: Experience Section */}
       <div className="w-100">
-        <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
+        <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column" style={{ height: '380px' }}>
           <div className="card-body p-4 d-flex flex-column h-100">
             <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
               <div className="d-flex align-items-center gap-2">
@@ -72,7 +72,7 @@ const CandidateExperience = ({
               </div>
             </div>
 
-            <div className="d-flex flex-column gap-3">
+            <div className="d-flex flex-column gap-3 resume-scroll-container">
               {workExperiences.length === 0 ? (
                 <div className="text-center py-5 text-muted small">
                   <i className="fas fa-briefcase fs-3 mb-2 text-muted opacity-50"></i>
@@ -89,9 +89,18 @@ const CandidateExperience = ({
                         <i className="fas fa-trash-alt text-muted hover-danger" style={{ fontSize: '0.85rem' }}></i>
                       </button>
                     </div>
-                    <h6 className="fw-bold mb-3 text-dark text-hover-primary" style={{ fontSize: '0.95rem', paddingRight: '45px', lineHeight: '1.4' }}>
-                      {exp.role}
-                    </h6>
+                    {(() => {
+                      let displayRole = exp.role || '';
+                      if (displayRole.includes(' - ')) {
+                        const parts = displayRole.split(/\s*[-–—]\s*/);
+                        displayRole = parts[1]?.trim() || displayRole;
+                      }
+                      return (
+                        <h6 className="fw-bold mb-3 text-dark text-hover-primary" style={{ fontSize: '0.95rem', paddingRight: '45px', lineHeight: '1.4' }}>
+                          {displayRole}
+                        </h6>
+                      );
+                    })()}
                     <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
                       <span className="text-muted small fw-semibold" style={{ fontSize: '0.75rem' }}>
                         <i className="fas fa-building text-primary me-1.5"></i>
@@ -133,6 +142,7 @@ const CandidateExperience = ({
                   <i className="fas fa-exclamation-triangle me-1.5"></i> {modalError}
                 </div>
               )}
+
               <div style={{ position: 'relative' }}>
                 <label className="form-label fw-semibold text-secondary small">Job Title / Role <span className="text-danger">*</span></label>
                 <input
@@ -226,7 +236,16 @@ export const CandidateExperienceManager = ({ workExperiences, onOpenModal, onDel
         {workExperiences.map((exp) => (
           <div key={exp.id} className="d-flex justify-content-between align-items-center p-2.5 rounded border bg-light">
             <div>
-              <p className="fw-bold mb-0 text-dark small">{exp.role}</p>
+              {(() => {
+                let displayRole = exp.role || '';
+                if (displayRole.includes(' - ')) {
+                  const parts = displayRole.split(/\s*[-–—]\s*/);
+                  displayRole = parts[1]?.trim() || displayRole;
+                }
+                return (
+                  <p className="fw-bold mb-0 text-dark small">{displayRole}</p>
+                );
+              })()}
               <p className="mb-0 text-muted small">{exp.company} • {exp.duration}</p>
             </div>
             <div className="d-flex gap-1">

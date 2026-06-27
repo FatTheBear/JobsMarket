@@ -64,7 +64,7 @@ const CandidateLanguages = ({
   return (
     <>
       <div className="w-100">
-        <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
+        <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column" style={{ height: '380px' }}>
           <div className="card-body p-4 d-flex flex-column h-100">
             <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
               <span className="fs-5 fw-bold text-dark">Languages</span>
@@ -81,7 +81,7 @@ const CandidateLanguages = ({
                 <p className="mb-0">No languages added yet.</p>
               </div>
             ) : (
-              <div className="d-flex flex-column gap-3">
+              <div className="d-flex flex-column gap-3 resume-scroll-container">
                 {languages.map((lang, idx) => (
                   <div key={lang.id || idx} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
                     <div className="position-absolute top-0 end-0 mt-3 me-3 d-flex gap-2">
@@ -172,7 +172,7 @@ const CandidateCertifications = ({
 }) => (
   <>
     <div className="w-100">
-      <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
+      <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column" style={{ height: '380px' }}>
         <div className="card-body p-4 d-flex flex-column h-100">
           <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
             <span className="fs-5 fw-bold text-dark">Certifications</span>
@@ -189,7 +189,7 @@ const CandidateCertifications = ({
               <p className="mb-0">No certifications added yet.</p>
             </div>
           ) : (
-            <div className="d-flex flex-column gap-3">
+            <div className="d-flex flex-column gap-3 resume-scroll-container">
               {certifications.map((cert, idx) => (
                 <div key={cert.id || idx} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
                   <div className="position-absolute top-0 end-0 mt-3 me-3 d-flex gap-2">
@@ -242,7 +242,7 @@ const CandidateAwards = ({
 }) => (
   <>
     <div className="w-100">
-      <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
+      <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column" style={{ height: '380px' }}>
         <div className="card-body p-4 d-flex flex-column h-100">
           <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
             <span className="fs-5 fw-bold text-dark">Awards</span>
@@ -259,7 +259,7 @@ const CandidateAwards = ({
               <p className="mb-0">No awards added yet.</p>
             </div>
           ) : (
-            <div className="d-flex flex-column gap-3">
+            <div className="d-flex flex-column gap-3 resume-scroll-container">
               {awards.map((award, idx) => (
                 <div key={award.id || idx} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
                   <div className="position-absolute top-0 end-0 mt-3 me-3 d-flex gap-2">
@@ -818,7 +818,33 @@ const CandidateAccountSettings = () => {
       return;
     }
 
-    const startYear = parseInt(experienceForm.startDate.split('-')[0]);
+    // Validate that candidate is at least 18 years old at the experience Start Date
+    if (!editProfileForm.birthday || !editProfileForm.birthday.trim()) {
+      setModalError("Please enter your Date of Birth in the Personal Info section first!");
+      return;
+    }
+    const dobRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+    if (!dobRegex.test(editProfileForm.birthday.trim())) {
+      setModalError("Date of Birth in the Personal Info section is invalid (DD/MM/YYYY format required)!");
+      return;
+    }
+
+    const dobParts = editProfileForm.birthday.trim().split('/');
+    const dobDay = parseInt(dobParts[0]);
+    const dobMonth = parseInt(dobParts[1]) - 1;
+    const dobYear = parseInt(dobParts[2]);
+    const dateTurn18 = new Date(dobYear + 18, dobMonth, dobDay);
+
+    const startParts = experienceForm.startDate.split('-');
+    const startYear = parseInt(startParts[0]);
+    const startMonth = startParts[1] ? parseInt(startParts[1]) - 1 : 0;
+    const startDay = startParts[2] ? parseInt(startParts[2]) : 1;
+    const expStartDate = new Date(startYear, startMonth, startDay);
+
+    if (expStartDate < dateTurn18) {
+      setModalError("Start Date must be after you turned 18 years old (based on Date of Birth)!");
+      return;
+    }
     const currentYear = new Date().getFullYear();
     if (startYear > currentYear) {
       setModalError(`Start year (${startYear}) cannot be in the future (must be <= ${currentYear})!`);
@@ -1362,7 +1388,7 @@ const CandidateAccountSettings = () => {
           <i className="fas fa-sliders-h me-2 text-primary"></i>Account Settings
         </h5>
       </div>
-      <div className="card-body p-4">
+      <div className="card-body p-4 scrollable-account-settings" style={{ height: '70vh', overflowY: 'auto' }}>
         {settingsError && (
           <div className="alert alert-danger py-2 px-3 small border-0 mb-4" role="alert">
             <i className="fas fa-exclamation-triangle me-1"></i> {settingsError}
@@ -1623,7 +1649,7 @@ const CandidateAccountSettings = () => {
           </div>
 
           {/* Manage Resume sections */}
-          <div className="mt-5 pt-4 border-top">
+          <div className="mt-5 pt-4">
             <h5 className="fw-bold border-bottom pb-2 text-dark">
               <i className="fas fa-tools me-2 text-primary"></i>Manage Resume
             </h5>

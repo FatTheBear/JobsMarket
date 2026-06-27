@@ -7,6 +7,8 @@ export default function AdminCompanyApproval() {
     const [companies, setCompanies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [actionId, setActionId] = useState(null);
+    const token = localStorage.getItem('token');
+    const [toast, setToast] = useState({ show: false, message: "", type: "" });
     const API_URL = "http://localhost:5000";
 
     useEffect(() => {

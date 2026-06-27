@@ -494,19 +494,18 @@ const CandidatePosts = ({ candidatePosts, setCandidatePosts }) => {
   }, [lightboxMedia]);
 
   return (
-    <div className="col-12 mb-4">
-      <div className="card border-0 shadow-sm analytics-card">
-        <div className="card-body p-4">
-          <div className="d-flex align-items-center justify-content-between mb-4 border-bottom pb-2">
-            <div className="d-flex align-items-center gap-2">
-              <span className="fs-5 fw-bold text-dark mb-0">Recent Posts</span>
-              <span className="badge bg-light text-muted border rounded-pill d-inline-flex align-items-center py-1.5 px-2.5 fw-normal small">
-                <i className="fas fa-history text-primary me-1.5" style={{ fontSize: '0.8rem' }}></i>
-                Your activity
-              </span>
-            </div>
-            <i className="fas fa-paper-plane text-primary fs-4"></i>
+    <div className="col-12 mb-0">
+      <div className="p-0">
+        <div className="d-flex align-items-center justify-content-between mb-3">
+          <div className="d-flex align-items-center gap-2">
+            <span className="fs-5 fw-bold text-dark mb-0">Recent Posts</span>
+            <span className="badge bg-light text-muted border rounded-pill d-inline-flex align-items-center py-1.5 px-2.5 fw-normal small">
+              <i className="fas fa-history text-primary me-1.5" style={{ fontSize: '0.8rem' }}></i>
+              Your activity
+            </span>
           </div>
+          <i className="fas fa-paper-plane text-primary fs-4"></i>
+        </div>
 
           <div className="d-flex flex-column gap-4">
             {candidatePosts.length === 0 ? (
@@ -954,7 +953,6 @@ const CandidatePosts = ({ candidatePosts, setCandidatePosts }) => {
             )}
           </div>
         </div>
-      </div>
 
       {/* Lightbox Modal */}
       {lightboxMedia && (

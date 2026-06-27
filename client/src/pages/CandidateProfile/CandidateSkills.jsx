@@ -56,7 +56,7 @@ const CandidateSkills = ({
     <>
       {/* Column 2: Skill Section */}
       <div className="w-100">
-        <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column h-100">
+        <div className="card border-0 shadow-sm analytics-card w-100 d-flex flex-column" style={{ height: '380px' }}>
           <div className="card-body p-4 d-flex flex-column h-100">
             <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
               <div className="d-flex align-items-center gap-2">
@@ -75,7 +75,7 @@ const CandidateSkills = ({
               </div>
             </div>
 
-            <div className="d-flex flex-column gap-3">
+            <div className="d-flex flex-column gap-3 resume-scroll-container">
               {skills.length === 0 ? (
                 <div className="text-center py-5 text-muted small">
                   <i className="fas fa-laptop-code fs-3 mb-2 text-muted opacity-50"></i>

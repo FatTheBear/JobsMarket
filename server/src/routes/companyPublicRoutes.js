@@ -21,7 +21,7 @@ router.get('/public/:companyId', async (req, res) => {
         c.cover_image_url,
         c.website,
         c.address,
-        c.company_bio,
+        c.description,
         i.name as industry_name,
         u.created_at as company_created_at
       FROM Company c

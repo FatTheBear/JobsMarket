@@ -122,8 +122,78 @@ export default function NavBar() {
 
     fetchProfileData();
 
+    const avatarHandler = (ev) => {
+      (async () => {
+        try {
+          const received = ev?.detail?.avatar;
+          console.log('NavBar - profileUpdatedWithAvatar received:', received ? (received.substring ? received.substring(0, 100) : received) : received);
+          if (!received) return;
+          let final = received;
+          if (!final.startsWith('http') && !final.startsWith('data:')) {
+            final = final.startsWith('/') ? `${API_URL}${final}` : `${API_URL}/${final}`;
+          }
+          console.log('NavBar - profileUpdatedWithAvatar final avatarUrl (pre-fetch):', final.substring ? final.substring(0, 200) : final);
+
+          // If it's a data URL, set directly
+          if (final.startsWith('data:')) {
+            setAvatarUrl(final);
+            return;
+          }
+
+          // Try fetching the image to validate accessibility and create a blob URL.
+          let primaryFailed = false;
+          try {
+            const resp = await fetch(final, { cache: 'no-store' });
+            if (resp.ok) {
+              const blob = await resp.blob();
+              const objectUrl = URL.createObjectURL(blob);
+              console.log('NavBar - fetched avatar successfully, using object URL');
+              setAvatarUrl(objectUrl);
+              return;
+            } else {
+              console.warn('NavBar - fetch failed for avatar:', resp.status, resp.statusText);
+              primaryFailed = true;
+            }
+          } catch (fetchErr) {
+            console.warn('NavBar - fetch error for avatarUrl:', fetchErr && fetchErr.message ? fetchErr.message : fetchErr);
+            primaryFailed = true;
+          }
+
+          // If primary path failed, attempt alternate location under /uploads/avatars/
+          if (primaryFailed && !final.includes('/uploads/avatars/')) {
+            try {
+              const filename = final.split('/').pop();
+              const alt = `${API_URL}/uploads/avatars/${filename}`;
+              console.log('NavBar - attempting alternate avatar URL:', alt);
+              const altResp = await fetch(alt, { cache: 'no-store' });
+              if (altResp.ok) {
+                const blob = await altResp.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                console.log('NavBar - fetched avatar from alternate path, using object URL');
+                setAvatarUrl(objectUrl);
+                return;
+              } else {
+                console.warn('NavBar - alternate fetch failed:', altResp.status, altResp.statusText);
+              }
+            } catch (altErr) {
+              console.warn('NavBar - alternate fetch error for avatarUrl:', altErr && altErr.message ? altErr.message : altErr);
+            }
+          }
+
+          // Fallback: set direct URL so browser will attempt to load it (and onError will handle)
+          setAvatarUrl(final);
+        } catch (e) {
+          console.error('NavBar - avatarHandler error', e);
+        }
+      })();
+    };
+
     window.addEventListener('profileUpdated', fetchProfileData);
-    return () => window.removeEventListener('profileUpdated', fetchProfileData);
+    window.addEventListener('profileUpdatedWithAvatar', avatarHandler);
+    return () => {
+      window.removeEventListener('profileUpdated', fetchProfileData);
+      window.removeEventListener('profileUpdatedWithAvatar', avatarHandler);
+    };
   }, []);
   
   const menuItems = MENU_CONFIG[role] || [];
@@ -175,9 +245,10 @@ export default function NavBar() {
                     navigate('/admin');
                   }
                 }}
-                onError={() => {
-                  console.log("NavBar - img load error for avatarUrl:", avatarUrl ? avatarUrl.substring(0, 50) + "..." : null);
+                onError={(e) => {
+                  console.log("NavBar - img load error for avatarUrl:", avatarUrl ? avatarUrl.substring(0, 80) + "..." : null, e && e.nativeEvent ? e.nativeEvent : e);
                   if (avatarUrl && !avatarUrl.startsWith('data:image') && avatarUrl !== '/img/default-avatar.png') {
+                    // fallback to default
                     setAvatarUrl('/img/default-avatar.png');
                   }
                 }}

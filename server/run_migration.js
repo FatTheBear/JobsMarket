@@ -20,6 +20,7 @@ async function runMigration() {
             }
         }
 
+
         // 2. Add education to Candidate_Profile if not present
         try {
             console.log('Adding education JSON column to Candidate_Profile...');
@@ -622,21 +623,7 @@ async function runMigration() {
         }
 
 
-        try {
-            console.log('Altering Company table to add new registration fields...');
-            await pool.query(`
-        ALTER TABLE \`Company\`
-        ADD COLUMN \`email\` VARCHAR(255) DEFAULT NULL,
-        ADD COLUMN \`company_phone\` VARCHAR(50) DEFAULT NULL,
-        ADD COLUMN \`tax_id\` VARCHAR(100) DEFAULT NULL,
-        ADD COLUMN \`size\` VARCHAR(50) DEFAULT NULL,
-        ADD COLUMN \`description\` TEXT DEFAULT NULL;
-    `);
-            console.log('Successfully altered Company table.');
-        } catch (err) {
-            console.error('\n[CRITICAL ERROR] Failed to alter Company table:', err.message);
-            throw err;
-        }
+        // Redundant alter table block removed because those columns are already added above safely.
 
         try {
             console.log('Connecting to database...');
@@ -649,14 +636,13 @@ async function runMigration() {
     `);
 
             console.log('Successfully dropped unused columns from Company table.');
-            process.exit(0);
         } catch (error) {
             if (error.code === 'ER_CANT_DROP_FIELD_OR_KEY') {
                 console.log('Columns are already dropped. Database is clean!');
-                process.exit(0);
+            } else {
+                console.error('[CRITICAL ERROR] Migration failed:', error.message);
+                throw error;
             }
-            console.error('[CRITICAL ERROR] Migration failed:', error.message);
-            process.exit(1);
         }
 
 

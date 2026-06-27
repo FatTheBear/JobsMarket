@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { useOutletContext, Link } from 'react-router-dom';
-import CandidatePersonalInfoModal from './CandidatePersonalInfoModal';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import CandidatePosts from './CandidatePosts';
 import PostCreator from '../../components/Community/PostCreator';
 
@@ -82,6 +81,13 @@ const CandidateMyProfile = () => {
     setCandidatePosts
   } = useOutletContext();
 
+  const navigate = useNavigate();
+  const [selectedAward, setSelectedAward] = useState(null);
+
+  if (!profileData) {
+    return <div className="text-center py-5">Loading profile...</div>;
+  }
+
   const handlePostCreated = (newPost) => {
     const formattedPost = {
       id: newPost.id,
@@ -99,358 +105,408 @@ const CandidateMyProfile = () => {
     }
   };
 
-  const [showPersonalInfo, setShowPersonalInfo] = useState(false);
-  const [selectedAward, setSelectedAward] = useState(null);
-
-  if (!profileData) {
-    return <div className="text-center py-5">Loading profile...</div>;
-  }
+  const handleEditClick = () => {
+    navigate('/candidate/my-profile/account-settings');
+  };
 
   return (
-    <div className="animate-fade-in container py-2" style={{ fontFamily: 'Outfit, sans-serif' }}>
-      <div className="row g-4">
-        
-        {/* ── Left Column (Overview & Personal Details) ── */}
-        <div className="col-12 col-lg-4">
-          
-          {/* Candidate Overview Card */}
-          <div className="card border-0 shadow-sm p-4 text-center" style={{ borderRadius: '12px', background: '#fff' }}>
-            <div className="position-relative mx-auto mb-3" style={{ width: '120px', height: '120px' }}>
+    <div className="profile-main-container-card p-4 animate-fade-in" style={{ fontFamily: 'Inter, sans-serif' }}>
+      
+      {/* ── Header Card with Gradient Banner ── */}
+      <div className="profile-header-card shadow-sm m-0 mb-4">
+        <div className="profile-details-banner"></div>
+        <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-end justify-content-between profile-header-info">
+          <div className="d-flex align-items-end gap-3 profile-avatar-container-wrap">
+            <div className="profile-avatar-container">
               <img
                 src={profileData.avatar || '/default-avatar.png'}
                 alt="candidate avatar"
-                className="rounded-circle border border-2 shadow-sm w-100 h-100"
-                style={{ objectFit: 'cover' }}
+                className="profile-avatar-circle"
               />
             </div>
-            <h4 className="fw-bold text-dark mb-1">{profileData.displayName || 'Candidate Name'}</h4>
-            <p className="text-primary small fw-semibold mb-3">{profileData.jobTitle || 'Full Stack Web Developer'}</p>
-            
-            <div className="d-flex justify-content-center gap-4 border-top border-bottom py-2.5 my-3 text-muted small">
-              <div>
-                <span className="d-block fw-bold text-dark fs-5">{calculateCustomExperienceYears(workExperiences)}</span>
-                Years Exp
-              </div>
-              <div className="border-end"></div>
-              <div>
-                <span className="d-block fw-bold text-dark fs-5">{profileData.age || 'N/A'}</span>
-                Age
-              </div>
-            </div>
-
-            <div className="d-flex flex-column gap-2 mt-3">
-              <button
-                type="button"
-                className="btn w-100 rounded-pill fw-bold py-2 text-white transition-all"
-                onClick={() => setShowPersonalInfo(true)}
-                style={{ backgroundColor: '#01796F', borderColor: '#01796F' }}
-              >
-                Contact Info
-              </button>
-              <Link
-                to="/candidate/my-profile/manage-cvs"
-                className="btn w-100 rounded-pill fw-bold py-2 btn-outline-secondary transition-all text-decoration-none d-flex align-items-center justify-content-center"
-              >
-                Manage CVs
-              </Link>
-            </div>
-          </div>
-
-          {/* Social Profiles Card */}
-          <div className="card border-0 shadow-sm p-4 mt-4" style={{ borderRadius: '12px', background: '#fff' }}>
-            <h5 className="fw-bold text-dark mb-3">
-              <i className="fas fa-share-alt text-primary me-2"></i>Social Profiles
-            </h5>
-            <div className="d-flex gap-3 flex-wrap justify-content-center">
-              <a
-                href={profileData.portfolio || '#'}
-                target={profileData.portfolio ? "_blank" : undefined}
-                rel="noopener noreferrer"
-                title={profileData.portfolio ? "Website/Portfolio" : "No Portfolio"}
-                style={{
-                  pointerEvents: profileData.portfolio ? 'auto' : 'none',
-                  opacity: profileData.portfolio ? 1 : 0.35,
-                  color: '#0d6efd',
-                  fontSize: '1.25rem'
-                }}
-              >
-                <i className="fas fa-globe"></i>
-              </a>
-              <a
-                href={profileData.blog || '#'}
-                target={profileData.blog ? "_blank" : undefined}
-                rel="noopener noreferrer"
-                title={profileData.blog ? "Blog" : "No Blog"}
-                style={{
-                  pointerEvents: profileData.blog ? 'auto' : 'none',
-                  opacity: profileData.blog ? 1 : 0.35,
-                  color: '#198754',
-                  fontSize: '1.25rem'
-                }}
-              >
-                <i className="fas fa-blog"></i>
-              </a>
-              <a
-                href={profileData.github || '#'}
-                target={profileData.github ? "_blank" : undefined}
-                rel="noopener noreferrer"
-                title={profileData.github ? "GitHub" : "No GitHub"}
-                style={{
-                  pointerEvents: profileData.github ? 'auto' : 'none',
-                  opacity: profileData.github ? 1 : 0.35,
-                  color: '#212529',
-                  fontSize: '1.25rem'
-                }}
-              >
-                <i className="fab fa-github"></i>
-              </a>
-              <a
-                href={profileData.facebook || '#'}
-                target={profileData.facebook ? "_blank" : undefined}
-                rel="noopener noreferrer"
-                title={profileData.facebook ? "Facebook" : "No Facebook"}
-                style={{
-                  pointerEvents: profileData.facebook ? 'auto' : 'none',
-                  opacity: profileData.facebook ? 1 : 0.35,
-                  color: '#1877f2',
-                  fontSize: '1.25rem'
-                }}
-              >
-                <i className="fab fa-facebook"></i>
-              </a>
-              <a
-                href={profileData.x || '#'}
-                target={profileData.x ? "_blank" : undefined}
-                rel="noopener noreferrer"
-                title={profileData.x ? "X (Twitter)" : "No X Profile"}
-                style={{
-                  pointerEvents: profileData.x ? 'auto' : 'none',
-                  opacity: profileData.x ? 1 : 0.35,
-                  color: '#0f1419',
-                  fontSize: '1.25rem'
-                }}
-              >
-                <i className="fab fa-twitter"></i>
-              </a>
-              <a
-                href={profileData.linkedin || '#'}
-                target={profileData.linkedin ? "_blank" : undefined}
-                rel="noopener noreferrer"
-                title={profileData.linkedin ? "LinkedIn" : "No LinkedIn"}
-                style={{
-                  pointerEvents: profileData.linkedin ? 'auto' : 'none',
-                  opacity: profileData.linkedin ? 1 : 0.35,
-                  color: '#0a66c2',
-                  fontSize: '1.25rem'
-                }}
-              >
-                <i className="fab fa-linkedin"></i>
-              </a>
-            </div>
-          </div>
-
-
-        </div>
-
-        {/* ── Right Column (Profile details: About, Exp, Edu, Skills, Posts) ── */}
-        <div className="col-12 col-lg-8">
-          
-          {/* Candidate Profile Details Card (About, Exp, Edu, Skills) */}
-          <div className="card border-0 shadow-sm p-4 mb-4" style={{ borderRadius: '12px', background: '#fff' }}>
-            
-            {/* About Me Section */}
-            <div className="mb-4">
-              <h5 className="fw-bold text-dark mb-3">
-                <i className="far fa-user text-primary me-2"></i>About Me
-              </h5>
-              <p className="text-secondary small mb-0" style={{ lineHeight: '1.6', whiteSpace: 'pre-line' }}>
-                {profileData.about || 'No bio added yet. Go to Account Settings to add a description about yourself.'}
+            <div className="mb-2 ms-sm-2">
+              <h3 className="fw-bold text-dark m-0" style={{ fontSize: '1.6rem' }}>
+                {profileData.fullName || profileData.displayName || 'Candidate Name'}
+              </h3>
+              <p className="text-primary small fw-semibold m-0 mt-1">
+                {profileData.jobTitle || 'Full Stack Web Developer'}
               </p>
-            </div>
-
-            {/* Work Experience Section */}
-            <div className="border-top pt-4 mb-4">
-              <h5 className="fw-bold text-dark mb-4">
-                <i className="fas fa-briefcase text-primary me-2"></i>Work Experience
-              </h5>
-              <div className="d-flex flex-column gap-3.5">
-                {workExperiences && workExperiences.length > 0 ? (
-                  workExperiences.map((exp, idx) => (
-                    <div key={exp.id || idx} className="mb-4 profile-text-entry">
-                      <div>
-                        <h5 className="m-0 fw-bold text-dark" style={{ fontSize: '1.05rem' }}>
-                          {exp.role}
-                        </h5>
-                        <div className="d-flex align-items-center flex-wrap gap-2 mt-1.5" style={{ fontSize: '0.9rem', color: '#64748b' }}>
-                          <span className="fw-semibold text-secondary">{exp.company}</span>
-                          <span>•</span>
-                          <span className="d-flex align-items-center gap-1.5">
-                            <i className="far fa-calendar-alt" style={{ fontSize: '0.85rem' }}></i>
-                            {exp.duration}
-                          </span>
-                        </div>
-                      </div>
-                      {exp.description && (
-                        <div className="mt-2 text-secondary small" style={{ whiteSpace: 'pre-line', lineHeight: '1.6' }}>
-                          {exp.description}
-                        </div>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-muted small mb-0">No experience added yet.</p>
-                )}
-              </div>
-            </div>
-
-            {/* Education Section */}
-            <div className="border-top pt-4 mb-4">
-              <h5 className="fw-bold text-dark mb-4">
-                <i className="fas fa-university text-primary me-2"></i>Education
-              </h5>
-              <div className="d-flex flex-column gap-3.5">
-                {educations && educations.length > 0 ? (
-                  educations.map((edu, idx) => (
-                    <div key={edu.id || idx} className="mb-4 profile-text-entry">
-                      <div>
-                        <h5 className="m-0 fw-bold text-dark" style={{ fontSize: '1.05rem' }}>
-                          {edu.degree}
-                        </h5>
-                        <div className="d-flex align-items-center flex-wrap gap-2 mt-1.5" style={{ fontSize: '0.9rem', color: '#64748b' }}>
-                          <span className="fw-semibold text-secondary">{edu.school}</span>
-                          <span>•</span>
-                          <span className="d-flex align-items-center gap-1.5">
-                            <i className="far fa-calendar-alt" style={{ fontSize: '0.85rem' }}></i>
-                            {edu.duration}
-                          </span>
-                        </div>
-                      </div>
-                      {edu.description && (
-                        <div className="mt-2 text-secondary small" style={{ whiteSpace: 'pre-line', lineHeight: '1.6' }}>
-                          {edu.description}
-                        </div>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-muted small mb-0">No education added yet.</p>
-                )}
-              </div>
-            </div>
-
-            {/* Skills & Qualifications Section */}
-            <div className="border-top pt-4">
-              <h5 className="fw-bold text-dark mb-4">
-                <i className="fas fa-star text-primary me-2"></i>Skills & Qualifications
-              </h5>
-              
-              {/* Skills section */}
-              <div className="mb-4">
-                <div className="fw-bold text-dark mb-2" style={{ fontSize: '0.95rem' }}>Technical Skills</div>
-                <div className="skills-container d-flex flex-wrap gap-2">
-                  {skills && skills.length > 0 ? (
-                    skills.map(s => (
-                      <span key={s.id || s.name} className="skill-tag-chip">{s.name} ({s.level}%)</span>
-                    ))
-                  ) : (
-                    <p className="text-muted small mb-0">No skills added yet.</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Languages section */}
-              <div className="mb-4 border-top pt-3">
-                <div className="fw-bold text-dark mb-2" style={{ fontSize: '0.95rem' }}>Languages</div>
-                <div className="skills-container d-flex flex-wrap gap-2">
-                  {languages && languages.length > 0 ? (
-                    languages.map((lang, idx) => (
-                      <span key={lang.id || idx} className="skill-tag-chip">
-                        <i className="fas fa-globe text-primary me-1.5" style={{ fontSize: '0.8rem' }}></i>
-                        <strong className="text-dark">{lang.name}</strong>
-                        <span className="text-muted small ms-1.5">({lang.level})</span>
-                      </span>
-                    ))
-                  ) : (
-                    <p className="text-muted small mb-0">No languages added yet.</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Certifications section */}
-              <div className="mb-4 border-top pt-3">
-                <div className="fw-bold text-dark mb-2" style={{ fontSize: '0.95rem' }}>Certifications</div>
-                <div className="skills-container d-flex flex-wrap gap-2">
-                  {certifications && certifications.length > 0 ? (
-                    certifications.map((cert, idx) => (
-                      <span key={cert.id || idx} className="skill-tag-chip">
-                        <i className="fas fa-certificate text-primary me-1.5" style={{ fontSize: '0.8rem' }}></i>
-                        {cert.name}
-                      </span>
-                    ))
-                  ) : (
-                    <p className="text-muted small mb-0">No certifications added yet.</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Awards section */}
-              <div className="border-top pt-3">
-                <div className="fw-bold text-dark mb-2" style={{ fontSize: '0.95rem' }}>Awards & Achievements</div>
-                <div className="skills-container d-flex flex-wrap gap-2">
-                  {awards && awards.length > 0 ? (
-                    awards.map((award, idx) => (
-                      <span
-                        key={award.id || idx}
-                        className="skill-tag-chip cursor-pointer"
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => setSelectedAward(award)}
-                        title="Click to view details"
-                      >
-                        <i className="fas fa-award text-primary me-1.5" style={{ fontSize: '0.8rem' }}></i>
-                        <strong className="text-dark">{award.title}</strong>
-                        <span className="text-muted small ms-1.5">({formatAwardDate(award.date)})</span>
-                        <span className="text-secondary small ms-1.5">• {award.issuer}</span>
-                      </span>
-                    ))
-                  ) : (
-                    <p className="text-muted small mb-0">No awards added yet.</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Recent Activity Card */}
-          <div className="card border-0 shadow-sm p-4" style={{ borderRadius: '12px', background: '#fff' }}>
-            <h5 className="fw-bold text-dark mb-4">
-              <i className="fas fa-history text-primary me-2"></i>Community Posts
-            </h5>
-            
-            <div className="mb-4">
-              <PostCreator
-                onPostCreated={handlePostCreated}
-                placeholder="What's on your mind? Post an update directly to your profile and community feed..."
-              />
-            </div>
-            
-            <div className="border-top pt-3">
-              <CandidatePosts candidatePosts={candidatePosts} setCandidatePosts={setCandidatePosts} />
+              {workExperiences && workExperiences.length > 0 && (
+                <p className="text-muted small fw-medium m-0 mt-1.5" style={{ fontSize: '0.85rem' }}>
+                  Experience: <span className="text-dark fw-semibold">{calculateCustomExperienceYears(workExperiences)} Years</span>
+                </p>
+              )}
             </div>
           </div>
-
+          
+          <div className="mb-2 me-sm-2 mt-3 mt-sm-0">
+            <button
+              onClick={handleEditClick}
+              className="btn btn-outline-secondary fw-semibold rounded-pill px-3 py-1.5 d-inline-flex align-items-center gap-2"
+              style={{ fontSize: '0.9rem', border: '1px solid #cbd5e1', backgroundColor: '#ffffff' }}
+            >
+              <i className="fas fa-pencil-alt" style={{ fontSize: '0.8rem' }}></i> Edit Profile
+            </button>
+          </div>
         </div>
-
       </div>
 
-      {/* Personal Info Modal */}
-      {showPersonalInfo && (
-        <CandidatePersonalInfoModal
-          show={showPersonalInfo}
-          profileData={profileData}
-          onClose={() => setShowPersonalInfo(false)}
-        />
-      )}
+      {/* ── Contact Card (Only Real Database Data) ── */}
+      <div className="profile-details-card shadow-sm mb-4">
+        <div className="d-flex align-items-center justify-content-between border-bottom pb-3 mb-3">
+          <h5 className="fw-bold text-dark m-0" style={{ fontSize: '1.1rem' }}>
+            Contact
+          </h5>
+        </div>
+
+        <div className="row g-4">
+          {/* Column 1 */}
+          <div className="col-12 col-md-4 d-flex flex-column gap-3">
+            {/* Full Name */}
+            {profileData.fullName && (
+              <div className="detail-grid-item m-0">
+                <div className="detail-item-icon">
+                  <i className="far fa-user"></i>
+                </div>
+                <div className="detail-item-content">
+                  <span className="detail-item-label">Full Name</span>
+                  <span className="detail-item-value">{profileData.fullName}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Address */}
+            {profileData.address && (
+              <div className="detail-grid-item m-0">
+                <div className="detail-item-icon">
+                  <i className="fas fa-map-marker-alt"></i>
+                </div>
+                <div className="detail-item-content">
+                  <span className="detail-item-label">Address</span>
+                  <span className="detail-item-value">{profileData.address}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Website / Portfolio */}
+            {profileData.portfolio && (
+              <div className="detail-grid-item m-0">
+                <div className="detail-item-icon">
+                  <i className="fas fa-external-link-alt"></i>
+                </div>
+                <div className="detail-item-content">
+                  <span className="detail-item-label">Website / Portfolio</span>
+                  <span className="detail-item-value">
+                    <a href={profileData.portfolio} target="_blank" rel="noopener noreferrer" className="text-decoration-none text-primary">
+                      {profileData.portfolio}
+                    </a>
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Column 2 */}
+          <div className="col-12 col-md-4 d-flex flex-column gap-3">
+            {/* Email */}
+            {profileData.email && (
+              <div className="detail-grid-item m-0">
+                <div className="detail-item-icon">
+                  <i className="far fa-envelope"></i>
+                </div>
+                <div className="detail-item-content">
+                  <span className="detail-item-label">Email</span>
+                  <span className="detail-item-value">{profileData.email}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Nationality */}
+            {profileData.nationality && (
+              <div className="detail-grid-item m-0">
+                <div className="detail-item-icon">
+                  <i className="fas fa-globe"></i>
+                </div>
+                <div className="detail-item-content">
+                  <span className="detail-item-label">Nationality</span>
+                  <span className="detail-item-value">{profileData.nationality}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Column 3 */}
+          <div className="col-12 col-md-4 d-flex flex-column gap-3">
+            {/* Phone number */}
+            {profileData.phone && (
+              <div className="detail-grid-item m-0">
+                <div className="detail-item-icon">
+                  <i className="fas fa-phone-alt"></i>
+                </div>
+                <div className="detail-item-content">
+                  <span className="detail-item-label">Phone number</span>
+                  <span className="detail-item-value">{profileData.phone}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Date of birth */}
+            {profileData.birthday && (
+              <div className="detail-grid-item m-0">
+                <div className="detail-item-icon">
+                  <i className="far fa-calendar"></i>
+                </div>
+                <div className="detail-item-content">
+                  <span className="detail-item-label">Date of birth</span>
+                  <span className="detail-item-value">{profileData.birthday}</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Social Link Badges if present */}
+        {(profileData.github || profileData.linkedin || profileData.facebook || profileData.x || profileData.blog) && (
+          <div className="mt-4 border-top pt-3">
+            <div className="d-flex gap-3 flex-wrap">
+              {profileData.github && (
+                <a href={profileData.github} target="_blank" rel="noopener noreferrer" className="text-secondary d-flex align-items-center gap-1.5 text-decoration-none">
+                  <i className="fab fa-github fs-5 text-dark"></i> GitHub
+                </a>
+              )}
+              {profileData.linkedin && (
+                <a href={profileData.linkedin} target="_blank" rel="noopener noreferrer" className="text-secondary d-flex align-items-center gap-1.5 text-decoration-none">
+                  <i className="fab fa-linkedin fs-5" style={{ color: '#0a66c2' }}></i> LinkedIn
+                </a>
+              )}
+              {profileData.facebook && (
+                <a href={profileData.facebook} target="_blank" rel="noopener noreferrer" className="text-secondary d-flex align-items-center gap-1.5 text-decoration-none">
+                  <i className="fab fa-facebook fs-5" style={{ color: '#1877f2' }}></i> Facebook
+                </a>
+              )}
+              {profileData.x && (
+                <a href={profileData.x} target="_blank" rel="noopener noreferrer" className="text-secondary d-flex align-items-center gap-1.5 text-decoration-none">
+                  <i className="fab fa-twitter fs-5 text-dark"></i> X
+                </a>
+              )}
+              {profileData.blog && (
+                <a href={profileData.blog} target="_blank" rel="noopener noreferrer" className="text-secondary d-flex align-items-center gap-1.5 text-decoration-none">
+                  <i className="fas fa-blog fs-5 text-success"></i> Blog
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Career Details Card (Unified) ── */}
+      <div className="profile-details-card shadow-sm mb-4">
+        {/* About Me */}
+        <div className="mb-4">
+          <h5 className="fw-bold text-dark mb-3">
+            <i className="far fa-user text-primary me-2"></i>About Me
+          </h5>
+          <p className="text-secondary small mb-0" style={{ lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+            {profileData.about || 'No bio added yet. Go to Account Settings to add a description about yourself.'}
+          </p>
+        </div>
+
+        <hr className="my-4 text-muted opacity-25" />
+
+        {/* Row 1: Experience & Education */}
+        <div className="row g-4">
+          {/* Work Experience */}
+          <div className="col-12 col-md-6">
+            <h5 className="fw-bold text-dark mb-4">
+              <i className="fas fa-briefcase text-primary me-2"></i>Work Experience
+            </h5>
+            <div className="d-flex flex-column gap-3">
+              {workExperiences && workExperiences.length > 0 ? (
+                workExperiences.map((exp, idx) => (
+                  <div key={exp.id || idx} className="mb-2 profile-text-entry">
+                    <div>
+                      {(() => {
+                        let displayRole = exp.role || '';
+                        if (displayRole.includes(' - ')) {
+                          const parts = displayRole.split(/\s*[-–—]\s*/);
+                          displayRole = parts[1]?.trim() || displayRole;
+                        }
+                        return (
+                          <h6 className="m-0 fw-bold text-dark" style={{ fontSize: '1.05rem' }}>
+                            {displayRole}
+                          </h6>
+                        );
+                      })()}
+                      <div className="d-flex align-items-center flex-wrap gap-2 mt-1" style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                        <span className="fw-semibold text-secondary">{exp.company}</span>
+                        <span>•</span>
+                        <span className="d-flex align-items-center gap-1.5">
+                          <i className="far fa-calendar-alt" style={{ fontSize: '0.8rem' }}></i>
+                          {exp.duration}
+                        </span>
+                      </div>
+                    </div>
+                    {exp.description && (
+                      <div className="mt-2 text-secondary small" style={{ whiteSpace: 'pre-line', lineHeight: '1.5' }}>
+                        {exp.description}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-muted small mb-0">No experience added yet.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Education */}
+          <div className="col-12 col-md-6">
+            <h5 className="fw-bold text-dark mb-4">
+              <i className="fas fa-university text-primary me-2"></i>Education
+            </h5>
+            <div className="d-flex flex-column gap-3">
+              {educations && educations.length > 0 ? (
+                educations.map((edu, idx) => (
+                  <div key={edu.id || idx} className="mb-2 profile-text-entry">
+                    <div>
+                      {(() => {
+                        let displayDegree = edu.degree || '';
+                        if (displayDegree.includes(' - ')) {
+                          const parts = displayDegree.split(/\s*[-–—]\s*/);
+                          displayDegree = parts[1]?.trim() || displayDegree;
+                        }
+                        return (
+                          <h6 className="m-0 fw-bold text-dark" style={{ fontSize: '1.05rem' }}>
+                            {displayDegree}
+                          </h6>
+                        );
+                      })()}
+                      <div className="d-flex align-items-center flex-wrap gap-2 mt-1" style={{ fontSize: '0.85rem', color: '#64748b' }}>
+                        <span className="fw-semibold text-secondary">{edu.school}</span>
+                        <span>•</span>
+                        <span className="d-flex align-items-center gap-1.5">
+                          <i className="far fa-calendar-alt" style={{ fontSize: '0.8rem' }}></i>
+                          {edu.duration}
+                        </span>
+                      </div>
+                    </div>
+                    {edu.description && (
+                      <div className="mt-2 text-secondary small" style={{ whiteSpace: 'pre-line', lineHeight: '1.5' }}>
+                        {edu.description}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-muted small mb-0">No education added yet.</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <hr className="my-4 text-muted opacity-25" />
+
+        {/* Row 2: Skills & Languages */}
+        <div className="row g-4">
+          {/* Technical Skills */}
+          <div className="col-12 col-md-6">
+            <h5 className="fw-bold text-dark mb-4">
+              <i className="fas fa-star text-primary me-2"></i>Technical Skills
+            </h5>
+            <div className="skills-container d-flex flex-wrap gap-2">
+              {skills && skills.length > 0 ? (
+                skills.map(s => (
+                  <span key={s.id || s.name} className="skill-tag-chip">{s.name} ({s.level}%)</span>
+                ))
+              ) : (
+                <p className="text-muted small mb-0">No skills added yet.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Languages */}
+          <div className="col-12 col-md-6">
+            <h5 className="fw-bold text-dark mb-4">
+              <i className="fas fa-globe text-primary me-2"></i>Languages
+            </h5>
+            <div className="skills-container d-flex flex-wrap gap-2">
+              {languages && languages.length > 0 ? (
+                languages.map((lang, idx) => (
+                  <span key={lang.id || idx} className="skill-tag-chip">{lang.name} ({lang.level})</span>
+                ))
+              ) : (
+                <p className="text-muted small mb-0">No languages added yet.</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <hr className="my-4 text-muted opacity-25" />
+
+        {/* Row 3: Certifications & Awards */}
+        <div className="row g-4">
+          {/* Certifications */}
+          <div className="col-12 col-md-6">
+            <h5 className="fw-bold text-dark mb-4">
+              <i className="fas fa-certificate text-primary me-2"></i>Certifications
+            </h5>
+            <div className="skills-container d-flex flex-wrap gap-2">
+              {certifications && certifications.length > 0 ? (
+                certifications.map((cert, idx) => (
+                  <span key={cert.id || idx} className="skill-tag-chip">
+                    <i className="fas fa-certificate text-primary me-1.5" style={{ fontSize: '0.75rem' }}></i>
+                    {cert.name}
+                  </span>
+                ))
+              ) : (
+                <p className="text-muted small mb-0">No certifications added yet.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Awards & Achievements */}
+          <div className="col-12 col-md-6">
+            <h5 className="fw-bold text-dark mb-4">
+              <i className="fas fa-award text-primary me-2"></i>Awards & Achievements
+            </h5>
+            <div className="skills-container d-flex flex-wrap gap-2">
+              {awards && awards.length > 0 ? (
+                awards.map((award, idx) => (
+                  <span
+                    key={award.id || idx}
+                    className="skill-tag-chip cursor-pointer"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => setSelectedAward(award)}
+                    title="Click to view details"
+                  >
+                    {award.title} ({formatAwardDate(award.date)})
+                  </span>
+                ))
+              ) : (
+                <p className="text-muted small mb-0">No awards added yet.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Community Posts Section ── */}
+      <div className="profile-details-card shadow-sm mb-0">
+        <h5 className="fw-bold text-dark mb-4">
+          <i className="fas fa-history text-primary me-2"></i>Community Posts
+        </h5>
+        
+        <div className="mb-4">
+          <PostCreator
+            onPostCreated={handlePostCreated}
+            placeholder="What's on your mind? Post an update directly to your profile and community feed..."
+          />
+        </div>
+        
+        <div className="border-top pt-3">
+          <CandidatePosts candidatePosts={candidatePosts} setCandidatePosts={setCandidatePosts} />
+        </div>
+      </div>
 
       {/* Award Details Modal */}
       {selectedAward && (

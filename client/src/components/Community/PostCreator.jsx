@@ -116,8 +116,8 @@ export default function PostCreator({ onPostCreated, placeholder = "Share someth
   };
 
   return (
-    <div className="card border-0 shadow-sm mb-4" style={{ borderRadius: '12px' }}>
-      <div className="card-body p-4">
+    <div className="mb-4">
+      <div className="p-0">
         <form onSubmit={handleSubmit}>
           {error && (
             <div className="alert alert-danger py-2 px-3 mb-3 small border-0 shadow-sm" role="alert">
@@ -190,7 +190,7 @@ export default function PostCreator({ onPostCreated, placeholder = "Share someth
             </div>
           )}
 
-          <div className="d-flex align-items-center justify-content-between border-top pt-3">
+          <div className="d-flex align-items-center justify-content-between pt-3">
             <div className="d-flex gap-2">
               {/* Image/video attachment button */}
               <button
