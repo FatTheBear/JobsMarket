@@ -47,9 +47,11 @@ exports.getStats = async (req, res) => {
 
         const [companyStats] =
             await db.query(`
-        SELECT COUNT(*) totalCompanies
+        SELECT
+          COUNT(*) totalCompanies,
+          COUNT(CASE WHEN status = 'Pending' THEN 1 END) pendingCompanies
         FROM company
-      `);
+    `);
 
         const [newsStats] =
             await db.query(`
@@ -124,6 +126,7 @@ exports.getStats = async (req, res) => {
             rejectedApplicationCount: applicationStats[0].rejectedApplicationCount,
 
             totalCompanies: companyStats[0].totalCompanies,
+            pendingCompanies: companyStats[0].pendingCompanies,
             totalNews: newsStats[0].totalNews,
             totalCVs: cvStats[0].totalCVs,
             totalSkills: skillStats[0].totalSkills,
@@ -1011,38 +1014,65 @@ exports.getTopIndustries = async (req, res) => {
     }
 };
 exports.activateCompany = async (req, res) => {
-  const { id, activationCode } = req.body;
-  console.log("Backend nhận được - ID:", id, "Code:", activationCode); // <--- LOG ĐÂY
+    const { id, activationCode } = req.body;
+    console.log("Backend nhận được - ID:", id, "Code:", activationCode); // <--- LOG ĐÂY
 
-  try {
-    // Tìm chính xác công ty theo ID và MÃ kích hoạt
-    const [companies] = await pool.query(
-      `SELECT * FROM Company WHERE id = ? AND activation_code = ? AND status = 'Approved'`,
-      [id, activationCode]
-    );
+    try {
+        // Tìm chính xác công ty theo ID và MÃ kích hoạt
+        const [companies] = await pool.query(
+            `SELECT * FROM Company WHERE id = ? AND activation_code = ? AND status = 'Approved'`,
+            [id, activationCode]
+        );
 
         if (companies.length === 0) {
             return res.status(400).json({ message: "Invalid ID or activation code!" });
         }
 
-    // Nếu khớp, kích hoạt ngay
-    await pool.query(
-      `UPDATE Company SET status = 'Active', activation_code = NULL WHERE id = ?`,
-      [id]
-    );
-    const [companyData] = await pool.query(`SELECT hr_id FROM Company WHERE id = ?`, [id]);
-    
-    if (companyData.length > 0 && companyData[0].hr_id) {
-        // Cập nhật trạng thái của HR thành Active
+        // Nếu khớp, kích hoạt ngay
         await pool.query(
-            `UPDATE user SET status = 'Active' WHERE id = ?`, 
-            [companyData[0].hr_id]
+            `UPDATE Company SET status = 'Active', activation_code = NULL WHERE id = ?`,
+            [id]
         );
-    }
+        const [companyData] = await pool.query(`SELECT hr_id FROM Company WHERE id = ?`, [id]);
 
-    return res.status(200).json({ message: "Account activated!" });
-  } catch (error) {
-    console.error("error raising:", error);
-    return res.status(500).json({ message: "Server error" });
-  }
+        if (companyData.length > 0 && companyData[0].hr_id) {
+            // Cập nhật trạng thái của HR thành Active
+            await pool.query(
+                `UPDATE user SET status = 'Active' WHERE id = ?`,
+                [companyData[0].hr_id]
+            );
+        }
+        return res.status(200).json({ message: "Account activated!" });
+    } catch (error) {
+        console.error("error raising:", error);
+        return res.status(500).json({ message: "Server error" });
+    }
+};
+
+exports.createNewsCategory = async (req, res) => {
+    try {
+        const { name } = req.body;
+        if (!name || !name.trim()) {
+            return res.status(400).json({ message: "Category name is required" });
+        }
+        const [existing] = await db.query(
+            "SELECT id FROM news_category WHERE name = ?",
+            [name.trim()]
+        );
+        if (existing.length > 0) {
+            return res.status(409).json({ message: "Category already exists" });
+        }
+        const [result] = await db.query(
+            "INSERT INTO news_category (name) VALUES (?)",
+            [name.trim()]
+        );
+        res.status(201).json({
+            success: true,
+            id: result.insertId,
+            name: name.trim()
+        });
+    } catch (error) {
+        console.error("CREATE NEWS CATEGORY ERROR:", error);
+        res.status(500).json({ message: error.message });
+    }
 };
