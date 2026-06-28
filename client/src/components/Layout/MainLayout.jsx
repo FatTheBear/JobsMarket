@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import NavBar from './NavBar';
+import GlobalPostModal from '../Notifications/GlobalPostModal';
 
 export default function MainLayout() {
   return (
@@ -9,6 +10,7 @@ export default function MainLayout() {
       <main className="layout-content">
         <Outlet />
       </main>
+      <GlobalPostModal />
     </div>
   );
 }

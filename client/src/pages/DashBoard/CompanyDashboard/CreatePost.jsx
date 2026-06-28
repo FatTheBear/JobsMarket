@@ -2,6 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import PostCreator from '../../../components/Community/PostCreator';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+
+const quillModules = {
+  toolbar: [
+    ['bold', 'italic'],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    ['blockquote', 'code-block'],
+    ['link', 'image']
+  ]
+};
+
+const quillFormats = [
+  'bold', 'italic',
+  'list', 'bullet',
+  'blockquote', 'code-block',
+  'link', 'image'
+];
 
 // Media grid component for posts
 const MediaGrid = ({ mediaList }) => {
@@ -46,6 +64,15 @@ const MediaGrid = ({ mediaList }) => {
   );
 };
 
+const getFullUrl = (url) => {
+  if (!url) return '/default-avatar.png';
+  const cleanUrl = url.trim();
+  if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://') || cleanUrl.startsWith('data:')) {
+    return cleanUrl;
+  }
+  return `http://localhost:5000${cleanUrl.startsWith('/') ? '' : '/'}${cleanUrl}`;
+};
+
 export default function CreatePost() {
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
@@ -58,6 +85,126 @@ export default function CreatePost() {
   const [activeCommentsPostId, setActiveCommentsPostId] = useState(null);
   const [newCommentText, setNewCommentText] = useState({});
   const [submittingComment, setSubmittingComment] = useState({});
+
+  // State variables for Edit Post Modal
+  const [editingPost, setEditingPost] = useState(null);
+  const [editContent, setEditContent] = useState('');
+  const [editVisibility, setEditVisibility] = useState('public');
+  const [editMediaAttachments, setEditMediaAttachments] = useState([]); // files đính kèm cũ
+  const [editNewFiles, setEditNewFiles] = useState([]); // files mới chọn thêm [{ file, previewUrl, type }]
+  const [editKeepMedia, setEditKeepMedia] = useState(true); // true = giữ media cũ, false = xóa media cũ
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [editError, setEditError] = useState('');
+  const editFileInputRef = React.useRef(null);
+
+  const handleOpenEditModal = (post) => {
+    setEditingPost(post);
+    setEditContent(post.content || '');
+    setEditVisibility(post.visibility || 'public');
+    setEditMediaAttachments(post.mediaList || []);
+    setEditNewFiles([]);
+    setEditKeepMedia(true);
+    setEditError('');
+  };
+
+  const handleCloseEditModal = () => {
+    setEditingPost(null);
+    setEditContent('');
+    setEditVisibility('public');
+    setEditMediaAttachments([]);
+    editNewFiles.forEach(file => URL.revokeObjectURL(file.previewUrl));
+    setEditNewFiles([]);
+    setEditKeepMedia(true);
+    setEditError('');
+  };
+
+  const handleEditFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    const newAttachments = [];
+    const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
+    const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
+    let fileError = '';
+
+    files.forEach(file => {
+      const isImage = allowedImageTypes.includes(file.type);
+      const isVideo = allowedVideoTypes.includes(file.type);
+
+      if (!isImage && !isVideo) {
+        fileError = 'Invalid file type! Only image and video files are allowed.';
+        return;
+      }
+
+      newAttachments.push({
+        file: file,
+        previewUrl: URL.createObjectURL(file),
+        type: isImage ? 'image' : 'video'
+      });
+    });
+
+    if (fileError) {
+      setEditError(fileError);
+    }
+
+    if (newAttachments.length > 0) {
+      setEditKeepMedia(false);
+      setEditNewFiles(prev => [...prev, ...newAttachments]);
+    }
+
+    if (editFileInputRef.current) editFileInputRef.current.value = '';
+  };
+
+  const removeEditNewMedia = (index) => {
+    setEditNewFiles(prev => {
+      const updated = [...prev];
+      URL.revokeObjectURL(updated[index].previewUrl);
+      updated.splice(index, 1);
+      return updated;
+    });
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setEditError('');
+
+    if (!editContent.trim() && editMediaAttachments.length === 0 && editNewFiles.length === 0 && !editKeepMedia) {
+      setEditError('Please write some content or attach images/videos to post.');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setEditError('You must be logged in to edit a post.');
+      return;
+    }
+
+    setIsSavingEdit(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('content', editContent);
+      formData.append('visibility', editVisibility);
+      formData.append('keepMedia', editKeepMedia ? 'true' : 'false');
+      
+      editNewFiles.forEach(att => {
+        formData.append('media', att.file);
+      });
+
+      const response = await axios.put(`http://localhost:5000/api/posts/${editingPost.id}`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      setPosts(prev => prev.map(p => p.id === editingPost.id ? response.data.post : p));
+      handleCloseEditModal();
+    } catch (err) {
+      console.error(err);
+      setEditError(err.response?.data?.message || 'Failed to update post. Please try again.');
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
 
   const currentUserId = parseInt(localStorage.getItem('userId')) || null;
 
@@ -207,19 +354,8 @@ export default function CreatePost() {
   const myPosts = posts.filter(post => post.user_id === currentUserId);
 
   return (
-    <div className="animate-fade-in d-flex flex-column gap-4 p-4" style={{ maxWidth: '800px', margin: '0 auto', fontFamily: 'Outfit, sans-serif' }}>
+    <div className="animate-fade-in d-flex flex-column gap-4 p-4" style={{ maxWidth: '800px', margin: '0 auto', fontFamily: "'Inter', sans-serif" }}>
       
-      {/* Back button */}
-      <div className="text-start">
-        <button
-          onClick={() => navigate('/company/dashboard')}
-          className="btn btn-link text-secondary text-decoration-none d-inline-flex align-items-center gap-2 fw-semibold p-0"
-          style={{ fontSize: '0.9rem' }}
-        >
-          <i className="fas fa-chevron-left" style={{ fontSize: '0.75rem' }}></i> Back to Dashboard
-        </button>
-      </div>
-
       {/* Main card containing PostCreator */}
       <div className="card border-0 shadow-sm">
         <div className="card-header bg-white py-3 border-bottom d-flex align-items-center justify-content-between">
@@ -273,7 +409,7 @@ export default function CreatePost() {
                 <div key={post.id} className="p-3 rounded bg-light position-relative">
                   <div className="d-flex align-items-center gap-3 mb-3">
                     <img
-                      src={post.author_avatar || '/default-avatar.png'}
+                      src={getFullUrl(post.author_avatar)}
                       alt="author avatar"
                       className="rounded-circle shadow-sm border"
                       style={{ width: '48px', height: '48px', objectFit: 'cover' }}
@@ -297,14 +433,25 @@ export default function CreatePost() {
                       </p>
                     </div>
 
-                    {/* Delete post button */}
-                    <button
-                      onClick={() => handleDeletePost(post.id)}
-                      className="btn btn-link text-muted p-1 hover-danger border-0 bg-transparent ms-auto align-self-start"
-                      title="Delete post"
-                    >
-                      <i className="far fa-trash-alt" style={{ fontSize: '0.85rem' }}></i>
-                    </button>
+                    {/* Edit & Delete post buttons */}
+                    <div className="d-flex align-items-center gap-1 ms-auto align-self-start">
+                      {post.user_id === currentUserId && (
+                        <button
+                          onClick={() => handleOpenEditModal(post)}
+                          className="btn btn-link text-muted p-1 hover-primary border-0 bg-transparent"
+                          title="Edit post"
+                        >
+                          <i className="far fa-edit" style={{ fontSize: '0.85rem' }}></i>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDeletePost(post.id)}
+                        className="btn btn-link text-muted p-1 hover-danger border-0 bg-transparent"
+                        title="Delete post"
+                      >
+                        <i className="far fa-trash-alt" style={{ fontSize: '0.85rem' }}></i>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Post content */}
@@ -358,7 +505,7 @@ export default function CreatePost() {
                           (commentsMap[post.id] || []).map((comment) => (
                             <div key={comment.id} className="d-flex gap-2 p-2 rounded bg-white border">
                               <img 
-                                src={comment.author_avatar || '/default-avatar.png'} 
+                                src={getFullUrl(comment.author_avatar)} 
                                 alt="avatar" 
                                 className="rounded-circle border" 
                                 style={{ width: '32px', height: '32px', objectFit: 'cover' }}
@@ -403,6 +550,227 @@ export default function CreatePost() {
           </div>
         </div>
       </div>
+      {/* Edit Post Modal */}
+      {editingPost && (
+        <div
+          className="modal-backdrop-custom"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            zIndex: 100005,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backdropFilter: 'blur(4px)',
+            padding: '20px'
+          }}
+        >
+          <div
+            className="modal-content-custom"
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: '12px',
+              width: '100%',
+              maxWidth: '560px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              display: 'flex',
+              flexDirection: 'column',
+              maxHeight: '90vh',
+              overflow: 'hidden',
+              animation: 'modalFadeIn 0.3s ease'
+            }}
+          >
+            {/* Modal Header */}
+            <div className="d-flex align-items-center justify-content-between p-3.5 border-bottom" style={{ padding: '16px 20px' }}>
+              <h5 className="fw-bold mb-0 text-dark" style={{ fontSize: '1.15rem' }}>Edit post</h5>
+              <button
+                type="button"
+                onClick={handleCloseEditModal}
+                className="btn-close"
+                style={{ cursor: 'pointer' }}
+                aria-label="Close"
+              ></button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-3.5" style={{ overflowY: 'auto', flexGrow: 1, padding: '20px' }}>
+              <div className="d-flex align-items-center gap-2.5 mb-3">
+                <img
+                  src={getFullUrl(editingPost.author_avatar)}
+                  alt="User avatar"
+                  className="rounded-circle border"
+                  style={{ width: '48px', height: '48px', objectFit: 'cover' }}
+                />
+                <div>
+                  <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '0.95rem' }}>{editingPost.author_name}</h6>
+                  <select
+                    value={editVisibility}
+                    onChange={(e) => setEditVisibility(e.target.value)}
+                    className="text-muted small bg-light px-2 py-0.5 rounded border"
+                    style={{
+                      fontSize: '0.72rem',
+                      marginTop: '3px',
+                      cursor: 'pointer',
+                      outline: 'none',
+                      borderColor: '#cbd5e1'
+                    }}
+                  >
+                    <option value="public">🌐 Public</option>
+                    <option value="private">🔒 Private</option>
+                  </select>
+                </div>
+              </div>
+
+              <form onSubmit={handleEditSubmit}>
+                {editError && (
+                  <div className="alert alert-danger py-2 px-3 mb-3 small border-0" role="alert" style={{ borderRadius: '8px' }}>
+                    <i className="fas fa-exclamation-triangle me-1.5"></i> {editError}
+                  </div>
+                )}
+
+                {/* Trình soạn thảo ReactQuill */}
+                <div className="mb-3 border rounded" style={{ minHeight: '220px', overflow: 'hidden' }}>
+                  <ReactQuill
+                    theme="snow"
+                    value={editContent}
+                    onChange={setEditContent}
+                    placeholder="Edit your post content..."
+                    modules={quillModules}
+                    formats={quillFormats}
+                    style={{ height: '200px' }}
+                  />
+                </div>
+
+                {/* Existing media files */}
+                {editKeepMedia && editMediaAttachments.length > 0 && (
+                  <div className="mb-3">
+                    <label className="form-label fw-bold text-secondary small d-flex justify-content-between align-items-center">
+                      <span>Existing Media ({editMediaAttachments.length})</span>
+                      <button 
+                        type="button" 
+                        className="btn btn-sm btn-link text-danger text-decoration-none p-0 fw-semibold"
+                        style={{ fontSize: '0.75rem' }}
+                        onClick={() => setEditKeepMedia(false)}
+                      >
+                        <i className="far fa-trash-alt me-1"></i> Remove all old media
+                      </button>
+                    </label>
+                    <div className="d-flex flex-wrap gap-2">
+                      {editMediaAttachments.map((m, idx) => (
+                        <div key={idx} className="position-relative border rounded overflow-hidden" style={{ width: '80px', height: '80px', backgroundColor: '#f1f5f9' }}>
+                          {m.media_type === 'image' ? (
+                            <img
+                              src={`http://localhost:5000${m.media_url}`}
+                              alt="old media"
+                              className="w-100 h-100 object-fit-cover"
+                            />
+                          ) : (
+                            <div className="w-100 h-100 d-flex align-items-center justify-content-center position-relative">
+                              <video src={`http://localhost:5000${m.media_url}`} className="w-100 h-100 object-fit-cover" muted />
+                              <i className="fas fa-play text-white position-absolute fs-6 opacity-75"></i>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* New media files preview */}
+                {editNewFiles.length > 0 && (
+                  <div className="mb-3">
+                    <label className="form-label fw-bold text-success small">New Uploaded Media ({editNewFiles.length})</label>
+                    <div className="d-flex flex-wrap gap-2">
+                      {editNewFiles.map((att, idx) => (
+                        <div key={idx} className="position-relative border rounded overflow-hidden" style={{ width: '80px', height: '80px', backgroundColor: '#f1f5f9' }}>
+                          {att.type === 'image' ? (
+                            <img
+                              src={att.previewUrl}
+                              alt="new preview"
+                              className="w-100 h-100 object-fit-cover"
+                            />
+                          ) : (
+                            <div className="w-100 h-100 d-flex align-items-center justify-content-center position-relative">
+                              <video src={att.previewUrl} className="w-100 h-100 object-fit-cover" muted />
+                              <i className="fas fa-play text-white position-absolute fs-6 opacity-75"></i>
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => removeEditNewMedia(idx)}
+                            className="btn btn-sm btn-danger position-absolute top-0 end-0 p-0 d-flex align-items-center justify-content-center rounded-circle"
+                            style={{ width: '18px', height: '18px', fontSize: '0.65rem', marginTop: '2px', marginRight: '2px' }}
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Hidden input file for new media */}
+                <input
+                  type="file"
+                  multiple
+                  ref={editFileInputRef}
+                  onChange={handleEditFileChange}
+                  style={{ display: 'none' }}
+                />
+              </form>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="d-flex align-items-center justify-content-between p-3.5 border-top bg-light" style={{ padding: '16px 20px' }}>
+              <div className="d-flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (editFileInputRef.current) {
+                      editFileInputRef.current.accept = "image/*,video/*";
+                      editFileInputRef.current.click();
+                    }
+                  }}
+                  className="btn btn-sm btn-light border d-inline-flex align-items-center justify-content-center rounded-circle hover-bg-light"
+                  style={{ width: '36px', height: '36px', transition: 'background-color 0.2s' }}
+                  title="Add photos/videos"
+                >
+                  <i className="far fa-images text-success fs-5"></i>
+                </button>
+              </div>
+
+              <div className="d-flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleCloseEditModal}
+                  className="btn btn-sm btn-light border px-3 py-2 fw-semibold text-secondary"
+                  style={{ borderRadius: '8px', fontSize: '0.85rem' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEditSubmit}
+                  disabled={isSavingEdit || (!editContent.trim() && editMediaAttachments.length === 0 && editNewFiles.length === 0 && !editKeepMedia)}
+                  className="btn btn-primary btn-sm px-4 py-2 fw-bold d-inline-flex align-items-center gap-2"
+                  style={{
+                    borderRadius: '8px',
+                    fontSize: '0.85rem',
+                    backgroundColor: '#01796F',
+                    borderColor: '#01796F'
+                  }}
+                >
+                  {isSavingEdit ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

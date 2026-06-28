@@ -176,12 +176,102 @@ router.get('/', async (req, res) => {
       LEFT JOIN User parent_u ON parent.parent_post_id IS NULL AND parent.user_id = parent_u.id
       LEFT JOIN Candidate_Profile parent_cp ON parent_u.id = parent_cp.user_id
       LEFT JOIN Company parent_com ON parent_u.id = parent_com.hr_id
+      WHERE p.visibility = 'public' OR (p.visibility = 'private' AND p.user_id = ?)
       ORDER BY p.created_at DESC`,
-      [currentUserId]
+      [currentUserId, currentUserId]
     );
 
     const postsWithMedia = await fetchPostMedia(posts);
     res.json(postsWithMedia);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// GET /api/posts/detail/:id - Get detail of a single post by id
+router.get('/detail/:id', async (req, res) => {
+  try {
+    const postId = req.params.id;
+    let currentUserId = null;
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (token) {
+      try {
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'SECRET_KEY');
+        currentUserId = decoded.id;
+      } catch (err) {
+        // Ignore guest
+      }
+    }
+
+    const [posts] = await pool.query(
+      `SELECT 
+          p.*,
+          u.role AS user_role,
+          com.id AS company_id,
+          CASE 
+              WHEN u.role IN ('candidate', 'Candidate') THEN cp.full_name 
+              WHEN u.role IN ('company', 'HR') THEN com.name
+              ELSE 'System User'
+          END AS author_name,
+          CASE 
+              WHEN u.role IN ('candidate', 'Candidate') THEN cp.avatar_url 
+              WHEN u.role IN ('company', 'HR') THEN com.logo_url
+              ELSE NULL
+          END AS author_avatar,
+          CASE
+              WHEN u.role IN ('candidate', 'Candidate') THEN cp.headline
+              WHEN u.role IN ('company', 'HR') THEN NULL
+              ELSE ''
+          END AS author_title,
+          (SELECT COUNT(*) FROM Post_Like WHERE post_id = p.id) AS likes_count,
+          (SELECT COUNT(*) FROM Post_Comment WHERE post_id = p.id) AS comments_count,
+          (SELECT COUNT(*) FROM Community_Post WHERE parent_post_id = p.id) AS reposts_count,
+          EXISTS(SELECT 1 FROM Post_Like WHERE post_id = p.id AND user_id = ?) AS is_liked,
+          
+          -- Parent post fields (for reposts)
+          parent.content AS parent_content,
+          parent.media_url AS parent_media_url,
+          parent.media_type AS parent_media_type,
+          parent.created_at AS parent_created_at,
+          parent_u.id AS parent_author_id,
+          parent_u.role AS parent_user_role,
+          parent_com.id AS parent_company_id,
+          CASE 
+              WHEN parent_u.role IN ('candidate', 'Candidate') THEN parent_cp.full_name 
+              WHEN parent_u.role IN ('company', 'HR') THEN parent_com.name
+              ELSE 'System User'
+          END AS parent_author_name,
+          CASE 
+              WHEN parent_u.role IN ('candidate', 'Candidate') THEN parent_cp.avatar_url 
+              WHEN parent_u.role IN ('company', 'HR') THEN parent_com.logo_url
+              ELSE NULL
+          END AS parent_author_avatar,
+          CASE
+              WHEN parent_u.role IN ('candidate', 'Candidate') THEN parent_cp.headline
+              WHEN parent_u.role IN ('company', 'HR') THEN NULL
+              ELSE ''
+          END AS parent_author_title
+      FROM Community_Post p
+      JOIN User u ON p.user_id = u.id
+      LEFT JOIN Candidate_Profile cp ON u.id = cp.user_id
+      LEFT JOIN Company com ON u.id = com.hr_id
+      LEFT JOIN Community_Post parent ON p.parent_post_id = parent.id
+      LEFT JOIN User parent_u ON parent.parent_post_id IS NULL AND parent.user_id = parent_u.id
+      LEFT JOIN Candidate_Profile parent_cp ON parent_u.id = parent_cp.user_id
+      LEFT JOIN Company parent_com ON parent_u.id = parent_com.hr_id
+      WHERE p.id = ?`,
+      [currentUserId, postId]
+    );
+
+    if (posts.length === 0) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const postsWithMedia = await fetchPostMedia(posts);
+    res.json(postsWithMedia[0]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error', error: err.message });
@@ -431,8 +521,10 @@ router.post('/', authMiddleware, uploadMiddleware, async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    const { content } = req.body;
+    const { content, visibility } = req.body;
+    console.log("POST /api/posts - req.body:", req.body);
     const userId = req.user.id;
+    const postVisibility = visibility || 'public';
 
     // First file as fallback for Community_Post table (legacy compatibility)
     let firstMediaUrl = null;
@@ -452,9 +544,9 @@ router.post('/', authMiddleware, uploadMiddleware, async (req, res) => {
 
     // 1. Insert into Community_Post
     const [result] = await connection.query(
-      `INSERT INTO Community_Post (user_id, content, media_url, media_type)
-       VALUES (?, ?, ?, ?)`,
-      [userId, content || null, firstMediaUrl, firstMediaType]
+      `INSERT INTO Community_Post (user_id, content, media_url, media_type, visibility)
+       VALUES (?, ?, ?, ?, ?)`,
+      [userId, content || null, firstMediaUrl, firstMediaType, postVisibility]
     );
 
     const postId = result.insertId;
@@ -536,7 +628,7 @@ router.post('/:id/like', authMiddleware, async (req, res) => {
     const userId = req.user.id;
 
     // Check if post exists
-    const [posts] = await pool.query('SELECT id FROM Community_Post WHERE id = ?', [id]);
+    const [posts] = await pool.query('SELECT id, user_id FROM Community_Post WHERE id = ?', [id]);
     if (posts.length === 0) {
       return res.status(404).json({ message: 'Post not found' });
     }
@@ -555,6 +647,33 @@ router.post('/:id/like', authMiddleware, async (req, res) => {
       // Like
       await pool.query('INSERT INTO Post_Like (post_id, user_id) VALUES (?, ?)', [id, userId]);
       liked = true;
+
+      // Trigger Notification to post author
+      try {
+        const postAuthorId = posts[0].user_id;
+        if (postAuthorId && postAuthorId !== userId) {
+          const [userInfo] = await pool.query(
+            `SELECT 
+               CASE 
+                 WHEN u.role IN ('candidate', 'Candidate') THEN cp.full_name 
+                 WHEN u.role IN ('company', 'HR') THEN com.name
+                 ELSE 'Someone'
+               END AS liker_name
+             FROM User u
+             LEFT JOIN Candidate_Profile cp ON u.id = cp.user_id
+             LEFT JOIN Company com ON u.id = com.hr_id
+             WHERE u.id = ?`,
+            [userId]
+          );
+          const likerName = userInfo[0]?.liker_name || 'Someone';
+          await pool.query(
+            'INSERT INTO Notification (user_id, title, content, post_id) VALUES (?, ?, ?, ?)',
+            [postAuthorId, '👍 New Like on your post', `${likerName} liked your post.`, id]
+          );
+        }
+      } catch (notiErr) {
+        console.error('Error creating like notification:', notiErr);
+      }
     }
 
     const [likesCount] = await pool.query(
@@ -565,6 +684,64 @@ router.post('/:id/like', authMiddleware, async (req, res) => {
     res.json({ message: liked ? 'Post liked' : 'Post unliked', is_liked: liked, likes_count: likesCount[0].count });
   } catch (err) {
     console.error(err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// GET /api/posts/:id - Get detail of a single post
+router.get('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    let currentUserId = null;
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (token) {
+      try {
+        const jwt = require('jsonwebtoken');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'SECRET_KEY');
+        currentUserId = decoded.id;
+      } catch (err) {}
+    }
+
+    const [posts] = await pool.query(
+      `SELECT 
+          p.*,
+          u.role AS user_role,
+          CASE 
+              WHEN u.role IN ('candidate', 'Candidate') THEN cp.full_name 
+              WHEN u.role IN ('company', 'HR') THEN com.name
+              ELSE 'System User'
+          END AS author_name,
+          CASE 
+              WHEN u.role IN ('candidate', 'Candidate') THEN cp.avatar_url 
+              WHEN u.role IN ('company', 'HR') THEN com.logo_url
+              ELSE NULL
+          END AS author_avatar,
+          CASE
+              WHEN u.role IN ('candidate', 'Candidate') THEN cp.headline
+              WHEN u.role IN ('company', 'HR') THEN NULL
+              ELSE ''
+          END AS author_title,
+          (SELECT COUNT(*) FROM Post_Like WHERE post_id = p.id) AS likes_count,
+          (SELECT COUNT(*) FROM Post_Comment WHERE post_id = p.id) AS comments_count,
+          (SELECT COUNT(*) FROM Community_Post WHERE parent_post_id = p.id) AS reposts_count,
+          EXISTS(SELECT 1 FROM Post_Like WHERE post_id = p.id AND user_id = ?) AS is_liked
+      FROM Community_Post p
+      JOIN User u ON p.user_id = u.id
+      LEFT JOIN Candidate_Profile cp ON u.id = cp.user_id
+      LEFT JOIN Company com ON u.id = com.hr_id
+      WHERE p.id = ?`,
+      [currentUserId || 0, id]
+    );
+
+    if (posts.length === 0) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const postsWithMedia = await fetchPostMedia(posts);
+    res.json(postsWithMedia[0]);
+  } catch (err) {
+    console.error('Error fetching single post:', err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
@@ -633,7 +810,7 @@ router.post('/:id/comments', authMiddleware, async (req, res) => {
     }
 
     // Check if post exists
-    const [posts] = await pool.query('SELECT id FROM Community_Post WHERE id = ?', [id]);
+    const [posts] = await pool.query('SELECT id, user_id FROM Community_Post WHERE id = ?', [id]);
     if (posts.length === 0) {
       return res.status(404).json({ message: 'Post not found' });
     }
@@ -642,6 +819,34 @@ router.post('/:id/comments', authMiddleware, async (req, res) => {
       'INSERT INTO Post_Comment (post_id, user_id, content, parent_comment_id) VALUES (?, ?, ?, ?)',
       [id, userId, content.trim(), parent_comment_id || null]
     );
+
+    // Trigger Notification to post author
+    try {
+      const postAuthorId = posts[0].user_id;
+      if (postAuthorId && postAuthorId !== userId) {
+        const [userInfo] = await pool.query(
+          `SELECT 
+             CASE 
+               WHEN u.role IN ('candidate', 'Candidate') THEN cp.full_name 
+               WHEN u.role IN ('company', 'HR') THEN com.name
+               ELSE 'Someone'
+             END AS commenter_name
+           FROM User u
+           LEFT JOIN Candidate_Profile cp ON u.id = cp.user_id
+           LEFT JOIN Company com ON u.id = com.hr_id
+           WHERE u.id = ?`,
+          [userId]
+        );
+        const commenterName = userInfo[0]?.commenter_name || 'Someone';
+        const shortComment = content.trim().length > 40 ? content.trim().substring(0, 40) + '...' : content.trim();
+        await pool.query(
+          'INSERT INTO Notification (user_id, title, content, post_id) VALUES (?, ?, ?, ?)',
+          [postAuthorId, '💬 New Comment on your post', `${commenterName} commented: "${shortComment}"`, id]
+        );
+      }
+    } catch (notiErr) {
+      console.error('Error creating comment notification:', notiErr);
+    }
 
     const [newComment] = await pool.query(
       `SELECT 
@@ -841,6 +1046,144 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     await pool.query('DELETE FROM Community_Post WHERE id = ?', [id]);
     res.json({ message: 'Post deleted successfully' });
   } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
+// PUT /api/posts/:postId - Edit a post
+router.put('/:postId', authMiddleware, uploadMiddleware, async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const { postId } = req.params;
+    const { content, visibility, keepMedia } = req.body;
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    // Check post ownership
+    const [posts] = await connection.query('SELECT user_id FROM Community_Post WHERE id = ?', [postId]);
+    if (posts.length === 0) {
+      connection.release();
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    if (posts[0].user_id !== userId && userRole !== 'Admin') {
+      connection.release();
+      return res.status(403).json({ message: 'Unauthorized. You can only edit your own posts.' });
+    }
+
+    // Update main text and visibility
+    await connection.query(
+      'UPDATE Community_Post SET content = ?, visibility = ? WHERE id = ?',
+      [content || null, visibility || 'public', postId]
+    );
+
+    const mediaFiles = req.files || [];
+    if (mediaFiles.length > 0) {
+      // 1. Fetch and delete old media files from disk
+      const [oldMedia] = await connection.query('SELECT media_url FROM Post_Media WHERE post_id = ?', [postId]);
+      for (const media of oldMedia) {
+        if (media.media_url) {
+          const filePath = path.join(__dirname, '../..', media.media_url);
+          if (fs.existsSync(filePath)) {
+            try {
+              fs.unlinkSync(filePath);
+            } catch (err) {
+              console.error(`Failed to delete old media file during update: ${filePath}`, err);
+            }
+          }
+        }
+      }
+
+      // 2. Delete old media records from database
+      await connection.query('DELETE FROM Post_Media WHERE post_id = ?', [postId]);
+
+      // 3. Update legacy fields in Community_Post table
+      const firstMediaUrl = `/uploads/posts/${mediaFiles[0].filename}`;
+      const allowedImageTypes = /jpeg|jpg|png|gif|webp/;
+      const firstMediaType = allowedImageTypes.test(mediaFiles[0].mimetype) ? 'image' : 'video';
+
+      await connection.query(
+        'UPDATE Community_Post SET media_url = ?, media_type = ? WHERE id = ?',
+        [firstMediaUrl, firstMediaType, postId]
+      );
+
+      // 4. Insert all new media attachments into Post_Media
+      for (const file of mediaFiles) {
+        const mediaUrl = `/uploads/posts/${file.filename}`;
+        const mediaType = allowedImageTypes.test(file.mimetype) ? 'image' : 'video';
+        await connection.query(
+          'INSERT INTO Post_Media (post_id, media_url, media_type) VALUES (?, ?, ?)',
+          [postId, mediaUrl, mediaType]
+        );
+      }
+    } else if (keepMedia === 'false') {
+      // 1. Fetch and delete old media from disk
+      const [oldMedia] = await connection.query('SELECT media_url FROM Post_Media WHERE post_id = ?', [postId]);
+      for (const media of oldMedia) {
+        if (media.media_url) {
+          const filePath = path.join(__dirname, '../..', media.media_url);
+          if (fs.existsSync(filePath)) {
+            try {
+              fs.unlinkSync(filePath);
+            } catch (err) {
+              console.error(`Failed to delete old media: ${filePath}`, err);
+            }
+          }
+        }
+      }
+
+      // 2. Delete media from database
+      await connection.query('DELETE FROM Post_Media WHERE post_id = ?', [postId]);
+      await connection.query(
+        'UPDATE Community_Post SET media_url = NULL, media_type = NULL WHERE id = ?',
+        [postId]
+      );
+    }
+
+    await connection.commit();
+    connection.release();
+
+    // Select the newly updated post with details
+    const [updatedPost] = await pool.query(
+      `SELECT 
+          p.*,
+          u.role AS user_role,
+          com.id AS company_id,
+          CASE 
+              WHEN u.role IN ('candidate', 'Candidate') THEN cp.full_name 
+              WHEN u.role IN ('company', 'HR') THEN com.name
+              ELSE 'System User'
+          END AS author_name,
+          CASE 
+              WHEN u.role IN ('candidate', 'Candidate') THEN cp.avatar_url 
+              WHEN u.role IN ('company', 'HR') THEN com.logo_url
+              ELSE NULL
+          END AS author_avatar,
+          CASE
+              WHEN u.role IN ('candidate', 'Candidate') THEN cp.headline
+              WHEN u.role IN ('company', 'HR') THEN NULL
+              ELSE ''
+          END AS author_title,
+          (SELECT COUNT(*) FROM Post_Like WHERE post_id = p.id) AS likes_count,
+          (SELECT COUNT(*) FROM Post_Comment WHERE post_id = p.id) AS comments_count,
+          (SELECT COUNT(*) FROM Community_Post WHERE parent_post_id = p.id) AS reposts_count,
+          EXISTS(SELECT 1 FROM Post_Like WHERE post_id = p.id AND user_id = ?) AS is_liked
+      FROM Community_Post p
+      JOIN User u ON p.user_id = u.id
+      LEFT JOIN Candidate_Profile cp ON u.id = cp.user_id
+      LEFT JOIN Company com ON u.id = com.hr_id
+      WHERE p.id = ?`,
+      [userId, postId]
+    );
+
+    const postsWithMedia = await fetchPostMedia(updatedPost);
+    res.json({ message: 'Post updated successfully', post: postsWithMedia[0] });
+
+  } catch (err) {
+    await connection.rollback();
+    connection.release();
     console.error(err);
     res.status(500).json({ message: 'Server error', error: err.message });
   }

@@ -1,18 +1,34 @@
-import React, { useState } from 'react';
-import { useOutletContext, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const CandidateActivityHistory = () => {
+const CompanyActivityHistory = () => {
   const navigate = useNavigate();
-  const {
-    likedPosts,
-    setLikedPosts,
-    commentedPosts,
-    setCommentedPosts,
-    sharedPosts,
-    setSharedPosts,
-    fetchActivityHistory
-  } = useOutletContext();
+  const [likedPosts, setLikedPosts] = useState([]);
+  const [commentedPosts, setCommentedPosts] = useState([]);
+  const [sharedPosts, setSharedPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchActivityHistory = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+      const res = await axios.get('http://localhost:5000/api/posts/activity/history', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setLikedPosts(res.data.likes || []);
+      setCommentedPosts(res.data.comments || []);
+      setSharedPosts(res.data.shares || []);
+    } catch (err) {
+      console.error("Failed to load activity history from DB:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchActivityHistory();
+  }, []);
 
   const getFullUrl = (url) => {
     if (!url) return '/default-avatar.png';
@@ -116,7 +132,7 @@ const CandidateActivityHistory = () => {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!activePostDetail) {
       setPostComments([]);
       return;
@@ -221,7 +237,7 @@ const CandidateActivityHistory = () => {
       
       alert("Post deleted successfully.");
       setActivePostDetail(null);
-      if (fetchActivityHistory) fetchActivityHistory();
+      fetchActivityHistory();
     } catch (err) {
       console.error('Failed to delete post:', err);
       alert("Failed to delete post. Please try again.");
@@ -397,349 +413,362 @@ const CandidateActivityHistory = () => {
       )}
 
       {/* ACTIVITY HISTORY VIEW */}
-      <div className="card border-0 shadow-sm animate-fade-in">
-        <div className="card-header bg-white py-3 border-bottom d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2">
-          <h5 className="mb-0 fw-bold text-dark"><i className="fas fa-history me-2 text-primary"></i>Activity History</h5>
+      <div className="card border-0 shadow-sm animate-fade-in" style={{ borderRadius: '12px' }}>
+        <div className="card-header bg-white py-3 border-bottom d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2" style={{ borderRadius: '12px 12px 0 0' }}>
+          <h5 className="mb-0 fw-bold text-dark"><i className="fas fa-history me-2" style={{ color: '#01796F' }}></i>Activity History</h5>
         </div>
 
-          {/* Sub-tabs header */}
-          <div className="d-flex border-bottom bg-light">
-            <button
-              type="button"
-              className={`btn btn-link flex-fill py-3 text-decoration-none fw-semibold border-0 ${activitySubTab === 'likes' ? 'text-primary border-bottom border-primary border-3' : 'text-muted'}`}
-              onClick={() => handleTabChange('likes')}
-            >
-              <i className="fas fa-thumbs-up me-1"></i> Liked Posts ({likedPosts.length})
-            </button>
-            <button
-              type="button"
-              className={`btn btn-link flex-fill py-3 text-decoration-none fw-semibold border-0 ${activitySubTab === 'comments' ? 'text-primary border-bottom border-primary border-3' : 'text-muted'}`}
-              onClick={() => handleTabChange('comments')}
-            >
-              <i className="fas fa-comment-dots me-1"></i> Comments ({commentedPosts.length})
-            </button>
-            <button
-              type="button"
-              className={`btn btn-link flex-fill py-3 text-decoration-none fw-semibold border-0 ${activitySubTab === 'shares' ? 'text-primary border-bottom border-primary border-3' : 'text-muted'}`}
-              onClick={() => handleTabChange('shares')}
-            >
-              <i className="fas fa-share me-1"></i> Shared ({sharedPosts.length})
-            </button>
-          </div>
+        {/* Sub-tabs header */}
+        <div className="d-flex border-bottom bg-light">
+          <button
+            type="button"
+            className="btn btn-link flex-fill py-3 text-decoration-none fw-semibold border-0"
+            style={{
+              color: activitySubTab === 'likes' ? '#01796F' : '#6c757d',
+              borderBottom: activitySubTab === 'likes' ? '3px solid #01796F' : 'none',
+              borderRadius: 0
+            }}
+            onClick={() => handleTabChange('likes')}
+          >
+            <i className="fas fa-thumbs-up me-1"></i> Liked Posts ({likedPosts.length})
+          </button>
+          <button
+            type="button"
+            className="btn btn-link flex-fill py-3 text-decoration-none fw-semibold border-0"
+            style={{
+              color: activitySubTab === 'comments' ? '#01796F' : '#6c757d',
+              borderBottom: activitySubTab === 'comments' ? '3px solid #01796F' : 'none',
+              borderRadius: 0
+            }}
+            onClick={() => handleTabChange('comments')}
+          >
+            <i className="fas fa-comment-dots me-1"></i> Comments ({commentedPosts.length})
+          </button>
+          <button
+            type="button"
+            className="btn btn-link flex-fill py-3 text-decoration-none fw-semibold border-0"
+            style={{
+              color: activitySubTab === 'shares' ? '#01796F' : '#6c757d',
+              borderBottom: activitySubTab === 'shares' ? '3px solid #01796F' : 'none',
+              borderRadius: 0
+            }}
+            onClick={() => handleTabChange('shares')}
+          >
+            <i className="fas fa-share me-1"></i> Shared ({sharedPosts.length})
+          </button>
+        </div>
 
-          {/* Static Filter Bar */}
-          <div className="px-4 py-2 bg-white border-bottom">
-            <div className="row g-2 align-items-center">
-              <div className="col-12 col-md-5">
-                <div className="input-group border rounded-pill bg-white px-3 py-1 shadow-sm d-flex align-items-center" style={{ maxWidth: '280px' }}>
-                  <span className="bg-transparent border-0 text-muted" style={{ fontSize: '0.85rem' }}><i className="fas fa-search"></i></span>
-                  <input
-                    type="text"
-                    className="form-control border-0 bg-transparent py-1 px-2 small text-dark"
-                    style={{ outline: 'none', boxShadow: 'none', fontSize: '0.8rem' }}
-                    placeholder={`Search in ${activitySubTab === 'likes' ? 'liked posts' : activitySubTab === 'comments' ? 'comments' : 'shares'}...`}
-                    value={searchTerm}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                  />
-                  {searchTerm && (
-                    <button
-                      className="btn btn-link text-muted p-0 border-0"
-                      type="button"
-                      onClick={() => handleSearchChange('')}
-                    >
-                      <i className="fas fa-times-circle" style={{ fontSize: '0.85rem' }}></i>
-                    </button>
-                  )}
-                </div>
-              </div>
-              
-              <div className="col-12 col-md-7">
-                <div className="d-flex flex-wrap align-items-center gap-2 justify-content-md-end">
-                  <div className="d-flex align-items-center gap-2">
-                    <label className="text-secondary small fw-semibold text-nowrap mb-0" style={{ fontSize: '0.8rem' }}><i className="far fa-calendar-alt text-primary me-1"></i> Year:</label>
-                    <select
-                      className="form-select rounded-pill px-3 py-1 small shadow-sm text-dark fw-medium border-light-subtle cursor-pointer"
-                      style={{ cursor: 'pointer', fontSize: '0.8rem', width: '110px' }}
-                      value={selectedYear}
-                      onChange={(e) => {
-                        setSelectedYear(e.target.value);
-                        setSelectedMonth('all');
-                        setVisibleCount(10);
-                      }}
-                    >
-                      <option value="all">All time</option>
-                      {getAvailableYears().map(y => (
-                        <option key={y} value={y}>{y}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {selectedYear !== 'all' && (
-                    <div className="d-flex align-items-center gap-2 animate-fade-in">
-                      <label className="text-secondary small fw-semibold text-nowrap mb-0" style={{ fontSize: '0.8rem' }}><i className="far fa-calendar text-primary me-1"></i> Month:</label>
-                      <select
-                        className="form-select rounded-pill px-3 py-1 small shadow-sm text-dark fw-medium border-light-subtle cursor-pointer"
-                        style={{ cursor: 'pointer', fontSize: '0.8rem', width: '125px' }}
-                        value={selectedMonth}
-                        onChange={(e) => {
-                          setSelectedMonth(e.target.value);
-                          setVisibleCount(10);
-                        }}
-                      >
-                        <option value="all">All months</option>
-                        <option value="1">January</option>
-                        <option value="2">February</option>
-                        <option value="3">March</option>
-                        <option value="4">April</option>
-                        <option value="5">May</option>
-                        <option value="6">June</option>
-                        <option value="7">July</option>
-                        <option value="8">August</option>
-                        <option value="9">September</option>
-                        <option value="10">October</option>
-                        <option value="11">November</option>
-                        <option value="12">December</option>
-                      </select>
-                    </div>
-                  )}
-                </div>
+        {/* Static Filter Bar */}
+        <div className="px-4 py-2 bg-white border-bottom">
+          <div className="row g-2 align-items-center">
+            <div className="col-12 col-md-5">
+              <div className="input-group border rounded-pill bg-white px-3 py-1 shadow-sm d-flex align-items-center" style={{ maxWidth: '280px' }}>
+                <span className="bg-transparent border-0 text-muted" style={{ fontSize: '0.85rem' }}><i className="fas fa-search"></i></span>
+                <input
+                  type="text"
+                  className="form-control border-0 bg-transparent py-1 px-2 small text-dark"
+                  style={{ outline: 'none', boxShadow: 'none', fontSize: '0.8rem' }}
+                  placeholder={`Search in ${activitySubTab === 'likes' ? 'liked posts' : activitySubTab === 'comments' ? 'comments' : 'shares'}...`}
+                  value={searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                />
+                {searchTerm && (
+                  <button
+                    className="btn btn-link text-muted p-0 border-0"
+                    type="button"
+                    onClick={() => handleSearchChange('')}
+                  >
+                    <i className="fas fa-times-circle" style={{ fontSize: '0.85rem' }}></i>
+                  </button>
+                )}
               </div>
             </div>
-          </div>
 
-          {/* Scrollable Card Body */}
-          <div className="card-body px-4 pb-4 pt-3 scrollable-activity-history" style={{ height: 'calc(70vh - 111px)', overflowY: 'auto' }}>
+            <div className="col-12 col-md-7 d-flex align-items-center justify-content-md-end gap-2 flex-wrap">
+              <div className="d-flex align-items-center gap-2">
+                <span className="text-secondary small fw-semibold d-flex align-items-center gap-1" style={{ fontSize: '0.78rem' }}>
+                  <i className="far fa-calendar-alt" style={{ color: '#01796F' }}></i> Year:
+                </span>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => {
+                    setSelectedYear(e.target.value);
+                    if (e.target.value === 'all') setSelectedMonth('all');
+                    setVisibleCount(10);
+                  }}
+                  className="form-select form-select-sm border rounded-pill px-2.5 shadow-sm bg-white"
+                  style={{ fontSize: '0.78rem', width: 'auto', cursor: 'pointer' }}
+                >
+                  <option value="all">All time</option>
+                  {getAvailableYears().map(year => (
+                    <option key={year} value={year.toString()}>{year}</option>
+                  ))}
+                </select>
+              </div>
 
-            {/* Liked Posts Sub-tab */}
-            {activitySubTab === 'likes' && (() => {
-              const filtered = getFilteredItems(likedPosts, 'likes');
-              const grouped = groupItemsByDate(filtered.slice(0, visibleCount), 'liked_at');
-              return (
-                <div className="liked-posts-list">
-                  {filtered.length === 0 ? (
-                    <div className="text-center py-5 text-muted">
-                      <i className="far fa-thumbs-up fs-2 mb-2 text-muted opacity-40"></i>
-                      <p className="mb-0">{searchTerm || selectedYear !== 'all' || selectedMonth !== 'all' ? "No activities match your filters." : "You have no liked posts yet."}</p>
-                    </div>
-                  ) : (
-                    <div className="d-flex flex-column gap-3">
-                      {grouped.map(([dateStr, items]) => (
-                        <div key={dateStr} className="date-group">
-                          <div className="fw-bold text-dark small mb-2.5 d-flex align-items-center gap-2 pb-1 border-bottom" style={{ fontSize: '0.82rem' }}>
-                            <i className="far fa-calendar-alt text-primary"></i> {dateStr}
-
-                          </div>
-                          <div className="d-flex flex-column gap-2 ms-2 ps-2 border-start border-2 border-primary-subtle">
-                            {items.map((post) => (
-                              <div 
-                                key={post.id} 
-                                className="p-3 rounded border bg-light d-flex flex-column gap-1.5 hover-shadow-sm transition-all position-relative cursor-pointer" 
-                                style={{ padding: '0.85rem 1.25rem' }}
-                                onClick={() => handleOpenPostDetail(post.id)}
-                              >
-                                <div className="d-flex align-items-center gap-3">
-                                  <img src={getFullUrl(post.avatar)} alt="avatar" className="rounded-circle border" style={{ width: '36px', height: '36px', objectFit: 'cover' }} />
-                                  <div className="flex-grow-1" style={{ minWidth: 0 }}>
-                                    <div className="d-flex align-items-center gap-2 flex-wrap">
-                                      <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '0.88rem' }}>{post.author}</h6>
-                                      <span className="text-muted small" style={{ fontSize: '0.75rem' }}>• Liked {formatTimeOnly(post.liked_at)}</span>
-                                    </div>
-                                    <div className="post-text text-secondary small text-truncate mt-1" style={{ fontSize: '0.8rem', maxWidth: '90%' }} title={post.content}>
-                                      {post.content}
-                                    </div>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    className="btn btn-xs btn-outline-danger px-2.5 py-1 rounded-pill fw-semibold"
-                                    style={{ fontSize: '0.7rem' }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleUnlikePost(post.id);
-                                    }}
-                                  >
-                                    Unlike
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                      
-                      {filtered.length > visibleCount && (
-                        <div className="text-center mt-3">
-                          <button
-                            type="button"
-                            className="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold small shadow-sm transition-all"
-                            onClick={() => setVisibleCount(prev => prev + 10)}
-                          >
-                            <i className="fas fa-arrow-down me-1.5"></i> Load More
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
+              {selectedYear !== 'all' && (
+                <div className="d-flex align-items-center gap-2 animate-fade-in">
+                  <span className="text-secondary small fw-semibold" style={{ fontSize: '0.78rem' }}>Month:</span>
+                  <select
+                    value={selectedMonth}
+                    onChange={(e) => {
+                      setSelectedMonth(e.target.value);
+                      setVisibleCount(10);
+                    }}
+                    className="form-select form-select-sm border rounded-pill px-2.5 shadow-sm bg-white"
+                    style={{ fontSize: '0.78rem', width: 'auto', cursor: 'pointer' }}
+                  >
+                    <option value="all">All months</option>
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                  </select>
                 </div>
-              );
-            })()}
-
-            {/* Comments Sub-tab */}
-            {activitySubTab === 'comments' && (() => {
-              const filtered = getFilteredItems(commentedPosts, 'comments');
-              const grouped = groupItemsByDate(filtered.slice(0, visibleCount), 'commented_at');
-              return (
-                <div className="commented-posts-list">
-                  {filtered.length === 0 ? (
-                    <div className="text-center py-5 text-muted">
-                      <i className="far fa-comment-dots fs-2 mb-2 text-muted opacity-40"></i>
-                      <p className="mb-0">{searchTerm || selectedYear !== 'all' || selectedMonth !== 'all' ? "No activities match your filters." : "You have no comment activity yet."}</p>
-                    </div>
-                  ) : (
-                    <div className="d-flex flex-column gap-3">
-                      {grouped.map(([dateStr, items]) => (
-                        <div key={dateStr} className="date-group">
-                          <div className="fw-bold text-dark small mb-2.5 d-flex align-items-center gap-2 pb-1 border-bottom" style={{ fontSize: '0.82rem' }}>
-                            <i className="far fa-calendar-alt text-primary"></i> {dateStr}
-
-                          </div>
-                          <div className="d-flex flex-column gap-2 ms-2 ps-2 border-start border-2 border-primary-subtle">
-                            {items.map((post) => (
-                              <div 
-                                key={post.id} 
-                                className="p-3 rounded border bg-light d-flex flex-column gap-1.5 hover-shadow-sm transition-all position-relative cursor-pointer" 
-                                style={{ padding: '0.85rem 1.25rem' }}
-                                onClick={() => handleOpenPostDetail(post.post_id)}
-                              >
-                                <div className="d-flex align-items-center gap-3">
-                                  <img src={getFullUrl(post.avatar)} alt="avatar" className="rounded-circle border" style={{ width: '36px', height: '36px', objectFit: 'cover' }} />
-                                  <div className="flex-grow-1" style={{ minWidth: 0 }}>
-                                    <div className="d-flex align-items-center gap-2 flex-wrap">
-                                      <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '0.88rem' }}>{post.author}</h6>
-                                      <span className="text-muted small" style={{ fontSize: '0.75rem' }}>• Commented {formatTimeOnly(post.commented_at)}</span>
-                                    </div>
-                                    <div className="my-comment text-dark fw-semibold small mt-1" style={{ fontSize: '0.82rem' }}>
-                                      <i className="fas fa-comment text-primary me-1.5" style={{ fontSize: '0.75rem' }}></i>
-                                      {post.comment}
-                                    </div>
-                                    <div className="post-text text-muted small text-truncate mt-1" style={{ fontSize: '0.75rem', opacity: 0.8, maxWidth: '90%' }} title={post.content}>
-                                      <strong>Original Post:</strong> {post.content}
-                                    </div>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    className="btn btn-xs btn-outline-danger px-2.5 py-1 rounded-pill fw-semibold"
-                                    style={{ fontSize: '0.7rem' }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteCommentActivity(post.id);
-                                    }}
-                                  >
-                                    Delete
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-
-                      {filtered.length > visibleCount && (
-                        <div className="text-center mt-3">
-                          <button
-                            type="button"
-                            className="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold small shadow-sm transition-all"
-                            onClick={() => setVisibleCount(prev => prev + 10)}
-                          >
-                            <i className="fas fa-arrow-down me-1.5"></i> Load More
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-
-            {/* Shared Sub-tab */}
-            {activitySubTab === 'shares' && (() => {
-              const filtered = getFilteredItems(sharedPosts, 'shares');
-              const grouped = groupItemsByDate(filtered.slice(0, visibleCount), 'shared_at');
-              return (
-                <div className="shared-posts-list">
-                  {filtered.length === 0 ? (
-                    <div className="text-center py-5 text-muted">
-                      <i className="far fa-share-square fs-2 mb-2 text-muted opacity-40"></i>
-                      <p className="mb-0">{searchTerm || selectedYear !== 'all' || selectedMonth !== 'all' ? "No activities match your filters." : "You have no share activity yet."}</p>
-                    </div>
-                  ) : (
-                    <div className="d-flex flex-column gap-3">
-                      {grouped.map(([dateStr, items]) => (
-                        <div key={dateStr} className="date-group">
-                          <div className="fw-bold text-dark small mb-2.5 d-flex align-items-center gap-2 pb-1 border-bottom" style={{ fontSize: '0.82rem' }}>
-                            <i className="far fa-calendar-alt text-primary"></i> {dateStr}
-
-                          </div>
-                          <div className="d-flex flex-column gap-2 ms-2 ps-2 border-start border-2 border-primary-subtle">
-                            {items.map((post) => (
-                              <div 
-                                key={post.id} 
-                                className="p-3 rounded border bg-light d-flex flex-column gap-1.5 hover-shadow-sm transition-all position-relative cursor-pointer" 
-                                style={{ padding: '0.85rem 1.25rem' }}
-                                onClick={() => handleOpenPostDetail(post.id)}
-                              >
-                                <div className="d-flex align-items-center gap-3">
-                                  <img src={getFullUrl(post.avatar)} alt="avatar" className="rounded-circle border" style={{ width: '36px', height: '36px', objectFit: 'cover' }} />
-                                  <div className="flex-grow-1" style={{ minWidth: 0 }}>
-                                    <div className="d-flex align-items-center gap-2 flex-wrap">
-                                      <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '0.88rem' }}>{post.author}</h6>
-                                      <span className="text-muted small" style={{ fontSize: '0.75rem' }}>• Shared {formatTimeOnly(post.shared_at)}</span>
-                                    </div>
-                                    {post.message && (
-                                      <div className="shared-message text-dark fw-semibold small mt-1" style={{ fontSize: '0.82rem' }}>
-                                        <i className="fas fa-quote-left text-primary me-1.5" style={{ fontSize: '0.7rem' }}></i>
-                                        {post.message}
-                                      </div>
-                                    )}
-                                    <div className="post-text text-muted small text-truncate mt-1" style={{ fontSize: '0.75rem', opacity: 0.8, maxWidth: '90%' }} title={post.content}>
-                                      <strong>Original Post:</strong> {post.content}
-                                    </div>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    className="btn btn-xs btn-outline-danger px-2.5 py-1 rounded-pill fw-semibold"
-                                    style={{ fontSize: '0.7rem' }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleRemoveShareActivity(post.id);
-                                    }}
-                                  >
-                                    Remove
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-
-                      {filtered.length > visibleCount && (
-                        <div className="text-center mt-3">
-                          <button
-                            type="button"
-                            className="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold small shadow-sm transition-all"
-                            onClick={() => setVisibleCount(prev => prev + 10)}
-                          >
-                            <i className="fas fa-arrow-down me-1.5"></i> Load More
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
+              )}
+            </div>
           </div>
         </div>
+
+        {/* Scrollable Card Body */}
+        <div className="card-body px-4 pb-4 pt-3 scrollable-activity-history" style={{ height: 'calc(70vh - 111px)', overflowY: 'auto' }}>
+
+          {/* Liked Posts Sub-tab */}
+          {activitySubTab === 'likes' && (() => {
+            const filtered = getFilteredItems(likedPosts, 'likes');
+            const grouped = groupItemsByDate(filtered.slice(0, visibleCount), 'liked_at');
+            return (
+              <div className="liked-posts-list">
+                {filtered.length === 0 ? (
+                  <div className="text-center py-5 text-muted">
+                    <i className="far fa-thumbs-up fs-2 mb-2 text-muted opacity-40"></i>
+                    <p className="mb-0">{searchTerm || selectedYear !== 'all' || selectedMonth !== 'all' ? "No activities match your filters." : "You have no liked posts yet."}</p>
+                  </div>
+                ) : (
+                  <div className="d-flex flex-column gap-3">
+                    {grouped.map(([dateStr, items]) => (
+                      <div key={dateStr} className="date-group">
+                        <div className="fw-bold text-dark small mb-2.5 d-flex align-items-center gap-2 pb-1 border-bottom" style={{ fontSize: '0.82rem' }}>
+                          <i className="far fa-calendar-alt" style={{ color: '#01796F' }}></i> {dateStr}
+                        </div>
+                        <div className="d-flex flex-column gap-2 ms-2 ps-2 border-start border-2" style={{ borderColor: '#e0f2f1' }}>
+                          {items.map((post) => (
+                            <div 
+                              key={post.id} 
+                              className="p-3 rounded border bg-light d-flex flex-column gap-1.5 hover-shadow-sm transition-all position-relative cursor-pointer" 
+                              style={{ padding: '0.85rem 1.25rem' }}
+                              onClick={() => handleOpenPostDetail(post.id)}
+                            >
+                              <div className="d-flex align-items-center gap-3">
+                                <img src={getFullUrl(post.avatar)} alt="avatar" className="rounded-circle border" style={{ width: '36px', height: '36px', objectFit: 'cover' }} />
+                                <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                                  <div className="d-flex align-items-center gap-2 flex-wrap">
+                                    <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '0.88rem' }}>{post.author}</h6>
+                                    <span className="text-muted small" style={{ fontSize: '0.75rem' }}>• Liked {formatTimeOnly(post.liked_at)}</span>
+                                  </div>
+                                  <div className="post-text text-secondary small text-truncate mt-1" style={{ fontSize: '0.8rem', maxWidth: '90%' }} title={post.content}>
+                                    {post.content}
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="btn btn-xs btn-outline-danger px-2.5 py-1 rounded-pill fw-semibold"
+                                  style={{ fontSize: '0.7rem' }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUnlikePost(post.id);
+                                  }}
+                                >
+                                  Unlike
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {filtered.length > visibleCount && (
+                      <div className="text-center mt-3">
+                        <button
+                          type="button"
+                          className="btn rounded-pill px-4 py-2 fw-semibold small shadow-sm transition-all"
+                          style={{ color: '#01796F', borderColor: '#01796F', backgroundColor: 'transparent' }}
+                          onClick={() => setVisibleCount(prev => prev + 10)}
+                        >
+                          <i className="fas fa-arrow-down me-1.5"></i> Load More
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Comments Sub-tab */}
+          {activitySubTab === 'comments' && (() => {
+            const filtered = getFilteredItems(commentedPosts, 'comments');
+            const grouped = groupItemsByDate(filtered.slice(0, visibleCount), 'commented_at');
+            return (
+              <div className="commented-posts-list">
+                {filtered.length === 0 ? (
+                  <div className="text-center py-5 text-muted">
+                    <i className="far fa-comment-dots fs-2 mb-2 text-muted opacity-40"></i>
+                    <p className="mb-0">{searchTerm || selectedYear !== 'all' || selectedMonth !== 'all' ? "No activities match your filters." : "You have no comment activity yet."}</p>
+                  </div>
+                ) : (
+                  <div className="d-flex flex-column gap-3">
+                    {grouped.map(([dateStr, items]) => (
+                      <div key={dateStr} className="date-group">
+                        <div className="fw-bold text-dark small mb-2.5 d-flex align-items-center gap-2 pb-1 border-bottom" style={{ fontSize: '0.82rem' }}>
+                          <i className="far fa-calendar-alt" style={{ color: '#01796F' }}></i> {dateStr}
+                        </div>
+                        <div className="d-flex flex-column gap-2 ms-2 ps-2 border-start border-2" style={{ borderColor: '#e0f2f1' }}>
+                          {items.map((post) => (
+                            <div 
+                              key={post.id} 
+                              className="p-3 rounded border bg-light d-flex flex-column gap-1.5 hover-shadow-sm transition-all position-relative cursor-pointer" 
+                              style={{ padding: '0.85rem 1.25rem' }}
+                              onClick={() => handleOpenPostDetail(post.post_id)}
+                            >
+                              <div className="d-flex align-items-center gap-3">
+                                <img src={getFullUrl(post.avatar)} alt="avatar" className="rounded-circle border" style={{ width: '36px', height: '36px', objectFit: 'cover' }} />
+                                <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                                  <div className="d-flex align-items-center gap-2 flex-wrap">
+                                    <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '0.88rem' }}>{post.author}</h6>
+                                    <span className="text-muted small" style={{ fontSize: '0.75rem' }}>• Commented {formatTimeOnly(post.commented_at)}</span>
+                                  </div>
+                                  <div className="my-comment text-dark fw-semibold small mt-1" style={{ fontSize: '0.82rem' }}>
+                                    <i className="fas fa-comment me-1.5" style={{ fontSize: '0.75rem', color: '#01796F' }}></i>
+                                    {post.comment}
+                                  </div>
+                                  <div className="post-text text-muted small text-truncate mt-1" style={{ fontSize: '0.75rem', opacity: 0.8, maxWidth: '90%' }} title={post.content}>
+                                    <strong>Original Post:</strong> {post.content}
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="btn btn-xs btn-outline-danger px-2.5 py-1 rounded-pill fw-semibold"
+                                  style={{ fontSize: '0.7rem' }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteCommentActivity(post.id);
+                                  }}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+
+                    {filtered.length > visibleCount && (
+                      <div className="text-center mt-3">
+                        <button
+                          type="button"
+                          className="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold small shadow-sm transition-all"
+                          onClick={() => setVisibleCount(prev => prev + 10)}
+                        >
+                          <i className="fas fa-arrow-down me-1.5"></i> Load More
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Shared Sub-tab */}
+          {activitySubTab === 'shares' && (() => {
+            const filtered = getFilteredItems(sharedPosts, 'shares');
+            const grouped = groupItemsByDate(filtered.slice(0, visibleCount), 'shared_at');
+            return (
+              <div className="shared-posts-list">
+                {filtered.length === 0 ? (
+                  <div className="text-center py-5 text-muted">
+                    <i className="far fa-share-square fs-2 mb-2 text-muted opacity-40"></i>
+                    <p className="mb-0">{searchTerm || selectedYear !== 'all' || selectedMonth !== 'all' ? "No activities match your filters." : "You have no share activity yet."}</p>
+                  </div>
+                ) : (
+                  <div className="d-flex flex-column gap-3">
+                    {grouped.map(([dateStr, items]) => (
+                      <div key={dateStr} className="date-group">
+                        <div className="fw-bold text-dark small mb-2.5 d-flex align-items-center gap-2 pb-1 border-bottom" style={{ fontSize: '0.82rem' }}>
+                          <i className="far fa-calendar-alt" style={{ color: '#01796F' }}></i> {dateStr}
+                        </div>
+                        <div className="d-flex flex-column gap-2 ms-2 ps-2 border-start border-2" style={{ borderColor: '#e0f2f1' }}>
+                          {items.map((post) => (
+                            <div 
+                              key={post.id} 
+                              className="p-3 rounded border bg-light d-flex flex-column gap-1.5 hover-shadow-sm transition-all position-relative cursor-pointer" 
+                              style={{ padding: '0.85rem 1.25rem' }}
+                              onClick={() => handleOpenPostDetail(post.id)}
+                            >
+                              <div className="d-flex align-items-center gap-3">
+                                <img src={getFullUrl(post.avatar)} alt="avatar" className="rounded-circle border" style={{ width: '36px', height: '36px', objectFit: 'cover' }} />
+                                <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                                  <div className="d-flex align-items-center gap-2 flex-wrap">
+                                    <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '0.88rem' }}>{post.author}</h6>
+                                    <span className="text-muted small" style={{ fontSize: '0.75rem' }}>• Shared {formatTimeOnly(post.shared_at)}</span>
+                                  </div>
+                                  {post.message && (
+                                    <div className="shared-message text-dark fw-semibold small mt-1" style={{ fontSize: '0.82rem' }}>
+                                      <i className="fas fa-quote-left me-1.5" style={{ fontSize: '0.7rem', color: '#01796F' }}></i>
+                                      {post.message}
+                                    </div>
+                                  )}
+                                  <div className="post-text text-muted small text-truncate mt-1" style={{ fontSize: '0.75rem', opacity: 0.8, maxWidth: '90%' }} title={post.content}>
+                                    <strong>Original Post:</strong> {post.content}
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="btn btn-xs btn-outline-danger px-2.5 py-1 rounded-pill fw-semibold"
+                                  style={{ fontSize: '0.7rem' }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRemoveShareActivity(post.id);
+                                  }}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+
+                    {filtered.length > visibleCount && (
+                      <div className="text-center mt-3">
+                        <button
+                          type="button"
+                          className="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold small shadow-sm transition-all"
+                          onClick={() => setVisibleCount(prev => prev + 10)}
+                        >
+                          <i className="fas fa-arrow-down me-1.5"></i> Load More
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </div>
+      </div>
 
       {/* Post Detail Modal */}
       {activePostDetail && (
@@ -1105,4 +1134,4 @@ const CandidateActivityHistory = () => {
   );
 };
 
-export default CandidateActivityHistory;
+export default CompanyActivityHistory;

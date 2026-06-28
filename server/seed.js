@@ -2,7 +2,7 @@ const db = require('./src/config/db');
 
 const seedDatabase = async () => {
     try {
-        const [rows] = await db.query('SELECT COUNT(*) as count FROM industry_category');
+        const [rows] = await db.query('SELECT COUNT(*) as count FROM job_title_dictionary');
         
         if (rows[0].count > 0) {
             console.log('Database already seeded. Skipping...');

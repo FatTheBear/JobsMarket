@@ -1298,8 +1298,9 @@
 }
 
 .comment-item {
-  border: 1px solid #f1f5f9;
-  background-color: #f8fafc;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  background-color: transparent;
 }
 
 /* Scrollbar styling for comments */

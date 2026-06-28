@@ -78,10 +78,11 @@ export default function SetupProfilePage() {
     followedCompanyIds: [] // Allowed to be empty list
   });
 
-  // Address autocomplete suggestions state
-  const [addressSuggestions, setAddressSuggestions] = useState([]);
-  const [filteredSuggestions, setFilteredSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [provinces, setProvinces] = useState([]);
+  const [districts, setDistricts] = useState([]);
+  const [selectedProvince, setSelectedProvince] = useState('');
+  const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [placeholderJobTitle, setPlaceholderJobTitle] = useState('e.g., Senior Full Stack Developer | React Specialist');
 
   // Job title (Industry) autocomplete suggestions state
   const [jobSuggestions, setJobSuggestions] = useState([]);
@@ -95,41 +96,65 @@ export default function SetupProfilePage() {
     headers: { Authorization: `Bearer ${token}` }
   });
 
-  // Load address autocomplete data and recommended companies
+  // Load address data (depth=2) and placeholder job titles
   useEffect(() => {
     if (!token) {
       setApiError('Authentication token missing. Please log in again.');
       return;
     }
 
-    // Fetch Vietnam administrative divisions (depth=3: province -> district -> ward)
     const loadAddressData = async () => {
       try {
-        const res = await axios.get('https://provinces.open-api.vn/api/?depth=3');
-        const flatList = [];
-        res.data.forEach(p => {
-          p.districts.forEach(d => {
-            flatList.push({
-              fullName: `${d.name}, ${p.name}`,
-              searchString: `${d.name} ${p.name}`.toLowerCase()
-            });
-            if (d.wards) {
-              d.wards.forEach(w => {
-                flatList.push({
-                  fullName: `${w.name}, ${d.name}, ${p.name}`,
-                  searchString: `${w.name} ${d.name} ${p.name}`.toLowerCase()
-                });
-              });
-            }
-          });
-        });
-        setAddressSuggestions(flatList);
+        const res = await axios.get('https://provinces.open-api.vn/api/?depth=2');
+        setProvinces(res.data || []);
       } catch (error) {
         console.error('Failed to load address data from open API.', error);
       }
     };
+
+    const loadPlaceholderTitle = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/industry/search-titles', getHeaders());
+        if (res.data && res.data.success && res.data.data.length > 0) {
+          setPlaceholderJobTitle(`e.g., ${res.data.data.join(', ')}`);
+        }
+      } catch (err) {
+        console.error('Failed to load job title placeholders:', err);
+      }
+    };
+
     loadAddressData();
+    loadPlaceholderTitle();
   }, [token]);
+
+  // Sync selected province and district when provinces or profile address changes
+  useEffect(() => {
+    if (provinces.length === 0 || !formData.address) return;
+
+    const parts = formData.address.split(',').map(p => p.trim());
+    if (parts.length >= 2) {
+      const provinceName = parts[parts.length - 1];
+      const districtName = parts[parts.length - 2];
+
+      const foundProvince = provinces.find(p => p.name === provinceName);
+      if (foundProvince) {
+        setSelectedProvince(foundProvince.name);
+        setDistricts(foundProvince.districts || []);
+        
+        const foundDistrict = foundProvince.districts.find(d => d.name === districtName);
+        if (foundDistrict) {
+          setSelectedDistrict(foundDistrict.name);
+        }
+      }
+    } else if (parts.length === 1 && parts[0]) {
+      const provinceName = parts[0];
+      const foundProvince = provinces.find(p => p.name === provinceName);
+      if (foundProvince) {
+        setSelectedProvince(foundProvince.name);
+        setDistricts(foundProvince.districts || []);
+      }
+    }
+  }, [provinces, formData.address]);
 
   // Load existing profile if any
   useEffect(() => {
@@ -165,32 +190,37 @@ export default function SetupProfilePage() {
     setApiError('');
   };
 
-  // Handle autocomplete input changes for living address
-  const handleAddressChange = (e) => {
-    const value = e.target.value;
-    setFormData(prev => ({ ...prev, address: value }));
-    setApiError('');
-
-    if (!value.trim()) {
-      setFilteredSuggestions([]);
+  // Handle living address province change
+  const handleProvinceChange = (e) => {
+    const provinceName = e.target.value;
+    setSelectedProvince(provinceName);
+    setSelectedDistrict('');
+    
+    if (!provinceName) {
+      setDistricts([]);
+      setFormData(prev => ({ ...prev, address: '' }));
       return;
     }
 
-    const cleanQuery = value.toLowerCase();
-    // Filter suggestions containing search term, limiting to top 10 for performance
-    const matches = addressSuggestions
-      .filter(item => item.searchString.includes(cleanQuery) || item.fullName.toLowerCase().includes(cleanQuery))
-      .slice(0, 10);
-
-    setFilteredSuggestions(matches);
-    setShowSuggestions(true);
+    const foundProvince = provinces.find(p => p.name === provinceName);
+    const newDistricts = foundProvince ? foundProvince.districts : [];
+    setDistricts(newDistricts);
+    
+    setFormData(prev => ({ ...prev, address: provinceName }));
   };
 
-  // Select an address autocomplete item
-  const selectSuggestion = (fullName) => {
-    setFormData(prev => ({ ...prev, address: fullName }));
-    setFilteredSuggestions([]);
-    setShowSuggestions(false);
+  // Handle living address district change
+  const handleDistrictChange = (e) => {
+    const districtName = e.target.value;
+    setSelectedDistrict(districtName);
+
+    if (!districtName) {
+      setFormData(prev => ({ ...prev, address: selectedProvince }));
+      return;
+    }
+
+    const fullAddress = `${districtName}, ${selectedProvince}`;
+    setFormData(prev => ({ ...prev, address: fullAddress }));
   };
 
   // Handle autocomplete input changes for job title / headline
@@ -481,7 +511,7 @@ export default function SetupProfilePage() {
                   type="text"
                   id="headline"
                   name="headline"
-                  placeholder="e.g., Senior Full Stack Developer | React Specialist"
+                  placeholder={placeholderJobTitle}
                   value={formData.headline}
                   onChange={handleJobTitleChange}
                   onBlur={() => setTimeout(() => setShowJobSuggestions(false), 200)}
@@ -504,32 +534,61 @@ export default function SetupProfilePage() {
               </div>
             </div>
 
-            <div className="form-field" style={{ position: 'relative' }}>
-              <label htmlFor="address">Living Address</label>
-              <input
-                type="text"
-                id="address"
-                name="address"
-                placeholder="Enter your location (e.g. Ward, District, City)"
-                value={formData.address}
-                onChange={handleAddressChange}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                onFocus={() => { if (filteredSuggestions.length > 0) setShowSuggestions(true); }}
-                autoComplete="off"
-              />
-              {showSuggestions && filteredSuggestions.length > 0 && (
-                <div className="address-suggestions-dropdown">
-                  {filteredSuggestions.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="address-suggestion-item"
-                      onClick={() => selectSuggestion(item.fullName)}
-                    >
-                      {item.fullName}
-                    </div>
+            <div className="form-group-grid">
+              <div className="form-field">
+                <label htmlFor="province">City / Province</label>
+                <select
+                  id="province"
+                  value={selectedProvince}
+                  onChange={handleProvinceChange}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                    border: '1.5px solid var(--border-color)',
+                    fontSize: '0.95rem',
+                    color: 'var(--text-color)',
+                    backgroundColor: '#fff',
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease-in-out'
+                  }}
+                >
+                  <option value="">-- Select City / Province --</option>
+                  {provinces.map((p, idx) => (
+                    <option key={idx} value={p.name}>
+                      {p.name}
+                    </option>
                   ))}
-                </div>
-              )}
+                </select>
+              </div>
+              <div className="form-field">
+                <label htmlFor="district">District</label>
+                <select
+                  id="district"
+                  value={selectedDistrict}
+                  onChange={handleDistrictChange}
+                  disabled={!selectedProvince}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                    border: '1.5px solid var(--border-color)',
+                    fontSize: '0.95rem',
+                    color: 'var(--text-color)',
+                    backgroundColor: selectedProvince ? '#fff' : '#f3f4f6',
+                    cursor: selectedProvince ? 'pointer' : 'not-allowed',
+                    outline: 'none',
+                    transition: 'border-color 0.2s ease-in-out'
+                  }}
+                >
+                  <option value="">-- Select District --</option>
+                  {districts.map((d, idx) => (
+                    <option key={idx} value={d.name}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 

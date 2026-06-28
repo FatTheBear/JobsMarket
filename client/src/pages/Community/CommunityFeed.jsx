@@ -2,7 +2,34 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import PostCreator from '../../components/Community/PostCreator';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import './CommunityFeed.css';
+
+const quillModules = {
+  toolbar: [
+    ['bold', 'italic'],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    ['blockquote', 'code-block'],
+    ['link', 'image']
+  ]
+};
+
+const quillFormats = [
+  'bold', 'italic',
+  'list', 'bullet',
+  'blockquote', 'code-block',
+  'link', 'image'
+];
+
+const getFullUrl = (url) => {
+  if (!url) return '/default-avatar.png';
+  const cleanUrl = url.trim();
+  if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://') || cleanUrl.startsWith('data:')) {
+    return cleanUrl;
+  }
+  return `http://localhost:5000${cleanUrl.startsWith('/') ? '' : '/'}${cleanUrl}`;
+};
 
 const MediaGrid = ({ mediaList, onMediaClick }) => {
   if (!mediaList || mediaList.length === 0) return null;
@@ -158,6 +185,134 @@ export default function CommunityFeed() {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingCommentText, setEditingCommentText] = useState('');
 
+  // State for Toast Auth Notification (Text instead of browser alert/confirm)
+  const [authNotice, setAuthNotice] = useState(null);
+  const triggerAuthNotice = (msg) => {
+    setAuthNotice(msg);
+    setTimeout(() => setAuthNotice(null), 6000);
+  };
+
+  // State variables for Edit Post Modal
+  const [editingPost, setEditingPost] = useState(null);
+  const [editContent, setEditContent] = useState('');
+  const [editVisibility, setEditVisibility] = useState('public');
+  const [editMediaAttachments, setEditMediaAttachments] = useState([]); // files đính kèm cũ
+  const [editNewFiles, setEditNewFiles] = useState([]); // files mới chọn thêm [{ file, previewUrl, type }]
+  const [editKeepMedia, setEditKeepMedia] = useState(true); // true = giữ media cũ, false = xóa media cũ
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [editError, setEditError] = useState('');
+  const editFileInputRef = React.useRef(null);
+
+  const handleOpenEditModal = (post) => {
+    setEditingPost(post);
+    setEditContent(post.content || '');
+    setEditVisibility(post.visibility || 'public');
+    setEditMediaAttachments(post.mediaList || []);
+    setEditNewFiles([]);
+    setEditKeepMedia(true);
+    setEditError('');
+  };
+
+  const handleCloseEditModal = () => {
+    setEditingPost(null);
+    setEditContent('');
+    setEditVisibility('public');
+    setEditMediaAttachments([]);
+    // Revoke object URLs for new attachments
+    editNewFiles.forEach(file => URL.revokeObjectURL(file.previewUrl));
+    setEditNewFiles([]);
+    setEditKeepMedia(true);
+    setEditError('');
+  };
+
+  const handleEditFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    const newAttachments = [];
+    const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
+    const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
+    let fileError = '';
+
+    files.forEach(file => {
+      const isImage = allowedImageTypes.includes(file.type);
+      const isVideo = allowedVideoTypes.includes(file.type);
+
+      if (!isImage && !isVideo) {
+        fileError = 'Invalid file type! Only image and video files are allowed.';
+        return;
+      }
+
+      newAttachments.push({
+        file: file,
+        previewUrl: URL.createObjectURL(file),
+        type: isImage ? 'image' : 'video'
+      });
+    });
+
+    if (fileError) {
+      setEditError(fileError);
+    }
+
+    if (newAttachments.length > 0) {
+      setEditKeepMedia(false);
+      setEditNewFiles(prev => [...prev, ...newAttachments]);
+    }
+
+    if (editFileInputRef.current) editFileInputRef.current.value = '';
+  };
+
+  const removeEditNewMedia = (index) => {
+    setEditNewFiles(prev => {
+      const updated = [...prev];
+      URL.revokeObjectURL(updated[index].previewUrl);
+      updated.splice(index, 1);
+      return updated;
+    });
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setEditError('');
+
+    if (!editContent.trim() && editMediaAttachments.length === 0 && editNewFiles.length === 0 && !editKeepMedia) {
+      setEditError('Please write some content or attach images/videos to post.');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setEditError('You must be logged in to edit a post.');
+      return;
+    }
+
+    setIsSavingEdit(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('content', editContent);
+      formData.append('visibility', editVisibility);
+      formData.append('keepMedia', editKeepMedia ? 'true' : 'false');
+      
+      editNewFiles.forEach(att => {
+        formData.append('media', att.file);
+      });
+
+      const response = await axios.put(`http://localhost:5000/api/posts/${editingPost.id}`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      setPosts(prev => prev.map(p => p.id === editingPost.id ? response.data.post : p));
+      handleCloseEditModal();
+    } catch (err) {
+      console.error(err);
+      setEditError(err.response?.data?.message || 'Failed to update post. Please try again.');
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
   const handleCommentDelete = async (postId, commentId) => {
     if (!window.confirm('Are you sure you want to delete this comment?')) return;
 
@@ -309,7 +464,7 @@ export default function CommunityFeed() {
 
   const handleLike = async (postId) => {
     if (!isLoggedIn) {
-      alert('Please log in to like this post!');
+      triggerAuthNotice('Please log in to like this post!');
       return;
     }
 
@@ -361,7 +516,7 @@ export default function CommunityFeed() {
 
   const handleCommentLike = async (postId, commentId) => {
     if (!isLoggedIn) {
-      alert('Please log in to like this comment!');
+      triggerAuthNotice('Please log in to like this comment!');
       return;
     }
 
@@ -395,7 +550,7 @@ export default function CommunityFeed() {
     if (!commentText || !commentText.trim()) return;
 
     if (!isLoggedIn) {
-      alert('Please log in to leave a comment!');
+      triggerAuthNotice('Please log in to leave a comment!');
       return;
     }
 
@@ -441,7 +596,7 @@ export default function CommunityFeed() {
     if (!replyText || !replyText.trim()) return;
 
     if (!isLoggedIn) {
-      alert('Please log in to leave a reply!');
+      triggerAuthNotice('Please log in to leave a reply!');
       return;
     }
 
@@ -485,7 +640,7 @@ export default function CommunityFeed() {
 
   const handleRepostClick = (post) => {
     if (!isLoggedIn) {
-      alert('Please log in to share this post!');
+      triggerAuthNotice('Please log in to share this post!');
       return;
     }
     setRepostTargetPost(post);
@@ -568,39 +723,45 @@ export default function CommunityFeed() {
       <div className="row justify-content-center">
         <div className="col-12">
           
-          {/* Back to Dashboard Button */}
-          <div className="mb-4 text-start">
-            <button
-              onClick={() => {
-                const isCompanyUser = currentUserRole?.toLowerCase() === 'company' || currentUserRole?.toLowerCase() === 'hr';
-                if (isCompanyUser) {
-                  navigate('/company/dashboard');
-                } else {
-                  navigate('/dashboard');
-                }
-              }}
-              className="btn btn-link text-secondary text-decoration-none d-inline-flex align-items-center gap-2 fw-semibold p-0"
-              style={{ fontSize: '0.95rem' }}
-            >
-              <i className="fas fa-chevron-left" style={{ fontSize: '0.8rem' }}></i> Back to dashboard
-            </button>
-          </div>
-
           {/* Feed Header */}
           <div className="community-header mb-4 text-center text-lg-start">
             <h2 className="fw-bold text-dark"><i className="fas fa-users text-primary me-2"></i>Community Hub</h2>
             <p className="text-muted">Stay connected, share thoughts, and explore updates from candidates and employers.</p>
           </div>
 
-          {/* Create Post Section (For logged in users) */}
-          {isLoggedIn ? (
-            <PostCreator onPostCreated={handlePostCreated} placeholder="Share job tips, career news or updates with the community..." />
-          ) : (
-            <div className="card border-0 shadow-sm mb-4 text-center py-4 px-3" style={{ borderRadius: '12px', background: 'linear-gradient(135deg, #f8fffe 0%, #edf7f6 100%)' }}>
-              <h5 className="fw-bold text-dark mb-2">Join the Community</h5>
-              <p className="text-muted small mb-3">Sign in to share updates, comment on posts, and interact with other professionals.</p>
-              <a href="/login" className="btn btn-primary btn-sm px-4 py-2 fw-bold" style={{ backgroundColor: '#01796F', borderColor: '#01796F', alignSelf: 'center', borderRadius: '8px' }}>Log In to Post</a>
+          {/* Floating Auth Notification Toast (Center Top under NavBar) */}
+          {authNotice && (
+            <div 
+              className="position-fixed top-0 start-50 translate-middle-x mt-5 pt-3 shadow-lg rounded-3 p-3 bg-white border d-flex align-items-center gap-3 animate-slide-down"
+              style={{ zIndex: 100000, maxWidth: '460px', width: 'calc(100% - 32px)', borderLeft: '5px solid #01796F', boxShadow: '0 12px 35px rgba(0,0,0,0.18)' }}
+            >
+              <i className="fas fa-exclamation-circle fs-4 flex-shrink-0" style={{ color: '#01796F' }}></i>
+              <div className="flex-grow-1" style={{ minWidth: 0 }}>
+                <div className="text-dark small fw-semibold">{authNotice}</div>
+              </div>
+              <button 
+                type="button"
+                className="btn btn-sm text-white rounded-pill px-3 py-1.5 fw-semibold small flex-shrink-0"
+                style={{ backgroundColor: '#01796F', borderColor: '#01796F' }}
+                onClick={() => navigate('/login')}
+              >
+                Sign In
+              </button>
+              <button 
+                type="button"
+                className="btn-close small flex-shrink-0 ms-1"
+                onClick={() => setAuthNotice(null)}
+              ></button>
             </div>
+          )}
+
+          {/* Create Post Section (Only for logged in users) */}
+          {isLoggedIn && (
+            <PostCreator 
+              onPostCreated={handlePostCreated} 
+              onAuthRequired={triggerAuthNotice}
+              placeholder="Share job tips, career news or updates with the community..." 
+            />
           )}
 
           {/* Posts Feed */}
@@ -637,7 +798,7 @@ export default function CommunityFeed() {
                       <div className="d-flex justify-content-between align-items-start mb-3">
                         <div className="d-flex align-items-center gap-3">
                           <img
-                            src={post.author_avatar || '/default-avatar.png'}
+                            src={getFullUrl(post.author_avatar)}
                             alt="avatar"
                             className="rounded-circle border cursor-pointer"
                             style={{ width: '48px', height: '48px', objectFit: 'cover' }}
@@ -668,29 +829,50 @@ export default function CommunityFeed() {
                                 {post.user_role?.toLowerCase() === 'candidate' ? 'Candidate' : 'Employer'}
                               </span>
                             </div>
-                            <p className="mb-0 text-muted" style={{ fontSize: '0.75rem' }}>
-                              {post.author_title || (post.user_role?.toLowerCase() === 'candidate' ? 'Member' : 'Company')} • {formatPostTime(post.created_at)}
+                            <p className="mb-0 text-muted d-flex align-items-center gap-1.5" style={{ fontSize: '0.75rem' }}>
+                              <span>{post.author_title || (post.user_role?.toLowerCase() === 'candidate' ? 'Member' : 'Company')}</span>
+                              <span>•</span>
+                              <span>{formatPostTime(post.created_at)}</span>
+                              <span>•</span>
+                              {post.visibility === 'private' ? (
+                                <span className="d-inline-flex align-items-center gap-1" title="Private"><i className="fas fa-lock" style={{ fontSize: '0.68rem' }}></i> Private</span>
+                              ) : (
+                                <span className="d-inline-flex align-items-center gap-1" title="Public"><i className="fas fa-globe" style={{ fontSize: '0.68rem' }}></i> Public</span>
+                              )}
                             </p>
                           </div>
                         </div>
 
-                        {/* Options Menu (Delete Button) */}
+                        {/* Options Menu (Edit & Delete Buttons) */}
                         {(isAuthor || isAdmin) && (
-                          <button
-                            onClick={() => handleDeletePost(post.id)}
-                            className="btn btn-link text-muted p-1 hover-danger border-0 bg-transparent"
-                            title="Delete post"
-                          >
-                            <i className="far fa-trash-alt" style={{ fontSize: '0.85rem' }}></i>
-                          </button>
+                          <div className="d-flex align-items-center gap-1">
+                            {isAuthor && (
+                              <button
+                                onClick={() => handleOpenEditModal(post)}
+                                className="btn btn-link text-muted p-1 hover-primary border-0 bg-transparent"
+                                title="Edit post"
+                              >
+                                <i className="far fa-edit" style={{ fontSize: '0.85rem' }}></i>
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleDeletePost(post.id)}
+                              className="btn btn-link text-muted p-1 hover-danger border-0 bg-transparent"
+                              title="Delete post"
+                            >
+                              <i className="far fa-trash-alt" style={{ fontSize: '0.85rem' }}></i>
+                            </button>
+                          </div>
                         )}
                       </div>
 
                       {/* Post Content */}
                       {post.content && (
-                        <div className="post-content-text text-dark mb-3" style={{ fontSize: '0.92rem', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
-                          {post.content}
-                        </div>
+                        <div 
+                          className="post-content-text text-dark mb-3" 
+                          style={{ fontSize: '0.92rem', lineHeight: '1.6' }}
+                          dangerouslySetInnerHTML={{ __html: post.content }}
+                        />
                       )}
 
                       {/* Post Media Attachment */}
@@ -706,7 +888,7 @@ export default function CommunityFeed() {
                             <>
                               <div className="d-flex align-items-center gap-2 mb-2">
                                 <img
-                                  src={post.parent_author_avatar || '/default-avatar.png'}
+                                  src={getFullUrl(post.parent_author_avatar)}
                                   alt="parent avatar"
                                   className="rounded-circle cursor-pointer"
                                   style={{ width: '32px', height: '32px', objectFit: 'cover' }}
@@ -742,9 +924,11 @@ export default function CommunityFeed() {
                                 </div>
                               </div>
                               {post.parent_content && (
-                                <div className="post-content-text text-secondary small mb-2" style={{ lineHeight: '1.5', whiteSpace: 'pre-line' }}>
-                                  {post.parent_content}
-                                </div>
+                                <div 
+                                  className="post-content-text text-secondary small mb-2" 
+                                  style={{ lineHeight: '1.5' }}
+                                  dangerouslySetInnerHTML={{ __html: post.parent_content }}
+                                />
                               )}
                               {post.parent_media_url && (
                                 <MediaGrid 
@@ -803,29 +987,30 @@ export default function CommunityFeed() {
                         <div className="comments-drawer mt-3 pt-3 border-top">
                           
                           {/* Write Comment Form */}
-                          {isLoggedIn ? (
-                            <form onSubmit={(e) => handleCommentSubmit(e, post.id)} className="d-flex gap-2.5 mb-3">
-                              <input
-                                id={`comment-input-${post.id}`}
-                                type="text"
-                                value={newCommentText[post.id] || ''}
-                                onChange={(e) => setNewCommentText(prev => ({ ...prev, [post.id]: e.target.value }))}
-                                placeholder="Write a comment..."
-                                className="form-control form-control-sm rounded-pill px-3"
-                                style={{ fontSize: '0.85rem' }}
-                              />
-                              <button
-                                type="submit"
-                                disabled={submittingComment[post.id] || !(newCommentText[post.id] || '').trim()}
-                                className="btn btn-sm btn-primary rounded-pill px-3 fw-bold"
-                                style={{ fontSize: '0.8rem', backgroundColor: '#01796F', borderColor: '#01796F' }}
-                              >
-                                {submittingComment[post.id] ? '...' : 'Send'}
-                              </button>
-                            </form>
-                          ) : (
-                            <p className="text-muted small mb-3 italic">Please log in to leave a comment.</p>
-                          )}
+                          <form onSubmit={(e) => handleCommentSubmit(e, post.id)} className="d-flex gap-2.5 mb-3">
+                            <input
+                              id={`comment-input-${post.id}`}
+                              type="text"
+                              value={newCommentText[post.id] || ''}
+                              onChange={(e) => setNewCommentText(prev => ({ ...prev, [post.id]: e.target.value }))}
+                              onFocus={() => {
+                                if (!isLoggedIn) {
+                                  triggerAuthNotice('Please log in to comment on this post!');
+                                }
+                              }}
+                              placeholder="Write a comment..."
+                              className="form-control form-control-sm rounded-pill px-3"
+                              style={{ fontSize: '0.85rem' }}
+                            />
+                            <button
+                              type="submit"
+                              disabled={submittingComment[post.id] || !(newCommentText[post.id] || '').trim()}
+                              className="btn btn-sm btn-primary rounded-pill px-3 fw-bold"
+                              style={{ fontSize: '0.8rem', backgroundColor: '#01796F', borderColor: '#01796F' }}
+                            >
+                              {submittingComment[post.id] ? '...' : 'Send'}
+                            </button>
+                          </form>
 
                           {/* Comments List */}
                           <div className="d-flex flex-column gap-2.5" style={{ maxHeight: '400px', overflowY: 'auto' }}>
@@ -848,7 +1033,7 @@ export default function CommunityFeed() {
                                     {/* Main Comment */}
                                     <div className="comment-item p-2.5 rounded bg-light d-flex gap-2.5 align-items-start">
                                       <img
-                                        src={comment.author_avatar || '/default-avatar.png'}
+                                        src={getFullUrl(comment.author_avatar)}
                                         alt="comment avatar"
                                         className="rounded-circle border cursor-pointer"
                                         style={{ width: '32px', height: '32px', objectFit: 'cover' }}
@@ -979,7 +1164,7 @@ export default function CommunityFeed() {
                                         {replies.map((reply) => (
                                           <div key={reply.id} className="comment-item p-2 rounded bg-light d-flex gap-2 align-items-start" style={{ opacity: 0.95 }}>
                                             <img
-                                              src={reply.author_avatar || '/default-avatar.png'}
+                                              src={getFullUrl(reply.author_avatar)}
                                               alt="reply avatar"
                                               className="rounded-circle border cursor-pointer"
                                               style={{ width: '26px', height: '26px', objectFit: 'cover' }}
@@ -1189,7 +1374,7 @@ export default function CommunityFeed() {
                 <div className="border rounded p-3 bg-light">
                   <div className="d-flex align-items-center gap-2 mb-2">
                     <img
-                      src={repostTargetPost.author_avatar || '/default-avatar.png'}
+                      src={getFullUrl(repostTargetPost.author_avatar)}
                       alt="parent avatar"
                       className="rounded-circle"
                       style={{ width: '28px', height: '28px', objectFit: 'cover' }}
@@ -1326,6 +1511,228 @@ export default function CommunityFeed() {
           {/* Media Info / Counter */}
           <div className="position-absolute bottom-0 text-white-50 text-center pb-4 small w-100">
             {lightboxIndex + 1} / {lightboxMedia.length}
+          </div>
+        </div>
+      )}
+
+      {/* Edit Post Modal */}
+      {editingPost && (
+        <div
+          className="modal-backdrop-custom"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            zIndex: 100005,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backdropFilter: 'blur(4px)',
+            padding: '20px'
+          }}
+        >
+          <div
+            className="modal-content-custom"
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: '12px',
+              width: '100%',
+              maxWidth: '560px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              display: 'flex',
+              flexDirection: 'column',
+              maxHeight: '90vh',
+              overflow: 'hidden',
+              animation: 'modalFadeIn 0.3s ease'
+            }}
+          >
+            {/* Modal Header */}
+            <div className="d-flex align-items-center justify-content-between p-3.5 border-bottom" style={{ padding: '16px 20px' }}>
+              <h5 className="fw-bold mb-0 text-dark" style={{ fontSize: '1.15rem' }}>Edit post</h5>
+              <button
+                type="button"
+                onClick={handleCloseEditModal}
+                className="btn-close"
+                style={{ cursor: 'pointer' }}
+                aria-label="Close"
+              ></button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-3.5" style={{ overflowY: 'auto', flexGrow: 1, padding: '20px' }}>
+              <div className="d-flex align-items-center gap-2.5 mb-3">
+                <img
+                  src={getFullUrl(editingPost.author_avatar)}
+                  alt="User avatar"
+                  className="rounded-circle border"
+                  style={{ width: '48px', height: '48px', objectFit: 'cover' }}
+                />
+                <div>
+                  <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: '0.95rem' }}>{editingPost.author_name}</h6>
+                  <select
+                    value={editVisibility}
+                    onChange={(e) => setEditVisibility(e.target.value)}
+                    className="text-muted small bg-light px-2 py-0.5 rounded border"
+                    style={{
+                      fontSize: '0.72rem',
+                      marginTop: '3px',
+                      cursor: 'pointer',
+                      outline: 'none',
+                      borderColor: '#cbd5e1'
+                    }}
+                  >
+                    <option value="public">🌐 Public</option>
+                    <option value="private">🔒 Private</option>
+                  </select>
+                </div>
+              </div>
+
+              <form onSubmit={handleEditSubmit}>
+                {editError && (
+                  <div className="alert alert-danger py-2 px-3 mb-3 small border-0" role="alert" style={{ borderRadius: '8px' }}>
+                    <i className="fas fa-exclamation-triangle me-1.5"></i> {editError}
+                  </div>
+                )}
+
+                {/* Trình soạn thảo ReactQuill */}
+                <div className="mb-3 border rounded" style={{ minHeight: '220px', overflow: 'hidden' }}>
+                  <ReactQuill
+                    theme="snow"
+                    value={editContent}
+                    onChange={setEditContent}
+                    placeholder="Edit your post content..."
+                    modules={quillModules}
+                    formats={quillFormats}
+                    style={{ height: '200px' }}
+                  />
+                </div>
+
+                {/* Existing media files */}
+                {editKeepMedia && editMediaAttachments.length > 0 && (
+                  <div className="mb-3">
+                    <label className="form-label fw-bold text-secondary small d-flex justify-content-between align-items-center">
+                      <span>Existing Media ({editMediaAttachments.length})</span>
+                      <button 
+                        type="button" 
+                        className="btn btn-sm btn-link text-danger text-decoration-none p-0 fw-semibold"
+                        style={{ fontSize: '0.75rem' }}
+                        onClick={() => setEditKeepMedia(false)}
+                      >
+                        <i className="far fa-trash-alt me-1"></i> Remove all old media
+                      </button>
+                    </label>
+                    <div className="d-flex flex-wrap gap-2">
+                      {editMediaAttachments.map((m, idx) => (
+                        <div key={idx} className="position-relative border rounded overflow-hidden" style={{ width: '80px', height: '80px', backgroundColor: '#f1f5f9' }}>
+                          {m.media_type === 'image' ? (
+                            <img
+                              src={`http://localhost:5000${m.media_url}`}
+                              alt="old media"
+                              className="w-100 h-100 object-fit-cover"
+                            />
+                          ) : (
+                            <div className="w-100 h-100 d-flex align-items-center justify-content-center position-relative">
+                              <video src={`http://localhost:5000${m.media_url}`} className="w-100 h-100 object-fit-cover" muted />
+                              <i className="fas fa-play text-white position-absolute fs-6 opacity-75"></i>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* New media files preview */}
+                {editNewFiles.length > 0 && (
+                  <div className="mb-3">
+                    <label className="form-label fw-bold text-success small">New Uploaded Media ({editNewFiles.length})</label>
+                    <div className="d-flex flex-wrap gap-2">
+                      {editNewFiles.map((att, idx) => (
+                        <div key={idx} className="position-relative border rounded overflow-hidden" style={{ width: '80px', height: '80px', backgroundColor: '#f1f5f9' }}>
+                          {att.type === 'image' ? (
+                            <img
+                              src={att.previewUrl}
+                              alt="new preview"
+                              className="w-100 h-100 object-fit-cover"
+                            />
+                          ) : (
+                            <div className="w-100 h-100 d-flex align-items-center justify-content-center position-relative">
+                              <video src={att.previewUrl} className="w-100 h-100 object-fit-cover" muted />
+                              <i className="fas fa-play text-white position-absolute fs-6 opacity-75"></i>
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => removeEditNewMedia(idx)}
+                            className="btn btn-sm btn-danger position-absolute top-0 end-0 p-0 d-flex align-items-center justify-content-center rounded-circle"
+                            style={{ width: '18px', height: '18px', fontSize: '0.65rem', marginTop: '2px', marginRight: '2px' }}
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Hidden input file for new media */}
+                <input
+                  type="file"
+                  multiple
+                  ref={editFileInputRef}
+                  onChange={handleEditFileChange}
+                  style={{ display: 'none' }}
+                />
+              </form>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="d-flex align-items-center justify-content-between p-3.5 border-top bg-light" style={{ padding: '16px 20px' }}>
+              <div className="d-flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (editFileInputRef.current) {
+                      editFileInputRef.current.accept = "image/*,video/*";
+                      editFileInputRef.current.click();
+                    }
+                  }}
+                  className="btn btn-sm btn-light border d-inline-flex align-items-center justify-content-center rounded-circle hover-bg-light"
+                  style={{ width: '36px', height: '36px', transition: 'background-color 0.2s' }}
+                  title="Add photos/videos"
+                >
+                  <i className="far fa-images text-success fs-5"></i>
+                </button>
+              </div>
+
+              <div className="d-flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleCloseEditModal}
+                  className="btn btn-sm btn-light border px-3 py-2 fw-semibold text-secondary"
+                  style={{ borderRadius: '8px', fontSize: '0.85rem' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleEditSubmit}
+                  disabled={isSavingEdit || (!editContent.trim() && editMediaAttachments.length === 0 && editNewFiles.length === 0 && !editKeepMedia)}
+                  className="btn btn-primary btn-sm px-4 py-2 fw-bold d-inline-flex align-items-center gap-2"
+                  style={{
+                    borderRadius: '8px',
+                    fontSize: '0.85rem',
+                    backgroundColor: '#01796F',
+                    borderColor: '#01796F'
+                  }}
+                >
+                  {isSavingEdit ? 'Saving...' : 'Save'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

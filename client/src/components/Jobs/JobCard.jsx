@@ -193,6 +193,7 @@ export default function JobCard({ job, onClick }) {
         setFeedbackMessage({ type: "success", text: "Application submitted successfully!" });
         setHasApplied(true);
         saveAppliedJobId(jobId);
+        window.dispatchEvent(new CustomEvent('refreshNotifications'));
         setTimeout(() => {
           setShowApplyModal(false);
           setSelectedCvId("");

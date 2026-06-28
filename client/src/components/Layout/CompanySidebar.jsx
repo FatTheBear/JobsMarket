@@ -55,6 +55,20 @@ export default function CompanySidebar() {
         >
           Community Post
         </Link>
+
+        <Link
+          to="/company/media"
+          className={`jp-menu-item ${location.pathname.includes('/media') ? 'active' : ''}`}
+        >
+          Company Media
+        </Link>
+
+        <Link
+          to="/company/activity-history"
+          className={`jp-menu-item ${location.pathname.includes('/activity-history') ? 'active' : ''}`}
+        >
+          Activity History
+        </Link>
       </div>
 
       <div className="jp-menu-group">

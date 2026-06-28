@@ -8,6 +8,7 @@
 -- Phiên bản PHP: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET FOREIGN_KEY_CHECKS = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -184,7 +185,7 @@ CREATE TABLE `candidate_skill` (
 
 INSERT INTO `candidate_skill` (`candidate_id`, `skill_id`, `level`) VALUES
 (24, 1, 88),
-(26, 0, 60);
+(26, 2, 60);
 
 -- --------------------------------------------------------
 
@@ -237,6 +238,7 @@ CREATE TABLE `community_post` (
   `media_url` varchar(255) DEFAULT NULL,
   `media_type` varchar(50) DEFAULT NULL,
   `parent_post_id` int(11) DEFAULT NULL,
+  `visibility` varchar(20) DEFAULT 'public',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -442,7 +444,7 @@ CREATE TABLE `job_skill` (
 --
 
 INSERT INTO `job_skill` (`job_id`, `skill_id`, `min_level`, `min_years`) VALUES
-(18, 0, 'Beginner', 0);
+(18, 2, 'Beginner', 0);
 
 -- --------------------------------------------------------
 
@@ -572,12 +574,26 @@ CREATE TABLE `saved_job` (
 -- --------------------------------------------------------
 
 --
+-- Cấu trúc bảng cho bảng `job_title_dictionary`
+--
+
+CREATE TABLE IF NOT EXISTS `job_title_dictionary` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `title` (`title`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Cấu trúc bảng cho bảng `skill`
 --
 
 CREATE TABLE `skill` (
-  `id` int(11) NOT NULL,
-  `skill_name` varchar(100) NOT NULL
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `skill_name` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
@@ -586,16 +602,14 @@ CREATE TABLE `skill` (
 
 INSERT INTO `skill` (`id`, `skill_name`) VALUES
 (1, 'Python'),
-(0, 'Django'),
-(0, 'Word Office'),
-(0, 'Exel');
+(2, 'Django'),
+(3, 'Word Office'),
+(4, 'Exel');
 
 CREATE TABLE IF NOT EXISTS `industry_skill` (
   `industry_id` int(11) NOT NULL,
   `skill_id` int(11) NOT NULL,
-  PRIMARY KEY (`industry_id`,`skill_id`),
-  CONSTRAINT `fk_industry_skill_industry` FOREIGN KEY (`industry_id`) REFERENCES `industry`(`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_industry_skill_skill` FOREIGN KEY (`skill_id`) REFERENCES `skill`(`id`) ON DELETE CASCADE
+  PRIMARY KEY (`industry_id`,`skill_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -1073,7 +1087,16 @@ ALTER TABLE `saved_candidate`
 ALTER TABLE `saved_job`
   ADD CONSTRAINT `fk_saved_candidate` FOREIGN KEY (`candidate_id`) REFERENCES `candidate_profile` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_saved_job` FOREIGN KEY (`job_id`) REFERENCES `job_posting` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Các ràng buộc cho bảng `industry_skill`
+--
+ALTER TABLE `industry_skill`
+  ADD CONSTRAINT `fk_industry_skill_industry` FOREIGN KEY (`industry_id`) REFERENCES `industry` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_industry_skill_skill` FOREIGN KEY (`skill_id`) REFERENCES `skill` (`id`) ON DELETE CASCADE;
+
 COMMIT;
+SET FOREIGN_KEY_CHECKS = 1;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

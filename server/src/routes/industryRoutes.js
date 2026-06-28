@@ -79,18 +79,27 @@ router.get('/search-titles', async (req, res) => {
     try {
         const keyword = req.query.q;
         
-        if (!keyword) {
-            return res.json({ success: true, data: [] });
-        }
-
-        const query = `
-            SELECT title 
-            FROM job_title_dictionary 
-            WHERE title LIKE ? 
-            LIMIT 10
-        `;
+        let query;
+        let params;
         
-        const [rows] = await pool.query(query, [`%${keyword}%`]);
+        if (!keyword || keyword.trim() === '') {
+            query = `
+                SELECT title 
+                FROM job_title_dictionary 
+                LIMIT 5
+            `;
+            params = [];
+        } else {
+            query = `
+                SELECT title 
+                FROM job_title_dictionary 
+                WHERE title LIKE ? 
+                LIMIT 10
+            `;
+            params = [`%${keyword}%`];
+        }
+        
+        const [rows] = await pool.query(query, params);
         const titles = rows.map(row => row.title);
         
         res.json({ success: true, data: titles });

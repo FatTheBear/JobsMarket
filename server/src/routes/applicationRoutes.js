@@ -31,6 +31,28 @@ router.post('/', async (req, res) => {
     // Check if CV exists (to prevent Foreign Key constraint error with mock data)
     const [cvs] = await pool.query('SELECT id FROM Candidate_CV WHERE id = ?', [cv_id]);
     
+    // Trigger notification to Company HR
+    try {
+      const [jobInfo] = await pool.query(
+        `SELECT j.title AS job_title, COALESCE(c.hr_id, c.user_id) AS company_user_id, cp.full_name AS candidate_name
+         FROM Job_Posting j
+         JOIN Company c ON j.company_id = c.id
+         LEFT JOIN Candidate_Profile cp ON cp.user_id = ?
+         WHERE j.id = ?`,
+        [user_id, job_id]
+      );
+      if (jobInfo.length > 0 && jobInfo[0].company_user_id) {
+        const notiTitle = "📨 New Job Application";
+        const notiContent = `${jobInfo[0].candidate_name || 'A candidate'} has submitted an application for "${jobInfo[0].job_title}".`;
+        await pool.query(
+          'INSERT INTO Notification (user_id, title, content) VALUES (?, ?, ?)',
+          [jobInfo[0].company_user_id, notiTitle, notiContent]
+        );
+      }
+    } catch (notiErr) {
+      console.error("Error creating application notification for company in applicationRoutes:", notiErr);
+    }
+
     if (cvs.length === 0) {
       // Mock data scenario: return success without inserting to database
       return res.status(201).json({ 

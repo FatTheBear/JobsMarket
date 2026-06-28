@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './NavBar.css';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import NotificationDropdown from '../Notifications/NotificationDropdown';
 
 // 1. Khai báo state để React quản lý (giá trị mặc định là guest)
 
@@ -226,10 +227,11 @@ export default function NavBar() {
       </div>
 
       {/* PHẢI: Khối hiển thị User hoặc Nút Login */}
-      <div className="nav-profile-section">
+      <div className="nav-profile-section d-flex align-items-center gap-3">
         {isLoggedIn ? (
           // --- HIỂN THỊ KHI ĐÃ ĐĂNG NHẬP ---
           <>
+            <NotificationDropdown role={role} />
             <div className="nav-user-info">
               <img
                 src={avatarUrl}
