@@ -28,7 +28,7 @@ const MENU_CONFIG = {
     { label: 'Find Candidates', path: '/company/applicants' },
     { label: 'Hiring Hub', path: '/community' },
     { label: 'Hiring Insights', path: '/company/post-job' },
-   
+
   ],
   admin: [
     { label: 'Home', path: '/admin' },
@@ -61,7 +61,7 @@ export default function NavBar() {
   const navigate = useNavigate();
   const location = useLocation();
 
- useEffect(() => {
+  useEffect(() => {
     const fetchProfileData = async () => {
       const token = localStorage.getItem('token');
       const userObj = JSON.parse(localStorage.getItem('user')) || null;
@@ -96,9 +96,9 @@ export default function NavBar() {
               avatar_url: profile.avatar_url,
               logo_url: profile.logo_url ? profile.logo_url.substring(0, 50) + "..." : null
             });
-            
+
             setUserName(profile.display_name || profile.full_name || profile.name || profile.companyName || 'User');
-            
+
             let avatar = profile.avatar_url || profile.logo_url;
             if (avatar) avatar = avatar.trim();
             console.log("NavBar - raw avatar selected:", avatar ? avatar.substring(0, 50) + "..." : null);
@@ -198,7 +198,7 @@ export default function NavBar() {
       window.removeEventListener('profileUpdatedWithAvatar', avatarHandler);
     };
   }, []);
-  
+
   const menuItems = MENU_CONFIG[role] || [];
   console.log("NavBar rendering - role:", role, "menuItems:", menuItems);
   const handleLogout = () => {
@@ -220,10 +220,10 @@ export default function NavBar() {
         <span className="brand-text">JobsMarket</span>
       </div>
 
-      
+
       <div className="nav-menu">
         {menuItems.map((item, index) => {
-          const isActive = location.pathname === item.path; 
+          const isActive = location.pathname === item.path;
           return (
             <button
               key={index}
