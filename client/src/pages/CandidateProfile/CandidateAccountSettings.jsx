@@ -1213,9 +1213,9 @@ const CandidateAccountSettings = () => {
     }
 
     // Validate Job Title (if provided)
-    if (editProfileForm.jobTitle && editProfileForm.jobTitle.trim() && !/^[\p{L}\s-]*$/u.test(editProfileForm.jobTitle.trim())) {
+    if (editProfileForm.jobTitle && editProfileForm.jobTitle.trim() && !/^[\p{L}0-9\s\-&\/,.()+:]+$/u.test(editProfileForm.jobTitle.trim())) {
       setSettingsSuccess('');
-      setSettingsError('Job Title can only contain letters, spaces, and hyphens!');
+      setSettingsError('Job Title contains invalid characters!');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return false;
     }
