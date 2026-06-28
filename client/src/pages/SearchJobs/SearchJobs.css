@@ -286,11 +286,39 @@
 }
 
 .job-card-right {
-  margin-left: 20px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   justify-content: center;
-  align-items: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+.save-job-btn {
+  background: transparent;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  color: #94a3b8;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.save-job-btn:hover {
+  border-color: #00b14f;
+  color: #00b14f;
+  background: #f0fdf4;
+}
+
+.save-job-btn.saved {
+  border-color: #00b14f;
+  color: #00b14f;
+  background: #f0fdf4;
 }
 
 .view-detail-btn {

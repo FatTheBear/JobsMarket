@@ -9,6 +9,11 @@ export default function SearchJobs() {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [savedJobs, setSavedJobs] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('candidate_favorite_jobs') || '[]');
+    } catch { return []; }
+  });
 
   // Search filter state
   const [keyword, setKeyword] = useState('');
@@ -49,6 +54,23 @@ export default function SearchJobs() {
     if (url.startsWith('data:image')) return url;
     if (url.startsWith('http')) return url;
     return `${API_URL}${url}`;
+  };
+
+  const isJobSaved = (jobId) => savedJobs.some(j => j.id === jobId);
+
+  const toggleSaveJob = (e, job) => {
+    e.stopPropagation();
+    const STORAGE_KEY = 'candidate_favorite_jobs';
+    const existing = savedJobs.some(j => j.id === job.id);
+    let updated;
+    if (existing) {
+      updated = savedJobs.filter(j => j.id !== job.id);
+    } else {
+      updated = [...savedJobs, { id: job.id, title: job.title, company_name: job.company_name, logo_url: job.logo_url, job_type: job.job_type, salary_min: job.salary_min, salary_max: job.salary_max, loc: job.loc, saved_at: new Date().toISOString() }];
+    }
+    setSavedJobs(updated);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event('favoriteJobsUpdated'));
   };
 
   return (
@@ -146,6 +168,16 @@ export default function SearchJobs() {
                 </div>
 
                 <div className="job-card-right">
+                  <button
+                    className={`save-job-btn ${isJobSaved(job.id) ? 'saved' : ''}`}
+                    type="button"
+                    title={isJobSaved(job.id) ? 'Saved' : 'Save Job'}
+                    onClick={(e) => toggleSaveJob(e, job)}
+                  >
+                    {isJobSaved(job.id)
+                      ? <i className="fa-solid fa-bookmark"></i>
+                      : <i className="fa-regular fa-bookmark"></i>}
+                  </button>
                   <button
                     className="view-detail-btn"
                     type="button"
