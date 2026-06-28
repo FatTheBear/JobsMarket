@@ -605,6 +605,7 @@ exports.deleteCoinFee = async (req, res) => {
 // Lấy danh sách thông báo
 exports.getNotifications = async (req, res) => {
     try {
+        const userId = req.user.id;
         const [notifications] = await db.query(`
             SELECT
                 n.id,
@@ -617,8 +618,9 @@ exports.getNotifications = async (req, res) => {
             FROM Notification n
             LEFT JOIN User u
                 ON n.user_id = u.id
+            WHERE n.user_id = ?
             ORDER BY n.created_at DESC
-        `);
+        `, [userId]);
 
         res.json(notifications);
 

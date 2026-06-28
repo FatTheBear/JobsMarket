@@ -80,7 +80,7 @@ const CandidateApplications = ({ candidatePosts }) => {
                       <h6 
                         className="mb-1 text-primary fw-bold" 
                         style={{ cursor: 'pointer' }}
-                        onClick={() => navigate(`/job/${app.job_id}`)}
+                        onClick={() => navigate(`/jobs/${app.job_id}`)}
                       >
                         {app.job_title}
                       </h6>

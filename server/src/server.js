@@ -30,8 +30,7 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   }
 })
-// Database connection
-require('./config/db');
+const pool = require('./config/db');
 
 // Routes
 const authRoutes = require("./routes/authRoutes");
@@ -62,9 +61,34 @@ app.use('/api/applications', applicationRoutes);
 app.use('/api/jobs', jobs);
 app.use('/api/posts', postRoutes);
 
+app.set('socketio', io);
+
+const notifyAdmins = async (title, content) => {
+  try {
+    const [admins] = await pool.query("SELECT id FROM User WHERE role = 'Admin'");
+    for (const admin of admins) {
+      await pool.query(
+        "INSERT INTO Notification (user_id, title, content) VALUES (?, ?, ?)",
+        [admin.id, title, content]
+      );
+      io.to(`user_${admin.id}`).emit('notification', {
+        title,
+        content
+      });
+    }
+  } catch (err) {
+    console.error("Error notifying admins:", err);
+  }
+};
+app.set('notifyAdmins', notifyAdmins);
 
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
+
+  socket.on('join', (userId) => {
+    socket.join(`user_${userId}`);
+    console.log(`User ${userId} joined room user_${userId}`);
+  });
 
   socket.on('disconnect', () => {
     console.log("User disconnected");

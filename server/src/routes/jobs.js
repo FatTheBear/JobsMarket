@@ -255,6 +255,11 @@ router.post('/', authMiddleware, async (req, res) => {
       );
     }
 
+    const notifyAdmins = req.app.get('notifyAdmins');
+    if (notifyAdmins) {
+      await notifyAdmins("💼 New Job Approval Required", `A new job posting "${title}" has been created and is pending approval.`);
+    }
+
     res.status(201).json({
       message: 'Job posted successfully! Waiting for Admin approval.',
       jobId: jobId

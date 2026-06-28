@@ -416,7 +416,7 @@ const CandidateMyProfile = () => {
             <div className="skills-container d-flex flex-wrap gap-2">
               {skills && skills.length > 0 ? (
                 skills.map(s => (
-                  <span key={s.id || s.name} className="skill-tag-chip">{s.name} ({s.level}%)</span>
+                  <span key={s.id || s.name} className="skill-tag-chip">{s.name}</span>
                 ))
               ) : (
                 <p className="text-muted small mb-0">No skills added yet.</p>

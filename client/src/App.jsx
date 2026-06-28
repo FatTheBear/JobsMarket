@@ -180,8 +180,8 @@ const router = createBrowserRouter([
 
 export default function App() {
   return (
-    //<SocketProvider>
-    <RouterProvider router={router} />
-    //</SocketProvider>
+    <SocketProvider>
+      <RouterProvider router={router} />
+    </SocketProvider>
   );
 }

@@ -102,22 +102,26 @@ const AdminTransaction = () => {
                                 </td>
                                 <td>
                                     {tx.status === 'pending' ? (
-                                        <div className="btn-group">
-                                            <button 
-                                                onClick={() => handleUpdateStatus(tx.id, 'completed')} 
-                                                className="btn-approve"
-                                                style={{ padding: '6px 12px', fontSize: '13px' }}
-                                            >
-                                                Approve
-                                            </button>
-                                            <button 
-                                                onClick={() => handleUpdateStatus(tx.id, 'failed')} 
-                                                className="btn-reject"
-                                                style={{ padding: '6px 12px', fontSize: '13px' }}
-                                            >
-                                                Reject
-                                            </button>
-                                        </div>
+                                        tx.payment_method === 'paypal' ? (
+                                            <span style={{ color: '#0284c7', fontSize: '13px', fontWeight: '500' }}>PayPal (Auto)</span>
+                                        ) : (
+                                            <div className="btn-group">
+                                                <button 
+                                                    onClick={() => handleUpdateStatus(tx.id, 'completed')} 
+                                                    className="btn-approve"
+                                                    style={{ padding: '6px 12px', fontSize: '13px' }}
+                                                >
+                                                    Approve
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleUpdateStatus(tx.id, 'failed')} 
+                                                    className="btn-reject"
+                                                    style={{ padding: '6px 12px', fontSize: '13px' }}
+                                                >
+                                                    Reject
+                                                </button>
+                                            </div>
+                                        )
                                     ) : (
                                         <span style={{ color: '#64748b', fontSize: '14px' }}>Processed</span>
                                     )}

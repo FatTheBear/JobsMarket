@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './NotificationDropdown.css';
+import { SocketContext } from '../../context/SocketContext';
 
 export default function NotificationDropdown({ role }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -9,6 +10,7 @@ export default function NotificationDropdown({ role }) {
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const socket = useContext(SocketContext);
 
   const fetchNotifications = async () => {
     const token = localStorage.getItem('token');
@@ -36,6 +38,14 @@ export default function NotificationDropdown({ role }) {
     const handleRefresh = () => fetchNotifications();
     window.addEventListener('refreshNotifications', handleRefresh);
 
+    if (socket) {
+      const userId = localStorage.getItem('userId');
+      if (userId) {
+        socket.emit('join', userId);
+      }
+      socket.on('notification', handleRefresh);
+    }
+
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setIsOpen(false);
@@ -47,8 +57,11 @@ export default function NotificationDropdown({ role }) {
       clearInterval(interval);
       window.removeEventListener('refreshNotifications', handleRefresh);
       document.removeEventListener('mousedown', handleClickOutside);
+      if (socket) {
+        socket.off('notification', handleRefresh);
+      }
     };
-  }, []);
+  }, [socket]);
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 

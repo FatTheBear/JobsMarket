@@ -281,12 +281,12 @@ const AdminDashboardInner = () => {
             onCreate={handleCreateNews}
             categories={newsCategories}
             onCreateCategory={async (name) => {
-        const result = await adminApi.createNewsCategory(name);
-        // Refresh lại danh sách categories
-        const updated = await adminApi.getNewsCategories();
-         setNewsCategories(updated); 
-        return result; // { id, name }
-    }}
+              const result = await adminApi.createNewsCategory(name);
+              // Refresh lại danh sách categories
+              const updated = await adminApi.getNewsCategories();
+              setNewsCategories(updated);
+              return result; // { id, name }
+            }}
           />
         )}
 
@@ -296,12 +296,12 @@ const AdminDashboardInner = () => {
             onCreate={(data) => handleUpdateNews(editingNews.id, data)}
             categories={newsCategories}
             initialData={editingNews}
-             onCreateCategory={async (name) => {
-            const result = await adminApi.createNewsCategory(name);
-            const updated = await adminApi.getNewsCategories();
-            setNewsCategories(updated);
-            return result;
-        }}
+            onCreateCategory={async (name) => {
+              const result = await adminApi.createNewsCategory(name);
+              const updated = await adminApi.getNewsCategories();
+              setNewsCategories(updated);
+              return result;
+            }}
           />
         )}
 
