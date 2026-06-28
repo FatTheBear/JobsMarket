@@ -70,6 +70,8 @@ export default function HomePage() {
     e?.stopPropagation?.();
     if (!isLoggedIn) {
       setJoinModalOpen(true);
+    } else {
+      navigate('/jobs');
     }
   };
 
@@ -168,7 +170,10 @@ export default function HomePage() {
           </div>
           <div className={styles.jobsGrid}>
             {HOT_JOBS.map(job => (
-              <div key={job.id} className={styles.jobCard} onClick={handleRequireLogin}>
+              <div key={job.id} className={styles.jobCard} onClick={() => {
+                if (!isLoggedIn) { setJoinModalOpen(true); }
+                else { navigate(`/jobs/${job.id}`); }
+              }}>
                 <div className={styles.jobCardLeft}>
                   <div className={styles.jobLogo}>{job.logo}</div>
                   <div className={styles.jobInfo}>
