@@ -420,41 +420,19 @@ const CandidateProfile = () => {
     if (path.endsWith('/saved-jobs')) return 'Saved Jobs';
     if (path.endsWith('/applied-jobs')) return 'Applied Jobs';
     if (path.endsWith('/manage-cvs')) return 'Manage CVs';
+    if (path.endsWith('/media')) return 'My Media';
     return 'My Profile';
   };
 
   return (
     <section className="profile-section">
       <div className="container py-4">
-        {/* Navigation back */}
-        <div className="mb-4">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="btn btn-link text-secondary text-decoration-none d-inline-flex align-items-center gap-2 fw-semibold p-0"
-            style={{ fontSize: '0.95rem' }}
-          >
-            <i className="fas fa-chevron-left" style={{ fontSize: '0.8rem' }}></i> Back to dashboard
-          </button>
-        </div>
+
 
         <div className="row g-4">
           {/* Left Navigation Sidebar */}
           <div className="col-12 col-md-4 col-lg-3">
             <div className="profile-sidebar-card shadow-sm border-0">
-              <div className="profile-sidebar-header text-center p-4 border-bottom">
-                <img
-                  src={profileData.avatar || defaultFacebookAvatar}
-                  alt="avatar"
-                  className="rounded-circle border border-2 shadow-sm mb-3"
-                  style={{ width: '90px', height: '90px', objectFit: 'cover' }}
-                />
-                <h5 className="fw-bold mb-1 text-dark" style={{ fontSize: '1.1rem' }}>
-                  {profileData.displayName || 'Candidate Name'}
-                </h5>
-                <p className="text-muted small mb-0" style={{ fontSize: '0.85rem' }}>
-                  {profileData.jobTitle || 'Job Seeker'}
-                </p>
-              </div>
 
               <div className="profile-sidebar-menu p-3">
                 <NavLink
@@ -477,22 +455,10 @@ const CandidateProfile = () => {
                   <i className="fas fa-history me-3"></i> Activity History
                 </NavLink>
                 <NavLink
-                  to="/candidate/my-profile/notifications"
+                  to="/candidate/my-profile/saved-jobs"
                   className={({ isActive }) => `sidebar-nav-link ${isActive ? 'active' : ''}`}
                 >
-                  <i className="far fa-bell me-3"></i> Notifications
-                  {notifications.filter(n => !n.is_read).length > 0 && (
-                    <span className="badge rounded-pill bg-danger ms-auto">
-                      {notifications.filter(n => !n.is_read).length}
-                    </span>
-                  )}
-                </NavLink>
-                <NavLink
-                  to="/candidate/my-profile/saved-jobs"
-                  className={({ isActive }) => `dropdown-item dropdown-item-custom w-100 text-start ${isActive ? 'active' : ''}`}
-                  onClick={() => setShowDropdown(false)}
-                >
-                  <i className="fas fa-bookmark me-2"></i> Saved Jobs
+                  <i className="far fa-bookmark me-3"></i> Saved Jobs
                 </NavLink>
                 <NavLink
                   to="/candidate/my-profile/applied-jobs"
@@ -506,14 +472,20 @@ const CandidateProfile = () => {
                 >
                   <i className="far fa-file-pdf me-3"></i> Manage CVs
                 </NavLink>
+                <NavLink
+                  to="/candidate/my-profile/media"
+                  className={({ isActive }) => `sidebar-nav-link ${isActive ? 'active' : ''}`}
+                >
+                  <i className="far fa-images me-3"></i> My Media
+                </NavLink>
               </div>
             </div>
           </div>
 
           {/* Right Main Content */}
           <div className="col-12 col-md-8 col-lg-9">
-            <Outlet
-              context={{
+                <Outlet
+                  context={{
                 profileData,
                 setProfileData,
                 skills,

@@ -41,6 +41,9 @@ import CompanyRegister from './pages/Authentication/CompanyRegister';
 import RegistrationPending from './pages/Authentication/RegistrationPending';
 import ActivateCompany from './pages/Authentication/ActivateCompany';
 import CompanyJobList from './pages/DashBoard/CompanyDashboard/CompanyJobList';
+import CandidateMedia from './pages/CandidateProfile/CandidateMedia';
+import CompanyMedia from './pages/DashBoard/CompanyDashboard/CompanyMedia';
+import CompanyActivityHistory from './pages/DashBoard/CompanyDashboard/CompanyActivityHistory';
 
 
 import './App.css';
@@ -99,7 +102,8 @@ const router = createBrowserRouter([
           { path: "activity-history", element: <CandidateActivityHistory /> },
           { path: "saved-jobs", element: <CandidateSavedJobs /> },
           { path: "applied-jobs", element: <CandidateAppliedJobsPage /> },
-          { path: "manage-cvs", element: <CandidateManageCVs /> }
+          { path: "manage-cvs", element: <CandidateManageCVs /> },
+          { path: "media", element: <CandidateMedia /> }
         ]
       },
 
@@ -131,6 +135,8 @@ const router = createBrowserRouter([
           { path: "create-post", element: <CreatePost /> },
           { path: "wallet", element: <CompanyWallet /> },
           { path: "jobs", element: <CompanyJobList /> },
+          { path: "media", element: <CompanyMedia /> },
+          { path: "activity-history", element: <CompanyActivityHistory /> },
         ]
       },
 

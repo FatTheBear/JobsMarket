@@ -14,8 +14,16 @@ const pool = mysql.createPool({
 
 
 pool.getConnection()
-    .then((connection) => {
+    .then(async (connection) => {
         console.log('Connect to database successfull!');
+        try {
+            await connection.query(`ALTER TABLE Notification ADD COLUMN post_id INT NULL DEFAULT NULL`);
+            console.log('Added post_id column to Notification table successfully.');
+        } catch (alterErr) {
+            if (alterErr.code !== 'ER_DUP_FIELDNAME') {
+                console.log('Notification table alter status:', alterErr.message);
+            }
+        }
         connection.release(); 
     })
     .catch((err) => {

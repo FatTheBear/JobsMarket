@@ -412,6 +412,28 @@ const candidateController = {
                 [job_id, candidateId, cv_id]
             );
 
+            // Trigger notification to Company HR
+            try {
+                const [jobInfo] = await connection.execute(
+                    `SELECT j.title AS job_title, COALESCE(c.hr_id, c.user_id) AS company_user_id, cp.full_name AS candidate_name
+                     FROM Job_Posting j
+                     JOIN Company c ON j.company_id = c.id
+                     LEFT JOIN Candidate_Profile cp ON cp.user_id = ?
+                     WHERE j.id = ?`,
+                    [userId, job_id]
+                );
+                if (jobInfo.length > 0 && jobInfo[0].company_user_id) {
+                    const notiTitle = "📨 New Job Application";
+                    const notiContent = `${jobInfo[0].candidate_name || 'A candidate'} has submitted an application for "${jobInfo[0].job_title}".`;
+                    await connection.execute(
+                        'INSERT INTO Notification (user_id, title, content) VALUES (?, ?, ?)',
+                        [jobInfo[0].company_user_id, notiTitle, notiContent]
+                    );
+                }
+            } catch (notiErr) {
+                console.error("Error creating application notification for company:", notiErr);
+            }
+
             connection.release();
             return res.status(201).json({ message: "Applied successfully!" });
         } catch (error) {
@@ -486,7 +508,7 @@ const candidateController = {
 
             // Fetch notifications for the user
             const [rows] = await connection.execute(
-                'SELECT id, title, content, is_read, DATE_FORMAT(created_at, "%b %e, %Y %H:%i") as created_at FROM Notification WHERE user_id = ? ORDER BY created_at DESC',
+                'SELECT id, title, content, is_read, post_id, DATE_FORMAT(created_at, "%b %e, %Y %H:%i") as created_at FROM Notification WHERE user_id = ? ORDER BY created_at DESC',
                 [userId]
             );
 
@@ -503,7 +525,7 @@ const candidateController = {
                 );
 
                 const [newRows] = await connection.execute(
-                    'SELECT id, title, content, is_read, DATE_FORMAT(created_at, "%b %e, %Y %H:%i") as created_at FROM Notification WHERE user_id = ? ORDER BY created_at DESC',
+                    'SELECT id, title, content, is_read, post_id, DATE_FORMAT(created_at, "%b %e, %Y %H:%i") as created_at FROM Notification WHERE user_id = ? ORDER BY created_at DESC',
                     [userId]
                 );
                 connection.release();

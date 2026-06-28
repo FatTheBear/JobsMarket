@@ -366,9 +366,12 @@ router.get('/my-jobs', authMiddleware, async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT 
-                jp.id, jp.title, jp.status, jp.job_type, jp.job_level,
-                jp.salary_min, jp.salary_max, jp.deadline, jp.created_at,
-                jp.view_count, jp.vacancies, jp.province,
+                jp.*,
+                NULL AS deadline,
+                NULL AS job_level,
+                NULL AS vacancies,
+                NULL AS province,
+                0 AS view_count,
                 (SELECT COUNT(*) FROM application a WHERE a.job_id = jp.id) AS applicant_count
              FROM Job_Posting jp
              WHERE jp.hr_id = ?
