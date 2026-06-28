@@ -16,12 +16,19 @@ router.get('/public/:companyId', async (req, res) => {
     const [companies] = await pool.execute(
       `SELECT 
         c.id,
+        c.hr_id,
         c.name,
         c.logo_url,
         c.cover_image_url,
         c.website,
         c.address,
-        c.description,
+        c.description AS company_bio,
+        c.email,
+        c.company_phone,
+        c.tax_id,
+        c.size,
+        c.benefits,
+        c.culture,
         i.name as industry_name,
         u.created_at as company_created_at
       FROM Company c
@@ -59,9 +66,9 @@ router.get('/public/:companyId', async (req, res) => {
     const jobsWithSkills = await Promise.all(
       jobs.map(async (job) => {
         const [skills] = await pool.execute(
-          `SELECT s.id, s.name, js.min_level, js.min_years
-           FROM Job_Skill js
-           JOIN Skill s ON js.skill_id = s.id
+          `SELECT s.id, s.skill_name AS name, js.min_level, js.min_years
+           FROM job_skill js
+           JOIN skill s ON js.skill_id = s.id
            WHERE js.job_id = ?`,
           [job.id]
         );

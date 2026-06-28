@@ -1,7 +1,7 @@
 .cpp-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0;
+  padding: 24px 16px;
   background-color: #f8f9fa;
   min-height: 100vh;
 }
@@ -23,11 +23,14 @@
   position: relative;
   background-color: white;
   margin-bottom: 30px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .cpp-cover-image {
   width: 100%;
-  height: 300px;
+  height: 180px;
   background-size: cover;
   background-position: center;
   position: relative;
@@ -387,7 +390,7 @@
   }
 
   .cpp-cover-image {
-    height: 200px;
+    height: 120px;
   }
 
   .cpp-content {
@@ -425,3 +428,110 @@
     text-align: center;
   }
 }
+
+/* Company Community Posts Styles */
+.cpp-posts-section {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.cpp-posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.cpp-post-card {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 24px;
+  border: 1px solid #eef0f2;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cpp-post-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.cpp-post-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.cpp-post-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e2e8f0;
+}
+
+.cpp-post-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.cpp-post-author {
+  font-weight: 600;
+  color: #1a202c;
+  font-size: 15px;
+}
+
+.cpp-post-date {
+  font-size: 12px;
+  color: #a0aec0;
+  margin-top: 2px;
+}
+
+.cpp-post-content {
+  color: #2d3748;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.cpp-post-content p {
+  margin: 0 0 12px 0;
+  white-space: pre-line;
+}
+
+.cpp-post-image {
+  width: 100%;
+  max-height: 450px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 8px;
+  border: 1px solid #edf2f7;
+}
+
+.cpp-post-video {
+  width: 100%;
+  max-height: 450px;
+  border-radius: 8px;
+  margin-top: 8px;
+  background-color: black;
+}
+
+.cpp-post-footer {
+  display: flex;
+  gap: 20px;
+  border-top: 1px solid #edf2f7;
+  padding-top: 14px;
+  color: #4a5568;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.cpp-no-posts {
+  text-align: center;
+  padding: 60px 20px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  color: #718096;
+}
+

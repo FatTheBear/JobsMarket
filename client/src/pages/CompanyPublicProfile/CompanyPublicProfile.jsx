@@ -5,6 +5,7 @@ import JoinUsModal from '../JoinUsModal/JoinUsModal';
 import './CompanyPublicProfile.css';
 
 const API_URL = 'http://localhost:5000';
+const DEFAULT_COMPANY_LOGO = '/img/default-avatar.png';
 
 export default function CompanyPublicProfile() {
   const { companyId } = useParams();
@@ -12,6 +13,7 @@ export default function CompanyPublicProfile() {
   
   const [company, setCompany] = useState(null);
   const [jobs, setJobs] = useState([]);
+  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
@@ -33,8 +35,18 @@ export default function CompanyPublicProfile() {
     try {
       setLoading(true);
       const response = await axios.get(`${API_URL}/api/company-public/public/${companyId}`);
-      setCompany(response.data.company);
+      const companyData = response.data.company;
+      setCompany(companyData);
       setJobs(response.data.jobs || []);
+
+      if (companyData && companyData.hr_id) {
+        try {
+          const postsRes = await axios.get(`${API_URL}/api/posts/user/${companyData.hr_id}`);
+          setPosts(postsRes.data || []);
+        } catch (postErr) {
+          console.error('Error fetching company posts:', postErr);
+        }
+      }
     } catch (err) {
       console.error('Error fetching company profile:', err);
       setError('Failed to load company profile');
@@ -81,17 +93,23 @@ export default function CompanyPublicProfile() {
           className="cpp-cover-image"
           style={{
             backgroundImage: company.cover_image_url 
-              ? `url(${company.cover_image_url})` 
-              : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+              ? `url(${API_URL}${company.cover_image_url})` 
+              : 'linear-gradient(135deg, #01796F 0%, #0056b3 100%)'
           }}
         />
         
         <div className="cpp-header-content">
           <div className="cpp-logo-section">
             <img 
-              src={company.logo_url || '/default-company-logo.png'} 
+              src={company.logo_url ? `${API_URL}${company.logo_url}` : DEFAULT_COMPANY_LOGO} 
               alt={company.name}
               className="cpp-logo"
+              onError={(e) => { 
+                const fallback = window.location.origin + DEFAULT_COMPANY_LOGO;
+                if (e.target.src !== fallback && e.target.src !== DEFAULT_COMPANY_LOGO) {
+                  e.target.src = DEFAULT_COMPANY_LOGO; 
+                }
+              }}
             />
           </div>
           
@@ -122,6 +140,12 @@ export default function CompanyPublicProfile() {
           About
         </button>
         <button
+          className={`cpp-tab-btn ${activeTab === 'posts' ? 'active' : ''}`}
+          onClick={() => setActiveTab('posts')}
+        >
+          Posts ({posts.length})
+        </button>
+        <button
           className={`cpp-tab-btn ${activeTab === 'jobs' ? 'active' : ''}`}
           onClick={() => setActiveTab('jobs')}
         >
@@ -144,6 +168,34 @@ export default function CompanyPublicProfile() {
                   <span className="cpp-label">Industry</span>
                   <span className="cpp-value">{company.industry_name || 'N/A'}</span>
                 </div>
+
+                {company.size && (
+                  <div className="cpp-info-item">
+                    <span className="cpp-label">Company Size</span>
+                    <span className="cpp-value">{company.size} employees</span>
+                  </div>
+                )}
+
+                {company.company_phone && (
+                  <div className="cpp-info-item">
+                    <span className="cpp-label">Phone</span>
+                    <span className="cpp-value">{company.company_phone}</span>
+                  </div>
+                )}
+
+                {company.email && (
+                  <div className="cpp-info-item">
+                    <span className="cpp-label">Email</span>
+                    <span className="cpp-value">{company.email}</span>
+                  </div>
+                )}
+
+                {company.tax_id && (
+                  <div className="cpp-info-item">
+                    <span className="cpp-label">Tax ID</span>
+                    <span className="cpp-value">{company.tax_id}</span>
+                  </div>
+                )}
                 
                 {company.address && (
                   <div className="cpp-info-item">
@@ -163,6 +215,20 @@ export default function CompanyPublicProfile() {
                   </div>
                 )}
               </div>
+
+              {company.benefits && (
+                <div className="cpp-section-block mt-4" style={{ borderTop: '1px solid #f0f0f0', paddingTop: '20px' }}>
+                  <h4 style={{ fontWeight: '700', color: '#1a1a1a', marginBottom: '12px' }}>🎁 Benefits & Perks</h4>
+                  <p style={{ color: '#495057', fontSize: '15px', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{company.benefits}</p>
+                </div>
+              )}
+
+              {company.culture && (
+                <div className="cpp-section-block mt-4" style={{ borderTop: '1px solid #f0f0f0', paddingTop: '20px' }}>
+                  <h4 style={{ fontWeight: '700', color: '#1a1a1a', marginBottom: '12px' }}>🌱 Company Culture</h4>
+                  <p style={{ color: '#495057', fontSize: '15px', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{company.culture}</p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -227,6 +293,56 @@ export default function CompanyPublicProfile() {
             ) : (
               <div className="cpp-no-jobs">
                 <p>No open positions at the moment</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'posts' && (
+          <div className="cpp-posts-section">
+            {posts.length > 0 ? (
+              <div className="cpp-posts-list">
+                {posts.map((post) => (
+                  <div key={post.id} className="cpp-post-card">
+                    <div className="cpp-post-header">
+                      <img 
+                        src={post.author_avatar ? (post.author_avatar.startsWith('http') ? post.author_avatar : `${API_URL}${post.author_avatar}`) : DEFAULT_COMPANY_LOGO} 
+                        alt={post.author_name} 
+                        className="cpp-post-avatar"
+                        onError={(e) => { 
+                          const fallback = window.location.origin + DEFAULT_COMPANY_LOGO;
+                          if (e.target.src !== fallback && e.target.src !== DEFAULT_COMPANY_LOGO) {
+                            e.target.src = DEFAULT_COMPANY_LOGO; 
+                          }
+                        }}
+                      />
+                      <div className="cpp-post-meta">
+                        <span className="cpp-post-author">{post.author_name}</span>
+                        <span className="cpp-post-date">
+                          {new Date(post.created_at).toLocaleDateString('vi-VN')}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="cpp-post-content">
+                      <p>{post.content}</p>
+                      {post.mediaList && post.mediaList.map((media, idx) => (
+                        media.media_type?.startsWith('image') ? (
+                          <img key={idx} src={`${API_URL}${media.media_url}`} alt="Post attachment" className="cpp-post-image" />
+                        ) : (
+                          <video key={idx} src={`${API_URL}${media.media_url}`} controls className="cpp-post-video" />
+                        )
+                      ))}
+                    </div>
+                    <div className="cpp-post-footer">
+                      <span>👍 {post.likes_count} Likes</span>
+                      <span>💬 {post.comments_count} Comments</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="cpp-no-posts">
+                <p>No community posts shared by this company yet</p>
               </div>
             )}
           </div>
