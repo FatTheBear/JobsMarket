@@ -76,6 +76,50 @@ router.get('/dashboard/stats', authMiddleware, async (req, res) => {
   }
 });
 
+// GET /api/company/dashboard/application-pipeline
+// Đếm application theo status, CHỈ của công ty thuộc HR đang đăng nhập
+router.get('/dashboard/application-pipeline', authMiddleware, async (req, res) => {
+  try {
+    const hr_id = req.user.id;
+
+    // Tìm company của HR này
+    const [companies] = await pool.query(
+      'SELECT id FROM company WHERE hr_id = ?',
+      [hr_id]
+    );
+    if (companies.length === 0) {
+      return res.json({
+        Applied: 0, Reviewing: 0, Interviewing: 0, Offered: 0, Rejected: 0
+      });
+    }
+    const company_id = companies[0].id;
+
+    // Đếm application theo status, join qua job_posting để lọc đúng company
+    const [rows] = await pool.query(`
+      SELECT a.status, COUNT(*) AS count
+      FROM application a
+      JOIN job_posting j ON a.job_id = j.id
+      WHERE j.company_id = ?
+      GROUP BY a.status
+    `, [company_id]);
+
+    // Chuẩn hóa: đảm bảo đủ 5 status kể cả khi = 0
+    const result = {
+      Applied: 0, Reviewing: 0, Interviewing: 0, Offered: 0, Rejected: 0
+    };
+    rows.forEach(r => {
+      if (result.hasOwnProperty(r.status)) {
+        result[r.status] = Number(r.count);
+      }
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error('APPLICATION PIPELINE ERROR:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
+
 // GET /api/company/:hr_id — Lấy thông tin công ty theo hr_id
 router.get('/:hr_id', async (req, res) => {
   try {
@@ -367,37 +411,37 @@ router.post('/:id/follow', authMiddleware, async (req, res) => {
 });
 
 router.get('/search-titles', async (req, res) => {
-    try {
-        const { q } = req.query;
+  try {
+    const { q } = req.query;
 
-        if (!q || q.trim().length === 0) {
-            return res.status(200).json({
-                success: true,
-                data: []
-            });
-        }
+    if (!q || q.trim().length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: []
+      });
+    }
 
-        const searchQuery = `%${q.trim()}%`;
-        const query = `
+    const searchQuery = `%${q.trim()}%`;
+    const query = `
             SELECT title 
             FROM job_title_dictionary 
             WHERE title LIKE ? 
             ORDER BY title ASC 
             LIMIT 10
         `;
-        
-        const [rows] = await db.query(query, [searchQuery]);
-        
-        res.status(200).json({
-            success: true,
-            data: rows.map(row => row.title)
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Internal Server Error'
-        });
-    }
+
+    const [rows] = await db.query(query, [searchQuery]);
+
+    res.status(200).json({
+      success: true,
+      data: rows.map(row => row.title)
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error'
+    });
+  }
 });
 
 

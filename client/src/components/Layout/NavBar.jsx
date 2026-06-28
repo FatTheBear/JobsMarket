@@ -3,6 +3,7 @@ import './NavBar.css';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import NotificationDropdown from '../Notifications/NotificationDropdown';
+import { motion } from "framer-motion";
 
 // 1. Khai báo state để React quản lý (giá trị mặc định là guest)
 

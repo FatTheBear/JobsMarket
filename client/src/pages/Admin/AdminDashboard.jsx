@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Briefcase, BarChart2, FolderTree, Newspaper, CreditCard, Coins, Bell, Building2 } from 'lucide-react';
+import { Users, Briefcase, BarChart2, FolderTree, Newspaper, CreditCard, Coins, Bell, Building2, LogOut } from 'lucide-react';
 import { adminApi } from '../../services/adminApi';
 import AdminOverview from './AdminOverview';
 import AdminUser from './AdminUser';
@@ -10,16 +10,23 @@ import AdminTransaction from './AdminTransaction';
 import AdminCoinFees from './AdminCoinFees';
 import './Admin.css';
 import CreateNewsModal from './CreateNewsModal';
-import AdminNotifications from "./AdminNotifications";
 import AdminCompanyApproval from "./AdminCompanyApproval";
 import { ModalProvider } from './ModalProvider';
 import { useModal } from './useModal';
 import NewsDetailModal from './NewsDetailModal';
+import AdminNotifications, { buildPendingNotifications } from "./AdminNotifications";
+
 
 // ─── Inner component dùng được hook useModal ───────────────────────────────
 const AdminDashboardInner = () => {
+  const currentUser = (() => {
+    try {
+      return JSON.parse(localStorage.getItem("user")) || {};
+    } catch {
+      return {};
+    }
+  })();
   const { showAlert, showConfirm } = useModal();
-
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
@@ -32,18 +39,42 @@ const AdminDashboardInner = () => {
   const [editingNews, setEditingNews] = useState(null);
   const [pendingCompanies, setPendingCompanies] = useState([]);
   const [viewingNews, setViewingNews] = useState(null);
+  const [unreadNotifCount, setUnreadNotifCount] = useState(0);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userId");
+    window.location.href = "/login";
+  };
+
 
 
   // Đóng gói hàm fetch danh mục ra ngoài để dùng tái sử dụng khi Add/Delete
+  useEffect(() => {
+    const countUnread = async () => {
+      try {
+        const list = await buildPendingNotifications();
+        const readRaw = localStorage.getItem("admin_read_notifications");
+        const readIds = readRaw ? JSON.parse(readRaw) : [];
+        setUnreadNotifCount(list.filter((n) => !readIds.includes(n.id)).length);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    countUnread();
+  }, [activeTab]);
+
   const fetchCategoriesData = async () => {
     try {
       const [skillsData, industryData] = await Promise.all([
         adminApi.getSkills(),
         adminApi.getIndustries()
+
       ]);
+      console.log("INDUSTRY DATA:", industryData);
       setCategories({
         skills: Array.isArray(skillsData) ? skillsData : [],
-        industry: Array.isArray(industriesData) ? industryData : []
+        industry: Array.isArray(industryData) ? industryData : []
       });
     } catch (catErr) {
       console.error("Error fetching categories:", catErr);
@@ -142,6 +173,30 @@ const AdminDashboardInner = () => {
       setUsers(data.data || data);
     } catch (err) {
       await showAlert("Error updating user status!", "error");
+    }
+  };
+  // Ban kèm lý do (gửi mail)
+  const handleBanUser = async (id, reason) => {
+    try {
+      await adminApi.banUser(id, reason);
+      const data = await adminApi.getUsers();
+      setUsers(data.data || data);
+      await showAlert("User banned and notified by email.", "success");
+    } catch (err) {
+      await showAlert("Error banning user!", "error");
+    }
+  };
+
+  // Gỡ ban (không cần lý do, không gửi mail)
+  const handleUnbanUser = async (id) => {
+    const confirmed = await showConfirm("Unban this user?");
+    if (!confirmed) return;
+    try {
+      await adminApi.updateUserStatus(id, 'Active');
+      const data = await adminApi.getUsers();
+      setUsers(data.data || data);
+    } catch (err) {
+      await showAlert("Error unbanning user!", "error");
     }
   };
 
@@ -245,15 +300,46 @@ const AdminDashboardInner = () => {
           <button onClick={() => setActiveTab('news')} className={`sidebar-btn ${activeTab === 'news' ? 'active' : ''}`}><Newspaper size={20} /> News Management</button>
           <button onClick={() => setActiveTab('transactions')} className={`sidebar-btn ${activeTab === 'transactions' ? 'active' : ''}`}><CreditCard size={20} /> Transactions</button>
           <button onClick={() => setActiveTab('coin-fees')} className={`sidebar-btn ${activeTab === 'coin-fees' ? 'active' : ''}`}><Coins size={20} /> Coin Fees</button>
-          <button onClick={() => setActiveTab("notifications")} className={`sidebar-btn ${activeTab === "notifications" ? "active" : ""}`}><Bell size={20} />Notifications</button>
+          <button
+            onClick={() => setActiveTab("notifications")}
+            className={`sidebar-btn ${activeTab === "notifications" ? "active" : ""}`}
+            style={{ position: "relative" }}
+          >
+            <Bell size={20} />Notifications
+            {unreadNotifCount > 0 && (
+              <span style={{
+                position: "absolute", top: 8, right: 12,
+                background: "#ef4444", color: "#fff",
+                borderRadius: "10px", fontSize: 11, fontWeight: 700,
+                minWidth: 18, height: 18, display: "flex",
+                alignItems: "center", justifyContent: "center", padding: "0 5px"
+              }}>
+                {unreadNotifCount}
+              </span>
+            )}
+          </button>
+
+          <div style={{ marginTop: "auto", paddingTop: 16 }}>
+            <div style={{ padding: "0 12px 10px", color: "#cbd5e1", fontSize: 13 }}>
+              ADMIN<br />
+              <strong style={{ color: "#fff" }}>
+                {currentUser.email || currentUser.full_name || "Admin"}
+              </strong>
+            </div>
+            <button onClick={handleLogout} className="sidebar-btn">
+              <LogOut size={20} /> Log out
+            </button>
+          </div>
+
+
         </div>
       </div>
       <div className="admin-content">
         {loading && <p className="loading-text">Loading...</p>}
         {!loading && activeTab === 'overview' && <AdminOverview stats={stats} />}
-        {!loading && activeTab === 'users' && <AdminUser users={users} onToggleStatus={handleToggleUserStatus} />}
+        {!loading && activeTab === 'users' && <AdminUser users={users} onBan={handleBanUser} onUnban={handleUnbanUser} />}
         {!loading && activeTab === 'jobs' && <AdminJob pendingJobs={pendingJobs} onReviewJob={handleReviewJob} />}
-        {!loading && activeTab === "notifications" && (<AdminNotifications />)}
+        {!loading && activeTab === "notifications" && (<AdminNotifications onNavigate={setActiveTab} />)}
         {!loading && activeTab === 'categories' && (
           <AdminCategories
             categories={categories}
@@ -281,12 +367,12 @@ const AdminDashboardInner = () => {
             onCreate={handleCreateNews}
             categories={newsCategories}
             onCreateCategory={async (name) => {
-        const result = await adminApi.createNewsCategory(name);
-        // Refresh lại danh sách categories
-        const updated = await adminApi.getNewsCategories();
-         setNewsCategories(updated); 
-        return result; // { id, name }
-    }}
+              const result = await adminApi.createNewsCategory(name);
+              // Refresh lại danh sách categories
+              const updated = await adminApi.getNewsCategories();
+              setNewsCategories(updated);
+              return result; // { id, name }
+            }}
           />
         )}
 
@@ -296,12 +382,12 @@ const AdminDashboardInner = () => {
             onCreate={(data) => handleUpdateNews(editingNews.id, data)}
             categories={newsCategories}
             initialData={editingNews}
-             onCreateCategory={async (name) => {
-            const result = await adminApi.createNewsCategory(name);
-            const updated = await adminApi.getNewsCategories();
-            setNewsCategories(updated);
-            return result;
-        }}
+            onCreateCategory={async (name) => {
+              const result = await adminApi.createNewsCategory(name);
+              const updated = await adminApi.getNewsCategories();
+              setNewsCategories(updated);
+              return result;
+            }}
           />
         )}
 

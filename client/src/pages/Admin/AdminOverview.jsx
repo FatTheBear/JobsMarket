@@ -9,7 +9,7 @@ import { adminApi } from '../../services/adminApi';
 
 // ─── PERIOD CONFIG ───────────────────────────────────────────────────────────
 const PERIODS = [
-  { value: '7d',  label: 'Last 7 Days' },
+  { value: '7d', label: 'Last 7 Days' },
   { value: '30d', label: 'Last 30 Days' },
   { value: '12m', label: 'Last 12 Months' },
 ];
@@ -154,7 +154,7 @@ export default function AdminOverview({ stats, onNavigate }) {
     return () => { cancelled = true; };
   }, [period, selectedYear, selectedMonth]);
 
- 
+
   useEffect(() => {
     adminApi.getTopSkills()
       .then(setTopSkills)
@@ -191,14 +191,19 @@ export default function AdminOverview({ stats, onNavigate }) {
     xLabel: r.label,
     revenue: Number(r.total),
   }));
+  const userTrends = (trends?.userTrends || []).map(r => ({
+    label: r.label,
+    xLabel: r.label,
+    users: Number(r.count),
+  }));
 
   // ── Application breakdown từ stats ──
   const appBreakdown = [
-    { name: 'Applied',      value: stats.appliedCount || 0,      fill: '#01796F' },
-    { name: 'Reviewing',    value: stats.reviewingCount || 0,    fill: '#0ea5e9' },
+    { name: 'Applied', value: stats.appliedCount || 0, fill: '#01796F' },
+    { name: 'Reviewing', value: stats.reviewingCount || 0, fill: '#0ea5e9' },
     { name: 'Interviewing', value: stats.interviewingCount || 0, fill: '#8b5cf6' },
-    { name: 'Offered',      value: stats.offeredCount || 0,      fill: '#10b981' },
-    { name: 'Rejected',     value: stats.rejectedApplicationCount || 0, fill: '#ef4444' },
+    { name: 'Offered', value: stats.offeredCount || 0, fill: '#10b981' },
+    { name: 'Rejected', value: stats.rejectedApplicationCount || 0, fill: '#ef4444' },
   ];
 
   const periodLabel = getPeriodLabel(period);
@@ -249,11 +254,11 @@ export default function AdminOverview({ stats, onNavigate }) {
         />
 
         <StatCard title="Approved Jobs" value={stats.approvedJobs || 0} icon={CheckCircle} iconColor="#059669" />
-        <StatCard title="Companies"   value={stats.totalCompanies || 0} icon={Building2} />
-        <StatCard title="Revenue"     value={`$${(stats.totalRevenue || 0).toLocaleString()}`} icon={DollarSign} />
-        <StatCard title="News"        value={stats.totalNews || 0} />
-        <StatCard title="CV Uploads"  value={stats.totalCVs || 0} />
-        <StatCard title="Skills"      value={stats.totalSkills || 0} icon={Award} />
+        <StatCard title="Companies" value={stats.totalCompanies || 0} icon={Building2} />
+        <StatCard title="Revenue" value={`$${(stats.totalRevenue || 0).toLocaleString()}`} icon={DollarSign} />
+        <StatCard title="News" value={stats.totalNews || 0} />
+        <StatCard title="CV Uploads" value={stats.totalCVs || 0} />
+        <StatCard title="Skills" value={stats.totalSkills || 0} icon={Award} />
       </div>
 
       {/* ── TIME FILTER ── */}
@@ -329,21 +334,29 @@ export default function AdminOverview({ stats, onNavigate }) {
       {/* ── ROW 2: Application Breakdown + Pending Reviews ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
 
-        {/* Application Status Breakdown */}
-        <ChartCard title="Application Pipeline" subtitle="All-time breakdown by status">
+        {/* User Growth */}
+        <ChartCard title="User Growth" subtitle={`New sign-ups for ${periodLabel}`}>
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={appBreakdown} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+            <LineChart data={userTrends} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
               <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={TOOLTIP_STYLE} />
-              <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                <LabelList dataKey="value" position="top" fill="#64748b" fontSize={11} />
-                {appBreakdown.map((entry, i) => (
-                  <Cell key={i} fill={entry.fill} />
-                ))}
-              </Bar>
-            </BarChart>
+              <XAxis dataKey="xLabel" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+              <Tooltip
+                contentStyle={TOOLTIP_STYLE}
+                formatter={(v) => [v, 'New Users']}
+              />
+              <Line
+                type="linear"
+                dataKey="users"
+                name="New Users"
+                stroke="#8b5cf6"
+                strokeWidth={2}
+                dot={(props) => {
+                  const { cx, cy, value } = props;
+                  return value > 0 ? <circle cx={cx} cy={cy} r={3} fill="#8b5cf6" /> : null;
+                }}
+              />
+            </LineChart>
           </ResponsiveContainer>
         </ChartCard>
 
@@ -352,10 +365,10 @@ export default function AdminOverview({ stats, onNavigate }) {
           <SectionTitle>Pending Reviews</SectionTitle>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
-              { label: 'Pending Jobs',         value: stats.pendingJobs || 0,        tab: 'jobs',         color: '#d97706' },
-              { label: 'Pending Companies',     value: stats.pendingCompanies || 0,   tab: 'companies',    color: '#8b5cf6' },
-              { label: 'Pending Transactions',  value: stats.pendingTransactions || 0, tab: 'transactions', color: '#ef4444' },
-              { label: 'Rejected Jobs',         value: stats.rejectedJobs || 0,       tab: 'jobs',         color: '#94a3b8' },
+              { label: 'Pending Jobs', value: stats.pendingJobs || 0, tab: 'jobs', color: '#d97706' },
+              { label: 'Pending Companies', value: stats.pendingCompanies || 0, tab: 'companies', color: '#8b5cf6' },
+              { label: 'Pending Transactions', value: stats.pendingTransactions || 0, tab: 'transactions', color: '#ef4444' },
+              { label: 'Rejected Jobs', value: stats.rejectedJobs || 0, tab: 'jobs', color: '#94a3b8' },
             ].map(item => (
               <div key={item.label} style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -397,7 +410,7 @@ export default function AdminOverview({ stats, onNavigate }) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#64748b' }}>
               <span>Total Industry</span>
-              <span style={{ color: '#01796F', fontWeight: 600 }}>{stats.industriesCount || 0} categories</span>
+              <span style={{ color: '#01796F', fontWeight: 600 }}>{stats.industryCount || 0} categories</span>
             </div>
           </div>
         </div>
@@ -435,7 +448,7 @@ export default function AdminOverview({ stats, onNavigate }) {
           }
         </div>
 
-       
+
         <div className="table-container" style={{ padding: 20 }}>
           <SectionTitle>Top Industry</SectionTitle>
           {topIndustries.length === 0
