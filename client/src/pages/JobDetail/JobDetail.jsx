@@ -141,6 +141,13 @@ export default function JobDetail() {
     }
   }
 
+  const getValidLogo = (url) => {
+    if (!url) return '/img/default-avatar.png';
+    if (url.startsWith('data:image')) return url;
+    if (url.startsWith('http')) return url;
+    return `${API_URL}${url}`;
+  };
+
   return (
     <div className="job-detail-page-container">
       <div className={`jd-toast ${toast.show ? 'show' : ''} ${toast.type}`}>
@@ -152,7 +159,8 @@ export default function JobDetail() {
       <div className="job-detail-top-card">
         <div className="job-detail-card-header">
           <img
-            src={job.logo_url || '/img/default-avatar.png'}
+            src={getValidLogo(job.logo_url)}
+            onError={(e) => { e.target.onerror = null; e.target.src = '/img/default-avatar.png'; }}
             alt="Company Logo"
             className="job-detail-card-logo"
           />

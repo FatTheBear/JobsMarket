@@ -87,6 +87,7 @@ export default function JobCard({ job, onClick }) {
     deadline,
     experience_req,
     job_level,
+    loc,
   } = job;
 
   const getValidLogo = () => {
@@ -110,13 +111,7 @@ export default function JobCard({ job, onClick }) {
     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
-  const loc = province
-    ? translateLocation(province)
-    : district
-      ? translateLocation(district)
-      : exact_address
-        ? removeAccents(exact_address)
-        : '';
+
 
   const fetchMyCVs = async () => {
     setIsLoadingCVs(true);
@@ -231,9 +226,7 @@ export default function JobCard({ job, onClick }) {
           <div className="job-card-tags">
             <span className="job-tag tag-salary">{formatSalary()}</span>
             <span className="job-tag tag-location">
-              {province
-                ? province.replace(/ Province| City/gi, '').trim()
-                : district || exact_address || 'Updating'}
+              {loc ? loc.replace(/ Province| City/gi, '').trim() : 'Location updating'}
             </span>
             <span className="job-tag tag-type">{job_type || 'Full-time'}</span>
             {job_level && <span className="job-tag tag-level">{job_level}</span>}
@@ -249,8 +242,9 @@ export default function JobCard({ job, onClick }) {
               className={`job-card-save-btn ${isSaved ? 'saved' : ''}`}
               onClick={toggleSaveJob}
               type="button"
+              title={isSaved ? 'Saved' : 'Save Job'}
             >
-              {isSaved ? 'Saved' : 'Save'}
+              {isSaved ? <i className="fa-solid fa-bookmark"></i> : <i className="fa-regular fa-bookmark"></i>}
             </button>
           </div>
         </div>

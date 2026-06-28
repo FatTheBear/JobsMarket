@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './FeaturedCompanies.css';
@@ -10,6 +10,7 @@ export default function FeaturedCompanies() {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     fetchFeaturedCompanies();
@@ -52,6 +53,13 @@ export default function FeaturedCompanies() {
     );
   }
 
+  const getValidLogo = (url) => {
+    if (!url) return '/img/default-avatar.png';
+    if (url.startsWith('data:image')) return url;
+    if (url.startsWith('http')) return url;
+    return `${API_URL}${url}`;
+  };
+
   return (
     <section className="fc-section">
       <div className="fc-header">
@@ -59,7 +67,14 @@ export default function FeaturedCompanies() {
         <p className="fc-subtitle">Explore top employers on JobsMarket</p>
       </div>
 
-      <div className="fc-companies-grid">
+      <div className="fc-carousel-wrapper">
+        <button className="fc-nav-btn prev" onClick={() => {
+          if (scrollRef.current) scrollRef.current.scrollBy({ left: -350, behavior: 'smooth' });
+        }}>
+          <i className="fa-solid fa-chevron-left"></i>
+        </button>
+
+        <div className="fc-companies-carousel" ref={scrollRef}>
         {companies.map((company) => (
           <div
             key={company.id}
@@ -69,7 +84,8 @@ export default function FeaturedCompanies() {
             {/* Logo Section */}
             <div className="fc-logo-container">
               <img
-                src={company.logo_url || '/img/default-avatar.png'}
+                src={getValidLogo(company.logo_url)}
+                onError={(e) => { e.target.onerror = null; e.target.src = '/img/default-avatar.png'; }}
                 alt={company.name}
                 className="fc-company-logo"
               />
@@ -77,43 +93,27 @@ export default function FeaturedCompanies() {
 
             {/* Company Info */}
             <div className="fc-company-details">
-              <h3 className="fc-company-name">{company.name}</h3>
-
-              {company.industry_name && (
-                <p className="fc-industry-tag">{company.industry_name}</p>
-              )}
-
-              {company.company_bio && (
-                <p className="fc-company-bio">
-                  {company.company_bio.substring(0, 80)}...
-                </p>
-              )}
+              <div className="fc-company-header">
+                <h3 className="fc-company-name">{company.name}</h3>
+                {company.industry_name && (
+                  <p className="fc-industry-text">{company.industry_name}</p>
+                )}
+              </div>
 
               {/* Job Count Badge */}
               <div className="fc-job-count">
-                <span className="fc-badge">{company.job_count} open jobs</span>
+                <i className="fa-solid fa-briefcase"></i> {company.job_count || 0} open job{company.job_count !== 1 ? 's' : ''}
               </div>
-
-              {/* Website Link */}
-              {company.website && (
-                <a
-                  href={company.website}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="fc-website-link"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  🌐 Visit Website
-                </a>
-              )}
             </div>
-
-            {/* View Profile Button */}
-            <button className="fc-view-profile-btn">
-              View Profile →
-            </button>
           </div>
         ))}
+        </div>
+
+        <button className="fc-nav-btn next" onClick={() => {
+          if (scrollRef.current) scrollRef.current.scrollBy({ left: 350, behavior: 'smooth' });
+        }}>
+          <i className="fa-solid fa-chevron-right"></i>
+        </button>
       </div>
 
       <div className="fc-footer">

@@ -40,8 +40,15 @@ export default function SearchJobs() {
   };
 
   const handleSearch = (e) => {
-    if (e) e.preventDefault();
+    e.preventDefault();
     fetchJobs();
+  };
+
+  const getValidLogo = (url) => {
+    if (!url) return '/img/default-avatar.png';
+    if (url.startsWith('data:image')) return url;
+    if (url.startsWith('http')) return url;
+    return `${API_URL}${url}`;
   };
 
   return (
@@ -98,11 +105,11 @@ export default function SearchJobs() {
               >
                 <div className="job-card-left">
                   <div className="job-card-logo">
-                    {job.logo_url ? (
-                      <img src={job.logo_url} alt="Company Logo" />
-                    ) : (
-                      <div className="job-card-logo-placeholder">🏢</div>
-                    )}
+                    <img 
+                      src={getValidLogo(job.logo_url)} 
+                      onError={(e) => { e.target.onerror = null; e.target.src = '/img/default-avatar.png'; }}
+                      alt="Company Logo" 
+                    />
                   </div>
                   <div className="job-card-content">
                     <h3 className="job-card-title">{job.title}</h3>
@@ -111,7 +118,7 @@ export default function SearchJobs() {
                     </div>
 
                     <div className="job-card-info-tags">
-                      <span>📍 {job.company_address || 'Location not updated yet'}</span>
+                      <span>📍 {job.loc ? job.loc.replace(/ Province| City/gi, '').trim() : (job.company_address || 'Location not updated yet')}</span>
                       <span className="salary-tag">
                         💰{' '}
                         {job.salary_min && job.salary_max

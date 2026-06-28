@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './JobPosting.css';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
+import Select from 'react-select';
 import { useWallet } from '../../context/WalletContext';
 import { IndustrySkill } from './IndustrySkill';
 import { AutoComplete } from './AutoComplete';
@@ -164,21 +165,28 @@ export default function JobPosting() {
     }
   };
 
-  const handleProvinceChange = (e) => {
-    const code = e.target.value;
-    const name = e.target.options[e.target.selectedIndex].text;
-    setForm(prev => ({ ...prev, province_code: code, province: name }));
+  const handleProvinceChange = (selectedOption) => {
+    if (!selectedOption) {
+      setForm(prev => ({ ...prev, province_code: '', province: '' }));
+      return;
+    }
+    setForm(prev => ({ ...prev, province_code: selectedOption.value, province: selectedOption.label }));
   };
 
-  const handleDistrictChange = (e) => {
-    const code = e.target.value;
-    const name = e.target.options[e.target.selectedIndex].text;
-    setForm(prev => ({ ...prev, district_code: code, district: name }));
+  const handleDistrictChange = (selectedOption) => {
+    if (!selectedOption) {
+      setForm(prev => ({ ...prev, district_code: '', district: '' }));
+      return;
+    }
+    setForm(prev => ({ ...prev, district_code: selectedOption.value, district: selectedOption.label }));
   };
 
-  const handleWardChange = (e) => {
-    const name = e.target.options[e.target.selectedIndex].text;
-    setForm(prev => ({ ...prev, ward: name }));
+  const handleWardChange = (selectedOption) => {
+    if (!selectedOption) {
+      setForm(prev => ({ ...prev, ward: '' }));
+      return;
+    }
+    setForm(prev => ({ ...prev, ward: selectedOption.label }));
   };
 
   const toggleSkill = (skillId) => {
@@ -217,19 +225,21 @@ export default function JobPosting() {
     const trimmedTitle = form.title.trim();
     if (!trimmedTitle) {
       newErrors.title = "Job Title cannot be empty.";
-    } else if (trimmedTitle.length < 10) {
-      newErrors.title = "Job Title must be at least 10 characters long.";
-    } else if (/^\d+$/.test(trimmedTitle)) {
-      newErrors.title = "Job Title cannot contain only numbers.";
+    } else if (trimmedTitle.length < 10 || trimmedTitle.length > 100) {
+      newErrors.title = "Job Title must be between 10 and 100 characters long.";
+    } else if (/^[\d\W_]+$/.test(trimmedTitle)) {
+      newErrors.title = "Job Title cannot contain only numbers or special characters.";
     }
 
     // Validate Salary
     if (form.salary_type === 'specific') {
+      const minSal = Number(form.salary_min);
+      const maxSal = Number(form.salary_max);
       if (!form.salary_min || !form.salary_max) {
         newErrors.salary = "Please enter both Minimum and Maximum Salary.";
-      } else if (Number(form.salary_min) < 0 || Number(form.salary_max) < 0) {
-        newErrors.salary = "Salary cannot be negative.";
-      } else if (Number(form.salary_min) > Number(form.salary_max)) {
+      } else if (minSal < 10) {
+        newErrors.salary = "Minimum salary must be at least $10.";
+      } else if (minSal > maxSal) {
         newErrors.salary = "Minimum salary cannot exceed maximum salary.";
       }
     }
@@ -241,13 +251,66 @@ export default function JobPosting() {
     if (!form.district_code && provinces.length > 0) {
       newErrors.district = "Please select a District.";
     }
-    if (!form.exact_address.trim()) {
-      newErrors.exact_address = "Please enter a specific location.";
+    const trimmedAddress = form.exact_address.trim();
+    if (!trimmedAddress || trimmedAddress.length < 5) {
+      newErrors.exact_address = "Please enter a specific location with at least 5 characters.";
     }
 
-   
-    if (form.selected_industries.length === 0) {
+    // Anti-XSS Regex
+    const xssRegex = /<\s*script\b|javascript:|onerror=|onload=|on\w+=/i;
+
+    // Validate Description
+    const trimmedDesc = (form.job_description || "").trim();
+    if (!trimmedDesc || trimmedDesc.length < 50 || trimmedDesc.length > 5000) {
+      newErrors.job_description = "Job Description must be between 50 and 5000 characters.";
+    } else if (xssRegex.test(trimmedDesc)) {
+      newErrors.job_description = "Malicious code detected in Job Description (XSS).";
+    }
+
+    // Validate Requirements
+    const trimmedReq = (form.job_requirements || "").trim();
+    if (!trimmedReq || trimmedReq.length < 50 || trimmedReq.length > 5000) {
+      newErrors.job_requirements = "Job Requirements must be between 50 and 5000 characters.";
+    } else if (xssRegex.test(trimmedReq)) {
+      newErrors.job_requirements = "Malicious code detected in Job Requirements (XSS).";
+    }
+
+    // Validate Deadline
+    if (form.deadline) {
+      const deadlineDate = new Date(form.deadline);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const diffTime = deadlineDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays < 3) {
+        newErrors.deadline = "Deadline must be at least 3 days from today.";
+      } else if (diffDays > 365) {
+        newErrors.deadline = "Deadline cannot exceed 365 days from today.";
+      }
+    }
+
+    // Validate Age Requirement
+    if (form.age_req) {
+      const ageTrimmed = form.age_req.trim();
+      const ageMatch = ageTrimmed.match(/^(\d+)-(\d+)$/);
+      if (!ageMatch) {
+        newErrors.age_req = "Age requirement must be in format 'Min-Max' (e.g. 20-30).";
+      } else {
+        const minAge = parseInt(ageMatch[1], 10);
+        const maxAge = parseInt(ageMatch[2], 10);
+        if (minAge > maxAge) {
+          newErrors.age_req = "Minimum age cannot be greater than maximum age.";
+        }
+      }
+    }
+
+    // Validate Industries & Skills
+    if (!Array.isArray(form.selected_industries) || form.selected_industries.length === 0) {
       newErrors.industries = "Please select at least one industry.";
+    }
+    if (!Array.isArray(form.selected_skills)) {
+      newErrors.skills = "Invalid format for selected skills.";
     }
 
     setErrors(newErrors);
@@ -296,8 +359,8 @@ export default function JobPosting() {
 
       const payload = {
         title: form.title,
-        description: form.description || form.title,
-        requirements: form.requirements || form.selected_skills.map(id => dbSkills.find(s => s.id === id)?.name).filter(Boolean).join(", "),
+        description: form.job_description || form.title,
+        requirements: form.job_requirements || form.selected_skills.map(id => dbSkills.find(s => s.id === id)?.name).filter(Boolean).join(", "),
         selected_skills: form.selected_skills,
         selected_industries: form.selected_industries,
         salary_min: form.salary_type === 'specific' ? parseInt(form.salary_min) : null,
@@ -333,7 +396,8 @@ export default function JobPosting() {
         if (typeof fetchWalletInfo === 'function') {
           fetchWalletInfo();
         }
-        setTimeout(() => navigate('/company/profile'), 3000);
+        setSubmittedJobId(res.data.jobId || Math.floor(Math.random() * 10000));
+        window.scrollTo(0, 0);
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Failed to post job';
@@ -502,39 +566,46 @@ export default function JobPosting() {
                   <label>Work Location <span>*</span></label>
                   <div className="jp-location-grid">
                     <div>
-                      <label className="jp-sub-label">Floor / Room</label>
-                      <input type="text" name="floor_room" value={form.floor_room} onChange={handleChange} placeholder="Floor/Room" />
-                    </div>
-                    <div>
                       <label className="jp-sub-label">Specific Location <span>*</span></label>
                       <input type="text" name="exact_address" value={form.exact_address} onChange={handleChange} placeholder="e.g. 123 Main St" className={errors.exact_address ? 'has-error' : ''} />
                       {errors.exact_address && <span className="jp-error-text">{errors.exact_address}</span>}
                     </div>
                     <div>
                       <label className="jp-sub-label">Province / City <span>*</span></label>
-                      <select onChange={handleProvinceChange} value={form.province_code} className={errors.province ? 'has-error' : ''}>
-                        <option value="">Select</option>
-                        {provinces.map(p => <option key={p.code} value={p.code}>{p.name}</option>)}
-                      </select>
+                      <Select
+                        options={provinces.map(p => ({ value: p.code, label: p.name }))}
+                        value={form.province_code ? { value: form.province_code, label: form.province } : null}
+                        onChange={handleProvinceChange}
+                        isClearable
+                        placeholder="Search province..."
+                        className={errors.province ? 'has-error' : ''}
+                      />
                       {errors.province && <span className="jp-error-text">{errors.province}</span>}
                     </div>
                     {form.province_code && (
                       <div>
                         <label className="jp-sub-label">District <span>*</span></label>
-                        <select onChange={handleDistrictChange} value={form.district_code} className={errors.district ? 'has-error' : ''}>
-                          <option value="">Select</option>
-                          {districts.map(d => <option key={d.code} value={d.code}>{d.name}</option>)}
-                        </select>
+                        <Select
+                          options={districts.map(d => ({ value: d.code, label: d.name }))}
+                          value={form.district_code ? { value: form.district_code, label: form.district } : null}
+                          onChange={handleDistrictChange}
+                          isClearable
+                          placeholder="Search district..."
+                          className={errors.district ? 'has-error' : ''}
+                        />
                         {errors.district && <span className="jp-error-text">{errors.district}</span>}
                       </div>
                     )}
                     {form.district_code && (
                       <div>
                         <label className="jp-sub-label">Ward <span>*</span></label>
-                        <select onChange={handleWardChange} value={form.ward}>
-                          <option value="">Select Ward</option>
-                          {wards.map(w => <option key={w.code} value={w.name}>{w.name}</option>)}
-                        </select>
+                        <Select
+                          options={wards.map(w => ({ value: w.code, label: w.name }))}
+                          value={form.ward ? { value: w.code, label: form.ward } : null}
+                          onChange={handleWardChange}
+                          isClearable
+                          placeholder="Search ward..."
+                        />
                       </div>
                     )}
                   </div>
@@ -675,7 +746,8 @@ export default function JobPosting() {
                   </div>
                   <div className="jp-field">
                     <label>Age Requirement</label>
-                    <input type="text" name="age_req" value={form.age_req} onChange={handleChange} placeholder="e.g. 20-30" />
+                    <input type="text" name="age_req" value={form.age_req} onChange={handleChange} placeholder="e.g. 20-30" className={errors.age_req ? 'has-error' : ''} />
+                    {errors.age_req && <span className="jp-error-text">{errors.age_req}</span>}
                   </div>
                   <div className="jp-field">
                     <label>Language Requirement</label>
@@ -687,7 +759,8 @@ export default function JobPosting() {
 
                 <div className="jp-field mt-10">
                   <label>Application Deadline</label>
-                  <input type="date" name="deadline" value={form.deadline} onChange={handleChange} min={todayStr()} style={{ width: '200px' }} />
+                  <input type="date" name="deadline" value={form.deadline} onChange={handleChange} min={todayStr()} style={{ width: '200px' }} className={errors.deadline ? 'has-error' : ''} />
+                  {errors.deadline && <span className="jp-error-text" style={{display: 'block'}}>{errors.deadline}</span>}
                 </div>
 
               </div>

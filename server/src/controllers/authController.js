@@ -40,6 +40,7 @@ const authController = {
                     [otp, expiresAt, newUserId]
                 );
 
+                console.log(`[DEV MODE] OTP for ${email}: ${otp}`);
                 await emailService.sendCandidateOTP(email, otp);
 
                 const defaultFullName = email.split('@')[0];
@@ -393,6 +394,7 @@ const authController = {
                 [otp, expiresAt, userId]
             );
 
+            console.log(`[DEV MODE] Password Change OTP for ${email}: ${otp}`);
             await emailService.sendChangePasswordOTP(email, otp);
 
             return res.status(200).json({ message: "OTP code sent successfully to your email!" });

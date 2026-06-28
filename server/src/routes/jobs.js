@@ -52,22 +52,89 @@ router.post('/', authMiddleware, async (req, res) => {
       });
     }
 
-    if (salary_min != null && salary_max != null && salary_min > salary_max) {
-      return res.status(400).json({
-        message: 'Minimum salary cannot exceed maximum salary'
-      });
+    // Strict Validation: Title
+    const trimmedTitle = title ? title.trim() : '';
+    if (trimmedTitle.length < 10 || trimmedTitle.length > 100) {
+      return res.status(400).json({ message: "Job Title must be between 10 and 100 characters long." });
+    }
+    if (/^[\d\W_]+$/.test(trimmedTitle)) {
+      return res.status(400).json({ message: "Job Title cannot contain only numbers or special characters." });
     }
 
+    // Strict Validation: Salary
+    // If salary_type is not 'specific', the frontend sets min/max to null.
+    // If they are provided, we validate them.
+    if (salary_min !== null && salary_max !== null) {
+      if (Number(salary_min) < 10) {
+        return res.status(400).json({ message: "Minimum salary must be at least $10." });
+      }
+      if (Number(salary_min) > Number(salary_max)) {
+        return res.status(400).json({ message: "Minimum salary cannot exceed maximum salary." });
+      }
+    }
+
+    // Strict Validation: Address
+    const trimmedAddress = exact_address ? exact_address.trim() : '';
+    if (!trimmedAddress || trimmedAddress.length < 5) {
+      return res.status(400).json({ message: "Please enter a specific location with at least 5 characters." });
+    }
+
+    // Anti-XSS Regex
+    const xssRegex = /<\s*script\b|javascript:|onerror=|onload=|on\w+=/i;
+
+    // Strict Validation: Description
+    const trimmedDesc = description ? description.trim() : '';
+    if (!trimmedDesc || trimmedDesc.length < 50 || trimmedDesc.length > 5000) {
+      return res.status(400).json({ message: "Job Description must be between 50 and 5000 characters." });
+    }
+    if (xssRegex.test(trimmedDesc)) {
+      return res.status(400).json({ message: "Malicious code detected in Job Description (XSS)." });
+    }
+
+    // Strict Validation: Requirements
+    const trimmedReq = requirements ? requirements.trim() : '';
+    if (!trimmedReq || trimmedReq.length < 50 || trimmedReq.length > 5000) {
+      return res.status(400).json({ message: "Job Requirements must be between 50 and 5000 characters." });
+    }
+    if (xssRegex.test(trimmedReq)) {
+      return res.status(400).json({ message: "Malicious code detected in Job Requirements (XSS)." });
+    }
+
+    // Strict Validation: Deadline
     if (deadline) {
       const deadlineDate = new Date(deadline);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-
-      if (deadlineDate < today) {
-        return res.status(400).json({
-          message: 'Deadline must be today or later'
-        });
+      const diffTime = deadlineDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays < 3) {
+        return res.status(400).json({ message: "Deadline must be at least 3 days from today." });
+      } else if (diffDays > 365) {
+        return res.status(400).json({ message: "Deadline cannot exceed 365 days from today." });
       }
+    }
+
+    // Strict Validation: Age Requirement
+    if (age_req) {
+      const ageTrimmed = age_req.trim();
+      const ageMatch = ageTrimmed.match(/^(\d+)-(\d+)$/);
+      if (!ageMatch) {
+        return res.status(400).json({ message: "Age requirement must be in format 'Min-Max' (e.g. 20-30)." });
+      }
+      const minAge = parseInt(ageMatch[1], 10);
+      const maxAge = parseInt(ageMatch[2], 10);
+      if (minAge > maxAge) {
+        return res.status(400).json({ message: "Minimum age cannot be greater than maximum age." });
+      }
+    }
+
+    // Strict Validation: Industries & Skills
+    if (!Array.isArray(selected_industries) || selected_industries.length === 0) {
+      return res.status(400).json({ message: "Please select at least one industry." });
+    }
+    if (!Array.isArray(selected_skills)) {
+      return res.status(400).json({ message: "Invalid format for selected skills." });
     }
 
     const [companies] = await pool.query(
