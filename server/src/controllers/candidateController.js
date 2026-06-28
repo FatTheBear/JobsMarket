@@ -570,7 +570,7 @@ const candidateController = {
             const names = rows.map(row => row.name);
             return res.status(200).json(names);
         } catch (error) {
-            console.error("Error suggesting industries:", error);
+            console.error("Error suggesting industry:", error);
             return res.status(500).json({ message: "Server error during suggestion!" });
         }
     },

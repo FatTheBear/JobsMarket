@@ -37,6 +37,44 @@ router.get("/dashboard/applications", async (req, res) => {
   }
 });
 
+// GET /api/company/dashboard/stats — Thống kê tổng quan cho company đang đăng nhập
+router.get('/dashboard/stats', authMiddleware, async (req, res) => {
+  try {
+    const hr_id = req.user.id;
+
+    // Lấy company theo hr_id
+    const [companies] = await pool.query('SELECT id FROM Company WHERE hr_id = ?', [hr_id]);
+    if (companies.length === 0) {
+      return res.status(404).json({ message: 'Company not found' });
+    }
+    const companyId = companies[0].id;
+
+    // Đếm số job + tổng lượt xem
+    const [jobRows] = await pool.query(
+      `SELECT COUNT(*) AS jobs, COALESCE(SUM(view_count), 0) AS views
+   FROM Job_Posting WHERE company_id = ? AND status = 'Approved'`,
+      [companyId]
+    );
+
+    // Đếm số đơn ứng tuyển vào các job của company
+    const [appRows] = await pool.query(
+      `SELECT COUNT(*) AS applications
+       FROM Application a
+       JOIN Job_Posting jp ON a.job_id = jp.id
+       WHERE jp.company_id = ?`,
+      [companyId]
+    );
+
+    res.json({
+      jobs: jobRows[0].jobs,
+      applications: appRows[0].applications,
+      views: jobRows[0].views
+    });
+  } catch (err) {
+    console.error('GET COMPANY STATS ERROR:', err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
 
 // GET /api/company/:hr_id — Lấy thông tin công ty theo hr_id
 router.get('/:hr_id', async (req, res) => {
@@ -60,13 +98,14 @@ router.get('/:hr_id', async (req, res) => {
 });
 
 // POST /api/company — Tạo mới thông tin công ty
-router.post('/', upload.single('logo'), async (req, res) => {
+// Accept both `logo` and `cover_image` files (optional)
+router.post('/', upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'cover_image', maxCount: 1 }]), async (req, res) => {
   try {
-    const { 
-      hr_id, 
-      industry_id, 
-      name, 
-      website, 
+    const {
+      hr_id,
+      industry_id,
+      name,
+      website,
       address,
       email,
       company_phone,
@@ -80,19 +119,24 @@ router.post('/', upload.single('logo'), async (req, res) => {
     }
 
     let logo_url = req.body.logo_url;
-    if (req.file) {
-      logo_url = `/uploads/${req.file.filename}`;
+    let cover_image_url = req.body.cover_image_url;
+    if (req.files && req.files['logo'] && req.files['logo'][0]) {
+      logo_url = `/uploads/avatars/${req.files['logo'][0].filename}`;
+    }
+    if (req.files && req.files['cover_image'] && req.files['cover_image'][0]) {
+      cover_image_url = `/uploads/avatars/${req.files['cover_image'][0].filename}`;
     }
 
     const [result] = await pool.query(
-      `INSERT INTO Company (hr_id, industry_id, name, logo_url, website, address,
+      `INSERT INTO Company (hr_id, industry_id, name, logo_url, cover_image_url, website, address,
                             email, company_phone, tax_id, size, description)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         hr_id,
         industry_id,
         name,
         logo_url || null,
+        cover_image_url || null,
         website || null,
         address || null,
         email || null,
@@ -112,13 +156,13 @@ router.post('/', upload.single('logo'), async (req, res) => {
   }
 });
 // PUT /api/company/:hr_id — Cập nhật thông tin công ty
-router.put('/:hr_id', upload.single('logo'), async (req, res) => {
+router.put('/:hr_id', upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'cover_image', maxCount: 1 }]), async (req, res) => {
   try {
     const { hr_id } = req.params;
-    const { 
-      industry_id, 
-      name, 
-      website, 
+    const {
+      industry_id,
+      name,
+      website,
       address,
       email,
       company_phone,
@@ -132,19 +176,24 @@ router.put('/:hr_id', upload.single('logo'), async (req, res) => {
     }
 
     let logo_url = req.body.logo_url;
-    if (req.file) {
-      logo_url = `/uploads/${req.file.filename}`;
+    let cover_image_url = req.body.cover_image_url;
+    if (req.files && req.files['logo'] && req.files['logo'][0]) {
+      logo_url = `/uploads/avatars/${req.files['logo'][0].filename}`;
+    }
+    if (req.files && req.files['cover_image'] && req.files['cover_image'][0]) {
+      cover_image_url = `/uploads/avatars/${req.files['cover_image'][0].filename}`;
     }
 
     const [result] = await pool.query(
       `UPDATE Company
-       SET industry_id = ?, name = ?, logo_url = ?, website = ?, address = ?,
+       SET industry_id = ?, name = ?, logo_url = ?, cover_image_url = ?, website = ?, address = ?,
            email = ?, company_phone = ?, tax_id = ?, size = ?, description = ?
        WHERE hr_id = ?`,
       [
         industry_id,
         name,
         logo_url || null,
+        cover_image_url || null,
         website || null,
         address || null,
         email || null,
@@ -170,10 +219,10 @@ router.put('/:hr_id', upload.single('logo'), async (req, res) => {
 router.post('/:hr_id/saved-candidates/:candidate_id', async (req, res) => {
   try {
     const { hr_id, candidate_id } = req.params;
-    
+
     // Check if already saved
     const [existing] = await pool.query('SELECT * FROM Saved_Candidate WHERE hr_id = ? AND candidate_id = ?', [hr_id, candidate_id]);
-    
+
     if (existing.length > 0) {
       // Unsave
       await pool.query('DELETE FROM Saved_Candidate WHERE hr_id = ? AND candidate_id = ?', [hr_id, candidate_id]);
@@ -316,6 +365,42 @@ router.post('/:id/follow', authMiddleware, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: err.message });
   }
 });
+
+router.get('/search-titles', async (req, res) => {
+    try {
+        const { q } = req.query;
+
+        if (!q || q.trim().length === 0) {
+            return res.status(200).json({
+                success: true,
+                data: []
+            });
+        }
+
+        const searchQuery = `%${q.trim()}%`;
+        const query = `
+            SELECT title 
+            FROM job_title_dictionary 
+            WHERE title LIKE ? 
+            ORDER BY title ASC 
+            LIMIT 10
+        `;
+        
+        const [rows] = await db.query(query, [searchQuery]);
+        
+        res.status(200).json({
+            success: true,
+            data: rows.map(row => row.title)
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Internal Server Error'
+        });
+    }
+});
+
+
 
 
 module.exports = router;

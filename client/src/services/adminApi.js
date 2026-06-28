@@ -43,16 +43,14 @@ export const adminApi = {
     return res.data;
   },
 
-  // ==========================================================================
-  // HÀM LẤY DỮ LIỆU CHO CÁC TAB
-  // ==========================================================================
+  
   getSkills: async () => {
     const res = await API.get('/admin/skills');
     return res.data;
   },
 
   getIndustries: async () => {
-    const res = await API.get('/admin/industries');
+    const res = await API.get('/admin/industry');
     return res.data;
   },
 
@@ -61,9 +59,7 @@ export const adminApi = {
     return res.data;
   },
 
-  // ==========================================================================
-  // THÊM MỚI: 2 HÀM DƯỚI ĐÂY ĐỂ ĐỂ PHỤC VỤ NÚT "+ ADD" TRÊN GIAO DIỆN CATEGORIES
-  // ==========================================================================
+  
   createSkill: async (name) => {
     const res = await API.post('/admin/skills', { name });
     return res.data;
@@ -108,9 +104,8 @@ export const adminApi = {
     return res.data;
   },
 
-  // ==========================================================================
-  // COIN EXCHANGE FEES
-  // ==========================================================================
+  
+
   getCoinFees: async () => {
     const res = await API.get('/admin/coin-fees');
     return res.data;
@@ -131,9 +126,7 @@ export const adminApi = {
     return res.data;
   },
 
-  // ==========================================================================
-  // NOTIFICATIONS
-  // ==========================================================================
+
 
   getNotifications: async () => {
     const res = await API.get('/admin/notifications');
@@ -161,13 +154,13 @@ export const adminApi = {
     return res.data;
   },
 
- getTrends: async (period = '30d', year, month) => {
+  getTrends: async (period = '30d', year, month) => {
     const params = new URLSearchParams({ period });
     if (year) params.append('year', year);
     if (month) params.append('month', month);
     const res = await API.get(`/admin/dashboard-trends?${params.toString()}`);
     return res.data;
-},
+  },
 
   getTopSkills: async () => {
     const res = await API.get('/admin/top-skills');
@@ -176,6 +169,11 @@ export const adminApi = {
 
   getTopIndustries: async () => {
     const res = await API.get('/admin/top-industries');
+    return res.data;
+  },
+
+  createNewsCategory: async (name) => {
+    const res = await API.post('/admin/news-categories', { name });
     return res.data;
   },
 };

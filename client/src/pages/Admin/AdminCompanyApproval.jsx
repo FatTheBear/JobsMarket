@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useModal } from './useModal'; // Đảm bảo đường dẫn này đúng
 
 export default function AdminCompanyApproval() {
+    const { showAlert, showConfirm } = useModal();
     const [companies, setCompanies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [actionId, setActionId] = useState(null);
@@ -13,6 +15,7 @@ export default function AdminCompanyApproval() {
         fetchPendingCompanies();
     }, []);
 
+    
     const fetchPendingCompanies = async () => {
         try {
             const token = localStorage.getItem("token");
@@ -21,14 +24,16 @@ export default function AdminCompanyApproval() {
             });
             setCompanies(response.data);
         } catch (error) {
-            showToast("Failed to load pending companies.", "error");
+            await showAlert("Failed to load pending companies.", "error");
         } finally {
             setLoading(false);
         }
     };
 
     const handleApprove = async (companyId, companyName) => {
-        if (!window.confirm(`Are you sure you want to approve ${companyName}?`)) return;
+        // Thay thế confirm bằng modal
+        const confirmed = await showConfirm(`Are you sure you want to approve ${companyName}?`);
+        if (!confirmed) return;
 
         setActionId(companyId);
         try {
@@ -38,17 +43,13 @@ export default function AdminCompanyApproval() {
             });
 
             setCompanies(companies.filter(c => c.company_id !== companyId));
-            showToast(`Approved! Activation code for ${companyName}: ${response.data.activationCode}`, "success");
+            // Thông báo thành công với modal
+            await showAlert(`Approved! Activation code for ${companyName}: ${response.data.activationCode}`, "success");
         } catch (error) {
-            showToast(error.response?.data?.message || "Failed to approve company.", "error");
+            await showAlert(error.response?.data?.message || "Failed to approve company.", "error");
         } finally {
             setActionId(null);
         }
-    };
-
-    const showToast = (message, type) => {
-        setToast({ show: true, message, type });
-        setTimeout(() => setToast({ show: false, message: "", type: "" }), 6000);
     };
 
     if (loading) {

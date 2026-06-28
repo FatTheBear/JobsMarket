@@ -49,6 +49,7 @@ const postRoutes = require('./routes/postRoutes');
 // const companyRoutes = require('./routes/companyRoutes');
 
 
+app.use('/api/industry', industryRoutes);
 app.use('/api/company', companyRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -59,7 +60,6 @@ app.use('/api/company-public', companyPublicRoutes);
 app.use('/api/skills', skillsRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/jobs', jobs);
-app.use('/api/industries', industryRoutes);
 app.use('/api/posts', postRoutes);
 
 

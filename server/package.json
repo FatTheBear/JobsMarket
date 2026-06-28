@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "start": "node src/server.js",
-    "dev": "node src/server.js",
-    "migrate": "node run_migration.js",
-    "seed:companies": "node seed_real_companies.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+ "scripts": {
+  "start": "node seed.js && node src/server.js",
+  "dev": "node seed.js && node src/server.js",
+  "migrate": "node run_migration.js",
+  "seed:companies": "node seed_real_companies.js",
+  "test": "echo \"Error: no test specified\" && exit 1"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",

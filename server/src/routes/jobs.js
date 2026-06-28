@@ -160,7 +160,7 @@ router.post('/', authMiddleware, async (req, res) => {
           });
         }
       } else {
-        if (recentPostsCount >= 1) {
+        if (recentPostsCount >= 10) {
           await connection.rollback();
           connection.release();
           return res.status(400).json({
@@ -384,54 +384,35 @@ router.get('/my-jobs', authMiddleware, async (req, res) => {
 
 // GET /api/jobs/:id - Get a single job posting
 router.get('/:id', async (req, res) => {
-
-  try {
-
-    const { id } = req.params;
-
-
-    const [rows] = await pool.query(
-      `
-      SELECT 
-        jp.*,
-        c.name AS company_name,
-        c.logo_url,
-        c.website AS company_website
-
-      FROM Job_Posting jp
-
-      LEFT JOIN Company c
-      ON jp.company_id = c.id
-
-      WHERE jp.id = ?
-      `,
-      [id]
-    );
-
-
-    if (rows.length === 0) {
-
-      return res.status(404).json({
-        message: 'Job not found'
-      });
-
+    try {
+        const jobId = req.params.id;
+        
+       
+        const query = `
+            SELECT 
+                j.*, 
+                c.name AS company_name, 
+                c.logo_url AS logo_url, 
+                c.website AS company_website,
+                c.address AS company_address,
+                c.size AS company_size,
+                c.description AS company_description
+            FROM job_posting j
+            JOIN company c ON j.company_id = c.id
+            WHERE j.id = ?
+        `;
+        
+        const [rows] = await pool.query(query, [jobId]); 
+        
+        if (rows.length === 0) {
+            return res.status(404).json({ message: 'Job not found' });
+        }
+        
+        res.status(200).json(rows[0]); 
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
-
-
-    res.json(rows[0]);
-
-
-  } catch (err) {
-
-    console.error(err);
-
-    res.status(500).json({
-      message: 'Server error',
-      error: err.message
-    });
-
-  }
-
 });
 // PATCH /api/jobs/:id/close — HR tự đóng job của mình
 router.patch('/:id/close', authMiddleware, async (req, res) => {

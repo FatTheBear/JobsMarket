@@ -217,7 +217,6 @@ export default function JobCard({ job, onClick }) {
   return (
     <>
       <div className="job-card-container job-card-horizontal" onClick={onClick}>
-        {/* LEFT: Logo */}
         <img
           className="job-card-logo"
           src={getValidLogo()}
@@ -225,36 +224,26 @@ export default function JobCard({ job, onClick }) {
           alt="Company Logo"
         />
 
-        {/* MIDDLE: Main info */}
         <div className="job-card-middle">
           <h3 className="job-card-title">{title || 'Untitled Job'}</h3>
           <p className="job-card-company">{company_name || 'Company name not provided'}</p>
           <div className="job-card-tags">
             <span className="job-tag tag-salary">{formatSalary()}</span>
             <span className="job-tag tag-location">
-              📍 {province
+              {province
                 ? province.replace(/ Province| City/gi, '').trim()
                 : district || exact_address || 'Updating'}
             </span>
             <span className="job-tag tag-type">{job_type || 'Full-time'}</span>
             {job_level && <span className="job-tag tag-level">{job_level}</span>}
-            {experience_req && <span className="job-tag tag-exp">🎓 {experience_req}</span>}
           </div>
         </div>
 
-        {/* RIGHT: Deadline + Apply button */}
         <div className="job-card-right">
           {formatDeadline() && (
             <p className="job-card-deadline">Deadline: {formatDeadline()}</p>
           )}
           <div className="job-card-actions">
-            <button
-              className={`job-card-apply-btn${hasApplied ? ' applied' : ''}`}
-              onClick={handleOpenApplyModal}
-              disabled={hasApplied}
-            >
-              {hasApplied ? 'Applied' : 'Apply Now'}
-            </button>
             <button
               className={`job-card-save-btn ${isSaved ? 'saved' : ''}`}
               onClick={toggleSaveJob}
@@ -263,15 +252,8 @@ export default function JobCard({ job, onClick }) {
               {isSaved ? 'Saved' : 'Save'}
             </button>
           </div>
-          <div className="job-card-footer">
-            <div className="job-card-tags">
-              <span className="job-tag tag-salary">{formatSalary()}</span>
-              <span className="job-tag tag-location">{loc || 'Location updating'}</span>
-              <span className="job-tag tag-type">{job_type || 'Full-time'}</span>
-            </div>
-          </div>
         </div>
-      </div> {/* ĐÃ THÊM THẺ ĐÓNG CHO job-card-container */}
+      </div>
 
       {/* Apply Modal */}
       {showApplyModal && (

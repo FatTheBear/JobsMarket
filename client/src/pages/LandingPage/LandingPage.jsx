@@ -197,7 +197,7 @@ export default function HomePage() {
       <section className={styles.section}>
         <div className={styles.container}>
           <div className={styles.sectionHeaderCol}>
-            <h2 className={styles.sectionTitleGreen}>POPULAR INDUSTRIES</h2>
+            <h2 className={styles.sectionTitleGreen}>POPULAR INDUSTRY</h2>
             <p className={styles.sectionSub}>Looking for a new job? View the job list <span className={styles.linkText} onClick={handleRequireLogin}>here</span></p>
           </div>
           <div className={styles.categoriesGrid}>

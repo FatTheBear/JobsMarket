@@ -7,15 +7,13 @@ const AdminNews = ({
   onRefresh,
   onCreate,
   onEdit,
-  onDelete
+  onDelete,
+  onView
 }) => {
   const [search, setSearch] = useState('');
   const handleDelete = (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this article?");
+    onDelete(id);
 
-    if (confirmDelete) {
-      onDelete(id);
-    }
   };
   const filteredNews = (newsList || []).filter((item) =>
     item.title?.toLowerCase().includes(search.toLowerCase())
@@ -128,14 +126,18 @@ const AdminNews = ({
 
                   <td>
                     <div
+                      onClick={() => onView(news)}
                       style={{
                         fontWeight: '600',
-                        color: '#fff',
+                         color: '#01796F',  
                         maxWidth: '250px',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
+                        whiteSpace: 'nowrap',
+                        cursor: 'pointer',
+                        textDecoration: 'underline'   
                       }}
+                      title={news.title}              
                     >
                       {news.title}
                     </div>
@@ -144,7 +146,8 @@ const AdminNews = ({
                       <div
                         style={{
                           fontSize: '12px',
-                          color: '#64748b'
+                          color: '#64748b',
+                          pointerEvents: 'none'       
                         }}
                       >
                         /{news.slug}

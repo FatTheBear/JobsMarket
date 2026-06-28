@@ -1,7 +1,27 @@
 import React from 'react';
 import { CheckCircle, XCircle } from 'lucide-react';
+import { useModal } from './useModal'; // Nhớ kiểm tra đường dẫn file này
 
 export default function AdminJob({ pendingJobs, onReviewJob }) {
+  const { showAlert, showConfirm } = useModal();
+
+  // Hàm xử lý việc duyệt hoặc từ chối công việc
+  const handleAction = async (id, decision) => {
+    const actionText = decision === 'Approved' ? 'approve' : 'reject';
+    
+    // Hiển thị xác nhận trước khi thực hiện
+    const confirmed = await showConfirm(`Are you sure you want to ${actionText} this job posting?`);
+    if (!confirmed) return;
+
+    try {
+      // Gọi hàm onReviewJob truyền từ component cha (AdminDashboard)
+      await onReviewJob(id, decision);
+      await showAlert(`Job has been ${actionText}ed successfully!`, "success");
+    } catch (error) {
+      await showAlert(`Failed to ${actionText} the job. Please try again.`, "error");
+    }
+  };
+
   return (
     <div>
       <h1 className="admin-title">Approve Pending Job Postings</h1>
@@ -22,8 +42,18 @@ export default function AdminJob({ pendingJobs, onReviewJob }) {
                 </div>
               </div>
               <div className="btn-group">
-                <button onClick={() => onReviewJob(job.id, 'Approved')} className="btn-approve"><CheckCircle size={16} /> Approve</button>
-                <button onClick={() => onReviewJob(job.id, 'Rejected')} className="btn-reject"><XCircle size={16} /> Reject</button>
+                <button 
+                  onClick={() => handleAction(job.id, 'Approved')} 
+                  className="btn-approve"
+                >
+                  <CheckCircle size={16} /> Approve
+                </button>
+                <button 
+                  onClick={() => handleAction(job.id, 'Rejected')} 
+                  className="btn-reject"
+                >
+                  <XCircle size={16} /> Reject
+                </button>
               </div>
             </div>
           ))}

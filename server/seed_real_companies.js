@@ -19,7 +19,7 @@ async function seedRealCompanies() {
         address: 'FPT Tower, 72A Ngo Gia Tu, District 10, Ho Chi Minh City',
         logo_url: 'https://upload.wikimedia.org/wikipedia/en/5/5f/FPT_Software_logo.svg',
         cover_image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=400&fit=crop',
-        company_bio: 'FPT Software is a leading software development company based in Vietnam with global presence. We deliver innovative software solutions to enterprises worldwide across various industries including automotive, healthcare, and telecommunications. With over 20,000 employees globally, we provide software engineering, AI/ML solutions, cloud services, and digital transformation services.'
+        company_bio: 'FPT Software is a leading software development company based in Vietnam with global presence. We deliver innovative software solutions to enterprises worldwide across various industry including automotive, healthcare, and telecommunications. With over 20,000 employees globally, we provide software engineering, AI/ML solutions, cloud services, and digital transformation services.'
       },
       {
         name: 'Techcombank',
@@ -106,9 +106,9 @@ async function seedRealCompanies() {
 
     // Get industry IDs
     console.log('Fetching industry IDs...');
-    const [industries] = await pool.query('SELECT id, name FROM Industry');
+    const [industry] = await pool.query('SELECT id, name FROM Industry');
     const industryMap = {};
-    industries.forEach(ind => {
+    industry.forEach(ind => {
       industryMap[ind.name.toLowerCase()] = ind.id;
     });
 
