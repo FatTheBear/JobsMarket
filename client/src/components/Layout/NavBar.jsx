@@ -1,4 +1,3 @@
-
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import './NavBar.css';
 import React, { useState, useEffect } from 'react';
@@ -12,26 +11,29 @@ import NotificationDropdown from '../Notifications/NotificationDropdown';
 const API_URL = 'http://localhost:5000';
 const MENU_CONFIG = {
   guest: [
-    { label: 'Explore', path: '/community' },
-    { label: 'Companies', path: '/companies' },
-    { label: 'Career Guide', path: '/guide' }
+    { label: 'Home', path: '/' },
+    { label: 'Find Jobs', path: '/companies' },
+    { label: 'Career Hub', path: '/community' },
+    { label: 'Career Guide', path: '/guide' },
+
   ],
   candidate: [
     { label: 'Home', path: '/dashboard' },
-    { label: 'Explore', path: '/community' },
-    { label: 'My Applications', path: '/applications' },
-    { label: 'Saved', path: '/saved' }
+    { label: 'Find Jobs', path: '/companies' },
+    { label: 'Career Hub', path: '/community' },
+    { label: 'Career Guide', path: '/guide' },
   ],
   company: [
-    { label: 'Explore', path: '/community' },
-    { label: 'Dashboard', path: '/company/dashboard' },
-    { label: 'Post a Job', path: '/company/post-job' },
-    { label: 'Candidates', path: '/company/applicants' }
+    { label: 'Home', path: '/company/dashboard' },
+    { label: 'Find Candidates', path: '/company/applicants' },
+    { label: 'Hiring Hub', path: '/community' },
+    { label: 'Hiring Insights', path: '/company/post-job' },
+   
   ],
   admin: [
-    { label: 'Dashboard', path: '/admin' },
-    { label: 'Users', path: '/admin/users' },
-    { label: 'Approvals', path: '/admin/approvals' }
+    { label: 'Home', path: '/admin' },
+    { label: 'Industry', path: '/admin/users' },
+    { label: 'Posts', path: '/admin/approvals' }
   ]
 };
 
@@ -204,6 +206,11 @@ export default function NavBar() {
     navigate('/');
     window.location.reload();
   };
+  const handleProfileNavigation = () => {
+    if (role === 'candidate') navigate('/candidate/my-profile');
+    else if (role === 'company') navigate('/company/profile');
+    else if (role === 'admin') navigate('/admin');
+  };
 
   return (
     <nav className="minimal-navbar">
@@ -213,17 +220,28 @@ export default function NavBar() {
         <span className="brand-text">JobsMarket</span>
       </div>
 
-      {/* GIỮA: Menu thay đổi linh hoạt theo Role */}
+      
       <div className="nav-menu">
-        {menuItems.map((item, index) => (
-          <button
-            key={index}
-            className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
-            onClick={() => navigate(item.path)}
-          >
-            {item.label}
-          </button>
-        ))}
+        {menuItems.map((item, index) => {
+          const isActive = location.pathname === item.path; 
+          return (
+            <button
+              key={index}
+              className={`nav-link ${isActive ? 'active' : ''}`}
+              onClick={() => navigate(item.path)}
+            >
+              {item.label}
+
+              {isActive && (
+                <motion.div
+                  layoutId="nav-indicator"
+                  className="active-indicator"
+                  transition={{ type: "spring", stiffness: 120, damping: 20 }}
+                />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* PHẢI: Khối hiển thị User hoặc Nút Login */}
@@ -233,24 +251,21 @@ export default function NavBar() {
           <>
             <NotificationDropdown role={role} />
             <div className="nav-user-info">
+              <div className="nav-notification">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5a5a5a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <span className="notification-dot"></span>
+              </div>
+
               <img
                 src={avatarUrl}
                 alt="Avatar"
                 className="nav-avatar"
-                style={{ cursor: 'pointer' }}
-                onClick={() => {
-                  if (role === 'candidate') {
-                    navigate('/candidate/my-profile');
-                  } else if (role === 'company') {
-                    navigate('/company/profile');
-                  } else if (role === 'admin') {
-                    navigate('/admin');
-                  }
-                }}
+                onClick={handleProfileNavigation}
                 onError={(e) => {
-                  console.log("NavBar - img load error for avatarUrl:", avatarUrl ? avatarUrl.substring(0, 80) + "..." : null, e && e.nativeEvent ? e.nativeEvent : e);
                   if (avatarUrl && !avatarUrl.startsWith('data:image') && avatarUrl !== '/img/default-avatar.png') {
-                    // fallback to default
                     setAvatarUrl('/img/default-avatar.png');
                   }
                 }}
@@ -259,16 +274,7 @@ export default function NavBar() {
               <span
                 className="nav-user-name"
                 title={`Welcome, ${userName}`}
-                onClick={() => {
-                  if (role === 'candidate') {
-                    navigate('/candidate/my-profile');
-                  } else if (role === 'company') {
-                    navigate('/company/profile');
-                  } else if (role === 'admin') {
-                    navigate('/admin');
-                  }
-                }}
-                style={{ cursor: 'pointer' }}
+                onClick={handleProfileNavigation}
               >
                 {userName}
               </span>
@@ -280,7 +286,7 @@ export default function NavBar() {
         ) : (
           // --- HIỂN THỊ KHI CHƯA ĐĂNG NHẬP (TRANG LANDING PAGE) ---
           <>
-            <button className="nav-link" onClick={() => navigate('/auth')}>
+            <button className="nav-link-guest" onClick={() => navigate('/auth')}>
               Get Started
             </button>
 
