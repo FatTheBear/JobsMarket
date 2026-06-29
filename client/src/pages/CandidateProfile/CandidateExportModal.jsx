@@ -88,7 +88,7 @@ const CandidateExportModal = ({
           <h2>Professional Skills</h2>
           ${skills.length === 0 ? '<p>No skill entries added yet.</p>' : `
             <ul class="skills-list">
-              ${skills.map(s => `<li class="skill-item"><strong>${s.name}</strong> - Competency Level: ${s.level}%</li>`).join('')}
+              ${skills.map(s => `<li class="skill-item"><strong>${s.name}</strong></li>`).join('')}
             </ul>
           `}
         </div>
@@ -113,17 +113,9 @@ const CandidateExportModal = ({
       return;
     }
 
-    const skillsHtml = skills.map(s => `
-      <div class="skill-bar-row">
-        <div class="skill-meta">
-          <span class="skill-name">${s.name}</span>
-          <span class="skill-val">${s.level}%</span>
-        </div>
-        <div class="skill-progress-bg">
-          <div class="skill-progress-bar" style="width: ${s.level}%"></div>
-        </div>
-      </div>
-    `).join('');
+    const skillsHtml = `<div class="skills-list-pdf">` + skills.map(s => `
+      <span class="skill-badge-pdf">${s.name}</span>
+    `).join('') + `</div>`;
 
     const experiencesHtml = workExperiences.map(exp => `
       <div class="exp-item">
@@ -280,16 +272,20 @@ const CandidateExportModal = ({
             color: #334155;
             margin-bottom: 4px;
           }
-          .skill-progress-bg {
-            height: 6px;
-            background-color: #f1f5f9;
-            border-radius: 3px;
-            overflow: hidden;
+          .skills-list-pdf {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 5px;
           }
-          .skill-progress-bar {
-            height: 100%;
-            background-color: #01796F;
-            border-radius: 3px;
+          .skill-badge-pdf {
+            font-size: 12px;
+            font-weight: 500;
+            color: #01796F;
+            background-color: #f0fdf4;
+            border: 1px solid #dcfce7;
+            padding: 4px 10px;
+            border-radius: 20px;
           }
           .no-data {
             font-size: 13px;

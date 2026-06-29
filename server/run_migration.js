@@ -19,8 +19,21 @@ async function runMigration() {
                 throw err;
             }
         }
-
-
+        // 1b. Add coins column to User if not present
+        try {
+            console.log('Adding coins column to User...');
+            await pool.query(`
+                ALTER TABLE \`User\` 
+                ADD COLUMN \`coins\` INT DEFAULT 0
+            `);
+            console.log('Successfully added coins column to User.');
+        } catch (err) {
+            if (err.code === 'ER_DUP_FIELDNAME') {
+                console.log('Coins column already exists in User.');
+            } else {
+                throw err;
+            }
+        }
         // 2. Add education to Candidate_Profile if not present
         try {
             console.log('Adding education JSON column to Candidate_Profile...');

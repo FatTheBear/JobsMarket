@@ -429,6 +429,14 @@ const candidateController = {
                         'INSERT INTO Notification (user_id, title, content) VALUES (?, ?, ?)',
                         [jobInfo[0].company_user_id, notiTitle, notiContent]
                     );
+
+                    const io = req.app.get('socketio');
+                    if (io) {
+                        io.to(`user_${jobInfo[0].company_user_id}`).emit('notification', {
+                            title: notiTitle,
+                            content: notiContent
+                        });
+                    }
                 }
             } catch (notiErr) {
                 console.error("Error creating application notification for company:", notiErr);
@@ -466,7 +474,10 @@ const candidateController = {
                     a.id as application_id,
                     a.status,
                     a.applied_at,
+                    jp.id as job_id,
                     jp.title as job_title,
+                    jp.job_type,
+                    jp.job_level,
                     c.name as company_name,
                     c.logo_url as company_logo,
                     cv.cv_name,
@@ -491,7 +502,10 @@ const candidateController = {
                 companyName: app.company_name,
                 companyLogo: app.company_logo ? (app.company_logo.startsWith('http') ? app.company_logo : `http://localhost:5000${app.company_logo}`) : null,
                 cvName: app.cv_name,
-                cvUrl: app.cv_url ? `http://localhost:5000${app.cv_url}` : null
+                cvUrl: app.cv_url ? `http://localhost:5000${app.cv_url}` : null,
+                employmentType: app.job_type || 'Full-time',
+                jobLevel: app.job_level || 'Junior',
+                jobId: app.job_id
             }));
 
             return res.status(200).json(formattedApps);
@@ -512,8 +526,8 @@ const candidateController = {
                 [userId]
             );
 
-            // If no notifications found, auto-insert a welcome notification and an account security notification
-            if (rows.length === 0) {
+            // If no notifications found, auto-insert a welcome notification and an account security notification (only for Candidates)
+            if (rows.length === 0 && (req.user.role === 'Candidate' || req.user.role === 'candidate')) {
                 const welcomeTitle1 = "Welcome to JobsMarket! 🎉";
                 const welcomeContent1 = "Thank you for joining our platform. Complete your profile to start applying for jobs!";
                 const welcomeTitle2 = "Secure Your Account 🔒";

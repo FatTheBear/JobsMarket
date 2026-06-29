@@ -82,6 +82,11 @@ const walletController = {
         feeId: fee.id
       });
 
+      const notifyAdmins = req.app.get('notifyAdmins');
+      if (notifyAdmins) {
+        await notifyAdmins("💳 New Pending Deposit", `A user has created a pending PayPal order for ${fee.coins} coins (VND ${fee.price_vnd.toLocaleString()}).`);
+      }
+
       res.json({ id: order.result.id });
 
     } catch (error) {
@@ -100,6 +105,12 @@ const walletController = {
 
       if (capture.result.status === 'COMPLETED') {
          const result = await WalletModel.completePayPalTransaction(orderID);
+         
+         const notifyAdmins = req.app.get('notifyAdmins');
+         if (notifyAdmins) {
+           await notifyAdmins("💰 Deposit Completed", `A deposit of order ID ${orderID} was captured successfully.`);
+         }
+
          res.json({ message: "Payment successful!", result });
       } else {
          res.status(400).json({ message: "Payment not completed" });

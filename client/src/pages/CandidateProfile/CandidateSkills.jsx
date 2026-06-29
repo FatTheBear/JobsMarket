@@ -83,32 +83,17 @@ const CandidateSkills = ({
                 </div>
               ) : (
                 skills.map((skill, index) => (
-                  <div key={skill.id || index} className="experience-item p-3 rounded border bg-light d-flex flex-column position-relative">
-                    <div className="position-absolute top-0 end-0 mt-3 me-3 d-flex gap-2">
+                  <div key={skill.id || index} className="experience-item p-2.5 px-3 rounded border bg-light d-flex align-items-center justify-content-between position-relative">
+                    <h6 className="fw-bold mb-0 text-dark text-hover-primary" style={{ fontSize: '0.93rem', paddingRight: '45px', lineHeight: '1.4' }}>
+                      {skill.name}
+                    </h6>
+                    <div className="position-absolute top-50 end-0 translate-middle-y me-3 d-flex gap-2">
                       <button onClick={() => onOpenModal(skill)} className="btn btn-link text-primary p-0" title="Edit skill" style={{ textDecoration: 'none' }}>
                         <i className="fas fa-pencil-alt text-muted hover-primary" style={{ fontSize: '0.85rem' }}></i>
                       </button>
                       <button onClick={() => onDelete(skill.id)} className="btn btn-link text-danger p-0" title="Delete skill" style={{ textDecoration: 'none' }}>
                         <i className="fas fa-trash-alt text-muted hover-danger" style={{ fontSize: '0.85rem' }}></i>
                       </button>
-                    </div>
-                    <h6 className="fw-bold mb-3 text-dark text-hover-primary" style={{ fontSize: '0.95rem', paddingRight: '45px', lineHeight: '1.4' }}>
-                      {skill.name}
-                    </h6>
-                    <div className="d-flex align-items-center gap-3">
-                      <div className="progress rounded progress-custom flex-grow-1" style={{ height: '6px' }}>
-                        <div
-                          className="progress-bar"
-                          role="progressbar"
-                          style={{ width: `${skill.level}%` }}
-                          aria-valuenow={skill.level}
-                          aria-valuemin="0"
-                          aria-valuemax="100"
-                        ></div>
-                      </div>
-                      <span className="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1 fw-normal d-inline-flex align-items-center" style={{ fontSize: '0.7rem' }}>
-                        {skill.level}%
-                      </span>
                     </div>
                   </div>
                 ))
@@ -167,24 +152,7 @@ const CandidateSkills = ({
                   </div>
                 )}
               </div>
-              <div>
-                <div className="d-flex justify-content-between align-items-center mb-1">
-                  <label className="form-label fw-semibold text-secondary small mb-0">Progress Level / Competence</label>
-                  <span className="badge bg-primary text-white rounded-pill px-2.5 py-1 fw-bold">{skillForm.level}%</span>
-                </div>
-                <div className="d-flex align-items-center gap-3">
-                  <span className="text-muted small">0%</span>
-                  <input
-                    type="range"
-                    className="form-range flex-grow-1"
-                    min="0"
-                    max="100"
-                    value={skillForm.level}
-                    onChange={(e) => setSkillForm({ ...skillForm, level: parseInt(e.target.value) })}
-                  />
-                  <span className="text-muted small">100%</span>
-                </div>
-              </div>
+
               <div className="profile-modal-footer mt-3 pt-3 border-top d-flex gap-2 justify-content-end bg-white">
                 <button type="button" className="btn btn-light border" onClick={onCloseModal}>Cancel</button>
                 <button type="submit" className="btn btn-primary">Save</button>
@@ -210,10 +178,7 @@ export const CandidateSkillsManager = ({ skills, onOpenModal, onDelete }) => {
         {skills.map((skill) => (
           <div key={skill.id} className="d-flex justify-content-between align-items-center p-2.5 rounded border bg-light">
             <div className="w-75">
-              <p className="fw-bold mb-1 text-dark small">{skill.name} ({skill.level}%)</p>
-              <div className="progress rounded" style={{ height: '6px' }}>
-                <div className="progress-bar" role="progressbar" style={{ width: `${skill.level}%` }}></div>
-              </div>
+              <p className="fw-bold mb-0 text-dark small">{skill.name}</p>
             </div>
             <div className="d-flex gap-1">
               <button type="button" onClick={() => onOpenModal(skill)} className="btn btn-sm btn-outline-primary px-2 py-1 rounded">
@@ -224,8 +189,7 @@ export const CandidateSkillsManager = ({ skills, onOpenModal, onDelete }) => {
               </button>
             </div>
           </div>
-        ))}
-      </div>
+        ))}      </div>
     </div>
   );
 };

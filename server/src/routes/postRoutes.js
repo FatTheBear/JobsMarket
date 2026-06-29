@@ -666,10 +666,21 @@ router.post('/:id/like', authMiddleware, async (req, res) => {
             [userId]
           );
           const likerName = userInfo[0]?.liker_name || 'Someone';
+          const notiTitle = '👍 New Like on your post';
+          const notiContent = `${likerName} liked your post.`;
           await pool.query(
             'INSERT INTO Notification (user_id, title, content, post_id) VALUES (?, ?, ?, ?)',
-            [postAuthorId, '👍 New Like on your post', `${likerName} liked your post.`, id]
+            [postAuthorId, notiTitle, notiContent, id]
           );
+
+          const io = req.app.get('socketio');
+          if (io) {
+            io.to(`user_${postAuthorId}`).emit('notification', {
+              title: notiTitle,
+              content: notiContent,
+              postId: id
+            });
+          }
         }
       } catch (notiErr) {
         console.error('Error creating like notification:', notiErr);
@@ -838,16 +849,25 @@ router.post('/:id/comments', authMiddleware, async (req, res) => {
           [userId]
         );
         const commenterName = userInfo[0]?.commenter_name || 'Someone';
-        const shortComment = content.trim().length > 40 ? content.trim().substring(0, 40) + '...' : content.trim();
+        const notiTitle = '💬 New Comment on your post';
+        const notiContent = `${commenterName} commented: "${shortComment}"`;
         await pool.query(
           'INSERT INTO Notification (user_id, title, content, post_id) VALUES (?, ?, ?, ?)',
-          [postAuthorId, '💬 New Comment on your post', `${commenterName} commented: "${shortComment}"`, id]
+          [postAuthorId, notiTitle, notiContent, id]
         );
+
+        const io = req.app.get('socketio');
+        if (io) {
+          io.to(`user_${postAuthorId}`).emit('notification', {
+            title: notiTitle,
+            content: notiContent,
+            postId: id
+          });
+        }
       }
     } catch (notiErr) {
       console.error('Error creating comment notification:', notiErr);
     }
-
     const [newComment] = await pool.query(
       `SELECT 
           c.*,

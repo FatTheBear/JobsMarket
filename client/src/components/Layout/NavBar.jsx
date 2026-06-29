@@ -3,7 +3,7 @@ import './NavBar.css';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import NotificationDropdown from '../Notifications/NotificationDropdown';
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
 
 // 1. Khai báo state để React quản lý (giá trị mặc định là guest)
 
@@ -252,14 +252,6 @@ export default function NavBar() {
           <>
             <NotificationDropdown role={role} />
             <div className="nav-user-info">
-              <div className="nav-notification">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5a5a5a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                </svg>
-                <span className="notification-dot"></span>
-              </div>
-
               <img
                 src={avatarUrl}
                 alt="Avatar"

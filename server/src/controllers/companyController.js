@@ -123,11 +123,23 @@ exports.updateApplicationStatus = async (req, res) => {
                 };
                 const notiTitle = statusTitleMap[status] || '📨 Application Status Updated';
                 const notiContent = `Your application for "${job_title}" at ${company_name} has been updated to: ${status}.`;
-
                 await connection.execute(
                     'INSERT INTO Notification (user_id, title, content) VALUES (?, ?, ?)',
                     [candidateUserId, notiTitle, notiContent]
                 );
+
+                // Socket real-time emission
+                const io = req.app.get('socketio');
+                if (io) {
+                    io.to(`user_${candidateUserId}`).emit('notification', {
+                        title: notiTitle,
+                        content: notiContent
+                    });
+                    io.to(`user_${candidateUserId}`).emit('application_status_updated', {
+                        applicationId: id,
+                        status: status
+                    });
+                }
             }
 
             connection.release();

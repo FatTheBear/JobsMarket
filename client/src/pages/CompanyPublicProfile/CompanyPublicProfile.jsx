@@ -56,13 +56,13 @@ export default function CompanyPublicProfile() {
   };
 
   const handleJobClick = (jobId) => {
-    navigate(`/job/${jobId}`);
+    navigate(`/jobs/${jobId}`);
   };
 
   const handleApplyClick = (e, jobTitle) => {
     e.stopPropagation();
     if (isAuthenticated) {
-      navigate(`/job/${e.currentTarget.dataset.jobId}`);
+      navigate(`/jobs/${e.currentTarget.dataset.jobId}`);
     } else {
       setSelectedJobTitle(jobTitle);
       setShowJoinModal(true);
