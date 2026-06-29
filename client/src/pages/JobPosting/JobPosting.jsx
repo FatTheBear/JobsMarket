@@ -7,6 +7,7 @@ import { useWallet } from '../../context/WalletContext';
 import { IndustrySkill } from './IndustrySkill';
 import { AutoComplete } from './AutoComplete';
 import IndustrySelector from './IndustrySelector';
+import CustomDatePicker, { parseIsoDate, formatIsoDate } from '../../components/CustomDatePicker';
 const API_URL = 'http://localhost:5000';
 const LOCATION_API = 'https://provinces.open-api.vn/api';
 
@@ -14,7 +15,23 @@ const JOB_LEVELS = ["Intern", "Fresher", "Junior", "Middle", "Senior", "Manager"
 const LANGUAGES = ["Any", "English", "Vietnamese", "Japanese", "Chinese", "Korean", "French"];
 const EDUCATION_LEVELS = ["High School", "Associate Degree", "Bachelor", "Master", "PhD", "Other"];
 
-const todayStr = () => new Date().toISOString().split('T')[0];
+const startOfToday = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+const minDeadlineDate = () => {
+  const d = startOfToday();
+  d.setDate(d.getDate() + 3);
+  return d;
+};
+
+const maxDeadlineDate = () => {
+  const d = startOfToday();
+  d.setDate(d.getDate() + 365);
+  return d;
+};
 
 const removeAccents = (str) => {
   if (!str) return '';
@@ -733,7 +750,19 @@ export default function JobPosting() {
 
                 <div className="jp-field mt-10">
                   <label>Application Deadline</label>
-                  <input type="date" name="deadline" value={form.deadline} onChange={handleChange} min={todayStr()} style={{ width: '200px' }} className={errors.deadline ? 'has-error' : ''} />
+                  <div style={{ width: '220px' }}>
+                    <CustomDatePicker
+                      selectedDate={parseIsoDate(form.deadline)}
+                      onChange={(date) => {
+                        setForm(prev => ({ ...prev, deadline: formatIsoDate(date) }));
+                        if (errors.deadline) setErrors(prev => ({ ...prev, deadline: '' }));
+                      }}
+                      minDate={minDeadlineDate()}
+                      maxDate={maxDeadlineDate()}
+                      placeholder="Select deadline"
+                      hasError={!!errors.deadline}
+                    />
+                  </div>
                   {errors.deadline && <span className="jp-error-text" style={{display: 'block'}}>{errors.deadline}</span>}
                 </div>
 

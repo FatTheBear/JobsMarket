@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import CustomDatePicker, { parseDisplayDate, formatDisplayDate } from '../../components/CustomDatePicker';
 import './SetupProfilePage.css';
 
 // Global timer for job title search debounce
@@ -11,50 +12,7 @@ export default function SetupProfilePage() {
   const location = useLocation();
   const initialDisplayName = location.state?.full_name || '';
 
-  const dateInputRef = useRef(null);
-
-  const handleCalendarIconClick = () => {
-    if (dateInputRef.current) {
-      try {
-        dateInputRef.current.showPicker();
-      } catch (err) {
-        console.error("showPicker not supported, clicking input directly:", err);
-        dateInputRef.current.click();
-      }
-    }
-  };
-
-  const handleNativeDateChange = (e) => {
-    const val = e.target.value; // "YYYY-MM-DD"
-    if (!val) return;
-    const parts = val.split('-');
-    const formatted = `${parts[2]}/${parts[1]}/${parts[0]}`; // "DD/MM/YYYY"
-    setFormData(prev => ({ ...prev, birthday: formatted }));
-    setApiError('');
-  };
-
-  const handleBirthdayTextChange = (e) => {
-    let value = e.target.value;
-    // Chỉ giữ số và dấu gạch chéo
-    value = value.replace(/[^0-9/]/g, '');
-    
-    // Tự động chèn dấu gạch chéo
-    if (value.length === 2 && !value.includes('/')) {
-      value = value + '/';
-    } else if (value.length === 5 && value.split('/').length === 2) {
-      value = value + '/';
-    }
-    
-    if (value.length > 10) {
-      value = value.substring(0, 10);
-    }
-    
-    setFormData(prev => ({ ...prev, birthday: value }));
-    setApiError('');
-  };
-
-  // Helper to format YYYY-MM-DD to DD/MM/YYYY for display
-  const formatDisplayDate = (isoDate) => {
+  const formatIsoToDisplay = (isoDate) => {
     if (!isoDate) return '';
     const parts = isoDate.split('-');
     if (parts.length !== 3) return isoDate;
@@ -172,7 +130,7 @@ export default function SetupProfilePage() {
             avatar_url: profile.avatar_url || prev.avatar_url,
             headline: profile.headline || prev.headline,
             address: profile.address || prev.address,
-            birthday: profile.birthday ? formatDisplayDate(profile.birthday.substring(0, 10)) : prev.birthday,
+            birthday: profile.birthday ? formatIsoToDisplay(profile.birthday.substring(0, 10)) : prev.birthday,
           }));
         }
       } catch (err) {
@@ -454,42 +412,22 @@ export default function SetupProfilePage() {
                   placeholder="Enter your full name"
                   value={formData.display_name}
                   onChange={handleInputChange}
-                  required
                 />
               </div>
               <div className="form-field">
                 <label htmlFor="birthday">
                   Date of Birth <span style={{ color: '#ef4444' }}>*</span>
                 </label>
-                <div className="custom-datepicker-wrapper">
-                  <input
-                    type="text"
-                    id="birthday"
-                    name="birthday"
-                    placeholder="dd/mm/yyyy"
-                    value={formData.birthday}
-                    onChange={handleBirthdayTextChange}
-                    className="datepicker-display-input"
-                    required
-                  />
-                  <input
-                    type="date"
-                    onChange={handleNativeDateChange}
-                    ref={dateInputRef}
-                    className="datepicker-native-input"
-                  />
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="16" 
-                    height="16" 
-                    fill="currentColor" 
-                    className="datepicker-calendar-icon" 
-                    viewBox="0 0 16 16"
-                    onClick={handleCalendarIconClick}
-                  >
-                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
-                  </svg>
-                </div>
+                <CustomDatePicker
+                  id="birthday"
+                  selectedDate={parseDisplayDate(formData.birthday)}
+                  onChange={(date) => {
+                    setFormData(prev => ({ ...prev, birthday: formatDisplayDate(date) }));
+                    setApiError('');
+                  }}
+                  maxDate={new Date()}
+                  placeholder="dd/mm/yyyy"
+                />
               </div>
             </div>
 

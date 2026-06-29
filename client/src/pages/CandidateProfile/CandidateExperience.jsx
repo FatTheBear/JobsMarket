@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
+import CustomDatePicker, { parseMonthValue, formatMonthValue } from '../../components/CustomDatePicker';
 
 const CandidateExperience = ({
   workExperiences,
@@ -122,7 +123,7 @@ const CandidateExperience = ({
       {/* Experience Add/Edit Modal */}
       {showModal && (
         <div className="profile-modal-overlay" style={{ zIndex: 100000 }} onClick={onCloseModal}>
-          <form className="profile-modal-card" onSubmit={onSave} onClick={(e) => e.stopPropagation()}>
+          <form className="profile-modal-card" onSubmit={onSave} onClick={(e) => e.stopPropagation()} noValidate>
             <div className="profile-modal-header">
               <h5 className="profile-modal-title">
                 <i className="fas fa-briefcase me-2 text-primary"></i>
@@ -182,22 +183,25 @@ const CandidateExperience = ({
               <div className="row g-3">
                 <div className="col-6">
                   <label className="form-label fw-semibold text-secondary small">Start Date <span className="text-danger">*</span></label>
-                  <input
-                    type="month"
+                  <CustomDatePicker
+                    picker="month"
                     className="form-control"
-                    value={experienceForm.startDate || ''}
-                    onChange={(e) => setExperienceForm({ ...experienceForm, startDate: e.target.value })}
-                    required
+                    selectedDate={parseMonthValue(experienceForm.startDate)}
+                    onChange={(date) => setExperienceForm({ ...experienceForm, startDate: formatMonthValue(date) })}
+                    maxDate={new Date()}
+                    placeholder="mm/yyyy"
                   />
                 </div>
                 <div className="col-6">
                   <label className="form-label fw-semibold text-secondary small">End Date</label>
-                  <input
-                    type="month"
+                  <CustomDatePicker
+                    picker="month"
                     className="form-control"
-                    value={experienceForm.endDate || ''}
-                    onChange={(e) => setExperienceForm({ ...experienceForm, endDate: e.target.value })}
+                    selectedDate={parseMonthValue(experienceForm.endDate)}
+                    onChange={(date) => setExperienceForm({ ...experienceForm, endDate: formatMonthValue(date) })}
+                    maxDate={new Date()}
                     placeholder="Present"
+                    isClearable
                   />
                 </div>
               </div>
