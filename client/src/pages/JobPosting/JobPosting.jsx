@@ -61,10 +61,6 @@ export default function JobPosting() {
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
 
-  // API Data
-  const [dbSkills, setDbSkills] = useState([]);
-  const [dbIndustries, setDbIndustries] = useState([]);
-
   const [form, setForm] = useState({
     title: '',
     experience_req: 'Not Required',
@@ -110,9 +106,6 @@ export default function JobPosting() {
       const translated = res.data.map(p => ({ ...p, name: translateLocation(p.name) }));
       setProvinces(translated);
     }).catch(err => console.error(err));
-
-    axios.get(`${API_URL}/api/skills`).then(res => setDbSkills(res.data)).catch(err => console.error(err));
-    axios.get(`${API_URL}/api/industries`).then(res => setDbIndustries(res.data)).catch(err => console.error(err));
 
     const token = localStorage.getItem('token');
     const userId = localStorage.getItem('userId');
@@ -189,24 +182,6 @@ export default function JobPosting() {
     setForm(prev => ({ ...prev, ward: selectedOption.label }));
   };
 
-  const toggleSkill = (skillId) => {
-    setForm(prev => {
-      const skills = prev.selected_skills.includes(skillId)
-        ? prev.selected_skills.filter(id => id !== skillId)
-        : [...prev.selected_skills, skillId];
-      return { ...prev, selected_skills: skills };
-    });
-  };
-
-  const toggleIndustry = (indId) => {
-    setForm(prev => {
-      const inds = prev.selected_industries.includes(indId)
-        ? prev.selected_industries.filter(id => id !== indId)
-        : [...prev.selected_industries, indId];
-      return { ...prev, selected_industries: inds };
-    });
-  };
-
   const [errors, setErrors] = useState({});
 
   const showToast = (message, type = 'success') => {
@@ -260,19 +235,19 @@ export default function JobPosting() {
     const xssRegex = /<\s*script\b|javascript:|onerror=|onload=|on\w+=/i;
 
     // Validate Description
-    const trimmedDesc = (form.job_description || "").trim();
+    const trimmedDesc = form.description.trim();
     if (!trimmedDesc || trimmedDesc.length < 50 || trimmedDesc.length > 5000) {
-      newErrors.job_description = "Job Description must be between 50 and 5000 characters.";
+      newErrors.description = "Job Description must be between 50 and 5000 characters.";
     } else if (xssRegex.test(trimmedDesc)) {
-      newErrors.job_description = "Malicious code detected in Job Description (XSS).";
+      newErrors.description = "Malicious code detected in Job Description (XSS).";
     }
 
     // Validate Requirements
-    const trimmedReq = (form.job_requirements || "").trim();
+    const trimmedReq = form.requirements.trim();
     if (!trimmedReq || trimmedReq.length < 50 || trimmedReq.length > 5000) {
-      newErrors.job_requirements = "Job Requirements must be between 50 and 5000 characters.";
+      newErrors.requirements = "Job Requirements must be between 50 and 5000 characters.";
     } else if (xssRegex.test(trimmedReq)) {
-      newErrors.job_requirements = "Malicious code detected in Job Requirements (XSS).";
+      newErrors.requirements = "Malicious code detected in Job Requirements (XSS).";
     }
 
     // Validate Deadline
@@ -368,7 +343,7 @@ export default function JobPosting() {
         salary_max: form.salary_type === 'specific' ? Number(form.salary_max) : null,
         job_type: form.job_type,
         deadline: form.deadline || null,
-        experience_req: form.experience_req,
+        experience_req: form.experience_req === 'Not Required' ? null : form.experience_req,
         working_hours: working_hours,
         job_level: form.job_level,
         vacancies: Number(form.vacancies),
@@ -526,10 +501,10 @@ export default function JobPosting() {
 
                 <div className="jp-row jp-row-two">
                   <div className="jp-field">
-                    <label>Years of Experience <span>*</span></label>
+                    <label>Years of Experience</label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '44px' }}>
-                      <select name="experience_req" value={form.experience_req} onChange={handleChange} disabled={form.experience_req === 'Not Required'}>
-                        <option value="Not Required">Not Required</option>
+                      <select name="experience_req" value={form.experience_req === 'Not Required' ? '' : form.experience_req} onChange={handleChange} disabled={form.experience_req === 'Not Required'}>
+                        <option value="" disabled>Select experience</option>
                         <option value="Under 1 year">Under 1 year</option>
                         <option value="1 - 3 years">1 - 3 years</option>
                         <option value="3 - 5 years">3 - 5 years</option>
@@ -600,7 +575,7 @@ export default function JobPosting() {
                         <label className="jp-sub-label">Ward <span>*</span></label>
                         <Select
                           options={wards.map(w => ({ value: w.code, label: w.name }))}
-                          value={form.ward ? { value: w.code, label: form.ward } : null}
+                          value={form.ward ? { value: form.ward, label: form.ward } : null}
                           onChange={handleWardChange}
                           isClearable
                           placeholder="Search ward..."

@@ -24,10 +24,11 @@ export default function ProtectedRoute({ children, requiredRole }) {
 
   if (requiredRole) {
     const decoded = parseJwt(token);
-    if (!decoded || decoded.role !== requiredRole) {
+    const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+    if (!decoded || !allowedRoles.includes(decoded.role)) {
       return <Navigate to="/login" replace />;
     }
   }
 
   return children;
-}
+}

@@ -158,7 +158,7 @@ router.post('/', authMiddleware, async (req, res) => {
       if (isProCurrentlyActive && recentPostsCount >= 2) {
         await connection.rollback(); connection.release();
         return res.status(400).json({ message: 'Pro plan limit exceeded: Maximum 2 job postings per 24 hours.' });
-      } else if (!isProCurrentlyActive && recentPostsCount >= 10) {
+      } else if (!isProCurrentlyActive && recentPostsCount >= 1) {
         await connection.rollback(); connection.release();
         return res.status(400).json({ message: 'Free account limit exceeded: Maximum 1 job posting per 24 hours.' });
       }

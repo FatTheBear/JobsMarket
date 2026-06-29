@@ -133,7 +133,11 @@ const router = createBrowserRouter([
 
       {
         path: "/company",
-        element: <CompanyDashboard />,
+        element: (
+          <ProtectedRoute requiredRole={["HR", "Company"]}>
+            <CompanyDashboard />
+          </ProtectedRoute>
+        ),
         children: [
           { path: "dashboard", element: <></> },
           { path: "profile", element: <CompanyProfile /> },
