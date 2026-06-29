@@ -178,7 +178,7 @@ const authController = {
                 );
 
                 const token = jwt.sign(
-                    { id: user.id, role: user.role },
+                    { id: user.id, role: user.role, email: email },
                     process.env.JWT_SECRET || 'SECRET_KEY',
                     { expiresIn: '1d' }
                 );
@@ -260,7 +260,7 @@ const authController = {
 
 
             const token = jwt.sign(
-                { id: user.id, role: user.role },
+                { id: user.id, role: user.role, email: user.email },
                 process.env.JWT_SECRET || 'SECRET_KEY',
                 { expiresIn: '1d' }
             );

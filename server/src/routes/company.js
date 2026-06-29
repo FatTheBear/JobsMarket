@@ -125,16 +125,22 @@ router.get('/:hr_id', async (req, res) => {
   try {
     const { hr_id } = req.params;
     const [rows] = await pool.query(
-      `SELECT c.*, i.name AS industry_name
+      `SELECT c.*, i.name AS industry_name, u.email AS hr_email
        FROM Company c
        LEFT JOIN Industry i ON c.industry_id = i.id
+       LEFT JOIN User u ON c.hr_id = u.id
        WHERE c.hr_id = ?`,
       [hr_id]
     );
     if (rows.length === 0) {
       return res.status(404).json({ message: 'Company information not found' });
     }
-    res.json(rows[0]);
+    // Merge hr_email into email field if company email is not set
+    const row = rows[0];
+    if (!row.email && row.hr_email) {
+      row.email = row.hr_email;
+    }
+    res.json(row);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error', error: err.message });

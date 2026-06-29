@@ -41,6 +41,7 @@ const navigate = useNavigate();
   const coverInputRef = useRef();
   const [industries, setIndustries] = useState([]);
   const [errors, setErrors] = useState({});
+  const [hrEmail, setHrEmail] = useState(''); // read-only registration email
 
   const [originalName, setOriginalName] = useState('');
   const [originalAddress, setOriginalAddress] = useState('');
@@ -66,6 +67,18 @@ const navigate = useNavigate();
   });
 
   useEffect(() => {
+    // Extract email from JWT token (registration email, cannot be changed)
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(decodeURIComponent(atob(base64).split('').map(c =>
+          '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+        ).join('')));
+        setHrEmail(payload.email || '');
+      }
+    } catch {}
     fetchIndustries();
     fetchCompany();
   }, []);
@@ -449,7 +462,17 @@ return (
                     </div>
                     <div className={styles.formGroup}>
                       <label className={styles.label}>Company Email <span className={styles.req}>*</span></label>
-                      <input className={styles.input} name="email" type="email" value={form.email} onChange={handleFormChange} />
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          className={styles.input}
+                          type="email"
+                          value={hrEmail}
+                          readOnly
+                          style={{ background: '#f8fafc', color: '#475569', cursor: 'not-allowed', paddingRight: '36px' }}
+                        />
+                        <span style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', fontSize: '14px' }} title="Registration email — cannot be changed">🔒</span>
+                      </div>
+                      <span style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px', display: 'block' }}>This is your account's registered email and cannot be changed.</span>
                     </div>
                   </div>
                   <div className={styles.formRow}>
@@ -459,7 +482,7 @@ return (
                     </div>
                     <div className={styles.formGroup}>
                       <label className={styles.label}>Website</label>
-                      <input className={styles.input} name="website" type="url" value={form.website} onChange={handleFormChange} placeholder="https://www.company.com" />
+                      <input className={styles.input} name="website" type="url" value={form.website} onChange={handleFormChange} placeholder="e.g. https://yourcompany.com (optional)" />
                     </div>
                   </div>
                   <div className={styles.formRow}>
