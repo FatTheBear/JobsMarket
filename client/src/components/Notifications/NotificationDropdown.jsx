@@ -142,7 +142,6 @@ export default function NotificationDropdown({ role }) {
       }
     }
   };
-
   const getNotificationIcon = (title) => {
     if (title.includes('Like')) return 'fas fa-thumbs-up';
     if (title.includes('Comment')) return 'fas fa-comment-alt';

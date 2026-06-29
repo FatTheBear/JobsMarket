@@ -253,17 +253,18 @@ export default function JobPosting() {
     const xssRegex = /<\s*script\b|javascript:|onerror=|onload=|on\w+=/i;
 
     // Validate Description
+
    const trimmedDesc = (form.description || "").trim();
     if (!trimmedDesc) {
-      newErrors.description = "Please enter Job Description."; // Chỉ cần có nhập chữ (dù là 1 chữ) là qua
+      newErrors.description = "Please enter Job Description."; 
     } else if (xssRegex.test(trimmedDesc)) {
       newErrors.description = "Malicious code detected in Job Description (XSS).";
     }
 
-    // Validate Requirements (Đã gỡ bỏ giới hạn 50-5000 ký tự)
+
     const trimmedReq = (form.requirements || "").trim();
     if (!trimmedReq) {
-      newErrors.requirements = "Please enter Job Requirements."; // Chỉ cần có nhập chữ là qua
+      newErrors.requirements = "Please enter Job Requirements."; 
     } else if (xssRegex.test(trimmedReq)) {
       newErrors.requirements = "Malicious code detected in Job Requirements (XSS).";
     }
