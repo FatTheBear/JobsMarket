@@ -211,19 +211,49 @@ const SAMPLE_COMPANIES = [
         title: 'Frontend Developer',
         description: 'Build responsive web interfaces for enterprise products.',
         requirements: 'React, JavaScript, HTML/CSS, REST API experience.',
+        benf: '13th month salary, hybrid work policy, MacBook provided, annual healthcare package.',
         salaryMin: 18000000,
         salaryMax: 30000000,
         jobType: 'Full-time',
         jobLevel: 'Junior',
+        expYrs: '1-2 years',
+        vacancies: '3',
+        langReq: 'English',
+        province: 'Ho Chi Minh City',
+        location: 'District 7, Ho Chi Minh City',
+        skills: ['React', 'JavaScript', 'HTML/CSS', 'REST API'],
       },
       {
         title: 'QA Engineer',
         description: 'Design test cases and automate regression suites.',
         requirements: 'Manual testing, Selenium or Cypress basics, attention to detail.',
+        benf: 'Performance bonus, onsite opportunities, internal training budget.',
         salaryMin: 12000000,
         salaryMax: 22000000,
         jobType: 'Full-time',
         jobLevel: 'Fresher',
+        expYrs: '0-1 year',
+        vacancies: '2',
+        langReq: 'English',
+        province: 'Da Nang',
+        location: 'Hai Chau, Da Nang',
+        skills: ['Manual Testing', 'Selenium', 'Cypress', 'Test Case Design'],
+      },
+      {
+        title: 'Fullstack Developer',
+        description: 'Work across React frontend and Node.js services for digital banking projects.',
+        requirements: 'React, Node.js, SQL, Git, problem-solving mindset.',
+        benf: 'Project bonus, flexible working hours, premium health insurance.',
+        salaryMin: 22000000,
+        salaryMax: 36000000,
+        jobType: 'Hybrid',
+        jobLevel: 'Middle',
+        expYrs: '2-4 years',
+        vacancies: '4',
+        langReq: 'English',
+        province: 'Ho Chi Minh City',
+        location: 'Thu Duc City, Ho Chi Minh City',
+        skills: ['React', 'Node.js', 'SQL', 'Git'],
       },
     ],
   },
@@ -243,10 +273,49 @@ const SAMPLE_COMPANIES = [
         title: 'Backend Engineer',
         description: 'Develop scalable backend services for digital platforms.',
         requirements: 'Node.js, SQL, API design, system performance optimization.',
+        benf: 'Lunch allowance, annual bonus, modern office environment.',
         salaryMin: 22000000,
         salaryMax: 38000000,
         jobType: 'Full-time',
         jobLevel: 'Middle',
+        expYrs: '2-4 years',
+        vacancies: '2',
+        langReq: 'English',
+        province: 'Ho Chi Minh City',
+        location: 'District 10, Ho Chi Minh City',
+        skills: ['Node.js', 'SQL', 'API Design', 'System Design'],
+      },
+      {
+        title: 'DevOps Engineer',
+        description: 'Automate deployments and maintain stable cloud infrastructure for large-scale products.',
+        requirements: 'Docker, CI/CD, Linux, AWS or GCP exposure.',
+        benf: 'On-call allowance, learning stipend, remote Fridays.',
+        salaryMin: 25000000,
+        salaryMax: 42000000,
+        jobType: 'Full-time',
+        jobLevel: 'Senior',
+        expYrs: '3-5 years',
+        vacancies: '1',
+        langReq: 'English',
+        province: 'Hanoi',
+        location: 'Cau Giay, Hanoi',
+        skills: ['Docker', 'CI/CD', 'Linux', 'AWS'],
+      },
+      {
+        title: 'Mobile Developer',
+        description: 'Build and maintain high-performance mobile features for consumer platforms.',
+        requirements: 'Flutter or React Native, state management, REST APIs.',
+        benf: 'Quarterly bonus, device support, mentor-led onboarding.',
+        salaryMin: 18000000,
+        salaryMax: 32000000,
+        jobType: 'Hybrid',
+        jobLevel: 'Junior',
+        expYrs: '1-3 years',
+        vacancies: '2',
+        langReq: 'English',
+        province: 'Ho Chi Minh City',
+        location: 'Tan Binh, Ho Chi Minh City',
+        skills: ['Flutter', 'React Native', 'REST API', 'State Management'],
       },
     ],
   },
@@ -266,10 +335,49 @@ const SAMPLE_COMPANIES = [
         title: 'Product Analyst',
         description: 'Analyze product metrics and recommend payment feature improvements.',
         requirements: 'SQL, dashboards, product thinking, communication skills.',
+        benf: 'Team outing budget, annual review, meal allowance.',
         salaryMin: 18000000,
         salaryMax: 32000000,
         jobType: 'Full-time',
         jobLevel: 'Junior',
+        expYrs: '1-2 years',
+        vacancies: '2',
+        langReq: 'English',
+        province: 'Ho Chi Minh City',
+        location: 'District 1, Ho Chi Minh City',
+        skills: ['SQL', 'Dashboarding', 'Product Analytics', 'Communication'],
+      },
+      {
+        title: 'Risk Operations Specialist',
+        description: 'Monitor transactions, flag suspicious patterns, and improve fraud prevention workflows.',
+        requirements: 'Excel, operations mindset, data analysis, attention to detail.',
+        benf: 'Shift allowance, private insurance, internal career track.',
+        salaryMin: 14000000,
+        salaryMax: 24000000,
+        jobType: 'Full-time',
+        jobLevel: 'Junior',
+        expYrs: '1-3 years',
+        vacancies: '3',
+        langReq: 'Vietnamese',
+        province: 'Ho Chi Minh City',
+        location: 'Binh Thanh, Ho Chi Minh City',
+        skills: ['Excel', 'Data Analysis', 'Operations', 'Fraud Monitoring'],
+      },
+      {
+        title: 'Business Analyst Intern',
+        description: 'Support product discovery, user research, and reporting for new fintech initiatives.',
+        requirements: 'Good analytical skills, PowerPoint, Excel, eagerness to learn.',
+        benf: 'Internship certificate, mentor support, networking events.',
+        salaryMin: 5000000,
+        salaryMax: 8000000,
+        jobType: 'Internship',
+        jobLevel: 'Intern',
+        expYrs: 'No experience required',
+        vacancies: '4',
+        langReq: 'English',
+        province: 'Ho Chi Minh City',
+        location: 'District 4, Ho Chi Minh City',
+        skills: ['Excel', 'Research', 'Presentation', 'Business Analysis'],
       },
     ],
   },
@@ -289,10 +397,49 @@ const SAMPLE_COMPANIES = [
         title: 'E-commerce Operations Specialist',
         description: 'Coordinate campaigns and improve seller/customer experience.',
         requirements: 'E-commerce operations, Excel, stakeholder coordination.',
+        benf: 'Campaign bonus, transport allowance, internal mobility program.',
         salaryMin: 14000000,
         salaryMax: 24000000,
         jobType: 'Full-time',
         jobLevel: 'Junior',
+        expYrs: '1-3 years',
+        vacancies: '2',
+        langReq: 'English',
+        province: 'Ho Chi Minh City',
+        location: 'District 2, Ho Chi Minh City',
+        skills: ['Excel', 'E-commerce Operations', 'Coordination', 'Reporting'],
+      },
+      {
+        title: 'Performance Marketing Executive',
+        description: 'Run paid media campaigns and optimize acquisition funnels for category growth.',
+        requirements: 'Meta Ads, Google Ads, data reporting, copy testing.',
+        benf: 'KPI bonus, learning budget, flexible hybrid schedule.',
+        salaryMin: 16000000,
+        salaryMax: 28000000,
+        jobType: 'Hybrid',
+        jobLevel: 'Middle',
+        expYrs: '2-4 years',
+        vacancies: '2',
+        langReq: 'English',
+        province: 'Ho Chi Minh City',
+        location: 'District 7, Ho Chi Minh City',
+        skills: ['Meta Ads', 'Google Ads', 'Reporting', 'A/B Testing'],
+      },
+      {
+        title: 'Content Marketing Intern',
+        description: 'Support campaign content, landing page copy, and marketplace research.',
+        requirements: 'Good writing skills, social media familiarity, creativity.',
+        benf: 'Intern allowance, training roadmap, conversion to full-time potential.',
+        salaryMin: 4000000,
+        salaryMax: 7000000,
+        jobType: 'Internship',
+        jobLevel: 'Intern',
+        expYrs: 'No experience required',
+        vacancies: '3',
+        langReq: 'Vietnamese',
+        province: 'Ho Chi Minh City',
+        location: 'District 1, Ho Chi Minh City',
+        skills: ['Content Writing', 'Social Media', 'Research', 'Creativity'],
       },
     ],
   },
@@ -312,10 +459,49 @@ const SAMPLE_COMPANIES = [
         title: 'Data Analyst',
         description: 'Turn mobility and delivery data into actionable business insights.',
         requirements: 'SQL, data visualization, analytics mindset, Python is a plus.',
+        benf: 'Travel allowance, wellness package, annual bonus.',
         salaryMin: 17000000,
         salaryMax: 29000000,
         jobType: 'Full-time',
         jobLevel: 'Middle',
+        expYrs: '2-4 years',
+        vacancies: '2',
+        langReq: 'English',
+        province: 'Ho Chi Minh City',
+        location: 'Phu Nhuan, Ho Chi Minh City',
+        skills: ['SQL', 'Python', 'Data Visualization', 'Analytics'],
+      },
+      {
+        title: 'CRM Campaign Executive',
+        description: 'Plan segmented campaigns to improve retention across food and transport users.',
+        requirements: 'CRM tools, campaign planning, spreadsheet analysis.',
+        benf: 'Monthly incentives, laptop support, cross-functional exposure.',
+        salaryMin: 15000000,
+        salaryMax: 25000000,
+        jobType: 'Remote',
+        jobLevel: 'Junior',
+        expYrs: '1-3 years',
+        vacancies: '2',
+        langReq: 'English',
+        province: 'Hanoi',
+        location: 'Remote - Hanoi',
+        skills: ['CRM', 'Campaign Planning', 'Excel', 'Retention Marketing'],
+      },
+      {
+        title: 'Growth Associate',
+        description: 'Support regional growth experiments, merchant partnerships, and performance tracking.',
+        requirements: 'Strong communication, analysis, stakeholder management.',
+        benf: 'Project bonus, mentorship, accelerated promotion path.',
+        salaryMin: 12000000,
+        salaryMax: 20000000,
+        jobType: 'Full-time',
+        jobLevel: 'Junior',
+        expYrs: '1-2 years',
+        vacancies: '3',
+        langReq: 'English',
+        province: 'Da Nang',
+        location: 'Hai Chau, Da Nang',
+        skills: ['Stakeholder Management', 'Analysis', 'Partnerships', 'Communication'],
       },
     ],
   },
@@ -441,38 +627,75 @@ async function upsertJob(conn, companyId, hrId, industryId, job) {
   const metadata = JSON.stringify({
     deadline,
     job_level: job.jobLevel,
-    vacancies: '5',
+    vacancies: job.vacancies || '5',
     gender_req: 'Any',
   });
+  const jobLocation = job.location || job.province || 'Ho Chi Minh City';
+  const province = job.province || 'Ho Chi Minh City';
+  const experience = job.expYrs || null;
+  const language = job.langReq || null;
+  const benefits = job.benf || null;
 
   if (existing.length) {
     await conn.query(
-      `UPDATE job_posting SET description = ?, requirements = ?, salary_min = ?, salary_max = ?,
-       job_type = ?, job_level = ?, status = 'Approved', loc = ?, deadline = ?, metadata = ?
+      `UPDATE job_posting SET description = ?, requirements = ?, benf = ?, salary_min = ?, salary_max = ?,
+       job_type = ?, exp_yrs = ?, lang_req = ?, job_level = ?, vacancies = ?, province = ?,
+       status = 'Approved', loc = ?, deadline = ?, metadata = ?
        WHERE id = ?`,
       [
-        job.description, job.requirements, job.salaryMin, job.salaryMax,
-        job.jobType, job.jobLevel, 'Ho Chi Minh City', deadline, metadata, existing[0].id,
+        job.description, job.requirements, benefits, job.salaryMin, job.salaryMax,
+        job.jobType, experience, language, job.jobLevel, job.vacancies || '5', province,
+        jobLocation, deadline, metadata, existing[0].id,
       ]
     );
+    await syncJobSkills(conn, existing[0].id, job.skills || []);
     return existing[0].id;
   }
 
   const [result] = await conn.query(
     `INSERT INTO job_posting (
-      company_id, hr_id, title, description, requirements, salary_min, salary_max,
-      job_type, job_level, status, loc, deadline, metadata
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Approved', ?, ?, ?)`,
+      company_id, hr_id, title, description, requirements, benf, salary_min, salary_max,
+      job_type, exp_yrs, lang_req, job_level, status, loc, deadline, vacancies, province, metadata
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Approved', ?, ?, ?, ?, ?)`,
     [
       companyId, hrId, job.title, job.description, job.requirements,
-      job.salaryMin, job.salaryMax, job.jobType, job.jobLevel,
-      'Ho Chi Minh City', deadline, metadata,
+      benefits, job.salaryMin, job.salaryMax, job.jobType, experience, language, job.jobLevel,
+      jobLocation, deadline, job.vacancies || '5', province, metadata,
     ]
   );
 
   const jobId = result.insertId;
   await conn.query('INSERT IGNORE INTO job_industry (job_id, industry_id) VALUES (?, ?)', [jobId, industryId]);
+  await syncJobSkills(conn, jobId, job.skills || []);
   return jobId;
+}
+
+async function syncJobSkills(conn, jobId, skillNames) {
+  await conn.query('DELETE FROM job_skill WHERE job_id = ?', [jobId]);
+
+  if (!Array.isArray(skillNames) || skillNames.length === 0) {
+    return;
+  }
+
+  const skillIds = [];
+  for (const skillName of skillNames) {
+    const trimmed = skillName && skillName.trim();
+    if (!trimmed) continue;
+
+    const [rows] = await conn.query('SELECT id FROM skill WHERE LOWER(skill_name) = LOWER(?) LIMIT 1', [trimmed]);
+    if (rows.length) {
+      skillIds.push(rows[0].id);
+      continue;
+    }
+
+    const [result] = await conn.query('INSERT INTO skill (skill_name) VALUES (?)', [trimmed]);
+    skillIds.push(result.insertId);
+  }
+
+  if (skillIds.length > 0) {
+    const values = skillIds.map((skillId) => [jobId, skillId, 'Beginner', 0]);
+    await conn.query('INSERT INTO job_skill (job_id, skill_id, min_level, min_years) VALUES ?', [values]);
+  }
 }
 
 async function upsertCandidate(conn, passwordHash, candidate) {
