@@ -28,7 +28,7 @@ const MENU_CONFIG = {
     { label: 'Home', path: '/company/dashboard' },
     { label: 'Find Candidates', path: '/company/applicants' },
     { label: 'Hiring Hub', path: '/community' },
-    { label: 'Hiring Insights', path: '/company/post-job' },
+    { label: 'Hiring Insights', path: '/company/hiring-insights' },
 
   ],
   admin: [

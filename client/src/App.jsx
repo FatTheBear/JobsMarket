@@ -24,7 +24,9 @@ import CompanyDashboard from './pages/DashBoard/CompanyDashboard/CompanyDashboar
 import AppliedCandidates from './pages/AppliedCandidates/AppliedCandidates';
 import SavedCandidates from './pages/SavedCandidates/SavedCandidates';
 import TermsOfService from './pages/Authentication/TermsOfService';
-import NewsDetail from './pages/Dashboard/CompanyDashboard/NewsDetail';
+import NewsDetail from './pages/DashBoard/CompanyDashboard/NewsDetail';
+import CareerGuide from './pages/Articles/CareerGuide';
+import HiringInsights from './pages/Articles/HiringInsights';
 import MyApplications from './pages/MyApplications/MyApplications';
 import CommunityFeed from './pages/Community/CommunityFeed';
 import CreatePost from './pages/DashBoard/CompanyDashboard/CreatePost';
@@ -152,6 +154,7 @@ const router = createBrowserRouter([
           { path: "jobs", element: <CompanyJobList /> },
           { path: "media", element: <CompanyMedia /> },
           { path: "activity-history", element: <CompanyActivityHistory /> },
+          { path: "hiring-insights", element: <HiringInsights /> },
           { path: "candidate-detail/:id", element: <CandidateDetail /> },
           
         ]
@@ -164,6 +167,7 @@ const router = createBrowserRouter([
       { path: "/jobs", element: <SearchJobs /> },
       { path: "/applications", element: <MyApplications /> },
       { path: "/community", element: <CommunityFeed /> },
+      { path: "/guide", element: <CareerGuide /> },
       
       { path: "/jobs/:id", element: <JobDetail /> },
       { path: "/news-detail/:id", element: <NewsDetail /> },

@@ -11,9 +11,183 @@ const pool = require('./src/config/db');
 const DEMO_PASSWORD = 'Demo@123';
 
 const NEWS_CATEGORIES = [
+  { name: 'Career Guide', description: 'In-depth articles for job seekers and career development' },
+  { name: 'Hiring Insights', description: 'Recruiting strategies and hiring trends for employers' },
   { name: 'Career Tips', description: 'Advice for job seekers and career growth' },
   { name: 'Industry News', description: 'Latest hiring and market trends' },
   { name: 'Interview Guide', description: 'Prepare for technical and HR interviews' },
+];
+
+function thumb(seed, bg = '01796F') {
+  return `https://picsum.photos/seed/${seed}/800/450`;
+}
+
+const SAMPLE_NEWS = [
+  {
+    category: 'Career Guide',
+    title: 'How to Build a Resume That Gets Interviews in 2026',
+    slug: 'career-guide-resume-that-gets-interviews',
+    shortDescription: 'Recruiters spend less than 10 seconds on a first scan. Here is how to make every line count.',
+    thumbnailUrl: thumb('career-resume-2026'),
+    isFeatured: 1,
+    content: `
+      <p class="article-lead">Your resume is not a biography — it is a marketing document. In Vietnam's competitive tech and business job market, candidates who lead with outcomes rather than duties consistently land more interviews.</p>
+      <h2>Start with a sharp professional summary</h2>
+      <p>Open with two or three lines that state your role, years of experience, and strongest achievement. Avoid generic phrases like "hard-working team player." Instead, write: "Frontend Developer with 3 years building React apps used by 200K+ monthly users."</p>
+      <h2>Quantify your impact</h2>
+      <p>Hiring managers respond to numbers. Replace vague bullets with measurable results:</p>
+      <ul>
+        <li>Reduced page load time by 40% after refactoring legacy components</li>
+        <li>Increased application completion rate by 18% through UX improvements</li>
+        <li>Managed a team of 4 engineers across two product releases</li>
+      </ul>
+      <blockquote>"The best resumes answer one question: what changed because you were there?" — JobsMarket Career Team</blockquote>
+      <h2>Tailor for each application</h2>
+      <p>Mirror keywords from the job description — especially skills, tools, and role titles — so ATS systems and recruiters immediately see relevance. Keep the file to two pages maximum for mid-level roles.</p>
+    `,
+  },
+  {
+    category: 'Career Guide',
+    title: 'Mastering Behavioral Interviews: The STAR Method Explained',
+    slug: 'career-guide-star-method-interviews',
+    shortDescription: 'Structure your answers with Situation, Task, Action, and Result to impress hiring panels.',
+    thumbnailUrl: thumb('career-star-method'),
+    isFeatured: 0,
+    content: `
+      <p class="article-lead">Behavioral questions — "Tell me about a time you handled conflict" — are designed to predict future performance. The STAR framework keeps your answers focused and credible.</p>
+      <h2>Breaking down STAR</h2>
+      <ul>
+        <li><strong>Situation:</strong> Set the scene in one or two sentences</li>
+        <li><strong>Task:</strong> Explain your responsibility</li>
+        <li><strong>Action:</strong> Describe what you personally did</li>
+        <li><strong>Result:</strong> Share the outcome with metrics when possible</li>
+      </ul>
+      <h2>Prepare five core stories</h2>
+      <p>You do not need twenty rehearsed scripts. Prepare stories around leadership, conflict, failure, tight deadlines, and learning something new. Adapt them to different questions.</p>
+      <h2>Common mistakes to avoid</h2>
+      <p>Speaking in generalities ("we usually…"), blaming teammates, or ending without a result. Always bring the answer back to your contribution and what improved.</p>
+    `,
+  },
+  {
+    category: 'Career Guide',
+    title: 'Switching Careers: From Non-Tech to Tech in Vietnam',
+    slug: 'career-guide-switch-to-tech-vietnam',
+    shortDescription: 'A practical roadmap for professionals pivoting into software, data, or product roles.',
+    thumbnailUrl: thumb('career-switch-tech'),
+    isFeatured: 0,
+    content: `
+      <p class="article-lead">Career switching is increasingly common as digital roles expand beyond traditional IT companies. Success depends on transferable skills, portfolio proof, and realistic entry points.</p>
+      <h2>Identify your bridge skills</h2>
+      <p>Teachers bring communication and structure. Accountants bring precision and data comfort. Marketers bring user empathy. Map these to target roles — business analyst, QA, UX, or junior developer.</p>
+      <h2>Build visible proof</h2>
+      <p>Complete two or three portfolio projects hosted on GitHub or a personal site. Bootcamp certificates help, but hiring managers weight demonstrated work more heavily for career changers.</p>
+      <h2>Target the right level</h2>
+      <p>Apply to intern, fresher, and junior roles openly. A step back in title is often the fastest path to a sustainable long-term career in tech.</p>
+    `,
+  },
+  {
+    category: 'Career Guide',
+    title: 'Networking for Job Seekers: Beyond LinkedIn Messages',
+    slug: 'career-guide-networking-job-seekers',
+    shortDescription: 'Build genuine professional relationships at meetups, alumni events, and online communities.',
+    thumbnailUrl: thumb('career-networking'),
+    isFeatured: 0,
+    content: `
+      <p class="article-lead">Most opportunities still flow through people. Strategic networking is not about collecting contacts — it is about being helpful, visible, and specific about what you are looking for.</p>
+      <h2>Show up consistently</h2>
+      <p>Attend industry meetups, university alumni sessions, and online webinars in your target field. Follow up within 48 hours with a short, personal note referencing something specific from the conversation.</p>
+      <h2>Offer value first</h2>
+      <p>Share an article, introduce two people who should know each other, or volunteer on a community project. Reciprocity builds trust before you ever ask for a referral.</p>
+    `,
+  },
+  {
+    category: 'Hiring Insights',
+    title: 'Writing Job Descriptions That Attract Top Talent',
+    slug: 'hiring-insights-job-descriptions-that-convert',
+    shortDescription: 'Clear titles, realistic requirements, and salary transparency improve applicant quality.',
+    thumbnailUrl: thumb('hiring-job-descriptions', '0f766e'),
+    isFeatured: 1,
+    content: `
+      <p class="article-lead">A vague job post attracts hundreds of irrelevant applications and hides your best candidates. Great job descriptions read like a pitch, not a wish list.</p>
+      <h2>Use specific job titles</h2>
+      <p>"IT Staff" tells candidates nothing. "Junior Backend Engineer (Node.js)" sets accurate expectations and improves search visibility on JobsMarket.</p>
+      <h2>Separate must-haves from nice-to-haves</h2>
+      <p>Long requirement lists discourage qualified applicants — especially women and career changers — from applying. List 5–7 core requirements and move the rest to a preferred section.</p>
+      <h2>Describe the team and growth path</h2>
+      <p>Top performers choose managers and missions, not just salary. Explain reporting structure, tech stack, and what success looks like in the first 90 days.</p>
+      <blockquote>"If your job post sounds like it was written for a unicorn, you will wait a long time to find one." — JobsMarket HR Advisory</blockquote>
+    `,
+  },
+  {
+    category: 'Hiring Insights',
+    title: 'Reducing Time-to-Hire Without Lowering the Bar',
+    slug: 'hiring-insights-reduce-time-to-hire',
+    shortDescription: 'Structured pipelines and clear stage owners help teams move faster with better decisions.',
+    thumbnailUrl: thumb('hiring-time-to-hire', '0f766e'),
+    isFeatured: 0,
+    content: `
+      <p class="article-lead">Slow hiring loses candidates to competitors. Fast hiring without structure leads to costly mis-hires. The goal is a repeatable pipeline with clear accountability.</p>
+      <h2>Define stages and SLAs</h2>
+      <p>Example: resume screen (2 days), phone screen (3 days), technical interview (5 days), offer (3 days). Assign an owner at each stage so applications never sit idle.</p>
+      <h2>Batch interviews when possible</h2>
+      <p>Coordinating multiple hiring managers for the same week reduces calendar friction and keeps candidates engaged while enthusiasm is high.</p>
+      <h2>Collect structured feedback</h2>
+      <p>Use a simple scorecard per competency. Gut feelings are harder to compare across interviewers and harder to defend when debriefing as a panel.</p>
+    `,
+  },
+  {
+    category: 'Hiring Insights',
+    title: 'Employer Branding on JobsMarket: A Practical Playbook',
+    slug: 'hiring-insights-employer-branding-playbook',
+    shortDescription: 'Your company profile, media, and community presence shape how candidates perceive you.',
+    thumbnailUrl: thumb('hiring-employer-brand', '0f766e'),
+    isFeatured: 0,
+    content: `
+      <p class="article-lead">Candidates research your company before they apply. A complete JobsMarket profile — logo, culture description, photos, and active job posts — signals professionalism and stability.</p>
+      <h2>Complete your company profile</h2>
+      <p>Upload a clear logo, write a concise mission statement, and describe benefits honestly. Empty profiles create doubt about whether the company is actively hiring.</p>
+      <h2>Share hiring updates in Career Hub</h2>
+      <p>Post about team wins, office culture, and open roles. Consistent visibility keeps your brand top-of-mind when passive candidates are ready to move.</p>
+    `,
+  },
+  {
+    category: 'Hiring Insights',
+    title: 'Salary Benchmarks for Tech Roles in Vietnam (2026)',
+    slug: 'hiring-insights-salary-benchmarks-tech-2026',
+    shortDescription: 'Reference ranges for junior to senior engineering, product, and data roles in major cities.',
+    thumbnailUrl: thumb('hiring-salary-benchmarks', '0f766e'),
+    isFeatured: 0,
+    content: `
+      <p class="article-lead">Competitive offers require market awareness. Below are indicative monthly gross ranges for Ho Chi Minh City and Hanoi tech hubs in 2026.</p>
+      <h2>Software engineering</h2>
+      <ul>
+        <li><strong>Fresher / Junior:</strong> 12–22 million VND</li>
+        <li><strong>Middle:</strong> 22–40 million VND</li>
+        <li><strong>Senior:</strong> 40–70+ million VND</li>
+      </ul>
+      <h2>Product &amp; Data</h2>
+      <ul>
+        <li><strong>Product Analyst:</strong> 15–28 million VND</li>
+        <li><strong>Data Analyst:</strong> 18–32 million VND</li>
+      </ul>
+      <p>Ranges vary by company size, English requirements, and hybrid/onsite expectations. Publishing a range on your job post increases application quality significantly.</p>
+    `,
+  },
+  {
+    category: 'Hiring Insights',
+    title: 'Why Structured Interviews Beat Gut Feel',
+    slug: 'hiring-insights-structured-interviews',
+    shortDescription: 'Standardized questions and scorecards reduce bias and improve hiring consistency.',
+    thumbnailUrl: thumb('hiring-structured-interviews', '0f766e'),
+    isFeatured: 0,
+    content: `
+      <p class="article-lead">Unstructured interviews feel natural but produce inconsistent results. Structured interviews ask the same competency-based questions of every candidate and score answers against defined criteria.</p>
+      <h2>Design competencies first</h2>
+      <p>Before writing questions, list 4–6 competencies for the role: technical depth, communication, ownership, collaboration. Each interviewer evaluates assigned competencies.</p>
+      <h2>Debrief with evidence</h2>
+      <p>In panel debriefs, ask "what did they demonstrate?" rather than "did you like them?" Evidence-based discussion leads to fairer, more defensible decisions.</p>
+    `,
+  },
 ];
 
 const SAMPLE_COMPANIES = [
@@ -195,49 +369,6 @@ const SAMPLE_CANDIDATES = [
   },
 ];
 
-const SAMPLE_NEWS = [
-  {
-    category: 'Career Tips',
-    title: 'How to Write a Standout CV in 2026',
-    slug: 'how-to-write-standout-cv-2026',
-    shortDescription: 'Practical tips to help your resume pass ATS filters and impress recruiters.',
-    content: '<p>Focus on measurable achievements, tailor keywords to each job posting, and keep your CV to two pages.</p>',
-    isFeatured: 1,
-  },
-  {
-    category: 'Interview Guide',
-    title: 'Top 10 Technical Interview Questions for Developers',
-    slug: 'top-10-technical-interview-questions',
-    shortDescription: 'Prepare for common coding, system design, and behavioral questions.',
-    content: '<p>Review data structures, explain your past projects with the STAR method, and practice problem solving.</p>',
-    isFeatured: 1,
-  },
-  {
-    category: 'Industry News',
-    title: "Remote Work Trends in Vietnam's Tech Market",
-    slug: 'remote-work-trends-vietnam-tech',
-    shortDescription: 'Hybrid and remote-friendly policies are reshaping how teams hire and collaborate.',
-    content: '<p>Many companies now offer flexible schedules and distributed teams.</p>',
-    isFeatured: 0,
-  },
-  {
-    category: 'Career Tips',
-    title: 'Salary Negotiation Tips for Fresh Graduates',
-    slug: 'salary-negotiation-tips-fresh-graduates',
-    shortDescription: 'Learn how to research market rates and negotiate confidently.',
-    content: '<p>Research salary ranges by role and city before the offer conversation.</p>',
-    isFeatured: 0,
-  },
-  {
-    category: 'Interview Guide',
-    title: 'Why Company Culture Matters When Choosing a Job',
-    slug: 'why-company-culture-matters',
-    shortDescription: 'Culture fit affects retention, productivity, and long-term career growth.',
-    content: '<p>Ask about team rituals, feedback culture, and growth opportunities during interviews.</p>',
-    isFeatured: 0,
-  },
-];
-
 function deadlineInDays(days) {
   const d = new Date();
   d.setDate(d.getDate() + days);
@@ -402,7 +533,8 @@ async function upsertNewsCategory(conn, category) {
 
 async function upsertNews(conn, adminId, categoryId, article) {
   const [rows] = await conn.query('SELECT id FROM news WHERE slug = ? LIMIT 1', [article.slug]);
-  const thumbnail = `https://ui-avatars.com/api/?name=${encodeURIComponent(article.title.slice(0, 2))}&background=01796F&color=fff&size=400`;
+  const thumbnail = article.thumbnailUrl
+    || `https://ui-avatars.com/api/?name=${encodeURIComponent(article.title.slice(0, 2))}&background=01796F&color=fff&size=400`;
   const publishedAt = new Date();
 
   if (rows.length) {

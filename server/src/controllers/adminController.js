@@ -719,13 +719,21 @@ exports.deleteNotification = async (req, res) => {
 // Hàm lấy danh sách tất cả tin tức đã xuất bản
 exports.getPublicNews = async (req, res) => {
     try {
-        const [newsList] = await db.query(`
+        const { category } = req.query;
+        let sql = `
             SELECT n.*, nc.name AS category_name 
             FROM news n 
             LEFT JOIN news_category nc ON n.category_id = nc.id 
             WHERE n.status = 'Published'
-            ORDER BY n.created_at DESC
-        `);
+        `;
+        const params = [];
+        if (category) {
+            sql += ' AND nc.name = ?';
+            params.push(category);
+        }
+        sql += ' ORDER BY n.is_featured DESC, n.published_at DESC, n.created_at DESC';
+
+        const [newsList] = await db.query(sql, params);
         res.json(newsList);
     } catch (error) {
         console.error("GET PUBLIC NEWS ERROR:", error);
