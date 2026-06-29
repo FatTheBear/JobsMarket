@@ -178,17 +178,14 @@ exports.getPendingJobs = async (req, res) => {
                 j.salary_max,
                 j.job_type,
                 j.status,
-                j.experience_req,
-                j.working_hours,
+                j.exp_yrs AS experience_req,    -- Đã map đúng cột của DB
+                j.work_hrs AS working_hours,    -- Đã map đúng cột của DB
                 j.job_level,
                 j.vacancies,
-                j.gender_req,
                 j.age_req,
-                j.language_req,
+                j.lang_req AS language_req,     -- Đã map đúng cột của DB
                 j.province,
-                j.district,
-                j.ward,
-                j.exact_address,
+                j.loc AS exact_address,         -- Dùng cột loc làm địa chỉ
                 j.deadline,
                 j.created_at,
                 c.name AS company_name,

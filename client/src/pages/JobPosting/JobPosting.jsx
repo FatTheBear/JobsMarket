@@ -217,6 +217,7 @@ export default function JobPosting() {
   const isProCurrentlyActive = proExpiredAt && new Date(proExpiredAt) >= new Date();
 
   const handleSubmit = async (e) => {
+    console.log("Nút đã được bấm!");
     if (e) e.preventDefault();
 
     let newErrors = {};
@@ -260,21 +261,20 @@ export default function JobPosting() {
     const xssRegex = /<\s*script\b|javascript:|onerror=|onload=|on\w+=/i;
 
     // Validate Description
-    const trimmedDesc = (form.job_description || "").trim();
-    if (!trimmedDesc || trimmedDesc.length < 50 || trimmedDesc.length > 5000) {
-      newErrors.job_description = "Job Description must be between 50 and 5000 characters.";
+   const trimmedDesc = (form.description || "").trim();
+    if (!trimmedDesc) {
+      newErrors.description = "Please enter Job Description."; // Chỉ cần có nhập chữ (dù là 1 chữ) là qua
     } else if (xssRegex.test(trimmedDesc)) {
-      newErrors.job_description = "Malicious code detected in Job Description (XSS).";
+      newErrors.description = "Malicious code detected in Job Description (XSS).";
     }
 
-    // Validate Requirements
-    const trimmedReq = (form.job_requirements || "").trim();
-    if (!trimmedReq || trimmedReq.length < 50 || trimmedReq.length > 5000) {
-      newErrors.job_requirements = "Job Requirements must be between 50 and 5000 characters.";
+    // Validate Requirements (Đã gỡ bỏ giới hạn 50-5000 ký tự)
+    const trimmedReq = (form.requirements || "").trim();
+    if (!trimmedReq) {
+      newErrors.requirements = "Please enter Job Requirements."; // Chỉ cần có nhập chữ là qua
     } else if (xssRegex.test(trimmedReq)) {
-      newErrors.job_requirements = "Malicious code detected in Job Requirements (XSS).";
+      newErrors.requirements = "Malicious code detected in Job Requirements (XSS).";
     }
-
     // Validate Deadline
     if (form.deadline) {
       const deadlineDate = new Date(form.deadline);
@@ -292,7 +292,7 @@ export default function JobPosting() {
 
     // Validate Age Requirement
     if (form.age_req) {
-      const ageTrimmed = form.age_req.trim();
+      const ageTrimmed = form.age_req.replace(/\s+/g, ''); 
       const ageMatch = ageTrimmed.match(/^(\d+)-(\d+)$/);
       if (!ageMatch) {
         newErrors.age_req = "Age requirement must be in format 'Min-Max' (e.g. 20-30).";
@@ -314,7 +314,8 @@ export default function JobPosting() {
     }
 
     setErrors(newErrors);
-
+    
+      return;
     if (Object.keys(newErrors).length > 0) {
       return;
     }
@@ -600,7 +601,7 @@ export default function JobPosting() {
                         <label className="jp-sub-label">Ward <span>*</span></label>
                         <Select
                           options={wards.map(w => ({ value: w.code, label: w.name }))}
-                          value={form.ward ? { value: w.code, label: form.ward } : null}
+                          value={form.ward ? { value: form.ward, label: form.ward } : null}
                           onChange={handleWardChange}
                           isClearable
                           placeholder="Search ward..."
@@ -767,7 +768,7 @@ export default function JobPosting() {
 
             <div className="jp-actions mt-20" style={{ borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
               <button type="button" className="jp-btn jp-btn-cancel" onClick={() => navigate(-1)}>Cancel</button>
-              <button type="button" className="jp-btn jp-btn-primary" onClick={handleSubmit} disabled={loading}>
+              <button type="button" className="jp-btn jp-btn-primary" onClick={handleSubmit}>
                 {loading ? "Processing..." : "Continue & Post Job"}
               </button>
             </div>
