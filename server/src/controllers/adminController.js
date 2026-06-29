@@ -220,19 +220,19 @@ exports.updateUserStatus = async (req, res) => {
     const { status } = req.body;
     try {
         await db.query("UPDATE `user` SET status = ? WHERE id = ?", [status, id]);
-        res.json({ message: "Cập nhật trạng thái thành công" });
+        res.json({ message: "Status updated successfully" });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// 5. Duyệt hoặc Từ chối bài đăng
+// 5. Approve or Reject job posting
 exports.updateJobStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
     try {
         await db.query("UPDATE `job_posting` SET status = ? WHERE id = ?", [status, id]);
-        res.json({ message: "Xử lý bài đăng thành công" });
+        res.json({ message: "Job posting processed successfully" });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
