@@ -186,7 +186,7 @@ exports.updateApplicationStatus = async (req, res) => {
             const companyId = companyRows[0].id;
 
             const [application] = await connection.execute(`
-                SELECT a.id 
+                SELECT a.id, a.status
                 FROM application a
                 JOIN Job_Posting j ON a.job_id = j.id
                 WHERE a.id = ? AND j.company_id = ?
@@ -195,6 +195,14 @@ exports.updateApplicationStatus = async (req, res) => {
             if (application.length === 0) {
                 connection.release();
                 return res.status(403).json({ message: "Unauthorized or application not found" });
+            }
+
+            const currentStatus = application[0].status;
+            if (currentStatus === 'Rejected' && status === 'Interviewing') {
+                connection.release();
+                return res.status(400).json({
+                    message: "Rejected application cannot be moved back to Interviewing."
+                });
             }
 
             await connection.execute(
