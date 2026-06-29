@@ -180,7 +180,7 @@ export default function JobCard({ job, onClick }) {
     if (!selectedCvId) return setFeedbackMessage({ type: "danger", text: "Please select a CV to apply." });
     setIsSubmitting(true);
     try {
-        const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token');
       const response = await axios.post(`${API_URL}/api/candidate/apply`, { job_id: jobId, cv_id: selectedCvId }, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -226,17 +226,13 @@ export default function JobCard({ job, onClick }) {
           <div className="job-card-tags">
             <span className="job-tag tag-salary">{formatSalary()}</span>
             <span className="job-tag tag-location">
-              {loc ? loc.replace(/ Province| City/gi, '').trim() : 'Location updating'}
+              {province ? translateLocation(province) : 'Location updating'}
             </span>
             <span className="job-tag tag-type">{job_type || 'Full-time'}</span>
-            {job_level && <span className="job-tag tag-level">{job_level}</span>}
           </div>
         </div>
 
         <div className="job-card-right">
-          {formatDeadline() && (
-            <p className="job-card-deadline">Deadline: {formatDeadline()}</p>
-          )}
           <div className="job-card-actions">
             <button
               className={`job-card-save-btn ${isSaved ? 'saved' : ''}`}
