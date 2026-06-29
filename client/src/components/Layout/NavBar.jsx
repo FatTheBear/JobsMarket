@@ -89,6 +89,10 @@ export default function NavBar() {
               headers: { Authorization: `Bearer ${token}` },
             });
             const profile = response.data;
+            if (currentRole === 'candidate' && !profile.display_name) {
+              navigate('/setup-profile');
+              return;
+            }
             console.log("NavBar - Profile data received:", {
               name: profile.name,
               displayName: profile.display_name,

@@ -344,6 +344,12 @@ const navigate = useNavigate();
       showToast('Please fill all fields', 'error');
       return;
     }
+    const hasLetter = /[a-zA-Z]/.test(changePwd.newPassword);
+    const hasNumber = /\d/.test(changePwd.newPassword);
+    if (changePwd.newPassword.length < 8 || !hasLetter || !hasNumber) {
+      showToast('Password must be at least 8 characters long and contain both letters and numbers', 'error');
+      return;
+    }
     if (changePwd.newPassword !== changePwd.confirmPassword) {
       showToast('Passwords do not match', 'error');
       return;

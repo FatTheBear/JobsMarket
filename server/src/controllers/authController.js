@@ -219,6 +219,7 @@ const authController = {
                 u.role, 
                 u.status,
 
+                cp.display_name AS candidate_display_name,
                 cp.full_name AS candidate_name, 
                 cp.avatar_url AS candidate_avatar,
 
@@ -294,8 +295,7 @@ const authController = {
                     id: user.id,
                     email: user.email,
                     role: user.role,
-
-                    // thêm để frontend dùng khi đăng bài
+                    isOnboarded: user.role === 'Candidate' ? (user.candidate_display_name !== null && user.candidate_display_name !== '') : true,
                     company_id: user.company_id || null
                 }
             });

@@ -42,6 +42,14 @@ export default function SetupProfilePage() {
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [placeholderJobTitle, setPlaceholderJobTitle] = useState('e.g., Senior Full Stack Developer | React Specialist');
 
+  // Country Codes States
+  const [countriesList, setCountriesList] = useState([
+    { name: 'Vietnam', dialCode: '+84', flag: '🇻🇳', code: 'VN' },
+    { name: 'United States', dialCode: '+1', flag: '🇺🇸', code: 'US' }
+  ]);
+  const [countryCode, setCountryCode] = useState('+84');
+  const [dbRawPhone, setDbRawPhone] = useState('');
+
   // Job title (Industry) autocomplete suggestions state
   const [jobSuggestions, setJobSuggestions] = useState([]);
   const [showJobSuggestions, setShowJobSuggestions] = useState(false);
@@ -85,6 +93,77 @@ export default function SetupProfilePage() {
     loadPlaceholderTitle();
   }, [token]);
 
+  // Fetch country codes from public JSON API (avoiding deprecated APIs)
+  useEffect(() => {
+    const fetchCountryCodes = async () => {
+      try {
+        const res = await axios.get('https://raw.githubusercontent.com/Khodour/countries.json/master/countries.json');
+        if (res.data && Array.isArray(res.data)) {
+          const list = res.data
+            .map(item => {
+              const rawDial = item.dialCode || '';
+              const dialCode = rawDial.startsWith('+') ? rawDial : `+${rawDial}`;
+              return {
+                name: item.name || '',
+                dialCode: dialCode,
+                flag: item.emoji || '',
+                code: item.alpha2 || ''
+              };
+            })
+            .filter(item => item.dialCode && item.name)
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+          const vnIndex = list.findIndex(c => c.code === 'VN');
+          if (vnIndex > -1) {
+            const vn = list.splice(vnIndex, 1)[0];
+            setCountriesList([vn, ...list]);
+          } else {
+            setCountriesList(list);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch country codes:', err);
+      }
+    };
+    fetchCountryCodes();
+  }, []);
+
+  // Split stored phone number into countryCode and phone number when dbRawPhone or countriesList changes
+  useEffect(() => {
+    if (!dbRawPhone) return;
+    let rawPhone = dbRawPhone.trim();
+    let matchedCode = '+84';
+    let phoneNum = rawPhone;
+
+    if (rawPhone.startsWith('+')) {
+      const sorted = [...countriesList].sort((a, b) => b.dialCode.length - a.dialCode.length);
+      const match = sorted.find(c => rawPhone.startsWith(c.dialCode));
+      if (match) {
+        matchedCode = match.dialCode;
+        phoneNum = rawPhone.substring(match.dialCode.length);
+      }
+    } else if (rawPhone.startsWith('0')) {
+      matchedCode = '+84';
+      phoneNum = rawPhone.substring(1);
+    }
+
+    // Clean phone number from leading 0 or prefix
+    let cleanNum = phoneNum.replace(/\D/g, '');
+    const prefix = matchedCode.replace('+', '');
+    if (prefix && cleanNum.startsWith(prefix)) {
+      cleanNum = cleanNum.substring(prefix.length);
+    }
+    if (cleanNum.startsWith('0')) {
+      cleanNum = cleanNum.substring(1);
+    }
+
+    setCountryCode(matchedCode);
+    setFormData(prev => ({
+      ...prev,
+      phone: cleanNum
+    }));
+  }, [dbRawPhone, countriesList]);
+
   // Sync selected province and district when provinces or profile address changes
   useEffect(() => {
     if (provinces.length === 0 || !formData.address) return;
@@ -126,12 +205,14 @@ export default function SetupProfilePage() {
           setFormData(prev => ({
             ...prev,
             display_name: profile.display_name || profile.full_name || prev.display_name,
-            phone: profile.phone || prev.phone,
             avatar_url: profile.avatar_url || prev.avatar_url,
             headline: profile.headline || prev.headline,
             address: profile.address || prev.address,
             birthday: profile.birthday ? formatIsoToDisplay(profile.birthday.substring(0, 10)) : prev.birthday,
           }));
+          if (profile.phone) {
+            setDbRawPhone(profile.phone);
+          }
         }
       } catch (err) {
         console.error("Failed to load existing profile in setup wizard:", err);
@@ -144,7 +225,24 @@ export default function SetupProfilePage() {
   // Handle simple input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === 'phone') {
+      let cleanVal = value.replace(/\D/g, ''); // keep only numbers (chỉ được nhập số)
+      
+      // If user types leading 0, strip it
+      if (cleanVal.startsWith('0')) {
+        cleanVal = cleanVal.substring(1);
+      }
+
+      // If user types selected country prefix, strip it
+      const prefix = countryCode.replace('+', '');
+      if (prefix && cleanVal.startsWith(prefix)) {
+        cleanVal = cleanVal.substring(prefix.length);
+      }
+
+      setFormData((prev) => ({ ...prev, [name]: cleanVal }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
     setApiError('');
   };
 
@@ -286,7 +384,7 @@ export default function SetupProfilePage() {
 
   const handleFinishSetup = async () => {
     if (!formData.display_name.trim()) {
-      setApiError('Full Name is mandatory!');
+      setApiError('Full Name is required.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -296,7 +394,7 @@ export default function SetupProfilePage() {
       return;
     }
     if (!formData.birthday.trim()) {
-      setApiError('Date of Birth is mandatory!');
+      setApiError('Date of Birth is required.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -309,8 +407,56 @@ export default function SetupProfilePage() {
       return;
     }
 
-    if (formData.phone.trim() && !/^\d{10}$/.test(formData.phone.trim())) {
-      setApiError('Phone Number must be exactly 10 digits!');
+    // Age validation
+    const parts = formData.birthday.trim().split('/');
+    const birthDate = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    const dayDiff = today.getDate() - birthDate.getDate();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+      age--;
+    }
+
+    if (age < 16) {
+      setApiError('Must be at least 16 years old.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (age > 100) {
+      setApiError('Maximum age: 100');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (!formData.phone.trim()) {
+      setApiError('Phone Number is required.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (!/^\d{7,15}$/.test(formData.phone.trim())) {
+      setApiError('Phone Number must be between 7 and 15 digits.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (!formData.headline.trim()) {
+      setApiError('Job Title / Headline is required.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (!selectedProvince) {
+      setApiError('City / Province is required.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    if (!selectedDistrict) {
+      setApiError('District is required.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -323,6 +469,7 @@ export default function SetupProfilePage() {
       const apiBirthday = `${parts[2]}-${parts[1]}-${parts[0]}`; // YYYY-MM-DD
       const payload = {
         ...formData,
+        phone: formData.phone.trim() ? `${countryCode}${formData.phone.trim()}` : '',
         birthday: apiBirthday
       };
 
@@ -433,18 +580,40 @@ export default function SetupProfilePage() {
 
             <div className="form-group-grid">
               <div className="form-field">
-                <label htmlFor="phone">Phone Number</label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  placeholder="e.g., 0901234567"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                />
+                <label htmlFor="phone">Phone Number <span style={{ color: '#ef4444' }}>*</span></label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <select
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    style={{
+                      width: '140px',
+                      padding: '10px',
+                      borderRadius: '8px',
+                      border: '1px solid #d1d5db',
+                      background: '#fff',
+                      fontSize: '0.95rem',
+                      outline: 'none'
+                    }}
+                  >
+                    {countriesList.map((c, idx) => (
+                      <option key={`${c.code}-${idx}`} value={c.dialCode}>
+                        {c.flag} {c.dialCode} ({c.name})
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    id="phone"
+                    name="phone"
+                    placeholder="e.g., 901234567"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    style={{ flex: 1 }}
+                  />
+                </div>
               </div>
               <div className="form-field" style={{ position: 'relative' }}>
-                <label htmlFor="headline">Job Title / Headline</label>
+                <label htmlFor="headline">Job Title / Headline <span style={{ color: '#ef4444' }}>*</span></label>
                 <input
                   type="text"
                   id="headline"
@@ -474,7 +643,7 @@ export default function SetupProfilePage() {
 
             <div className="form-group-grid">
               <div className="form-field">
-                <label htmlFor="province">City / Province</label>
+                <label htmlFor="province">City / Province <span style={{ color: '#ef4444' }}>*</span></label>
                 <select
                   id="province"
                   value={selectedProvince}
@@ -500,7 +669,7 @@ export default function SetupProfilePage() {
                 </select>
               </div>
               <div className="form-field">
-                <label htmlFor="district">District</label>
+                <label htmlFor="district">District <span style={{ color: '#ef4444' }}>*</span></label>
                 <select
                   id="district"
                   value={selectedDistrict}

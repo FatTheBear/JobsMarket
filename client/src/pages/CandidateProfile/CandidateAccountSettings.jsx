@@ -689,15 +689,15 @@ const CandidateAccountSettings = () => {
     setPasswordModalError('');
     setPasswordModalSuccess('');
 
-    if (newPassword !== confirmPassword) {
-      setPasswordModalError("Passwords do not match!");
-      return;
-    }
-
     const hasLetter = /[a-zA-Z]/.test(newPassword);
     const hasNumber = /\d/.test(newPassword);
     if (newPassword.length < 8 || !hasLetter || !hasNumber) {
       setPasswordModalError("Password must be at least 8 characters long and contain both letters and numbers.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordModalError("Passwords do not match!");
       return;
     }
 
