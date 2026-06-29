@@ -1,14 +1,16 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import styles from './Login.module.css';
 import React, { useState } from 'react';
 import axios from 'axios';
 export default function Login() {
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState(location.state?.message || '');
   const [rememberMe, setRememberMe] = useState(false);
 
   const handleLoginSubmit = async (e) => {
@@ -80,6 +82,11 @@ export default function Login() {
                   <h2 className="text-uppercase text-center mb-5">
                     Login
                   </h2>
+                  {successMessage && (
+                    <div className="alert alert-success py-2 px-3 small border-0 mb-4 text-center" role="alert">
+                      <i className="fas fa-check-circle me-1"></i> {successMessage}
+                    </div>
+                  )}
                   {errorMessage && (
                     <div style={{ color: 'red', textAlign: 'center', marginBottom: '15px', fontWeight: 'bold' }}>
                       {errorMessage}
