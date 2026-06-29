@@ -356,6 +356,48 @@ router.get('/my-jobs', authMiddleware, async (req, res) => {
   }
 });
 
+// GET /api/jobs/:id/related - Jobs in the same industry
+router.get('/:id/related', async (req, res) => {
+  try {
+    const jobId = parseInt(req.params.id, 10);
+    if (Number.isNaN(jobId)) {
+      return res.status(400).json({ message: 'Invalid job id' });
+    }
+
+    const sql = `
+      SELECT DISTINCT
+        jp.*,
+        c.name AS company_name,
+        c.logo_url,
+        GROUP_CONCAT(DISTINCT i.name ORDER BY i.id SEPARATOR '||') AS industry_names
+      FROM Job_Posting jp
+      JOIN Company c ON jp.company_id = c.id
+      JOIN job_industry ji ON jp.id = ji.job_id
+      JOIN Industry i ON ji.industry_id = i.id
+      WHERE jp.status = 'Approved'
+        AND jp.id != ?
+        AND ji.industry_id IN (
+          SELECT industry_id FROM job_industry WHERE job_id = ?
+        )
+      GROUP BY jp.id
+      ORDER BY jp.created_at DESC
+      LIMIT 6
+    `;
+
+    const [rows] = await pool.query(sql, [jobId, jobId]);
+
+    const jobs = rows.map((job) => ({
+      ...job,
+      industry_names: job.industry_names ? job.industry_names.split('||') : [],
+    }));
+
+    res.json(jobs);
+  } catch (error) {
+    console.error('Error fetching related jobs:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 // GET /api/jobs/:id - Get a single job posting
 router.get('/:id', async (req, res) => {
     try {

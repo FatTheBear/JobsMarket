@@ -215,6 +215,10 @@
   font-weight: 600; 
 }
 
+.opt-offered {
+  color: #15803d;
+  font-weight: 600;
+}
 
 .opt-rejected { 
   color: #dc2626; 
@@ -228,6 +232,11 @@
 .status-Interviewing {
   color: #d97706;
   border-color: #d97706;
+}
+
+.status-Offered {
+  color: #15803d;
+  border-color: #15803d;
 }
 
 .status-Rejected {

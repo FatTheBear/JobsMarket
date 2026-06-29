@@ -305,6 +305,33 @@
   background: #f3f4f6;
   border-color: #d1d5db;
 }
+
+.related-jobs-section {
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.related-jobs-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 20px;
+}
+
+.related-jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.related-jobs-loading,
+.related-jobs-empty {
+  color: #6b7280;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
 .pageContainer {
   display: grid;
   grid-template-columns: 2fr 1fr; 

@@ -1,5 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
+import RejectedCvModal from '../../components/Modal/RejectedCvModal/RejectedCvModal';
+import { isCvRejectedNotification } from '../../utils/notificationHelpers';
 
 // Format timestamp to relative time (e.g., "2 hours ago")
 const formatRelativeTime = (dateStr) => {
@@ -26,13 +28,15 @@ const getNotificationStyle = (title) => {
   if (title.includes('Secure')) return { icon: 'fa-shield-alt', color: '#10b981', bg: '#d1fae5' };
   if (title.includes('In Review')) return { icon: 'fa-search', color: '#3b82f6', bg: '#dbeafe' };
   if (title.includes('Interview')) return { icon: 'fa-calendar-check', color: '#8b5cf6', bg: '#ede9fe' };
-  if (title.includes('Hired')) return { icon: 'fa-trophy', color: '#f59e0b', bg: '#fef3c7' };
+  if (title.includes('Hired') || title.includes('hired')) return { icon: 'fa-trophy', color: '#f59e0b', bg: '#fef3c7' };
+  if (title.includes('CV Rejected')) return { icon: 'fa-times-circle', color: '#dc2626', bg: '#fef2f2' };
   if (title.includes('Application Update')) return { icon: 'fa-file-alt', color: '#6b7280', bg: '#f3f4f6' };
   if (title.includes('Application Received')) return { icon: 'fa-envelope-open-text', color: '#06b6d4', bg: '#cffafe' };
   return { icon: 'fa-bell', color: '#6b7280', bg: '#f3f4f6' };
 };
 
 const CandidateNotifications = () => {
+  const [rejectedNoti, setRejectedNoti] = useState(null);
   const {
     notifications,
     loadingNotis,
@@ -92,6 +96,9 @@ const CandidateNotifications = () => {
                     if (!noti.is_read) {
                       handleMarkAsRead(noti.id);
                     }
+                    if (isCvRejectedNotification(noti)) {
+                      setRejectedNoti(noti);
+                    }
                   }}
                 >
                   <div
@@ -129,6 +136,11 @@ const CandidateNotifications = () => {
           </div>
         )}
       </div>
+
+      <RejectedCvModal
+        notification={rejectedNoti}
+        onClose={() => setRejectedNoti(null)}
+      />
     </div>
   );
 };

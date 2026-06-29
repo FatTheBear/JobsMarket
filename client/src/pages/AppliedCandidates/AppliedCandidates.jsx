@@ -111,7 +111,7 @@ export default function AppliedCandidates() {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         <div className="tabs">
-          {['All', 'Reviewing', 'Interviewing', 'Rejected'].map(tab => (
+          {['All', 'Reviewing', 'Interviewing', 'Offered', 'Rejected'].map(tab => (
             <button
               key={tab}
               className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
@@ -195,6 +195,7 @@ export default function AppliedCandidates() {
                     >
                       <option value="Reviewing" className="opt-review">In-Review</option>
                       <option value="Interviewing" className="opt-interview">Interviewing</option>
+                      <option value="Offered" className="opt-offered">Hired / Offered</option>
                       <option value="Rejected" className="opt-rejected">Rejected</option>
                     </select>
                   </td>

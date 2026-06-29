@@ -6,6 +6,7 @@ import './JobDetail.css';
 import { FaMoneyBillWave, FaMapMarkerAlt, FaHourglassHalf, FaPaperPlane } from 'react-icons/fa';
 import ApplySuccess from '../../components/Modal/ApplySuccess/ApplySuccess';
 import CompanyCard from '../DashBoard/UserDashboard/CompanyCard';
+import JobCard from '../../components/Jobs/JobCard';
 
 const API_URL = 'http://localhost:5000';
 
@@ -34,6 +35,8 @@ export default function JobDetail({ hideCompanyInfo: hideCompanyInfoProp }) {
   const [toast, setToast] = useState({ show: false, msg: '', type: '' });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [relatedJobs, setRelatedJobs] = useState([]);
+  const [loadingRelated, setLoadingRelated] = useState(false);
 
   const showToast = (msg, type) => {
     setToast({ show: true, msg, type });
@@ -49,6 +52,24 @@ export default function JobDetail({ hideCompanyInfo: hideCompanyInfoProp }) {
       checkAppliedStatus(job.title);
     }
   }, [job, id]);
+
+  useEffect(() => {
+    if (id && !hideCompanyInfo) {
+      fetchRelatedJobs();
+    }
+  }, [id, hideCompanyInfo]);
+
+  const fetchRelatedJobs = async () => {
+    setLoadingRelated(true);
+    try {
+      const res = await axios.get(`${API_URL}/api/jobs/${id}/related`);
+      setRelatedJobs(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setRelatedJobs([]);
+    } finally {
+      setLoadingRelated(false);
+    }
+  };
 
   const fetchJobDetail = async () => {
     setLoading(true);
@@ -368,6 +389,27 @@ export default function JobDetail({ hideCompanyInfo: hideCompanyInfoProp }) {
           </div>
         </div>
       </div>
+
+      {!hideCompanyInfo && (
+        <section className="related-jobs-section">
+          <h2 className="related-jobs-title">Related Jobs in the Same Industry</h2>
+          {loadingRelated ? (
+            <p className="related-jobs-loading">Loading related jobs...</p>
+          ) : relatedJobs.length > 0 ? (
+            <div className="related-jobs-list">
+              {relatedJobs.map((relatedJob) => (
+                <JobCard
+                  key={relatedJob.id}
+                  job={relatedJob}
+                  onClick={() => navigate(`/jobs/${relatedJob.id}`)}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="related-jobs-empty">No related jobs found in this industry.</p>
+          )}
+        </section>
+      )}
 
       {showApplyModal && (
         <ApplyModal

@@ -3,11 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './NotificationDropdown.css';
 import { SocketContext } from '../../context/SocketContext';
+import RejectedCvModal from '../Modal/RejectedCvModal/RejectedCvModal';
+import { isCvRejectedNotification } from '../../utils/notificationHelpers';
 
 export default function NotificationDropdown({ role }) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [rejectedNoti, setRejectedNoti] = useState(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const socket = useContext(SocketContext);
@@ -97,6 +100,11 @@ export default function NotificationDropdown({ role }) {
     }
     setIsOpen(false);
 
+    if (role === 'candidate' && isCvRejectedNotification(item)) {
+      setRejectedNoti(item);
+      return;
+    }
+
     // If notification is tied to a community post (Requirement 4)
     if (item.post_id) {
       window.dispatchEvent(new CustomEvent('openPostDetail', { detail: item.post_id }));
@@ -133,7 +141,8 @@ export default function NotificationDropdown({ role }) {
     if (title.includes('Comment')) return 'fas fa-comment-alt';
     if (title.includes('Application')) return 'fas fa-file-alt';
     if (title.includes('Interview')) return 'fas fa-calendar-check';
-    if (title.includes('Hired')) return 'fas fa-award';
+    if (title.includes('Hired') || title.includes('hired')) return 'fas fa-award';
+    if (title.includes('CV Rejected') || title.includes('Rejected')) return 'fas fa-times-circle';
     return 'fas fa-bell';
   };
 
@@ -197,6 +206,11 @@ export default function NotificationDropdown({ role }) {
           </div>
         </div>
       )}
+
+      <RejectedCvModal
+        notification={rejectedNoti}
+        onClose={() => setRejectedNoti(null)}
+      />
     </div>
   );
 }

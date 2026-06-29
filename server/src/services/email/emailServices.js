@@ -138,6 +138,19 @@ const sendInterviewInvitation = async (email, emailData) => {
     });
 };
 
+const sendHiredCongratulations = async (email, emailData) => {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+
+    const html = compileTemplate('hired', emailData);
+
+    await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: `[JobsMarket] Congratulations! You've been hired by ${emailData.companyName}`,
+        html: html
+    });
+};
+
 
 module.exports = {
     sendCandidateOTP,
@@ -146,5 +159,6 @@ module.exports = {
     sendAccountBanned,
     sendChangePasswordOTP,
     sendForgotPasswordOTP,
-    sendInterviewInvitation
+    sendInterviewInvitation,
+    sendHiredCongratulations
 };
