@@ -513,6 +513,7 @@ const SAMPLE_CANDIDATES = [
     fullName: 'Nguyen Van An',
     phone: '0901234567',
     headline: 'Frontend Developer',
+    industryName: 'IT',
     birthday: '1999-05-15',
     address: 'District 1, Ho Chi Minh City',
     nationality: 'Vietnamese',
@@ -531,6 +532,7 @@ const SAMPLE_CANDIDATES = [
     fullName: 'Tran Thi Binh',
     phone: '0912345678',
     headline: 'Backend Engineer',
+    industryName: 'IT',
     birthday: '1998-11-20',
     address: 'Cau Giay, Hanoi',
     nationality: 'Vietnamese',
@@ -549,6 +551,7 @@ const SAMPLE_CANDIDATES = [
     fullName: 'Le Minh Cuong',
     phone: '0923456789',
     headline: 'Data Analyst',
+    industryName: 'Finance',
     birthday: '2000-02-10',
     address: 'Hai Chau, Da Nang',
     nationality: 'Vietnamese',
@@ -591,6 +594,39 @@ async function upsertUser(conn, email, role, passwordHash, status = 'Active') {
     [email, passwordHash, role, status]
   );
   return result.insertId;
+}
+
+async function ensureSkillId(conn, skillName) {
+  const trimmed = skillName && skillName.trim();
+  if (!trimmed) return null;
+
+  const [rows] = await conn.query('SELECT id FROM skill WHERE LOWER(skill_name) = LOWER(?) LIMIT 1', [trimmed]);
+  if (rows.length) return rows[0].id;
+
+  const [result] = await conn.query('INSERT INTO skill (skill_name) VALUES (?)', [trimmed]);
+  return result.insertId;
+}
+
+async function syncIndustrySkills(conn, industryId, skillNames) {
+  if (!industryId || !Array.isArray(skillNames) || skillNames.length === 0) {
+    return;
+  }
+
+  for (const skillName of skillNames) {
+    const skillId = await ensureSkillId(conn, skillName);
+    if (!skillId) continue;
+
+    try {
+      await conn.query(
+        'INSERT IGNORE INTO industry_skill (industry_id, skill_id) VALUES (?, ?)',
+        [industryId, skillId]
+      );
+    } catch (error) {
+      if (error.code !== 'ER_NO_SUCH_TABLE') {
+        throw error;
+      }
+    }
+  }
 }
 
 async function upsertCompany(conn, hrId, industryId, data) {
@@ -649,6 +685,7 @@ async function upsertJob(conn, companyId, hrId, industryId, job) {
       ]
     );
     await syncJobSkills(conn, existing[0].id, job.skills || []);
+    await syncIndustrySkills(conn, industryId, job.skills || []);
     return existing[0].id;
   }
 
@@ -667,6 +704,7 @@ async function upsertJob(conn, companyId, hrId, industryId, job) {
   const jobId = result.insertId;
   await conn.query('INSERT IGNORE INTO job_industry (job_id, industry_id) VALUES (?, ?)', [jobId, industryId]);
   await syncJobSkills(conn, jobId, job.skills || []);
+  await syncIndustrySkills(conn, industryId, job.skills || []);
   return jobId;
 }
 
@@ -679,17 +717,10 @@ async function syncJobSkills(conn, jobId, skillNames) {
 
   const skillIds = [];
   for (const skillName of skillNames) {
-    const trimmed = skillName && skillName.trim();
-    if (!trimmed) continue;
-
-    const [rows] = await conn.query('SELECT id FROM skill WHERE LOWER(skill_name) = LOWER(?) LIMIT 1', [trimmed]);
-    if (rows.length) {
-      skillIds.push(rows[0].id);
-      continue;
+    const skillId = await ensureSkillId(conn, skillName);
+    if (skillId) {
+      skillIds.push(skillId);
     }
-
-    const [result] = await conn.query('INSERT INTO skill (skill_name) VALUES (?)', [trimmed]);
-    skillIds.push(result.insertId);
   }
 
   if (skillIds.length > 0) {
@@ -698,9 +729,31 @@ async function syncJobSkills(conn, jobId, skillNames) {
   }
 }
 
+async function syncCandidateSkills(conn, candidateId, industryId, skillNames) {
+  await conn.query('DELETE FROM candidate_skill WHERE candidate_id = ?', [candidateId]);
+
+  if (!Array.isArray(skillNames) || skillNames.length === 0) {
+    return;
+  }
+
+  const values = [];
+  for (const skillName of skillNames) {
+    const skillId = await ensureSkillId(conn, skillName);
+    if (!skillId) continue;
+    values.push([candidateId, skillId, 0]);
+  }
+
+  if (values.length > 0) {
+    await conn.query('INSERT INTO candidate_skill (candidate_id, skill_id, level) VALUES ?', [values]);
+  }
+
+  await syncIndustrySkills(conn, industryId, skillNames);
+}
+
 async function upsertCandidate(conn, passwordHash, candidate) {
   const userId = await upsertUser(conn, candidate.email, 'Candidate', passwordHash, 'Active');
   const skillsJson = JSON.stringify(candidate.skills);
+  const industryId = candidate.industryName ? await getIndustryId(conn, candidate.industryName) : null;
 
   const [profileRows] = await conn.query('SELECT id FROM candidate_profile WHERE user_id = ? LIMIT 1', [userId]);
   let candidateId;
@@ -754,6 +807,8 @@ async function upsertCandidate(conn, passwordHash, candidate) {
       [candidateId, candidate.experience.company, candidate.experience.role, candidate.experience.startDate, candidate.experience.endDate, candidate.experience.description]
     );
   }
+
+  await syncCandidateSkills(conn, candidateId, industryId, candidate.skills || []);
 }
 
 async function upsertNewsCategory(conn, category) {
