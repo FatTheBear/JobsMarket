@@ -1,3 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Inter:wght@400;500;600;700&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
+
+body, p, a, span, label, input, textarea, div, li, td, th {
+  font-family: 'Lato', sans-serif !important;
+}
+
+h1, h2, h3, h4, h5, h6, 
+.title, .heading, .section-title {
+  font-family: 'Figtree', sans-serif !important;
+}
+
+button, 
+input[type="button"], 
+input[type="submit"], 
+.btn,
+nav *,
+.minimal-navbar * {
+  font-family: 'Inter', sans-serif !important;
+}
+
+.note {
+  font-size: 0.875rem;
+}
+
 .counter {
   font-size: 16px;
   padding: 5px 10px;

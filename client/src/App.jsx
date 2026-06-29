@@ -4,7 +4,6 @@ import { SocketProvider } from './context/SocketContext';
 import MainLayout from './components/layout/MainLayout';
 import LandingPage from './pages/LandingPage/LandingPage';
 import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
-import CompanyPublicProfile from './pages/CompanyPublicProfile/CompanyPublicProfile';
 import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
 import CandidatePublicProfile from './pages/CandidateProfile/CandidatePublicProfile';
 import Login from './pages/Authentication/Login';
@@ -44,6 +43,9 @@ import CompanyJobList from './pages/DashBoard/CompanyDashboard/CompanyJobList';
 import CandidateMedia from './pages/CandidateProfile/CandidateMedia';
 import CompanyMedia from './pages/DashBoard/CompanyDashboard/CompanyMedia';
 import CompanyActivityHistory from './pages/DashBoard/CompanyDashboard/CompanyActivityHistory';
+import CompanyDetail from './pages/Dashboard/UserDashboard/CompanyDetail';
+import FindJob from "./pages/Dashboard/UserDashboard/FindJob";
+import CandidateDetail from './pages/AppliedCandidates/CandidateDetail';
 
 
 import './App.css';
@@ -87,9 +89,8 @@ const router = createBrowserRouter([
     children: [
       { path: "/", element: <LandingPage /> },
       { path: "/dashboard", element: <UserDashboard /> },
+      { path: "/find-job", element: <FindJob /> },
       { path: "/profile", element: <Home /> },
-      { path: "/company/:companyId", element: <CompanyPublicProfile /> },
-      { path: "/candidate/:id", element: <CandidatePublicProfile /> },
 
       {
         path: "/candidate-profile",
@@ -116,7 +117,7 @@ const router = createBrowserRouter([
       },
 
       { path: "/candidate/:id", element: <CandidatePublicProfile /> },
-      { path: "/company/:id", element: <CompanyPublicProfile /> },
+      { path: "/company/:id", element: <CompanyDetail /> },
 
       {
         path: "/job-skills",
@@ -145,6 +146,8 @@ const router = createBrowserRouter([
           { path: "jobs", element: <CompanyJobList /> },
           { path: "media", element: <CompanyMedia /> },
           { path: "activity-history", element: <CompanyActivityHistory /> },
+          { path: "candidate-detail/:id", element: <CandidateDetail /> },
+          
         ]
       },
 

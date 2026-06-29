@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import JobCard from './JobCard';
-import JobDetail from './JobDetail';
+import JobDetail from '../../pages/JobDetail/JobDetail';
 import './JobList.css';
 import { useNavigate } from 'react-router-dom';
 

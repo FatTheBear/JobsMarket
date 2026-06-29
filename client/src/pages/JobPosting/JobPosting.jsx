@@ -359,23 +359,22 @@ export default function JobPosting() {
 
       const payload = {
         title: form.title,
-        description: form.job_description || form.title,
-        requirements: form.job_requirements || form.selected_skills.map(id => dbSkills.find(s => s.id === id)?.name).filter(Boolean).join(", "),
+        description: form.description,
+        requirements: form.requirements,
+        benf: form.benefits,
         selected_skills: form.selected_skills,
         selected_industries: form.selected_industries,
-        salary_min: form.salary_type === 'specific' ? parseInt(form.salary_min) : null,
-        salary_max: form.salary_type === 'specific' ? parseInt(form.salary_max) : null,
+        salary_min: form.salary_type === 'specific' ? Number(form.salary_min) : null,
+        salary_max: form.salary_type === 'specific' ? Number(form.salary_max) : null,
         job_type: form.job_type,
         deadline: form.deadline || null,
-
         experience_req: form.experience_req,
         working_hours: working_hours,
         job_level: form.job_level,
-        vacancies: form.vacancies,
+        vacancies: Number(form.vacancies),
         gender_req: form.gender_req,
         age_req: form.age_req,
         language_req: form.language_req,
-
         province: form.province,
         district: form.district,
         ward: form.ward,
@@ -644,34 +643,34 @@ export default function JobPosting() {
               </div>
             </section>
 
-            {/* PHẦN 2: DETAILED INFORMATION (PHẦN BỊ MẤT ĐÃ ĐƯỢC KHÔI PHỤC) */}
+            {/* PHẦN 2: DETAILED INFORMATION  */}
             <section className="jp-card mt-20">
               <div className="jp-card-title">Detailed Information</div>
               <div className="jp-card-body">
                 <div className="jp-field">
                   <label>Job Description <span>*</span></label>
                   <textarea 
-                    name="job_description" 
-                    value={form.job_description} 
+                    name="description" 
+                    value={form.description} 
                     onChange={handleChange} 
-                    placeholder="Describe the daily responsibilities, tasks, and scope of work..." 
+                    placeholder="Describe the daily responsibilities..." 
                     rows="6"
-                    className={errors.job_description ? 'has-error' : ''}
+                    className={errors.description ? 'has-error' : ''}
                   ></textarea>
-                  {errors.job_description && <span className="jp-error-text">{errors.job_description}</span>}
+                  {errors.description && <span className="jp-error-text">{errors.description}</span>}
                 </div>
 
                 <div className="jp-field">
                   <label>Job Requirements <span>*</span></label>
                   <textarea 
-                    name="job_requirements" 
-                    value={form.job_requirements} 
+                    name="requirements" 
+                    value={form.requirements} 
                     onChange={handleChange} 
-                    placeholder="List the required skills, qualifications, and experience..." 
+                    placeholder="List the required skills..." 
                     rows="6"
-                    className={errors.job_requirements ? 'has-error' : ''}
+                    className={errors.requirements ? 'has-error' : ''}
                   ></textarea>
-                  {errors.job_requirements && <span className="jp-error-text">{errors.job_requirements}</span>}
+                  {errors.requirements && <span className="jp-error-text">{errors.requirements}</span>}
                 </div>
                 
                 <div className="jp-field">
@@ -680,7 +679,7 @@ export default function JobPosting() {
                     name="benefits" 
                     value={form.benefits} 
                     onChange={handleChange} 
-                    placeholder="What benefits will the employee receive? (e.g., Insurance, Bonus, 13th-month salary...)" 
+                    placeholder="What benefits will the employee receive?..." 
                     rows="4"
                   ></textarea>
                 </div>

@@ -44,13 +44,8 @@ const generateData = () => {
 
 const seedDatabase = async () => {
     try {
-<<<<<<< HEAD
-        const [rows] = await db.query('SELECT COUNT(*) as count FROM job_title_dictionary');
-        
-=======
         const [rows] = await db.query('SELECT COUNT(*) as count FROM Company');
 
->>>>>>> Tuong/auth
         if (rows[0].count > 0) {
             console.log('Database already seeded. Skipping...');
             process.exit(0);

@@ -4,6 +4,7 @@ const pool = require('../config/db');
 const companyController = require('../controllers/companyController');
 const { authMiddleware } = require('../middleware/authMiddleware');
 const { upload } = require('../middleware/upload');
+const { sendInterviewInvitation } = require('../services/email/emailServices');
 
 
 router.get('/applications', authMiddleware, companyController.getAppliedCandidates);

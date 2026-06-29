@@ -1,0 +1,183 @@
+.findJobWrapper {
+  padding: 40px 24px;
+  background-color: #ffffff;
+}
+
+.findJobContainer {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.findJobHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 16px;
+}
+
+.findJobHeader h1 {
+  color: #01796F;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.findJobFilters {
+  position: relative;
+}
+
+.filterDropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdownToggleBtn {
+  background-color: #ffffff;
+  color: #01796F;
+  border: 1px solid #01796F;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 2px 4px rgba(1, 121, 111, 0.1);
+}
+
+.dropdownToggleBtn:hover {
+  background-color: #01796F;
+  color: #ffffff;
+}
+
+.dropdownLabel {
+  font-weight: 600;
+}
+
+.dropdownCaret {
+  font-size: 10px;
+}
+
+.findJobList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 16px;
+}
+
+.loadingState,
+.emptyState {
+  text-align: center;
+  padding: 60px;
+  color: #01796F;
+  font-weight: 600;
+  font-size: 18px;
+  background-color: #ffffff;
+  border-radius: 8px;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 600px;
+  background-color: #ffffff;
+  border: 2px solid #01796F;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.dropdownBody {
+  display: flex;
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.paneLeft,
+.paneRight {
+  flex: 1;
+  padding: 16px;
+}
+
+.paneLeft {
+  background-color: #f8fafc;
+  border-right: 1px solid #e2e8f0;
+}
+
+.dropdownBody h4 {
+  color: #01796F;
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 15px;
+  border-bottom: 1px solid #B0C4DE;
+  padding-bottom: 8px;
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+
+.checkRow input[type="checkbox"] {
+  accent-color: #01796F;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.dropdownFooter {
+  padding: 12px 16px;
+  background-color: #B0C4DE;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btnCancel,
+.btnSave {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.btnCancel {
+  background-color: #ffffff;
+  color: #5a5a5a;
+}
+
+.btnSave {
+  background-color: #01796F;
+  color: #ffffff;
+}
+
+.btnSave:hover {
+  background-color: #015e56;
+}
+
+.job-card-container {
+  display: flex;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.job-card-container:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #01796F;
+}
