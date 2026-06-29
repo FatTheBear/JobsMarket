@@ -10,10 +10,20 @@ const onboardingSchema = Joi.object({
         'string.pattern.base': 'Date of Birth must be in YYYY-MM-DD format',
         'any.required': 'Date of Birth is required'
     }),
-    phone: Joi.string().trim().allow('', null).optional(),
+    phone: Joi.string().trim().regex(/^\+\d{8,20}$/).required().messages({
+        'string.empty': 'Phone Number is required',
+        'string.pattern.base': 'Phone Number must start with + and be between 8 and 20 digits',
+        'any.required': 'Phone Number is required'
+    }),
     avatar_url: Joi.string().trim().allow('', null).optional(),
-    headline: Joi.string().trim().allow('', null).optional(),
-    address: Joi.string().trim().allow('', null).optional(),
+    headline: Joi.string().trim().required().messages({
+        'string.empty': 'Job Title / Headline is required',
+        'any.required': 'Job Title / Headline is required'
+    }),
+    address: Joi.string().trim().required().messages({
+        'string.empty': 'City / Province and District are required',
+        'any.required': 'City / Province and District are required'
+    }),
     education: Joi.array().items(
         Joi.object({
             school: Joi.string().trim().required().messages({
@@ -77,6 +87,30 @@ const validateOnboarding = (req, res, next) => {
         return res.status(400).json({ 
             errors: error.details.map(err => err.message) 
         });
+    }
+
+    // Custom DOB age validation: 16 to 100
+    if (req.body.birthday) {
+        const birthDate = new Date(req.body.birthday);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        const dayDiff = today.getDate() - birthDate.getDate();
+
+        if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+            age--;
+        }
+
+        if (age < 16) {
+            return res.status(400).json({
+                errors: ['Must be at least 16 years old.']
+            });
+        }
+        if (age > 100) {
+            return res.status(400).json({
+                errors: ['Maximum age: 100']
+            });
+        }
     }
 
     // Custom logic validations: start date <= current year, end date >= start date

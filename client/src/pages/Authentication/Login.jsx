@@ -50,7 +50,11 @@ export default function Login() {
         } else if (roleLower === 'admin') {
           navigate('/admin');
         } else {
-          navigate('/dashboard');
+          if (response.data.user && response.data.user.isOnboarded === false) {
+            navigate('/setup-profile');
+          } else {
+            navigate('/dashboard');
+          }
         }
       }
     } catch (error) {

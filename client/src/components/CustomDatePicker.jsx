@@ -79,6 +79,11 @@ export default function CustomDatePicker({
       calendarClassName="jobsmarket-datepicker"
       popperPlacement="bottom-start"
       showPopperArrow={false}
+      showMonthDropdown
+      showYearDropdown
+      dropdownMode="select"
+      scrollableYearDropdown
+      yearDropdownItemNumber={100}
     />
   );
 }
