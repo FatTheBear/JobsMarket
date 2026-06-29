@@ -72,6 +72,14 @@ const router = createBrowserRouter([
   { path: "/terms-of-service", element: <TermsOfService /> },
   { path: "/registration-pending", element: <RegistrationPending /> },
   { path: "/activate-company", element: <ActivateCompany /> },
+  {
+        path: "/admin",
+        element: (
+          <ProtectedRoute requiredRole="Admin">
+            <AdminDashboard />
+          </ProtectedRoute>
+        )
+      },
   
 
   {
@@ -140,14 +148,7 @@ const router = createBrowserRouter([
         ]
       },
 
-      {
-        path: "/admin",
-        element: (
-          <ProtectedRoute requiredRole="Admin">
-            <AdminDashboard />
-          </ProtectedRoute>
-        )
-      },
+      
 
       { path: "/search-jobs", element: <SearchJobs /> },
 

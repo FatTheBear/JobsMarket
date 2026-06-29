@@ -7,12 +7,13 @@ import {
   LinearScale,
   PointElement,
   LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
 } from "chart.js";
+import { Line, Bar } from "react-chartjs-2";
 
-import { Line } from "react-chartjs-2";
 import styles from './CompanyDashBoard.module.css';
 
 ChartJS.register(
@@ -20,6 +21,7 @@ ChartJS.register(
   LinearScale,
   PointElement,
   LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend
@@ -30,12 +32,14 @@ export default function CompanyDashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState({ jobs: 0, applications: 0, views: 0 });
 
+
   const isDashboard =
     location.pathname === "/company" ||
     location.pathname === "/company/dashboard";
 
   const [appStats, setAppStats] = useState([]);
   const [newsList, setNewsList] = useState([]);//begin
+  const [pipeline, setPipeline] = useState(null);
   useEffect(() => {
     fetch("http://localhost:5000/api/company/dashboard/applications")
       .then(res => res.json())
@@ -58,22 +62,32 @@ export default function CompanyDashboard() {
   }, []);
 
   useEffect(() => {
-  const token = localStorage.getItem("token");
-  fetch("http://localhost:5000/api/company/dashboard/stats", {
-    headers: { Authorization: `Bearer ${token}` }
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (data && typeof data.jobs !== "undefined") {
-        setStats({
-          jobs: data.jobs || 0,
-          applications: data.applications || 0,
-          views: data.views || 0
-        });
-      }
+    const token = localStorage.getItem("token");
+    fetch("http://localhost:5000/api/company/dashboard/stats", {
+      headers: { Authorization: `Bearer ${token}` }
     })
-    .catch(err => console.error("Error fetching stats:", err));
-}, []);
+      .then(res => res.json())
+      .then(data => {
+        if (data && typeof data.jobs !== "undefined") {
+          setStats({
+            jobs: data.jobs || 0,
+            applications: data.applications || 0,
+            views: data.views || 0
+          });
+        }
+      })
+      .catch(err => console.error("Error fetching stats:", err));
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    fetch("http://localhost:5000/api/company/dashboard/application-pipeline", {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => setPipeline(data))
+      .catch(err => console.error("Error fetching pipeline:", err));
+  }, []);
 
 
 
@@ -90,6 +104,26 @@ export default function CompanyDashboard() {
         tension: 0.3,
       },
     ],
+  };
+  const pipelineData = {
+    labels: ['Applied', 'Reviewing', 'Interviewing', 'Offered', 'Rejected'],
+    datasets: [
+      {
+        label: '# Applications',
+        data: pipeline
+          ? [pipeline.Applied, pipeline.Reviewing, pipeline.Interviewing, pipeline.Offered, pipeline.Rejected]
+          : [0, 0, 0, 0, 0],
+        backgroundColor: ['#01796F', '#0ea5e9', '#8b5cf6', '#10b981', '#ef4444'],
+        borderRadius: 6,
+      },
+    ],
+  };
+
+  const pipelineOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
   };
   const chartOptions = {
     responsive: true,
@@ -215,6 +249,17 @@ export default function CompanyDashboard() {
 
         </div>
 
+        {/* Application Pipeline — riêng cho công ty này */}
+        <div className={styles.chartSection} style={{ marginTop: 20 }}>
+          <div className={styles.chartHeader}>
+            <h2 className={styles.chartTitle}>Application Pipeline</h2>
+          </div>
+          <div style={{ background: "#fff", padding: "20px", borderRadius: "8px" }}>
+            <div style={{ width: "100%", height: "320px" }}>
+              <Bar data={pipelineData} options={pipelineOptions} />
+            </div>
+          </div>
+        </div>
 
         {/* Cards */}
         <div style={{ marginTop: "20px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>

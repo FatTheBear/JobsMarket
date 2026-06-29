@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
+const emailService = require('../services/email/emailServices');
 
 // 1. Lấy dữ liệu tổng quan (Đồng bộ chuẩn db.query)
 exports.getStats = async (req, res) => {
@@ -164,17 +165,51 @@ exports.getUsers = async (req, res) => {
     }
 };
 
-// 3. Lấy danh sách việc làm chờ duyệt
+// 3. Lấy danh sách việc làm chờ duyệt (đầy đủ thông tin + skills + industries)
 exports.getPendingJobs = async (req, res) => {
     try {
         const [jobs] = await db.query(`
-            SELECT j.id, j.title, c.name AS company_name, j.description, j.status 
-            FROM \`job_posting\` j
-            JOIN \`company\` c ON j.company_id = c.id
+            SELECT 
+                j.id,
+                j.title,
+                j.description,
+                j.requirements,
+                j.salary_min,
+                j.salary_max,
+                j.job_type,
+                j.status,
+                j.experience_req,
+                j.working_hours,
+                j.job_level,
+                j.vacancies,
+                j.gender_req,
+                j.age_req,
+                j.language_req,
+                j.province,
+                j.district,
+                j.ward,
+                j.exact_address,
+                j.deadline,
+                j.created_at,
+                c.name AS company_name,
+                c.logo_url AS company_logo,
+                u.email AS hr_email,
+                GROUP_CONCAT(DISTINCT s.skill_name ORDER BY s.skill_name SEPARATOR ', ') AS skills,
+                GROUP_CONCAT(DISTINCT i.name ORDER BY i.name SEPARATOR ', ') AS industries
+            FROM job_posting j
+            JOIN company c ON j.company_id = c.id
+            LEFT JOIN user u ON j.hr_id = u.id
+            LEFT JOIN job_skill js ON j.id = js.job_id
+            LEFT JOIN skill s ON js.skill_id = s.id
+            LEFT JOIN job_industry ji ON j.id = ji.job_id
+            LEFT JOIN industry i ON ji.industry_id = i.id
             WHERE j.status = 'Pending'
+            GROUP BY j.id
+            ORDER BY j.created_at DESC
         `);
         res.json(jobs);
     } catch (error) {
+        console.error("GET PENDING JOBS ERROR:", error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -970,7 +1005,18 @@ exports.getDashboardTrends = async (req, res) => {
             GROUP BY period, label ORDER BY period ASC
         `);
 
-        res.json({ jobTrends, appTrends, revenueTrends });
+        // User đăng ký theo thời gian (loại trừ Admin)
+        const [userTrends] = await db.query(`
+            SELECT DATE_FORMAT(created_at, '${groupFormat}') AS period,
+                   DATE_FORMAT(created_at, '${labelFormat}') AS label,
+                   COUNT(*) AS count
+            FROM user
+            WHERE role != 'Admin' AND ${dateFilter}
+            GROUP BY period, label ORDER BY period ASC
+        `);
+
+        res.json({ jobTrends, appTrends, revenueTrends, userTrends });
+
     } catch (error) {
         console.error('GET TRENDS ERROR:', error);
         res.status(500).json({ message: error.message });

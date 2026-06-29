@@ -3,13 +3,13 @@ import { Plus, Trash2 } from 'lucide-react';
 import './Admin.css';
 import { useModal } from './useModal';
 
-const AdminCategories = ({ 
-  categories, 
-  onRefresh, 
-  onAddSkill, 
-  onAddIndustry, 
-  onDeleteSkill, 
-  onDeleteIndustry 
+const AdminCategories = ({
+  categories,
+  onRefresh,
+  onAddSkill,
+  onAddIndustry,
+  onDeleteSkill,
+  onDeleteIndustry
 }) => {
   const { showAlert } = useModal();
   const [newSkill, setNewSkill] = useState('');
@@ -35,15 +35,15 @@ const AdminCategories = ({
       </div>
 
       <div className="categories-grid">
-        
+
         {/* KHỐI QUẢN LÝ SKILLS */}
         <div>
           <h3 style={{ marginBottom: '12px', color: '#01796F' }}>Skills List</h3>
           <div className="admin-input-group">
-            <input 
-              type="text" 
-              className="admin-input" 
-              placeholder="Add new skill (e.g. React, Node.js)..." 
+            <input
+              type="text"
+              className="admin-input"
+              placeholder="Add new skill (e.g. React, Node.js)..."
               value={newSkill}
               onChange={(e) => setNewSkill(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && submitSkill()}
@@ -69,8 +69,8 @@ const AdminCategories = ({
                       <td>#{skill.id}</td>
                       <td><strong>{skill.skill_name}</strong></td>
                       <td>
-                        <button 
-                          className="action-btn delete" 
+                        <button
+                          className="action-btn delete"
                           style={{ margin: '0 auto' }}
                           onClick={() => onDeleteSkill && onDeleteSkill(skill.id)}
                         >
@@ -92,10 +92,10 @@ const AdminCategories = ({
         <div>
           <h3 style={{ marginBottom: '12px', color: '#01796F' }}>Industries List</h3>
           <div className="admin-input-group">
-            <input 
-              type="text" 
-              className="admin-input" 
-              placeholder="Add new industry (e.g. Information Technology)..." 
+            <input
+              type="text"
+              className="admin-input"
+              placeholder="Add new industry (e.g. Information Technology)..."
               value={newIndustry}
               onChange={(e) => setNewIndustry(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && submitIndustry()}
@@ -115,14 +115,14 @@ const AdminCategories = ({
                 </tr>
               </thead>
               <tbody>
-                {categories?.industries?.length > 0 ? (
-                  categories.industries.map((ind) => (
+                {categories?.industry?.length > 0 ? (
+                  categories.industry.map((ind) => (
                     <tr key={ind.id}>
                       <td>#{ind.id}</td>
                       <td><strong>{ind.name}</strong></td>
                       <td>
-                        <button 
-                          className="action-btn delete" 
+                        <button
+                          className="action-btn delete"
                           style={{ margin: '0 auto' }}
                           onClick={() => onDeleteIndustry && onDeleteIndustry(ind.id)}
                         >
