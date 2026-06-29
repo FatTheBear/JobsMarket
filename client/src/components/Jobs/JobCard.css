@@ -185,8 +185,7 @@
   align-items: center;
 }
 
-.job-card-apply-btn,
-.job-card-save-btn {
+.job-card-apply-btn {
   background-color: #01796F;
   color: #ffffff;
   border: none;
@@ -199,8 +198,7 @@
   transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
-.job-card-apply-btn:hover,
-.job-card-save-btn:hover {
+.job-card-apply-btn:hover {
   background-color: #00e8d5;
   transform: translateY(-1px);
 }
@@ -212,14 +210,31 @@
   transform: none;
 }
 
-.job-card-save-btn.saved {
-  background-color: #f3f4f6;
-  color: #0f172a;
+/* Icon Save Button */
+.job-card-save-btn {
+  background-color: transparent;
+  color: #6b7280;
   border: 1px solid #cbd5e1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.job-card-save-btn.saved:hover {
-  background-color: #e2e8f0;
+.job-card-save-btn:hover {
+  background-color: #f3f4f6;
+  color: #01796F;
+  border-color: #01796F;
+}
+
+.job-card-save-btn.saved {
+  background-color: #e6f2f0;
+  color: #01796F;
+  border-color: #01796F;
 }
 
 .tag-level {

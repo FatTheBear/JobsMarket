@@ -40,6 +40,7 @@ const authController = {
                     [otp, expiresAt, newUserId]
                 );
 
+                console.log(`[DEV MODE] OTP for ${email}: ${otp}`);
                 await emailService.sendCandidateOTP(email, otp);
 
                 const defaultFullName = email.split('@')[0];
@@ -177,7 +178,7 @@ const authController = {
                 );
 
                 const token = jwt.sign(
-                    { id: user.id, role: user.role },
+                    { id: user.id, role: user.role, email: email },
                     process.env.JWT_SECRET || 'SECRET_KEY',
                     { expiresIn: '1d' }
                 );
@@ -259,7 +260,7 @@ const authController = {
 
 
             const token = jwt.sign(
-                { id: user.id, role: user.role },
+                { id: user.id, role: user.role, email: user.email },
                 process.env.JWT_SECRET || 'SECRET_KEY',
                 { expiresIn: '1d' }
             );
@@ -399,6 +400,7 @@ const authController = {
                 [otp, expiresAt, userId]
             );
 
+            console.log(`[DEV MODE] Password Change OTP for ${email}: ${otp}`);
             await emailService.sendChangePasswordOTP(email, otp);
 
             return res.status(200).json({ message: "OTP code sent successfully to your email!" });

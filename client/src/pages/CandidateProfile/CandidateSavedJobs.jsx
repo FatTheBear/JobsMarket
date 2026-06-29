@@ -75,7 +75,7 @@ const CandidateSavedJobs = () => {
                         <div className="d-flex flex-wrap gap-2">
                           <span className="badge bg-light text-dark">{job.job_type || 'Full-time'}</span>
                           <span className="badge bg-light text-dark">{job.salary_min && job.salary_max ? `$${job.salary_min} - $${job.salary_max}` : 'Negotiable'}</span>
-                          <span className="badge bg-light text-dark">{job.province || job.district || job.exact_address || 'Location pending'}</span>
+                          <span className="badge bg-light text-dark">{job.loc ? job.loc.replace(/ Province| City/gi, '').trim() : 'Location pending'}</span>
                         </div>
                       </div>
                       <div className="d-flex gap-2 flex-wrap">
