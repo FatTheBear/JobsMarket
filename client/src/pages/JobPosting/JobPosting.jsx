@@ -253,30 +253,18 @@ export default function JobPosting() {
     const xssRegex = /<\s*script\b|javascript:|onerror=|onload=|on\w+=/i;
 
     // Validate Description
-<<<<<<< HEAD
-    const trimmedDesc = form.description.trim();
-    if (!trimmedDesc || trimmedDesc.length < 50 || trimmedDesc.length > 5000) {
-      newErrors.description = "Job Description must be between 50 and 5000 characters.";
-=======
+
    const trimmedDesc = (form.description || "").trim();
     if (!trimmedDesc) {
-      newErrors.description = "Please enter Job Description."; // Chỉ cần có nhập chữ (dù là 1 chữ) là qua
->>>>>>> 7e954b6315db8f6e17512c5f78c4ddc146e930d3
+      newErrors.description = "Please enter Job Description."; 
     } else if (xssRegex.test(trimmedDesc)) {
       newErrors.description = "Malicious code detected in Job Description (XSS).";
     }
 
-<<<<<<< HEAD
-    // Validate Requirements
-    const trimmedReq = form.requirements.trim();
-    if (!trimmedReq || trimmedReq.length < 50 || trimmedReq.length > 5000) {
-      newErrors.requirements = "Job Requirements must be between 50 and 5000 characters.";
-=======
-    // Validate Requirements (Đã gỡ bỏ giới hạn 50-5000 ký tự)
+
     const trimmedReq = (form.requirements || "").trim();
     if (!trimmedReq) {
-      newErrors.requirements = "Please enter Job Requirements."; // Chỉ cần có nhập chữ là qua
->>>>>>> 7e954b6315db8f6e17512c5f78c4ddc146e930d3
+      newErrors.requirements = "Please enter Job Requirements."; 
     } else if (xssRegex.test(trimmedReq)) {
       newErrors.requirements = "Malicious code detected in Job Requirements (XSS).";
     }

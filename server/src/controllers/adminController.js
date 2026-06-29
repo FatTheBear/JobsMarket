@@ -178,7 +178,6 @@ exports.getPendingJobs = async (req, res) => {
                 j.salary_max,
                 j.job_type,
                 j.status,
-<<<<<<< HEAD
                 j.exp_yrs AS experience_req,
                 j.work_hrs AS working_hours,
                 j.job_level,
@@ -190,16 +189,6 @@ exports.getPendingJobs = async (req, res) => {
                 NULL AS district,
                 NULL AS ward,
                 j.loc AS exact_address,
-=======
-                j.exp_yrs AS experience_req,    -- Đã map đúng cột của DB
-                j.work_hrs AS working_hours,    -- Đã map đúng cột của DB
-                j.job_level,
-                j.vacancies,
-                j.age_req,
-                j.lang_req AS language_req,     -- Đã map đúng cột của DB
-                j.province,
-                j.loc AS exact_address,         -- Dùng cột loc làm địa chỉ
->>>>>>> 7e954b6315db8f6e17512c5f78c4ddc146e930d3
                 j.deadline,
                 j.created_at,
                 c.name AS company_name,
@@ -231,19 +220,19 @@ exports.updateUserStatus = async (req, res) => {
     const { status } = req.body;
     try {
         await db.query("UPDATE `user` SET status = ? WHERE id = ?", [status, id]);
-        res.json({ message: "Cập nhật trạng thái thành công" });
+        res.json({ message: "Status updated successfully" });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-// 5. Duyệt hoặc Từ chối bài đăng
+// 5. Approve or Reject job posting
 exports.updateJobStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
     try {
         await db.query("UPDATE `job_posting` SET status = ? WHERE id = ?", [status, id]);
-        res.json({ message: "Xử lý bài đăng thành công" });
+        res.json({ message: "Job posting processed successfully" });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

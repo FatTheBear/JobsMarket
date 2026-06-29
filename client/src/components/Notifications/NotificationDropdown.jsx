@@ -103,15 +103,12 @@ export default function NotificationDropdown({ role }) {
     }
     setIsOpen(false);
 
-<<<<<<< HEAD
     if (role === 'candidate' && isCvRejectedNotification(item)) {
       setRejectedNoti(item);
       return;
     }
 
     // If notification is tied to a community post (Requirement 4)
-=======
->>>>>>> 7e954b6315db8f6e17512c5f78c4ddc146e930d3
     if (item.post_id) {
       window.dispatchEvent(new CustomEvent('openPostDetail', { detail: item.post_id }));
     } else {
@@ -145,7 +142,6 @@ export default function NotificationDropdown({ role }) {
       }
     }
   };
-
   const getNotificationIcon = (title) => {
     if (title.includes('Like')) return 'fas fa-thumbs-up';
     if (title.includes('Comment')) return 'fas fa-comment-alt';
