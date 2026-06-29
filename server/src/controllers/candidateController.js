@@ -647,7 +647,63 @@ const candidateController = {
             console.error('Error fetching countries:', error);
             return res.status(500).json({ message: 'Server error while fetching countries!' });
         }
+    },
+    getCandidateDetail: async (req, res) => {
+    try {
+        const candidateId = req.params.id;
+
+      
+        let profile = await CandidateProfileModel.findByUserId(candidateId);
+        if (!profile) {
+            profile = await CandidateProfileModel.findByProfileId(candidateId);
+        }
+
+        if (!profile) {
+            return res.status(404).json({ message: "Candidate not found!" });
+        }
+
+       
+        const fieldsToParse = ['skills', 'education', 'languages', 'certifications', 'awards', 'experience'];
+        fieldsToParse.forEach(field => {
+            if (profile[field] && typeof profile[field] === 'string') {
+                try {
+                    profile[field] = JSON.parse(profile[field]);
+                } catch (e) {
+                    profile[field] = []; 
+                }
+            }
+        });
+
+        if (profile.birthday) {
+            const bDate = new Date(profile.birthday);
+            profile.dob = bDate.toISOString().split('T')[0]; // Format YYYY-MM-DD
+        }
+
+        
+        if (profile.experience && Array.isArray(profile.experience)) {
+            let totalMonths = 0;
+            profile.experience.forEach(exp => {
+                if (exp.startDate) {
+                    const start = new Date(exp.startDate);
+                    const end = exp.endDate ? new Date(exp.endDate) : new Date();
+                    const diffMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+                    if (diffMonths > 0) totalMonths += diffMonths;
+                }
+            });
+            profile.years_of_experience = Math.round((totalMonths / 12) * 10) / 10;
+        } else {
+            profile.years_of_experience = 0;
+        }
+
+      
+        return res.status(200).json(profile);
+
+    } catch (error) {
+        console.error("Error in getCandidateDetail:", error);
+        return res.status(500).json({ message: "Internal server error!" });
     }
+}
+
 };
 exports.applyForJob = async (req, res) => {
     const { id: userId } = req.user;
@@ -687,6 +743,10 @@ exports.applyForJob = async (req, res) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 };
+
+
+
+ 
 
 let countriesCache = null;
 let countriesCacheTime = 0;

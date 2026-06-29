@@ -1,7 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 
-// Patch localStorage to fall back to sessionStorage for session-only logins
 (function () {
   const originalGetItem = localStorage.getItem.bind(localStorage);
   const originalSetItem = localStorage.setItem.bind(localStorage);
@@ -44,6 +43,7 @@ import 'mdb-react-ui-kit/dist/css/mdb.min.css';
 
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
 import { WalletProvider } from "./context/WalletContext";
+import { ModalProvider } from "./pages/Admin/ModalProvider.jsx";
 
 const initialOptions = {
     "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID || "test",
@@ -55,7 +55,9 @@ createRoot(document.getElementById('root')).render(
   // <StrictMode>
     <PayPalScriptProvider options={initialOptions}>
       <WalletProvider>
-        <App />
+        <ModalProvider>
+          <App />
+        </ModalProvider>
       </WalletProvider>
     </PayPalScriptProvider>
   // </StrictMode>,

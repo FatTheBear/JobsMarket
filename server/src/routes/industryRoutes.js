@@ -100,4 +100,45 @@ router.get('/search-titles', async (req, res) => {
     }
 });
 
+
+router.get('/job/:job_id', async (req, res) => {
+    try {
+        const { job_id } = req.params;
+        const query = `
+            SELECT i.id, i.name 
+            FROM industry i
+            JOIN job_industry ji ON i.id = ji.industry_id
+            WHERE ji.job_id = ?
+            ORDER BY i.name ASC
+        `;
+        const [rows] = await pool.query(query, [job_id]);
+        res.status(200).json({ success: true, data: rows });
+    } catch (error) {
+        console.error("Fetch Job Industries Error:", error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+});
+
+
+
+router.get('/job/:id', async (req, res) => {
+  try {
+    const jobId = req.params.id;
+
+    
+    const [industries] = await pool.query(
+      `SELECT i.id, i.name 
+       FROM Industry i
+       JOIN job_industry ji ON i.id = ji.industry_id
+       WHERE ji.job_id = ?`,
+      [jobId]
+    );
+
+    res.json(industries);
+  } catch (err) {
+    console.error('Error fetching industry of job:', err);
+    res.status(500).json({ message: ' server error' });
+  }
+});
+
 module.exports = router;

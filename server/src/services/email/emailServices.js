@@ -105,10 +105,25 @@ const sendChangePasswordOTP = async (email, otpCode) => {
     });
 };
 
+const sendInterviewInvitation = async (email, emailData) => {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+    
+    const html = compileTemplate('interview', emailData);
+    
+    await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: `[JobsMarket] Interview Invitation from ${emailData.companyName}`,
+        html: html
+    });
+};
+
+
 module.exports = {
     sendCandidateOTP,
     // sendCompanyPending,
     sendCompanyActive,
     sendAccountBanned,
-    sendChangePasswordOTP
+    sendChangePasswordOTP,
+    sendInterviewInvitation
 };

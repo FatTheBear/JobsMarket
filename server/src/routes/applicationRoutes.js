@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
+const { sendInterviewInvitation } = require('../services/email/emailServices');
 
 // POST /api/applications - Apply for a job
 router.post('/', async (req, res) => {
@@ -105,4 +106,65 @@ router.get('/hr/:hrId', async (req, res) => {
   }
 });
 
+
+router.patch('/:id/status', async (req, res) => {
+  try {
+    const applicationId = req.params.id;
+    const { status, interviewDate, interviewTime } = req.body;
+
+    console.log("--- BẮT ĐẦU TEST GỬI MAIL ---");
+    console.log("1. Frontend gửi lên status:", status);
+
+    await pool.query('UPDATE Application SET status = ? WHERE id = ?', [status, applicationId]);
+
+    if (status === 'Interviewing') {
+      console.log("2. Đã lọt vào khe Interviewing, đang lấy data...");
+      
+      const query = `
+        SELECT 
+          u.email AS candidateEmail,
+          cp.full_name AS candidateName,
+          jp.title AS jobTitle,
+          c.name AS companyName,
+          c.address AS companyAddress
+        FROM Application a
+        JOIN Candidate_Profile cp ON a.candidate_id = cp.id
+        JOIN User u ON cp.user_id = u.id
+        JOIN Job_Posting jp ON a.job_id = jp.id
+        JOIN Company c ON jp.company_id = c.id
+        WHERE a.id = ?
+      `;
+      
+      const [rows] = await pool.query(query, [applicationId]);
+      console.log("3. Số lượng data lấy được từ SQL:", rows.length);
+      
+      if (rows.length > 0) {
+        const data = rows[0];
+        const emailData = {
+          candidateName: data.candidateName,
+          companyName: data.companyName,
+          jobTitle: data.jobTitle,
+          interviewDate: interviewDate || 'TBA',
+          interviewTime: interviewTime || 'TBA',
+          interviewLocation: data.companyAddress
+        };
+        
+        console.log("4. Chuẩn bị gửi mail tới:", data.candidateEmail);
+        
+        sendInterviewInvitation(data.candidateEmail, emailData)
+          .then(() => console.log("5. THÀNH CÔNG: Mail đã được gửi đi!"))
+          .catch(err => console.error("5. THẤT BẠI: Lỗi khi gửi mail:", err));
+      } else {
+        console.log("3. LỖI: Không tìm thấy dữ liệu ứng viên trong DB!");
+      }
+    } else {
+      console.log("2. LỖI: Chữ status không khớp với 'Interviewing'.");
+    }
+
+    res.json({ success: true, message: 'Status updated successfully' });
+  } catch (err) {
+    console.error("LỖI API:", err);
+    res.status(500).json({ message: 'Server error', error: err.message });
+  }
+});
 module.exports = router;

@@ -12,14 +12,14 @@ const API_URL = 'http://localhost:5000';
 const MENU_CONFIG = {
   guest: [
     { label: 'Home', path: '/' },
-    { label: 'Find Jobs', path: '/companies' },
+    { label: 'Find Jobs', path: '/find-job' },
     { label: 'Career Hub', path: '/community' },
     { label: 'Career Guide', path: '/guide' },
 
   ],
   candidate: [
     { label: 'Home', path: '/dashboard' },
-    { label: 'Find Jobs', path: '/companies' },
+    { label: 'Find Jobs', path: '/find-job' },
     { label: 'Career Hub', path: '/community' },
     { label: 'Career Guide', path: '/guide' },
   ],
@@ -225,10 +225,11 @@ export default function NavBar() {
         {menuItems.map((item, index) => {
           const isActive = location.pathname === item.path; 
           return (
-            <button
+            <Link
               key={index}
+              to={item.path}
               className={`nav-link ${isActive ? 'active' : ''}`}
-              onClick={() => navigate(item.path)}
+              style={{ textDecoration: 'none', background: 'none', border: 'none' }}
             >
               {item.label}
 
@@ -239,7 +240,7 @@ export default function NavBar() {
                   transition={{ type: "spring", stiffness: 120, damping: 20 }}
                 />
               )}
-            </button>
+            </Link>
           );
         })}
       </div>

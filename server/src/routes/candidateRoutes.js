@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const candidateController = require('../controllers/candidateController');
-const { authMiddleware } = require('../middleware/authMiddleware'); // Sử dụng file xác thực JWT đã tạo
+const { authMiddleware } = require('../middleware/authMiddleware'); 
 const { validateOnboarding } = require('../validators/setupProfileValidator');
 const { upload, uploadAvatar } = require('../middleware/upload');
 const uploadCv = require('../middleware/uploadCV');
@@ -39,7 +39,7 @@ router.get('/public/:id/cvs', authMiddleware, candidateController.getPublicCVs);
 // Upload CV
 router.post('/upload-cv', authMiddleware, uploadCv.single('cv_file'), candidateController.uploadCV);
 
-//lấy danh sách CV
+// Lấy danh sách CV
 router.get('/my-cvs', authMiddleware, candidateController.getAllCVs);
 
 // Xóa CV
@@ -59,9 +59,12 @@ router.put('/notifications/:id/read', authMiddleware, candidateController.markNo
 
 // Đánh dấu tất cả thông báo đã đọc
 router.put('/notifications/read-all', authMiddleware, candidateController.markAllNotificationsAsRead);
+
+// Test ping
 router.post('/test-ping', (req, res) => {
     return res.status(200).json({ message: "ROUTE ĐÃ NHẬN!" });
 });
 
+router.get('/:id', authMiddleware, candidateController.getCandidateDetail);
 
 module.exports = router;
