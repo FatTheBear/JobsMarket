@@ -7,6 +7,7 @@ import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
 import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
 import CandidatePublicProfile from './pages/CandidateProfile/CandidatePublicProfile';
 import Login from './pages/Authentication/Login';
+import ForgotPassword from './pages/Authentication/ForgotPassword';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import ProtectedRoute from './pages/ProtectedRoute';
 import JobPosting from './pages/JobPosting/JobPosting';
@@ -23,7 +24,9 @@ import CompanyDashboard from './pages/DashBoard/CompanyDashboard/CompanyDashboar
 import AppliedCandidates from './pages/AppliedCandidates/AppliedCandidates';
 import SavedCandidates from './pages/SavedCandidates/SavedCandidates';
 import TermsOfService from './pages/Authentication/TermsOfService';
-import NewsDetail from './pages/Dashboard/CompanyDashboard/NewsDetail';
+import NewsDetail from './pages/DashBoard/CompanyDashboard/NewsDetail';
+import CareerGuide from './pages/Articles/CareerGuide';
+import HiringInsights from './pages/Articles/HiringInsights';
 import MyApplications from './pages/MyApplications/MyApplications';
 import CommunityFeed from './pages/Community/CommunityFeed';
 import CreatePost from './pages/DashBoard/CompanyDashboard/CreatePost';
@@ -69,6 +72,7 @@ const router = createBrowserRouter([
   { path: "/auth", element: <AuthPage /> },
   { path: "/register", element: <Register /> },
   { path: "/login", element: <Login /> },
+  { path: "/forgot-password", element: <ForgotPassword /> },
   { path: "/verify-otp", element: <VerifyOTP /> },
   { path: "/setup-profile", element: <SetupProfilePage /> },
   { path: "/terms-of-service", element: <TermsOfService /> },
@@ -133,7 +137,11 @@ const router = createBrowserRouter([
 
       {
         path: "/company",
-        element: <CompanyDashboard />,
+        element: (
+          <ProtectedRoute requiredRole={["HR", "Company"]}>
+            <CompanyDashboard />
+          </ProtectedRoute>
+        ),
         children: [
           { path: "dashboard", element: <></> },
           { path: "profile", element: <CompanyProfile /> },
@@ -144,8 +152,10 @@ const router = createBrowserRouter([
           { path: "create-post", element: <CreatePost /> },
           { path: "wallet", element: <CompanyWallet /> },
           { path: "jobs", element: <CompanyJobList /> },
+          { path: "jobs/:id", element: <JobDetail hideCompanyInfo /> },
           { path: "media", element: <CompanyMedia /> },
           { path: "activity-history", element: <CompanyActivityHistory /> },
+          { path: "hiring-insights", element: <HiringInsights /> },
           { path: "candidate-detail/:id", element: <CandidateDetail /> },
           
         ]
@@ -158,6 +168,7 @@ const router = createBrowserRouter([
       { path: "/jobs", element: <SearchJobs /> },
       { path: "/applications", element: <MyApplications /> },
       { path: "/community", element: <CommunityFeed /> },
+      { path: "/guide", element: <CareerGuide /> },
       
       { path: "/jobs/:id", element: <JobDetail /> },
       { path: "/news-detail/:id", element: <NewsDetail /> },

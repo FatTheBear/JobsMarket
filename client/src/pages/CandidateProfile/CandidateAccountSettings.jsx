@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useOutletContext, useNavigate, useBlocker } from 'react-router-dom';
 import axios from 'axios';
+import CustomDatePicker, { parseDisplayDate, formatDisplayDate, parseMonthValue, formatMonthValue } from '../../components/CustomDatePicker';
 import CandidateExperience from './CandidateExperience';
 import CandidateEducation from './CandidateEducation';
 import CandidateSkills from './CandidateSkills';
@@ -115,7 +116,7 @@ const CandidateLanguages = ({
               <h5 className="profile-modal-title"><i className="fas fa-language me-2 text-primary"></i>{currentLanguage ? 'Edit Language' : 'Add Language'}</h5>
               <button type="button" className="profile-modal-close-btn" onClick={onCloseModal}>&times;</button>
             </div>
-            <form onSubmit={onSave} className="profile-modal-body p-4 d-flex flex-column gap-3">
+            <form onSubmit={onSave} className="profile-modal-body p-4 d-flex flex-column gap-3" noValidate>
               {modalError && <div className="alert alert-danger py-2 px-3 small border-0" role="alert"><i className="fas fa-exclamation-triangle me-1"></i> {modalError}</div>}
               <div style={{ position: 'relative' }}>
                 <label className="form-label fw-semibold text-secondary small">Language Name <span className="text-danger">*</span></label>
@@ -128,7 +129,6 @@ const CandidateLanguages = ({
                   onFocus={() => { if (languageSuggestions.length > 0) setShowSuggestions(true); }}
                   placeholder="e.g., English, Vietnamese, Japanese"
                   autoComplete="off"
-                  required
                 />
                 {showSuggestions && languageSuggestions.length > 0 && (
                   <div className="address-suggestions-dropdown" style={{ zIndex: 1200 }}>
@@ -218,11 +218,11 @@ const CandidateCertifications = ({
             <h5 className="profile-modal-title"><i className="fas fa-certificate me-2 text-primary"></i>{currentCertification ? 'Edit Certification' : 'Add Certification'}</h5>
             <button type="button" className="profile-modal-close-btn" onClick={onCloseModal}>&times;</button>
           </div>
-          <form onSubmit={onSave} className="profile-modal-body p-4 d-flex flex-column gap-3">
+          <form onSubmit={onSave} className="profile-modal-body p-4 d-flex flex-column gap-3" noValidate>
             {modalError && <div className="alert alert-danger py-2 px-3 small border-0" role="alert"><i className="fas fa-exclamation-triangle me-1"></i> {modalError}</div>}
             <div>
               <label className="form-label fw-semibold text-secondary small">Certification Name <span className="text-danger">*</span></label>
-              <input type="text" className="form-control" value={certificationForm.name} onChange={(e) => setCertificationForm({ ...certificationForm, name: e.target.value })} placeholder="e.g., AWS Certified Solutions Architect" required />
+              <input type="text" className="form-control" value={certificationForm.name} onChange={(e) => setCertificationForm({ ...certificationForm, name: e.target.value })} placeholder="e.g., AWS Certified Solutions Architect" />
             </div>
             <div className="profile-modal-footer mt-3 pt-3 border-top d-flex gap-2 justify-content-end bg-white">
               <button type="button" className="btn btn-light border" onClick={onCloseModal}>Cancel</button>
@@ -298,19 +298,26 @@ const CandidateAwards = ({
             <h5 className="profile-modal-title"><i className="fas fa-trophy me-2 text-primary"></i>{currentAward ? 'Edit Award' : 'Add Award'}</h5>
             <button type="button" className="profile-modal-close-btn" onClick={onCloseModal}>&times;</button>
           </div>
-          <form onSubmit={onSave} className="profile-modal-body p-4 d-flex flex-column gap-3">
+          <form onSubmit={onSave} className="profile-modal-body p-4 d-flex flex-column gap-3" noValidate>
             {modalError && <div className="alert alert-danger py-2 px-3 small border-0" role="alert"><i className="fas fa-exclamation-triangle me-1"></i> {modalError}</div>}
             <div>
               <label className="form-label fw-semibold text-secondary small">Award Title <span className="text-danger">*</span></label>
-              <input type="text" className="form-control" value={awardForm.title} onChange={(e) => setAwardForm({ ...awardForm, title: e.target.value })} placeholder="e.g., Best Developer of the Year" required />
+              <input type="text" className="form-control" value={awardForm.title} onChange={(e) => setAwardForm({ ...awardForm, title: e.target.value })} placeholder="e.g., Best Developer of the Year" />
             </div>
             <div>
               <label className="form-label fw-semibold text-secondary small">Issuer <span className="text-danger">*</span></label>
-              <input type="text" className="form-control" value={awardForm.issuer} onChange={(e) => setAwardForm({ ...awardForm, issuer: e.target.value })} placeholder="e.g., Google Inc." required />
+              <input type="text" className="form-control" value={awardForm.issuer} onChange={(e) => setAwardForm({ ...awardForm, issuer: e.target.value })} placeholder="e.g., Google Inc." />
             </div>
             <div>
               <label className="form-label fw-semibold text-secondary small">Date Received <span className="text-danger">*</span></label>
-              <input type="month" className="form-control" value={awardForm.date} onChange={(e) => setAwardForm({ ...awardForm, date: e.target.value })} required />
+              <CustomDatePicker
+                picker="month"
+                className="form-control"
+                selectedDate={parseMonthValue(awardForm.date)}
+                onChange={(date) => setAwardForm({ ...awardForm, date: formatMonthValue(date) })}
+                maxDate={new Date()}
+                placeholder="mm/yyyy"
+              />
             </div>
             <div>
               <label className="form-label fw-semibold text-secondary small">Description</label>
@@ -517,7 +524,6 @@ const CandidateAccountSettings = () => {
   const [countryList, setCountryList] = useState([]);
   const [countryQuery, setCountryQuery] = useState('');
   const [showCountryDrop, setShowCountryDrop] = useState(false);
-  const settingsDateInputRef = useRef(null);
 
   let settingsJobDebounce = null;
 
@@ -603,38 +609,6 @@ const CandidateAccountSettings = () => {
       .slice(0, 10);
     setSettingsFilteredAddresses(matches);
     setSettingsShowAddressDrop(true);
-  };
-
-  const handleSettingsNativeDateChange = (e) => {
-    const val = e.target.value; // "YYYY-MM-DD"
-    if (!val) return;
-    const parts = val.split('-');
-    const formatted = `${parts[2]}/${parts[1]}/${parts[0]}`; // "DD/MM/YYYY"
-    setEditProfileForm(prev => ({ ...prev, birthday: formatted }));
-  };
-
-  const handleSettingsBirthdayTextChange = (e) => {
-    let value = e.target.value;
-    value = value.replace(/[^0-9/]/g, '');
-    if (value.length === 2 && !value.includes('/')) {
-      value = value + '/';
-    } else if (value.length === 5 && value.split('/').length === 2) {
-      value = value + '/';
-    }
-    if (value.length > 10) {
-      value = value.substring(0, 10);
-    }
-    setEditProfileForm(prev => ({ ...prev, birthday: value }));
-  };
-
-  const handleSettingsCalendarIconClick = () => {
-    if (settingsDateInputRef.current) {
-      try {
-        settingsDateInputRef.current.showPicker();
-      } catch (err) {
-        settingsDateInputRef.current.click();
-      }
-    }
   };
 
   const filteredCountries = countryList.filter(c =>
@@ -1464,7 +1438,6 @@ const CandidateAccountSettings = () => {
                 className="form-control"
                 value={editProfileForm.fullName || ''}
                 onChange={(e) => setEditProfileForm({ ...editProfileForm, fullName: e.target.value })}
-                required
               />
             </div>
             <div className="col-12 col-md-6" style={{ position: 'relative' }}>
@@ -1562,33 +1535,13 @@ const CandidateAccountSettings = () => {
             </div>
             <div className="col-12 col-md-6">
               <label className="form-label fw-semibold text-secondary small">Date of Birth <span className="text-danger">*</span></label>
-              <div className="custom-datepicker-wrapper">
-                <input
-                  type="text"
-                  className="form-control datepicker-display-input"
-                  placeholder="dd/mm/yyyy"
-                  value={editProfileForm.birthday || ''}
-                  onChange={handleSettingsBirthdayTextChange}
-                  required
-                />
-                <input
-                  type="date"
-                  onChange={handleSettingsNativeDateChange}
-                  ref={settingsDateInputRef}
-                  className="datepicker-native-input"
-                />
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  fill="currentColor"
-                  className="datepicker-calendar-icon"
-                  viewBox="0 0 16 16"
-                  onClick={handleSettingsCalendarIconClick}
-                >
-                  <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z" />
-                </svg>
-              </div>
+              <CustomDatePicker
+                className="form-control"
+                selectedDate={parseDisplayDate(editProfileForm.birthday)}
+                onChange={(date) => setEditProfileForm(prev => ({ ...prev, birthday: formatDisplayDate(date) }))}
+                maxDate={new Date()}
+                placeholder="dd/mm/yyyy"
+              />
             </div>
             <div className="col-12 d-flex align-items-center">
               <div className="form-check form-switch mt-2">
@@ -1873,7 +1826,7 @@ const CandidateAccountSettings = () => {
             </div>
             
             {passwordModalStep === 1 ? (
-              <form onSubmit={handleOtpSubmit} className="profile-modal-body p-4 d-flex flex-column gap-3">
+              <form onSubmit={handleOtpSubmit} className="profile-modal-body p-4 d-flex flex-column gap-3" noValidate>
                 <p className="small text-muted mb-1">
                   We have sent a 6-digit OTP code to your registered email address. Please check your inbox and enter the code below.
                 </p>
@@ -1892,7 +1845,6 @@ const CandidateAccountSettings = () => {
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                     placeholder="000000"
-                    required
                     autoFocus
                   />
                 </div>
@@ -1902,7 +1854,7 @@ const CandidateAccountSettings = () => {
                 </div>
               </form>
             ) : (
-              <form onSubmit={handlePasswordConfirmSubmit} className="profile-modal-body p-4 d-flex flex-column gap-3">
+              <form onSubmit={handlePasswordConfirmSubmit} className="profile-modal-body p-4 d-flex flex-column gap-3" noValidate>
                 {passwordModalError && (
                   <div className="alert alert-danger py-2 px-3 small border-0" role="alert">
                     <i className="fas fa-exclamation-triangle me-1"></i> {passwordModalError}
@@ -1922,7 +1874,6 @@ const CandidateAccountSettings = () => {
                       value={displayNewPassword}
                       onChange={handleNewPasswordChange}
                       placeholder="At least 8 characters with letters & numbers"
-                      required
                       autoFocus
                     />
                     <span 
@@ -1943,7 +1894,6 @@ const CandidateAccountSettings = () => {
                       value={displayConfirmPassword}
                       onChange={handleConfirmPasswordChange}
                       placeholder="Repeat new password"
-                      required
                     />
                     <span 
                       className="position-absolute end-0 me-3 cursor-pointer text-muted"

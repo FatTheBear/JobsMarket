@@ -14,6 +14,8 @@ router.post('/verify-otp', authController.verifyOTP);
 router.post("/resend-otp", authController.resendOtp);
 router.post("/change-password/request", authMiddleware, authController.requestChangePassword);
 router.post("/change-password/confirm", authMiddleware, authController.confirmChangePassword);
+router.post("/forgot-password/request", authController.requestForgotPassword);
+router.post("/forgot-password/confirm", authController.confirmForgotPassword);
 
 //đừng đụng vô đống này
 // const { verifyToken } = require('../middleware/authMiddleware');

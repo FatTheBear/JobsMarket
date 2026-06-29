@@ -7,8 +7,6 @@ export default function VerifyOTP() {
   const [otp, setOtp] = useState('');
   const location = useLocation();
   const userEmail = location.state?.email;
-  const userRole = location.state?.role;
-  const userFullName = location.state?.full_name || '';
   const navigate = useNavigate();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -46,16 +44,17 @@ export default function VerifyOTP() {
             );
 
             if (response.status === 200) {
-                localStorage.setItem('token', response.data.token);
-
                 const apiRole = response.data.user?.role;
                 const roleLower = apiRole ? apiRole.toLowerCase() : '';
 
                 if (roleLower === "company" || roleLower === "hr") {
+                    localStorage.setItem('token', response.data.token);
                     navigate("/company-profile");
                 } else {
-                    navigate('/setup-profile', {
-                      state: { full_name: userFullName }
+                    navigate('/login', {
+                      state: {
+                        message: 'Account verified successfully! Please log in to continue.'
+                      }
                     });
                 }
             }

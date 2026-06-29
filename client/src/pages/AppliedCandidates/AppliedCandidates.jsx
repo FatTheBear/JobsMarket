@@ -43,6 +43,12 @@ export default function AppliedCandidates() {
   };
 
   const onStatusChange = (applicationId, newStatus) => {
+    const currentCandidate = candidates.find(c => c.application_id === applicationId);
+    if (currentCandidate?.status === 'Rejected' && newStatus === 'Interviewing') {
+      alert('Rejected CV cannot be moved back to Interviewing.');
+      return;
+    }
+
     if (newStatus === 'Interviewing') {
       setSelectedCandidateId(applicationId);
       setIsInterviewModalOpen(true);
@@ -79,7 +85,7 @@ export default function AppliedCandidates() {
         payload.interviewTime = time;
       }
 
-      await axios.patch(`${API_URL}/api/company/applications/${applicationId}/status`,
+      const response = await axios.patch(`${API_URL}/api/company/applications/${applicationId}/status`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -87,8 +93,14 @@ export default function AppliedCandidates() {
       setCandidates(prev => prev.map(c =>
         c.application_id === applicationId ? { ...c, status: newStatus } : c
       ));
+
+      const successMessage = response.data?.mailReport
+        ? `${response.data.message}\n${response.data.mailReport}`
+        : (response.data?.message || 'Status updated successfully.');
+
+      alert(successMessage);
     } catch (err) {
-      alert("Update failed.");
+      alert(err.response?.data?.message || "Update failed.");
     }
   };
 
@@ -111,7 +123,7 @@ export default function AppliedCandidates() {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         <div className="tabs">
-          {['All', 'Reviewing', 'Interviewing', 'Rejected'].map(tab => (
+          {['All', 'Reviewing', 'Interviewing', 'Offered', 'Rejected'].map(tab => (
             <button
               key={tab}
               className={`tab-btn ${activeTab === tab ? 'active' : ''}`}
@@ -194,7 +206,14 @@ export default function AppliedCandidates() {
                       onChange={(e) => onStatusChange(cand.application_id, e.target.value)}
                     >
                       <option value="Reviewing" className="opt-review">In-Review</option>
-                      <option value="Interviewing" className="opt-interview">Interviewing</option>
+                      <option
+                        value="Interviewing"
+                        className="opt-interview"
+                        disabled={cand.status === 'Rejected'}
+                      >
+                        Interviewing
+                      </option>
+                      <option value="Offered" className="opt-offered">Hired / Offered</option>
                       <option value="Rejected" className="opt-rejected">Rejected</option>
                     </select>
                   </td>

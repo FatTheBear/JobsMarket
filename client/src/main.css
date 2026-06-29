@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Inter:wght@400;500;600;700&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
+
+:root {
+  --font-body: 'Lato', sans-serif;
+  --font-heading: 'Figtree', sans-serif;
+  --font-ui: 'Inter', sans-serif;
+}
+
+html,
+body,
+#root {
+  font-family: var(--font-body);
+}
+
+body,
+p,
+a,
+span,
+label,
+input,
+textarea,
+select,
+div,
+li,
+td,
+th,
+small,
+strong,
+em {
+  font-family: var(--font-body) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.title,
+.heading,
+.section-title {
+  font-family: var(--font-heading) !important;
+}
+
+button,
+input[type='button'],
+input[type='submit'],
+input[type='reset'],
+.btn,
+nav *,
+.minimal-navbar * {
+  font-family: var(--font-ui) !important;
+}
+
+input,
+textarea,
+select,
+option {
+  font-family: var(--font-ui) !important;
+}

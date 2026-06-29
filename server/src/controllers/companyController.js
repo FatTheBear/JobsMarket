@@ -1,5 +1,5 @@
 const pool = require('../config/db');
-const { sendInterviewInvitation } = require('../services/email/emailServices');
+const { sendInterviewInvitation, sendHiredCongratulations } = require('../services/email/emailServices');
 exports.getAppliedCandidates = async (req, res) => {
     const userId = req.user.id; 
 
@@ -163,7 +163,7 @@ exports.updateApplicationStatus = async (req, res) => {
     const { status, interviewDate, interviewTime } = req.body;
     const userId = req.user.id;
 
-    const validStatuses = ['Reviewing', 'Interviewing', 'Rejected'];
+    const validStatuses = ['Reviewing', 'Interviewing', 'Rejected', 'Offered'];
     
     if (!validStatuses.includes(status)) {
         return res.status(400).json({ message: "Invalid status value" });
@@ -186,7 +186,7 @@ exports.updateApplicationStatus = async (req, res) => {
             const companyId = companyRows[0].id;
 
             const [application] = await connection.execute(`
-                SELECT a.id 
+                SELECT a.id, a.status
                 FROM application a
                 JOIN Job_Posting j ON a.job_id = j.id
                 WHERE a.id = ? AND j.company_id = ?
@@ -195,6 +195,14 @@ exports.updateApplicationStatus = async (req, res) => {
             if (application.length === 0) {
                 connection.release();
                 return res.status(403).json({ message: "Unauthorized or application not found" });
+            }
+
+            const currentStatus = application[0].status;
+            if (currentStatus === 'Rejected' && status === 'Interviewing') {
+                connection.release();
+                return res.status(400).json({
+                    message: "Rejected application cannot be moved back to Interviewing."
+                });
             }
 
             await connection.execute(
@@ -224,15 +232,30 @@ exports.updateApplicationStatus = async (req, res) => {
                 const statusTitleMap = {
                     'Reviewing': '📋 Application In Review',
                     'Interviewing': '🎯 Interview Invitation',
-                    'Rejected': '📝 Application Update'
+                    'Rejected': '❌ CV Rejected',
+                    'Offered': '🎉 Congratulations! You\'ve been hired'
+                };
+                const statusContentMap = {
+                    'Reviewing': `Your application for "${data.job_title}" at ${data.company_name} is now being reviewed.`,
+                    'Interviewing': `You have been invited to interview for "${data.job_title}" at ${data.company_name}. Check your email for details.`,
+                    'Rejected': `Unfortunately, your CV for "${data.job_title}" at ${data.company_name} was not selected this time. Keep exploring new opportunities!`,
+                    'Offered': `Great news! ${data.company_name} has offered you the "${data.job_title}" position. Check your email for next steps.`
                 };
                 const notiTitle = statusTitleMap[status] || '📨 Application Status Updated';
-                const notiContent = `Your application for "${data.job_title}" at ${data.company_name} has been updated to: ${status}.`;
+                const notiContent = statusContentMap[status] || `Your application for "${data.job_title}" at ${data.company_name} has been updated to: ${status}.`;
 
                 await connection.execute(
                     'INSERT INTO Notification (user_id, title, content) VALUES (?, ?, ?)',
                     [data.user_id, notiTitle, notiContent]
                 );
+
+                const io = req.app.get('socketio');
+                if (io) {
+                    io.to(`user_${data.user_id}`).emit('notification', {
+                        title: notiTitle,
+                        content: notiContent
+                    });
+                }
 
                 if (status === 'Interviewing') {
                     const emailData = {
@@ -247,6 +270,21 @@ exports.updateApplicationStatus = async (req, res) => {
                     try {
                         await sendInterviewInvitation(data.candidateEmail, emailData);
                         mailReport = `Send successfully ${data.candidateEmail}`;
+                    } catch (err) {
+                        mailReport = `mail error: ${err.message}`;
+                    }
+                }
+
+                if (status === 'Offered') {
+                    const emailData = {
+                        candidateName: data.candidateName,
+                        companyName: data.company_name,
+                        jobTitle: data.job_title
+                    };
+
+                    try {
+                        await sendHiredCongratulations(data.candidateEmail, emailData);
+                        mailReport = `Hired email sent to ${data.candidateEmail}`;
                     } catch (err) {
                         mailReport = `mail error: ${err.message}`;
                     }

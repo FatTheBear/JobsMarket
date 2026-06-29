@@ -178,14 +178,17 @@ exports.getPendingJobs = async (req, res) => {
                 j.salary_max,
                 j.job_type,
                 j.status,
-                j.exp_yrs AS experience_req,    -- Đã map đúng cột của DB
-                j.work_hrs AS working_hours,    -- Đã map đúng cột của DB
+                j.exp_yrs AS experience_req,
+                j.work_hrs AS working_hours,
                 j.job_level,
                 j.vacancies,
+                JSON_UNQUOTE(JSON_EXTRACT(j.metadata, '$.gender_req')) AS gender_req,
                 j.age_req,
-                j.lang_req AS language_req,     -- Đã map đúng cột của DB
+                j.lang_req AS language_req,
                 j.province,
-                j.loc AS exact_address,         -- Dùng cột loc làm địa chỉ
+                NULL AS district,
+                NULL AS ward,
+                j.loc AS exact_address,
                 j.deadline,
                 j.created_at,
                 c.name AS company_name,
@@ -716,13 +719,21 @@ exports.deleteNotification = async (req, res) => {
 // Hàm lấy danh sách tất cả tin tức đã xuất bản
 exports.getPublicNews = async (req, res) => {
     try {
-        const [newsList] = await db.query(`
+        const { category } = req.query;
+        let sql = `
             SELECT n.*, nc.name AS category_name 
             FROM news n 
             LEFT JOIN news_category nc ON n.category_id = nc.id 
             WHERE n.status = 'Published'
-            ORDER BY n.created_at DESC
-        `);
+        `;
+        const params = [];
+        if (category) {
+            sql += ' AND nc.name = ?';
+            params.push(category);
+        }
+        sql += ' ORDER BY n.is_featured DESC, n.published_at DESC, n.created_at DESC';
+
+        const [newsList] = await db.query(sql, params);
         res.json(newsList);
     } catch (error) {
         console.error("GET PUBLIC NEWS ERROR:", error);

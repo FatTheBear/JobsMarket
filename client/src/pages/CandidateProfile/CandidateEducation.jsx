@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import CustomDatePicker, { parseMonthValue, formatMonthValue } from '../../components/CustomDatePicker';
 
 const CandidateEducation = ({
   educations,
@@ -195,7 +196,7 @@ const CandidateEducation = ({
                 &times;
               </button>
             </div>
-            <form onSubmit={onSave} className="profile-modal-body p-4 d-flex flex-column gap-3">
+            <form onSubmit={onSave} className="profile-modal-body p-4 d-flex flex-column gap-3" noValidate>
               {modalError && (
                 <div className="alert alert-danger py-2 px-3 mb-2 small border-0 shadow-sm" role="alert">
                   <i className="fas fa-exclamation-triangle me-1.5"></i> {modalError}
@@ -267,12 +268,13 @@ const CandidateEducation = ({
               </div>
               <div>
                 <label className="form-label fw-semibold text-secondary small">Graduation Date <span className="text-danger">*</span></label>
-                <input
-                  type="month"
+                <CustomDatePicker
+                  picker="month"
                   className="form-control"
-                  value={educationForm.gradDate || ''}
-                  onChange={(e) => setEducationForm({ ...educationForm, gradDate: e.target.value })}
-                  placeholder="Present"
+                  selectedDate={parseMonthValue(educationForm.gradDate)}
+                  onChange={(date) => setEducationForm({ ...educationForm, gradDate: formatMonthValue(date) })}
+                  maxDate={new Date()}
+                  placeholder="mm/yyyy"
                 />
               </div>
               <div>

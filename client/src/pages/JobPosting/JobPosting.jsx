@@ -7,6 +7,7 @@ import { useWallet } from '../../context/WalletContext';
 import { IndustrySkill } from './IndustrySkill';
 import { AutoComplete } from './AutoComplete';
 import IndustrySelector from './IndustrySelector';
+import CustomDatePicker, { parseIsoDate, formatIsoDate } from '../../components/CustomDatePicker';
 const API_URL = 'http://localhost:5000';
 const LOCATION_API = 'https://provinces.open-api.vn/api';
 
@@ -14,7 +15,23 @@ const JOB_LEVELS = ["Intern", "Fresher", "Junior", "Middle", "Senior", "Manager"
 const LANGUAGES = ["Any", "English", "Vietnamese", "Japanese", "Chinese", "Korean", "French"];
 const EDUCATION_LEVELS = ["High School", "Associate Degree", "Bachelor", "Master", "PhD", "Other"];
 
-const todayStr = () => new Date().toISOString().split('T')[0];
+const startOfToday = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+const minDeadlineDate = () => {
+  const d = startOfToday();
+  d.setDate(d.getDate() + 3);
+  return d;
+};
+
+const maxDeadlineDate = () => {
+  const d = startOfToday();
+  d.setDate(d.getDate() + 365);
+  return d;
+};
 
 const removeAccents = (str) => {
   if (!str) return '';
@@ -61,10 +78,6 @@ export default function JobPosting() {
   const [districts, setDistricts] = useState([]);
   const [wards, setWards] = useState([]);
 
-  // API Data
-  const [dbSkills, setDbSkills] = useState([]);
-  const [dbIndustries, setDbIndustries] = useState([]);
-
   const [form, setForm] = useState({
     title: '',
     experience_req: 'Not Required',
@@ -110,9 +123,6 @@ export default function JobPosting() {
       const translated = res.data.map(p => ({ ...p, name: translateLocation(p.name) }));
       setProvinces(translated);
     }).catch(err => console.error(err));
-
-    axios.get(`${API_URL}/api/skills`).then(res => setDbSkills(res.data)).catch(err => console.error(err));
-    axios.get(`${API_URL}/api/industries`).then(res => setDbIndustries(res.data)).catch(err => console.error(err));
 
     const token = localStorage.getItem('token');
     const userId = localStorage.getItem('userId');
@@ -187,24 +197,6 @@ export default function JobPosting() {
       return;
     }
     setForm(prev => ({ ...prev, ward: selectedOption.label }));
-  };
-
-  const toggleSkill = (skillId) => {
-    setForm(prev => {
-      const skills = prev.selected_skills.includes(skillId)
-        ? prev.selected_skills.filter(id => id !== skillId)
-        : [...prev.selected_skills, skillId];
-      return { ...prev, selected_skills: skills };
-    });
-  };
-
-  const toggleIndustry = (indId) => {
-    setForm(prev => {
-      const inds = prev.selected_industries.includes(indId)
-        ? prev.selected_industries.filter(id => id !== indId)
-        : [...prev.selected_industries, indId];
-      return { ...prev, selected_industries: inds };
-    });
   };
 
   const [errors, setErrors] = useState({});
@@ -369,7 +361,7 @@ export default function JobPosting() {
         salary_max: form.salary_type === 'specific' ? Number(form.salary_max) : null,
         job_type: form.job_type,
         deadline: form.deadline || null,
-        experience_req: form.experience_req,
+        experience_req: form.experience_req === 'Not Required' ? null : form.experience_req,
         working_hours: working_hours,
         job_level: form.job_level,
         vacancies: Number(form.vacancies),
@@ -527,10 +519,10 @@ export default function JobPosting() {
 
                 <div className="jp-row jp-row-two">
                   <div className="jp-field">
-                    <label>Years of Experience <span>*</span></label>
+                    <label>Years of Experience</label>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minHeight: '44px' }}>
-                      <select name="experience_req" value={form.experience_req} onChange={handleChange} disabled={form.experience_req === 'Not Required'}>
-                        <option value="Not Required">Not Required</option>
+                      <select name="experience_req" value={form.experience_req === 'Not Required' ? '' : form.experience_req} onChange={handleChange} disabled={form.experience_req === 'Not Required'}>
+                        <option value="" disabled>Select experience</option>
                         <option value="Under 1 year">Under 1 year</option>
                         <option value="1 - 3 years">1 - 3 years</option>
                         <option value="3 - 5 years">3 - 5 years</option>
@@ -759,7 +751,19 @@ export default function JobPosting() {
 
                 <div className="jp-field mt-10">
                   <label>Application Deadline</label>
-                  <input type="date" name="deadline" value={form.deadline} onChange={handleChange} min={todayStr()} style={{ width: '200px' }} className={errors.deadline ? 'has-error' : ''} />
+                  <div style={{ width: '220px' }}>
+                    <CustomDatePicker
+                      selectedDate={parseIsoDate(form.deadline)}
+                      onChange={(date) => {
+                        setForm(prev => ({ ...prev, deadline: formatIsoDate(date) }));
+                        if (errors.deadline) setErrors(prev => ({ ...prev, deadline: '' }));
+                      }}
+                      minDate={minDeadlineDate()}
+                      maxDate={maxDeadlineDate()}
+                      placeholder="Select deadline"
+                      hasError={!!errors.deadline}
+                    />
+                  </div>
                   {errors.deadline && <span className="jp-error-text" style={{display: 'block'}}>{errors.deadline}</span>}
                 </div>
 

@@ -47,7 +47,7 @@ export default function CompanyDashboard() {
       .catch(err => console.error(err));
   }, []);
   useEffect(() => {
-    fetch("http://localhost:5000/api/public/news")
+    fetch("http://localhost:5000/api/public/news?category=Hiring%20Insights")
       .then((res) => {
         if (!res.ok) throw new Error("Server response not ok");
         return res.json();
