@@ -987,7 +987,7 @@ const CandidateAccountSettings = () => {
       setSkillForm({ name: skill.name, level: skill.level });
     } else {
       setCurrentSkill(null);
-      setSkillForm({ name: '', level: 50 });
+      setSkillForm({ name: '', level: 100 });
     }
     setShowSkillModal(true);
   };

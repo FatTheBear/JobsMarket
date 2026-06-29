@@ -43,14 +43,14 @@ export const adminApi = {
     return res.data;
   },
 
-  
+
   getSkills: async () => {
     const res = await API.get('/admin/skills');
     return res.data;
   },
 
   getIndustries: async () => {
-    const res = await API.get('/admin/industry');
+    const res = await API.get('/admin/industries');
     return res.data;
   },
 
@@ -59,7 +59,7 @@ export const adminApi = {
     return res.data;
   },
 
-  
+
   createSkill: async (name) => {
     const res = await API.post('/admin/skills', { name });
     return res.data;
@@ -104,7 +104,7 @@ export const adminApi = {
     return res.data;
   },
 
-  
+
 
   getCoinFees: async () => {
     const res = await API.get('/admin/coin-fees');
@@ -126,7 +126,10 @@ export const adminApi = {
     return res.data;
   },
 
-
+  getTransactions: async () => {
+    const res = await API.get('/admin/transactions');
+    return res.data;
+  },
 
   getNotifications: async () => {
     const res = await API.get('/admin/notifications');
@@ -174,6 +177,10 @@ export const adminApi = {
 
   createNewsCategory: async (name) => {
     const res = await API.post('/admin/news-categories', { name });
+    return res.data;
+  },
+  banUser: async (id, reason) => {
+    const res = await API.patch(`/admin/users/${id}/ban`, { reason });
     return res.data;
   },
 };

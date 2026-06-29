@@ -115,6 +115,12 @@ const authController = {
                 // await emailService.sendCompanyPending(email, hrName, companyName);
 
                 await connection.commit();
+
+                const notifyAdmins = req.app.get('notifyAdmins');
+                if (notifyAdmins) {
+                    await notifyAdmins("🏢 New Company Approval Required", `A new company "${companyName}" (Tax ID: ${taxId}) has registered and is pending approval.`);
+                }
+
                 connection.release();
                 return res.status(201).json({ message: "Company registration submitted and pending approval." });
 
