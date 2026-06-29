@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import ApplyModal from '../ApplyModal/ApplyModal';
 import './JobDetail.css';
@@ -22,9 +22,11 @@ const isLocallyApplied = (jobId) => {
   return ids.includes(Number(jobId));
 };
 
-export default function JobDetail() {
+export default function JobDetail({ hideCompanyInfo: hideCompanyInfoProp }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const hideCompanyInfo = hideCompanyInfoProp ?? location.pathname.startsWith('/company/jobs/');
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showApplyModal, setShowApplyModal] = useState(false);
@@ -163,11 +165,21 @@ export default function JobDetail() {
         {toast.msg}
       </div>
 
-      <button type="button" className="jd-back-btn" onClick={() => navigate(-1)}>
+      <button
+        type="button"
+        className="jd-back-btn"
+        onClick={() => (hideCompanyInfo ? navigate('/company/jobs') : navigate(-1))}
+      >
         ← Back
       </button>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: '24px', alignItems: 'stretch' }}>
+      <div
+        style={
+          hideCompanyInfo
+            ? { display: 'block' }
+            : { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: '24px', alignItems: 'stretch' }
+        }
+      >
 
         <div className="job-detail-top-card layout-v2" style={{ margin: 0, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <h1 className="job-detail-card-title">{job.title}</h1>
@@ -212,39 +224,49 @@ export default function JobDetail() {
             </div>
           )}
 
-          <div className="job-action-full">
-            {hasApplied ? (
-              <button className="job-apply-btn-full applied" disabled>
-                Applied
+          {!hideCompanyInfo && (
+            <div className="job-action-full">
+              {hasApplied ? (
+                <button className="job-apply-btn-full applied" disabled>
+                  Applied
+                </button>
+              ) : (
+                <button className="job-apply-btn-full" onClick={handleApplyClick}>
+                  <FaPaperPlane className="btn-icon" /> Apply Now
+                </button>
+              )}
+              <button
+                className={`job-save-btn ${isSaved ? 'saved' : ''}`}
+                onClick={toggleSaveJob}
+                type="button"
+              >
+                {isSaved ? 'Saved' : 'Save'}
               </button>
-            ) : (
-              <button className="job-apply-btn-full" onClick={handleApplyClick}>
-                <FaPaperPlane className="btn-icon" /> Apply Now
-              </button>
-            )}
-            <button
-              className={`job-save-btn ${isSaved ? 'saved' : ''}`}
-              onClick={toggleSaveJob}
-              type="button"
-            >
-              {isSaved ? 'Saved' : 'Save'}
-            </button>
-          </div>
+            </div>
+          )}
         </div>
 
-        <CompanyCard
-          company={{
-            id: job?.company_id,
-            name: job?.company_name,
-            logo_url: job?.company_logo || job?.logo_url,
-            size: job?.company_size,
-            industry_name: job?.industry_name,
-            address: job?.company_address
-          }}
-        />
+        {!hideCompanyInfo && (
+          <CompanyCard
+            company={{
+              id: job?.company_id,
+              name: job?.company_name,
+              logo_url: job?.company_logo || job?.logo_url,
+              size: job?.company_size,
+              industry_name: job?.industry_name,
+              address: job?.company_address
+            }}
+          />
+        )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: '24px', marginTop: '24px', alignItems: 'start' }}>
+      <div
+        style={
+          hideCompanyInfo
+            ? { marginTop: '24px' }
+            : { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: '24px', marginTop: '24px', alignItems: 'start' }
+        }
+      >
         <div className="job-detail-bottom-content">
           <div className="job-detail-main-section">
             <h2 className="job-detail-section-title-v2">Job Details</h2>
@@ -345,8 +367,6 @@ export default function JobDetail() {
             </div>
           </div>
         </div>
-
-        <div></div>
       </div>
 
       {showApplyModal && (

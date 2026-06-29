@@ -38,7 +38,10 @@ export default function CompanySidebar() {
       <div className="jp-menu-group">
         <div className="jp-menu-title">JOB MANAGEMENT</div>
 
-        <Link to="/company/jobs" className="jp-menu-item">
+        <Link
+          to="/company/jobs"
+          className={`jp-menu-item ${location.pathname === '/company/jobs' || location.pathname.startsWith('/company/jobs/') ? 'active' : ''}`}
+        >
           Job List <span>0</span>
         </Link>
 

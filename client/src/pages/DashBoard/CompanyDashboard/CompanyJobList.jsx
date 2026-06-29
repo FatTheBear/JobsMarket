@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const API = axios.create({ baseURL: 'http://localhost:5000/api' });
@@ -23,6 +24,7 @@ const STATUS_LABEL = {
 };
 
 export default function CompanyJobList() {
+    const navigate = useNavigate();
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -94,11 +96,14 @@ export default function CompanyJobList() {
                         </thead>
                         <tbody>
                             {filtered.map(job => (
-                                <tr key={job.id} style={{ borderBottom: '1px solid #f0f0f0' }}
+                                <tr
+                                    key={job.id}
+                                    style={{ borderBottom: '1px solid #f0f0f0', cursor: 'pointer' }}
+                                    onClick={() => navigate(`/company/jobs/${job.id}`)}
                                     onMouseEnter={e => e.currentTarget.style.background = '#fafafa'}
                                     onMouseLeave={e => e.currentTarget.style.background = ''}
                                 >
-                                    <td style={{ padding: '12px 16px', fontWeight: 500 }}>{job.title}</td>
+                                    <td style={{ padding: '12px 16px', fontWeight: 500, color: '#01796F' }}>{job.title}</td>
                                     <td style={{ padding: '12px 16px', color: '#666' }}>{job.job_type || '—'}</td>
                                     <td style={{ padding: '12px 16px', color: '#666', whiteSpace: 'nowrap' }}>
                                         {job.salary_min && job.salary_max
@@ -124,7 +129,10 @@ export default function CompanyJobList() {
                                     <td style={{ padding: '12px 16px' }}>
                                         {job.status === 'Approved' && (
                                             <button
-                                                onClick={() => handleClose(job.id)}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleClose(job.id);
+                                                }}
                                                 style={{
                                                     padding: '4px 12px',
                                                     borderRadius: '6px',

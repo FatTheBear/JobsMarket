@@ -152,6 +152,7 @@ const router = createBrowserRouter([
           { path: "create-post", element: <CreatePost /> },
           { path: "wallet", element: <CompanyWallet /> },
           { path: "jobs", element: <CompanyJobList /> },
+          { path: "jobs/:id", element: <JobDetail hideCompanyInfo /> },
           { path: "media", element: <CompanyMedia /> },
           { path: "activity-history", element: <CompanyActivityHistory /> },
           { path: "hiring-insights", element: <HiringInsights /> },
