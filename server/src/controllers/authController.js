@@ -471,6 +471,124 @@ const authController = {
             console.error("Confirm Change Password Error:", error);
             return res.status(500).json({ message: "Internal server error!", error: error.message });
         }
+    },
+
+    requestForgotPassword: async (req, res) => {
+        const { email } = req.body;
+
+        if (!email || !email.trim()) {
+            return res.status(400).json({ message: "Email is required!" });
+        }
+
+        const genericMessage = "If this email is registered, an OTP has been sent to your inbox.";
+
+        try {
+            const [userRows] = await pool.execute(
+                'SELECT id, email, status, code_expires_at FROM User WHERE email = ?',
+                [email.trim()]
+            );
+
+            if (userRows.length === 0) {
+                return res.status(200).json({ message: genericMessage });
+            }
+
+            const user = userRows[0];
+
+            if (user.status === 'Banned') {
+                return res.status(200).json({ message: genericMessage });
+            }
+
+            if (user.code_expires_at) {
+                const expiresTime = new Date(user.code_expires_at).getTime();
+                const sentTime = expiresTime - 5 * 60000;
+                const timePassed = Date.now() - sentTime;
+                const cooldown = 60000;
+                if (timePassed < cooldown) {
+                    const secondsLeft = Math.ceil((cooldown - timePassed) / 1000);
+                    return res.status(429).json({
+                        message: `Please wait ${secondsLeft} seconds before requesting a new OTP.`
+                    });
+                }
+            }
+
+            const otp = crypto.randomInt(100000, 999999).toString();
+            const expiresAt = new Date(Date.now() + 5 * 60000);
+
+            await pool.execute(
+                'UPDATE User SET verification_code = ?, code_expires_at = ? WHERE id = ?',
+                [otp, expiresAt, user.id]
+            );
+
+            console.log(`[DEV MODE] Forgot Password OTP for ${user.email}: ${otp}`);
+            await emailService.sendForgotPasswordOTP(user.email, otp);
+
+            return res.status(200).json({ message: genericMessage });
+
+        } catch (error) {
+            console.error("Request Forgot Password Error:", error);
+            return res.status(500).json({ message: "Internal server error!", error: error.message });
+        }
+    },
+
+    confirmForgotPassword: async (req, res) => {
+        const { email, otp, newPassword } = req.body;
+
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({ message: "Email, OTP and new password are required!" });
+        }
+
+        const hasLetter = /[a-zA-Z]/.test(newPassword);
+        const hasNumber = /\d/.test(newPassword);
+        if (newPassword.length < 8 || !hasLetter || !hasNumber) {
+            return res.status(400).json({
+                message: "Password must be at least 8 characters long and contain both letters and numbers."
+            });
+        }
+
+        try {
+            const [userRows] = await pool.execute(
+                'SELECT id, verification_code, code_expires_at, password_hash, status FROM User WHERE email = ?',
+                [email.trim()]
+            );
+
+            if (userRows.length === 0) {
+                return res.status(400).json({ message: "Invalid OTP or email!" });
+            }
+
+            const user = userRows[0];
+
+            if (user.status === 'Banned') {
+                return res.status(403).json({ message: "This account has been banned." });
+            }
+
+            if (!user.verification_code || user.verification_code !== otp.trim()) {
+                return res.status(400).json({ message: "Invalid OTP code!" });
+            }
+
+            if (new Date() > new Date(user.code_expires_at)) {
+                return res.status(400).json({ message: "OTP code has expired!" });
+            }
+
+            const isSamePassword = await bcrypt.compare(newPassword, user.password_hash);
+            if (isSamePassword) {
+                return res.status(400).json({
+                    message: "New password cannot be the same as your current password."
+                });
+            }
+
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+            await pool.execute(
+                'UPDATE User SET password_hash = ?, verification_code = NULL, code_expires_at = NULL WHERE id = ?',
+                [hashedPassword, user.id]
+            );
+
+            return res.status(200).json({ message: "Password has been reset successfully! You can now log in." });
+
+        } catch (error) {
+            console.error("Confirm Forgot Password Error:", error);
+            return res.status(500).json({ message: "Internal server error!", error: error.message });
+        }
     }
 
 };

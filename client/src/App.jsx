@@ -7,6 +7,7 @@ import CompanyProfile from './pages/CompanyProfile/CompanyProfile';
 import CandidateProfile from './pages/CandidateProfile/Candidate_profile';
 import CandidatePublicProfile from './pages/CandidateProfile/CandidatePublicProfile';
 import Login from './pages/Authentication/Login';
+import ForgotPassword from './pages/Authentication/ForgotPassword';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import ProtectedRoute from './pages/ProtectedRoute';
 import JobPosting from './pages/JobPosting/JobPosting';
@@ -69,6 +70,7 @@ const router = createBrowserRouter([
   { path: "/auth", element: <AuthPage /> },
   { path: "/register", element: <Register /> },
   { path: "/login", element: <Login /> },
+  { path: "/forgot-password", element: <ForgotPassword /> },
   { path: "/verify-otp", element: <VerifyOTP /> },
   { path: "/setup-profile", element: <SetupProfilePage /> },
   { path: "/terms-of-service", element: <TermsOfService /> },

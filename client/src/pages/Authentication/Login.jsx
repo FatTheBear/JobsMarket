@@ -150,6 +150,10 @@ export default function Login() {
                       </button>
                     </div>
 
+                    <div className="text-center mt-3 mb-3">
+                      <Link to="/forgot-password">Forgot password?</Link>
+                    </div>
+
                     {/* Bottom text */}
                     <Link to="/register">
                       Don't have an account? Register here!
