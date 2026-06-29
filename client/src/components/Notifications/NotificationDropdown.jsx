@@ -35,12 +35,14 @@ export default function NotificationDropdown({ role }) {
   };
 
   useEffect(() => {
+    // 1. Gọi API 1 lần duy nhất khi vừa load xong
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 5000); // Fast polling every 5s
 
+    // 2. Lắng nghe event từ các file khác
     const handleRefresh = () => fetchNotifications();
     window.addEventListener('refreshNotifications', handleRefresh);
 
+    // 3. Lắng nghe Socket (Đã bỏ setInterval 5s đi cho nhẹ máy)
     if (socket) {
       const userId = localStorage.getItem('userId');
       if (userId) {
@@ -49,6 +51,7 @@ export default function NotificationDropdown({ role }) {
       socket.on('notification', handleRefresh);
     }
 
+    // 4. Xử lý click ra ngoài để đóng dropdown
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setIsOpen(false);
@@ -56,15 +59,15 @@ export default function NotificationDropdown({ role }) {
     };
     document.addEventListener('mousedown', handleClickOutside);
 
+    // Cleanup function: Dọn dẹp khi tắt component
     return () => {
-      clearInterval(interval);
       window.removeEventListener('refreshNotifications', handleRefresh);
       document.removeEventListener('mousedown', handleClickOutside);
       if (socket) {
         socket.off('notification', handleRefresh);
       }
     };
-  }, [socket]);
+  }, [socket]); // Mảng phụ thuộc đã chuẩn
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
@@ -120,17 +123,21 @@ export default function NotificationDropdown({ role }) {
                                 contentLower.includes('application') ||
                                 contentLower.includes('updated to');
 
-      if (role === 'candidate') {
-        if (isApplicationNoti) {
-          navigate('/candidate/my-profile/applied-jobs');
-        } else {
-          navigate('/candidate/my-profile');
-        }
-      } else if (role === 'company') {
-        if (isApplicationNoti) {
-          navigate('/company/applicants');
-        } else {
-          navigate('/company/activity-history');
+      // Đảm bảo biến role đã được khai báo ở trên cùng của component
+      // const role = localStorage.getItem('role'); 
+      if (typeof role !== 'undefined') {
+        if (role === 'candidate') {
+          if (isApplicationNoti) {
+            navigate('/candidate/my-profile/applied-jobs');
+          } else {
+            navigate('/candidate/my-profile');
+          }
+        } else if (role === 'company') {
+          if (isApplicationNoti) {
+            navigate('/company/applicants');
+          } else {
+            navigate('/company/activity-history');
+          }
         }
       }
     }
@@ -145,7 +152,6 @@ export default function NotificationDropdown({ role }) {
     if (title.includes('CV Rejected') || title.includes('Rejected')) return 'fas fa-times-circle';
     return 'fas fa-bell';
   };
-
   return (
     <div className="notification-dropdown-wrapper" ref={dropdownRef}>
       <button 
