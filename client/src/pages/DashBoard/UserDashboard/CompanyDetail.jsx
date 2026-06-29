@@ -48,15 +48,17 @@ const CompanyDetail = () => {
         return <div className={styles.topcvLayout}></div>;
     }
 
-    const coverStyle = company.cover_image_url
-        ? { backgroundImage: `url(${company.cover_image_url})` }
-        : {};
-
     const finalLogoUrl = getImageUrl(company.logo_url);
     const finalCoverUrl = company.cover_image_url ? getImageUrl(company.cover_image_url) : null;
+    const coverStyle = finalCoverUrl
+        ? { backgroundImage: `url(${finalCoverUrl})` }
+        : {};
+
     return (
         <div className={styles.topcvLayout}>
-            <div className={styles.topcvBanner} style={coverStyle}></div>
+            <div className={styles.topcvBanner} style={coverStyle}>
+                <div className={styles.topcvBannerOverlay} />
+            </div>
 
             <div className={styles.topcvMainContainer}>
 

@@ -22,6 +22,10 @@ function thumb(seed, bg = '01796F') {
   return `https://picsum.photos/seed/${seed}/800/450`;
 }
 
+function companyCover(seed) {
+  return `https://picsum.photos/seed/${seed}/1200/400`;
+}
+
 const SAMPLE_NEWS = [
   {
     category: 'Career Guide',
@@ -196,6 +200,7 @@ const SAMPLE_COMPANIES = [
     companyName: 'FPT Software',
     industryName: 'IT',
     logoUrl: 'https://ui-avatars.com/api/?name=FPT&background=01796F&color=fff&size=128',
+    coverUrl: companyCover('company-fpt'),
     website: 'https://fptsoftware.com',
     address: 'Ho Chi Minh City',
     size: '1000+',
@@ -227,6 +232,7 @@ const SAMPLE_COMPANIES = [
     companyName: 'VNG Corporation',
     industryName: 'IT',
     logoUrl: 'https://ui-avatars.com/api/?name=VNG&background=2563eb&color=fff&size=128',
+    coverUrl: companyCover('company-vng'),
     website: 'https://vng.com.vn',
     address: 'Ho Chi Minh City',
     size: '1000+',
@@ -249,6 +255,7 @@ const SAMPLE_COMPANIES = [
     companyName: 'MoMo',
     industryName: 'Finance',
     logoUrl: 'https://ui-avatars.com/api/?name=MoMo&background=d946ef&color=fff&size=128',
+    coverUrl: companyCover('company-momo'),
     website: 'https://momo.vn',
     address: 'Ho Chi Minh City',
     size: '500-1000',
@@ -271,6 +278,7 @@ const SAMPLE_COMPANIES = [
     companyName: 'Shopee Vietnam',
     industryName: 'Marketing',
     logoUrl: 'https://ui-avatars.com/api/?name=Shopee&background=ea580c&color=fff&size=128',
+    coverUrl: companyCover('company-shopee'),
     website: 'https://careers.shopee.vn',
     address: 'Ho Chi Minh City',
     size: '1000+',
@@ -293,6 +301,7 @@ const SAMPLE_COMPANIES = [
     companyName: 'Grab Vietnam',
     industryName: 'Marketing',
     logoUrl: 'https://ui-avatars.com/api/?name=Grab&background=16a34a&color=fff&size=128',
+    coverUrl: companyCover('company-grab'),
     website: 'https://www.grab.com/vn',
     address: 'Ho Chi Minh City',
     size: '500-1000',
@@ -402,10 +411,10 @@ async function upsertCompany(conn, hrId, industryId, data) {
   const [rows] = await conn.query('SELECT id FROM company WHERE hr_id = ? LIMIT 1', [hrId]);
   if (rows.length) {
     await conn.query(
-      `UPDATE company SET industry_id = ?, name = ?, logo_url = ?, website = ?, address = ?,
+      `UPDATE company SET industry_id = ?, name = ?, logo_url = ?, cover_image_url = ?, website = ?, address = ?,
        size = ?, description = ?, hr_name = ?, status = 'Active' WHERE id = ?`,
       [
-        industryId, data.companyName, data.logoUrl, data.website, data.address,
+        industryId, data.companyName, data.logoUrl, data.coverUrl || null, data.website, data.address,
         data.size, data.description, data.hrName, rows[0].id,
       ]
     );
@@ -413,10 +422,10 @@ async function upsertCompany(conn, hrId, industryId, data) {
   }
   const [result] = await conn.query(
     `INSERT INTO company (
-      hr_id, industry_id, name, logo_url, website, address, size, description, hr_name, status, pro_package
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', 'Free')`,
+      hr_id, industry_id, name, logo_url, cover_image_url, website, address, size, description, hr_name, status, pro_package
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Active', 'Free')`,
     [
-      hrId, industryId, data.companyName, data.logoUrl, data.website,
+      hrId, industryId, data.companyName, data.logoUrl, data.coverUrl || null, data.website,
       data.address, data.size, data.description, data.hrName,
     ]
   );
