@@ -29,9 +29,21 @@ Các file được tổ chức tại thư mục `client/src/pages/CandidateProfi
     *   Hiển thị danh sách các CV đã tải lên, cho phép tải xuống hoặc xóa CV.
 *   **`CandidateExportModal.jsx` (Xuất bản CV):**
     *   Cung cấp tính năng chuyển đổi dữ liệu hồ sơ cá nhân hiện tại thành CV chuyên nghiệp dưới định dạng Word (`.doc`) hoặc lưu/in dưới dạng PDF (`.pdf`).
-*   **`CandidateAppliedJobs.jsx` & `CandidateApplications.jsx` (Lịch sử ứng tuyển):**
-    *   Hiển thị các vị trí công việc ứng viên đã nộp hồ sơ cùng với CV tương ứng đã sử dụng.
-    *   Cập nhật trạng thái ứng tuyển thực tế từ nhà tuyển dụng: `Applied` (Đã nộp), `Reviewing` (Đang duyệt), `Interviewing` (Đang phỏng vấn), `Offered` (Được nhận), `Rejected` (Bị từ chối).
+*   **`CandidateAppliedJobs.jsx`, `CandidateAppliedJobsPage.jsx` & `CandidateApplications.jsx` (Lịch sử ứng tuyển):**
+    *   `CandidateAppliedJobs.jsx` hiển thị lịch sử ứng tuyển dưới dạng modal overlay.
+    *   `CandidateAppliedJobsPage.jsx` hiển thị lịch sử ứng tuyển dưới dạng trang bảng chi tiết, tích hợp Socket.io để tự động cập nhật trạng thái ứng tuyển thời gian thực (`application_status_updated`).
+    *   Hiển thị thông tin bao gồm: Vai trò ứng tuyển, loại hình công việc, cấp bậc công việc, ngày nộp, CV đính kèm và trạng thái duyệt (`Applied`, `Reviewing`, `Interviewing`, `Offered`, `Rejected`).
+*   **`CandidateSavedJobs.jsx` (Công việc đã lưu):**
+    *   Hiển thị danh sách các tin tuyển dụng ứng viên đã lưu lại để ứng tuyển sau.
+    *   Dữ liệu được lưu trữ và đồng bộ hóa tại Local Storage của trình duyệt qua key `candidate_favorite_jobs`.
+*   **`CandidateActivityHistory.jsx` (Lịch sử hoạt động tương tác):**
+    *   Giao diện quản lý các hoạt động tương tác trên mạng xã hội của ứng viên gồm 3 danh mục: Bài viết đã thích (Liked Posts), Bình luận đã viết (Comments) và Bài viết đã chia sẻ (Shared).
+    *   Tích hợp thanh tìm kiếm từ khóa và bộ lọc linh hoạt theo thời gian (Năm / Tháng).
+    *   Tích hợp các hành động tương tác trực tiếp: Bỏ thích bài đăng, xóa bình luận hoạt động, hoặc gỡ bỏ chia sẻ.
+    *   Tích hợp Modal hiển thị chi tiết bài đăng gốc kèm theo danh sách bình luận đầy đủ và cho phép người dùng thao tác trực tiếp (Like, Comment, Repost, Edit/Delete bài đăng của bản thân) mà không cần thoát modal.
+*   **`CandidatePublicProfile.jsx` (Hồ sơ công khai):**
+    *   Giao diện hiển thị hồ sơ cá nhân của ứng viên cho nhà tuyển dụng hoặc người dùng khác truy cập.
+    *   Hiển thị các thông tin bao gồm học vấn, kinh nghiệm làm việc, kỹ năng, ngoại ngữ, chứng chỉ, giải thưởng, mạng xã hội liên kết (GitHub, LinkedIn, Facebook...) và danh sách các bài viết cá nhân đã đăng.
 
 ### B. Logic xử lý phía Backend
 *   **Database Schema:**
@@ -43,6 +55,8 @@ Các file được tổ chức tại thư mục `client/src/pages/CandidateProfi
     *   `PUT /api/candidate/profile`: Nhận payload cập nhật hồ sơ, xử lý tải ảnh đại diện thông qua middleware `uploadAvatar` (lưu trữ vật lý trên server và trả về đường dẫn URL).
     *   `POST /api/candidate/upload-cv`: Sử dụng middleware `uploadCv` kiểm tra loại file và dung lượng trước khi lưu vào thư mục `/uploads/cvs` và lưu thông tin vào bảng `cv`.
     *   `POST /api/candidate/apply`: Ghi nhận ứng viên nộp hồ sơ vào tin tuyển dụng. Kiểm tra xem ứng viên đã ứng tuyển công việc này chưa để tránh gửi trùng lặp.
+    *   `GET /api/candidate/public/:id`: Truy xuất thông tin hồ sơ công khai của ứng viên bằng `user_id` hoặc `profile_id`. Tích hợp cơ chế kiểm tra quyền riêng tư (Privacy validation): nếu `is_public` bằng 0 (chế độ riêng tư), hệ thống sẽ từ chối truy cập (403 Forbidden) trừ khi là chủ sở hữu tài khoản hoặc Admin. Tự động parse các cấu trúc dữ liệu JSON và tính toán tổng số năm kinh nghiệm từ danh sách lịch sử công tác.
+    *   `GET /api/candidate/public/:id/cvs`: Lấy danh sách tài liệu CV được chia sẻ công khai của ứng viên để nhà tuyển dụng có thể tải xuống hoặc tham chiếu.
 
 ---
 
@@ -70,6 +84,8 @@ Mạng xã hội nội bộ dành cho ứng viên và nhà tuyển dụng giao l
     *   `POST /api/posts/:id/like`: Cơ chế Toggle Like - Nếu chưa thích thì thêm bản ghi vào `Post_Like`, nếu thích rồi thì xóa bản ghi đó đi.
     *   `POST /api/posts/:id/comments`: Tạo bình luận mới. Hỗ trợ tạo phản hồi (Reply) cho một bình luận khác bằng cách liên kết thông qua trường khóa ngoại `parent_comment_id`.
     *   `POST /api/posts/:id/repost`: Tạo một bài đăng mới có liên kết `parent_post_id` trỏ tới bài viết gốc để thực hiện chức năng chia sẻ.
+    *   `GET /api/posts/activity/history`: Lấy toàn bộ lịch sử tương tác của người dùng hiện tại (bài viết đã thích, các bình luận cá nhân đã viết, bài viết đã repost chia sẻ) thông qua các truy vấn kết hợp (JOIN) đa bảng để tối ưu hiệu năng.
+    *   `DELETE /api/posts/comments/:commentId`: Xóa bình luận cụ thể, kiểm tra quyền sở hữu (chỉ chính tác giả bình luận hoặc Admin mới được phép xóa).
 
 ---
 
