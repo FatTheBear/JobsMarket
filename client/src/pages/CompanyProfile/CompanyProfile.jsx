@@ -406,7 +406,7 @@ return (
                   style={coverPreview ? { backgroundImage: `url(${coverPreview})` } : { background: 'linear-gradient(135deg, #01796F 0%, #015c54 100%)' }}
                 ></div>
                 
-                <div style={{ position: 'relative' }}>
+                <div className={styles.previewContentRow} style={{ position: 'relative' }}>
                   <div className={styles.previewLogoBox}>
                     <img src={logoPreview || '/img/default-avatar.png'} alt="Company Logo" />
                   </div>

@@ -260,11 +260,26 @@ export default function AppliedCandidates() {
                   </td>
                   <td onClick={(e) => e.stopPropagation()} className="text-center">
                     <button
-                      title={savedSet.has(cand.candidate_id) ? 'Saved' : 'Save Candidate'}
                       onClick={(e) => toggleSaveCandidate(e, cand.candidate_id)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', color: savedSet.has(cand.candidate_id) ? '#00b14f' : '#94a3b8', transition: 'color 0.2s' }}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
+                        padding: "6px 12px",
+                        borderRadius: "20px",
+                        fontWeight: 600,
+                        fontSize: "0.85rem",
+                        cursor: "pointer",
+                        background: savedSet.has(cand.candidate_id) ? "#f0fdf4" : "transparent",
+                        color: savedSet.has(cand.candidate_id) ? "#00b14f" : "#64748b",
+                        border: savedSet.has(cand.candidate_id) ? "1.5px solid #00b14f" : "1.5px solid #cbd5e1",
+                        boxShadow: savedSet.has(cand.candidate_id) ? "0 2px 8px rgba(0,177,79,0.1)" : "none",
+                        transition: "all 0.2s"
+                      }}
                     >
                       <i className={savedSet.has(cand.candidate_id) ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark'}></i>
+                      {savedSet.has(cand.candidate_id) ? "Saved" : "Save"}
                     </button>
                   </td>
 
