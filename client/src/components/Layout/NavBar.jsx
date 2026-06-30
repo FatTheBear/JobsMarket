@@ -137,13 +137,13 @@ export default function NavBar() {
           console.log('NavBar - profileUpdatedWithAvatar received:', received ? (received.substring ? received.substring(0, 100) : received) : received);
           if (!received) return;
           let final = received;
-          if (!final.startsWith('http') && !final.startsWith('data:')) {
+          if (!final.startsWith('http') && !final.startsWith('data:') && !final.startsWith('blob:')) {
             final = final.startsWith('/') ? `${API_URL}${final}` : `${API_URL}/${final}`;
           }
           console.log('NavBar - profileUpdatedWithAvatar final avatarUrl (pre-fetch):', final.substring ? final.substring(0, 200) : final);
 
-          // If it's a data URL, set directly
-          if (final.startsWith('data:')) {
+          // If it's a data or blob URL, set directly
+          if (final.startsWith('data:') || final.startsWith('blob:')) {
             setAvatarUrl(final);
             return;
           }
