@@ -142,7 +142,7 @@ router.post('/', authMiddleware, async (req, res) => {
 
         await connection.execute('UPDATE User SET coins = coins - ? WHERE id = ?', [coinsRequired, user_id]);
         await connection.execute(
-          `INSERT INTO Transaction (user_id, amount_fiat, coins, type, payment_method, status, reference_code) VALUES (?, 0, ?, 'spend', 'system', 'completed', ?)`,
+          `INSERT INTO Transaction (user_id, amount_fiat, coins, type, payment_method, status, reference_code) VALUES (?, 0, ?, 'purchase', 'system', 'completed', ?)`,
           [user_id, coinsRequired, `PRO_SUB_${post_type.toUpperCase()}_${Date.now()}`]
         );
 

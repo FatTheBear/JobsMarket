@@ -663,9 +663,9 @@ async function runMigration() {
         console.log('Adding company_bio and cover_image_url columns to Company table...');
         try {
             await pool.query(`
-                ALTER TABLE `Company`
-                ADD COLUMN IF NOT EXISTS `company_bio` TEXT DEFAULT NULL COMMENT 'Company description/biography',
-                ADD COLUMN IF NOT EXISTS `cover_image_url` VARCHAR(255) DEFAULT NULL COMMENT 'Company cover image URL'
+                ALTER TABLE Company
+                ADD COLUMN IF NOT EXISTS company_bio TEXT DEFAULT NULL,
+                ADD COLUMN IF NOT EXISTS cover_image_url VARCHAR(255) DEFAULT NULL
             `);
             console.log('-> company_bio and cover_image_url columns added to Company table.');
         } catch (err) {
