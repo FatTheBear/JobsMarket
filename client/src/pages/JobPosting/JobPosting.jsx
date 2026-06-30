@@ -209,7 +209,6 @@ export default function JobPosting() {
   const isProCurrentlyActive = proExpiredAt && new Date(proExpiredAt) >= new Date();
 
   const handleSubmit = async (e) => {
-    console.log("Nút đã được bấm!");
     if (e) e.preventDefault();
 
     let newErrors = {};
@@ -307,8 +306,7 @@ export default function JobPosting() {
     }
 
     setErrors(newErrors);
-    
-      return;
+
     if (Object.keys(newErrors).length > 0) {
       return;
     }
