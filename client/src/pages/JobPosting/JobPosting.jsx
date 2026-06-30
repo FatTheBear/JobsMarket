@@ -308,7 +308,6 @@ export default function JobPosting() {
 
     setErrors(newErrors);
     
-      return;
     if (Object.keys(newErrors).length > 0) {
       return;
     }
