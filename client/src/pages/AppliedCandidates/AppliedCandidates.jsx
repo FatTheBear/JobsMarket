@@ -5,10 +5,30 @@ import { ModalContext } from '../Admin/ModalProvider';
 import './AppliedCandidates.css';
 import CustomDatePicker from '../../components/CustomDatePicker';
 
-const getAvatarSrc = (avatar, apiUrl) => {
-  if (!avatar) return '/default-avatar.png';
+const API_URL = 'http://localhost:5000';
+
+const getAvatarSrc = (avatar) => {
+  if (!avatar) return null;
   if (avatar.startsWith('http') || avatar.startsWith('data:image')) return avatar;
-  return `${apiUrl}/${avatar.replace(/^\//, '')}`;
+  return `${API_URL}/${avatar.replace(/^\//, '')}`;
+};
+
+const AvatarImg = ({ src, name }) => {
+  const [errored, setErrored] = React.useState(false);
+  const initials = (name || '?').charAt(0).toUpperCase();
+  if (!src || errored) {
+    return (
+      <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#475569', fontSize: 16, flexShrink: 0, border: '2px solid #cbd5e1' }}>{initials}</div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt="avatar"
+      onError={() => setErrored(true)}
+      style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid #cbd5e1' }}
+    />
+  );
 };
 
 export default function AppliedCandidates() {
@@ -16,6 +36,7 @@ export default function AppliedCandidates() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [savedSet, setSavedSet] = useState(new Set());
   const navigate = useNavigate();
   const { showConfirm } = useContext(ModalContext);
   const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
@@ -26,7 +47,31 @@ export default function AppliedCandidates() {
 
   useEffect(() => {
     fetchCandidates();
+    fetchSavedList();
   }, []);
+
+  const fetchSavedList = async () => {
+    try {
+      const userId = localStorage.getItem('userId');
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_URL}/api/company/${userId}/saved-candidates`, { headers: { Authorization: `Bearer ${token}` } });
+      setSavedSet(new Set(res.data.map(c => c.candidate_id)));
+    } catch {}
+  };
+
+  const toggleSaveCandidate = async (e, candidateId) => {
+    e.stopPropagation();
+    try {
+      const userId = localStorage.getItem('userId');
+      const token = localStorage.getItem('token');
+      await axios.post(`${API_URL}/api/company/${userId}/saved-candidates/${candidateId}`, {}, { headers: { Authorization: `Bearer ${token}` } });
+      setSavedSet(prev => {
+        const next = new Set(prev);
+        if (next.has(candidateId)) { next.delete(candidateId); } else { next.add(candidateId); }
+        return next;
+      });
+    } catch { alert('Failed to save candidate'); }
+  };
 
   const fetchCandidates = async () => {
     try {
@@ -146,6 +191,7 @@ export default function AppliedCandidates() {
               <th>Skills</th>
               <th className="text-center">Attachment</th>
               <th>Status</th>
+              <th className="text-center">Save</th>
             </tr>
           </thead>
           <tbody>
@@ -159,12 +205,7 @@ export default function AppliedCandidates() {
                   <td onClick={(e) => e.stopPropagation()}>
                     <div className="d-flex align-items-center gap-3">
                       <Link to={`/candidate/${cand.candidate_id}`}>
-                        <img
-                          src={getAvatarSrc(cand.candidate_avatar, API_URL)}
-                          alt="avatar"
-                          className="rounded-circle object-fit-cover avatar-border flex-shrink-0"
-                          onError={(e) => { e.target.onerror = null; e.target.src = '/default-avatar.png'; }}
-                        />
+                        <AvatarImg src={getAvatarSrc(cand.candidate_avatar)} name={cand.candidate_name} />
                       </Link>
                       <Link to={`/candidate/${cand.candidate_id}`} className="fw-semibold text-decoration-none" style={{ color: '#01796F' }}>
                         {cand.candidate_name}
@@ -216,6 +257,30 @@ export default function AppliedCandidates() {
                       <option value="Offered" className="opt-offered">Hired / Offered</option>
                       <option value="Rejected" className="opt-rejected">Rejected</option>
                     </select>
+                  </td>
+                  <td onClick={(e) => e.stopPropagation()} className="text-center">
+                    <button
+                      onClick={(e) => toggleSaveCandidate(e, cand.candidate_id)}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "6px",
+                        padding: "6px 12px",
+                        borderRadius: "20px",
+                        fontWeight: 600,
+                        fontSize: "0.85rem",
+                        cursor: "pointer",
+                        background: savedSet.has(cand.candidate_id) ? "#f0fdf4" : "transparent",
+                        color: savedSet.has(cand.candidate_id) ? "#00b14f" : "#64748b",
+                        border: savedSet.has(cand.candidate_id) ? "1.5px solid #00b14f" : "1.5px solid #cbd5e1",
+                        boxShadow: savedSet.has(cand.candidate_id) ? "0 2px 8px rgba(0,177,79,0.1)" : "none",
+                        transition: "all 0.2s"
+                      }}
+                    >
+                      <i className={savedSet.has(cand.candidate_id) ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark'}></i>
+                      {savedSet.has(cand.candidate_id) ? "Saved" : "Save"}
+                    </button>
                   </td>
 
                 </tr>

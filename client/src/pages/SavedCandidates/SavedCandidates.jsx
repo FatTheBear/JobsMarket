@@ -4,6 +4,30 @@ import './SavedCandidates.css';
 
 const API_URL = 'http://localhost:5000';
 
+const getAvatarSrc = (avatar) => {
+  if (!avatar) return null;
+  if (avatar.startsWith('http') || avatar.startsWith('data:image')) return avatar;
+  return `${API_URL}/${avatar.replace(/^\//, '')}`;
+};
+
+const AvatarImg = ({ src, name }) => {
+  const [errored, setErrored] = React.useState(false);
+  const initials = (name || '?').charAt(0).toUpperCase();
+  if (!src || errored) {
+    return (
+      <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#475569', fontSize: 16, flexShrink: 0, border: '2px solid #cbd5e1' }}>{initials}</div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt="avatar"
+      onError={() => setErrored(true)}
+      style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid #cbd5e1' }}
+    />
+  );
+};
+
 export default function SavedCandidates() {
   const [savedCandidates, setSavedCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,11 +97,7 @@ export default function SavedCandidates() {
                   <tr key={candidate.candidate_id} className="sc-data-row" onClick={() => openProfile(candidate)}>
                     <td>
                       <div className="sc-candidate-info">
-                        <img 
-                          src={candidate.avatar_url || 'https://via.placeholder.com/40'} 
-                          alt="avatar" 
-                          className="sc-avatar"
-                        />
+                        <AvatarImg src={getAvatarSrc(candidate.avatar_url)} name={candidate.full_name} />
                         <div>
                           <div className="sc-candidate-name">{candidate.full_name}</div>
                           <div className="sc-candidate-meta">

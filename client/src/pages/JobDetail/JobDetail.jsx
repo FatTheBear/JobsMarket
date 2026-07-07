@@ -45,6 +45,15 @@ export default function JobDetail({ hideCompanyInfo: hideCompanyInfoProp }) {
 
   useEffect(() => {
     fetchJobDetail();
+    
+    // Check saved status
+    try {
+      const stored = localStorage.getItem('candidate_favorite_jobs');
+      if (stored) {
+        const favorites = JSON.parse(stored);
+        setIsSaved(favorites.some(item => item.id === Number(id) || String(item.id) === String(id)));
+      }
+    } catch (e) {}
   }, [id]);
 
   useEffect(() => {
@@ -161,7 +170,40 @@ export default function JobDetail({ hideCompanyInfo: hideCompanyInfoProp }) {
   const displaySkills = job?.fetchedSkills || job?.skills || jobMeta?.skills || job?.selected_skills || jobMeta?.selected_skills || [];
   
   const toggleSaveJob = () => {
-    setIsSaved(!isSaved);
+    try {
+      const stored = localStorage.getItem('candidate_favorite_jobs');
+      const favorites = stored ? JSON.parse(stored) : [];
+      const numId = Number(id);
+      const existingIndex = favorites.findIndex(item => Number(item.id) === numId);
+
+      let updatedFavorites;
+      if (existingIndex >= 0) {
+        updatedFavorites = favorites.filter(item => Number(item.id) !== numId);
+      } else {
+        const favoriteJob = {
+          id: numId,
+          title: job.title,
+          company_name: job.company_name,
+          logo_url: job.company_logo || job.logo_url,
+          job_type: job.job_type,
+          salary_min: job.salary_min,
+          salary_max: job.salary_max,
+          province: job.province,
+          district: job.district,
+          exact_address: job.exact_address,
+          saved_at: new Date().toISOString()
+        };
+        updatedFavorites = [...favorites, favoriteJob];
+      }
+
+      localStorage.setItem('candidate_favorite_jobs', JSON.stringify(updatedFavorites));
+      setIsSaved(existingIndex < 0);
+      window.dispatchEvent(new Event('favoriteJobsUpdated'));
+      showToast(existingIndex < 0 ? 'Job saved to favorites' : 'Job removed from favorites', 'success');
+    } catch (err) {
+      console.error('Failed to save job preference:', err);
+      showToast('Failed to save job', 'error');
+    }
   };
   
   const getDaysLeft = (deadline) => {
@@ -272,7 +314,7 @@ export default function JobDetail({ hideCompanyInfo: hideCompanyInfoProp }) {
             company={{
               id: job?.company_id,
               name: job?.company_name,
-              logo_url: job?.company_logo || job?.logo_url,
+              logo_url: getValidLogo(job?.company_logo || job?.logo_url),
               size: job?.company_size,
               industry_name: job?.industry_name,
               address: job?.company_address

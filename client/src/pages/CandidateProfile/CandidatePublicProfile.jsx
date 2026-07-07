@@ -78,6 +78,8 @@ export default function CandidatePublicProfile() {
   const [workExperiences, setWorkExperiences] = useState([]);
   const [followedBusinesses, setFollowedBusinesses] = useState([]);
   const [candidatePosts, setCandidatePosts] = useState([]);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isHR, setIsHR] = useState(false);
   const [languages, setLanguages] = useState([]);
   const [certifications, setCertifications] = useState([]);
   const [awards, setAwards] = useState([]);
@@ -87,8 +89,47 @@ export default function CandidatePublicProfile() {
   const [showPersonalInfo, setShowPersonalInfo] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const API_URL = 'http://localhost:5000';
+
+  const toggleSave = async () => {
+    const token = localStorage.getItem('token');
+    const userId = localStorage.getItem('userId');
+    try {
+      if (isSaved) {
+        await axiosInstance.delete(`${API_URL}/api/company/${userId}/saved-candidates/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setIsSaved(false);
+      } else {
+        await axiosInstance.post(`${API_URL}/api/company/${userId}/saved-candidates`, { candidate_id: id }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setIsSaved(true);
+      }
+    } catch (err) {
+      console.error("Error saving candidate:", err);
+    }
+  };
 
   useEffect(() => {
+    // Detect if current user is HR
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+        if (payload.role === 'HR') {
+          setIsHR(true);
+          // Check if this candidate is already saved
+          const userId = localStorage.getItem('userId');
+          axiosInstance.get(`${API_URL}/api/company/${userId}/saved-candidates`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }).then(res => {
+            const savedIds = res.data.map(c => c.candidate_id);
+            setIsSaved(savedIds.includes(Number(id)));
+          }).catch(() => {});
+        }
+      }
+    } catch {}
     const handleOutsideClick = () => {
       setShowCvDropdown(false);
     };
@@ -379,6 +420,25 @@ export default function CandidatePublicProfile() {
                 )}
               </div>
             </div>
+            {/* Save Candidate - HR only */}
+            {isHR && (
+              <div className="mb-2">
+                <button
+                  onClick={async () => {
+                    try {
+                      const userId = localStorage.getItem("userId");
+                      const token = localStorage.getItem("token");
+                      await axiosInstance.post(API_URL + "/api/company/" + userId + "/saved-candidates/" + id, {}, { headers: { Authorization: "Bearer " + token } });
+                      setIsSaved(prev => !prev);
+                    } catch (err) { alert("Failed to save candidate"); }
+                  }}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 22px", borderRadius: "50px", fontWeight: 600, fontSize: "0.95rem", cursor: "pointer", background: isSaved ? "#f0fdf4" : "#00b14f", color: isSaved ? "#00b14f" : "#fff", border: isSaved ? "1.5px solid #00b14f" : "none", boxShadow: "0 2px 8px rgba(0,177,79,0.15)" }}
+                >
+                  <i className={isSaved ? "fa-solid fa-bookmark" : "fa-regular fa-bookmark"}></i>
+                  {isSaved ? "Saved" : "Save Candidate"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

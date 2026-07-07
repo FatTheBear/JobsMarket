@@ -400,46 +400,34 @@ return (
 
           {activeTab === 0 && (
             <div className={styles.tabContent}>
-              {/* Preview header similar to public company profile (cover, logo, name, industry) */}
-              {/* removed preview header - reverted to simpler Images card */}
-              <div className={styles.card}>
-                <div className={styles.cardHeader}>Company Images</div>
-                <div className={styles.cardBody}>
-                  { (logoPreview || coverPreview) ? (
-                    <div className={styles.logoRow}>
-                      <div className={styles.coverPreview}>
-                        {coverPreview ? <img src={coverPreview} alt="Cover" /> : null}
-                      </div>
-                      <div className={styles.logoPreview}>
-                        {logoPreview ? <img src={logoPreview} alt="Logo" /> : null}
-                      </div>
-                      <div className={styles.logoActions}>
-                        <p className={styles.logoHint}>Formats: JPG, PNG, GIF, WEBP · Max 5MB</p>
-                        <div className={styles.logoButtons}>
-                          <input ref={coverInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleCoverChange} />
-                          <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleLogoChange} />
-                          <button type="button" className={styles.btnSecondary} onClick={() => fileInputRef.current.click()}>Select Logo</button>
-                          <button type="button" className={styles.btnSecondary} onClick={() => coverInputRef.current.click()}>Select Cover</button>
-                          {logoPreview && (
-                            <button type="button" className={styles.btnDanger} onClick={() => { setLogoPreview(null); setForm(p => ({ ...p, logoFile: null, logo_url: '' })); }}>Remove Logo</button>
-                          )}
-                          {coverPreview && (
-                            <button type="button" className={styles.btnDanger} onClick={() => { setCoverPreview(null); setForm(p => ({ ...p, coverFile: null, cover_image_url: '' })); }}>Remove Cover</button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className={styles.logoActions}>
-                      <p className={styles.logoHint}>Formats: JPG, PNG, GIF, WEBP · Max 5MB</p>
+              <div className={styles.previewHeader}>
+                <div 
+                  className={styles.previewCover} 
+                  style={coverPreview ? { backgroundImage: `url(${coverPreview})` } : { background: 'linear-gradient(135deg, #01796F 0%, #015c54 100%)' }}
+                ></div>
+                
+                <div className={styles.previewContentRow} style={{ position: 'relative' }}>
+                  <div className={styles.previewLogoBox}>
+                    <img src={logoPreview || '/img/default-avatar.png'} alt="Company Logo" />
+                  </div>
+                  
+                  <div className={styles.previewInfo} style={{ flex: 1 }}>
+                    <div className={styles.logoActions} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <p className={styles.logoHint} style={{ margin: 0, fontWeight: 500 }}>Update Company Images (Formats: JPG, PNG, GIF · Max 5MB)</p>
                       <div className={styles.logoButtons}>
                         <input ref={coverInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleCoverChange} />
                         <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleLogoChange} />
                         <button type="button" className={styles.btnSecondary} onClick={() => fileInputRef.current.click()}>Select Logo</button>
                         <button type="button" className={styles.btnSecondary} onClick={() => coverInputRef.current.click()}>Select Cover</button>
+                        {logoPreview && (
+                          <button type="button" className={styles.btnDanger} onClick={() => { setLogoPreview(null); setForm(p => ({ ...p, logoFile: null, logo_url: '' })); }}>Remove Logo</button>
+                        )}
+                        {coverPreview && (
+                          <button type="button" className={styles.btnDanger} onClick={() => { setCoverPreview(null); setForm(p => ({ ...p, coverFile: null, cover_image_url: '' })); }}>Remove Cover</button>
+                        )}
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
 
